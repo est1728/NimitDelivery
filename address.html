@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+<title>ที่อยู่จัดส่ง - Nimit Delivery</title>
+<style>
+:root{
+  --primary:#0c4aa6;--primary-dark:#083570;--primary-light:#e8f0fe;
+  --gray:#f5f6f8;--text:#0f172a;--subtext:#64748b;
+  --green:#16a34a;--green-light:#dcfce7;
+  --red:#dc2626;--red-light:#fee2e2;
+  --shadow-sm:0 1px 3px rgba(15,23,42,0.05);
+  --shadow-md:0 4px 14px rgba(15,23,42,0.07);
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Arial',sans-serif;-webkit-tap-highlight-color:transparent;}
+body{background:var(--gray);min-height:100vh;padding-bottom:24px;}
+@keyframes popIn{from{transform:scale(0.92);opacity:0}to{transform:scale(1);opacity:1}}
+
+.topbar{background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:14px 16px;color:#fff;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;}
+.back-btn{width:38px;height:38px;border:none;border-radius:12px;background:rgba(255,255,255,0.18);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.back-btn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2.5;}
+.topbar-title{font-size:17px;font-weight:800;flex:1;}
+.add-btn-top{height:34px;padding:0 14px;border:none;border-radius:20px;background:rgba(255,255,255,0.18);color:#fff;font-size:13px;font-weight:700;cursor:pointer;}
+
+.empty-state{text-align:center;padding:80px 24px;}
+.empty-icon{width:72px;height:72px;border-radius:50%;background:#fff;box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+.empty-icon svg{width:32px;height:32px;fill:#cbd5e1;}
+.empty-title{font-size:16px;font-weight:800;color:var(--text);margin-bottom:6px;}
+.empty-sub{font-size:13px;color:var(--subtext);margin-bottom:20px;}
+.empty-add-btn{height:48px;padding:0 32px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:15px;font-weight:700;cursor:pointer;}
+
+.addr-list{padding:14px 16px;}
+.addr-card{background:#fff;border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow-sm);display:flex;align-items:flex-start;gap:14px;position:relative;}
+.addr-card.default{border:2px solid var(--primary);}
+.addr-card-icon{width:44px;height:44px;border-radius:14px;background:var(--primary-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.addr-card-icon svg{width:22px;height:22px;fill:var(--primary);}
+.addr-card-body{flex:1;min-width:0;}
+.addr-card-top{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.addr-card-name{font-size:15px;font-weight:800;color:var(--text);}
+.default-badge{font-size:11px;font-weight:700;background:var(--primary);color:#fff;padding:2px 8px;border-radius:20px;}
+.addr-card-phone{font-size:13px;color:var(--subtext);margin-bottom:4px;}
+.addr-card-text{font-size:13px;color:var(--text);line-height:1.5;}
+.addr-card-actions{display:flex;gap:8px;margin-top:10px;}
+.addr-action-btn{height:32px;padding:0 14px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;}
+.btn-edit{background:var(--primary-light);color:var(--primary);}
+.btn-default{background:var(--green-light);color:var(--green);}
+.btn-del{background:var(--red-light);color:var(--red);}
+
+/* FORM SHEET */
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:400;display:none;}
+.sheet-overlay.show{display:block;}
+.form-sheet{position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:22px 22px 0 0;z-index:401;max-height:95vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform 0.3s ease;}
+.form-sheet.show{transform:translateY(0);}
+.sheet-handle{width:36px;height:4px;background:#e2e8f0;border-radius:2px;margin:12px auto 0;flex-shrink:0;}
+.sheet-head{padding:12px 20px 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:1px solid #f0f2f5;}
+.sheet-title{font-size:16px;font-weight:800;color:var(--text);}
+.sheet-close{width:30px;height:30px;border:none;border-radius:50%;background:var(--gray);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.sheet-close svg{width:14px;height:14px;fill:var(--subtext);}
+.form-body{flex:1;overflow-y:auto;padding:16px 20px;}
+.form-field{margin-bottom:16px;}
+.form-label{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.form-input{width:100%;height:50px;border:2px solid #e8eaf0;border-radius:14px;padding:0 16px;font-size:15px;outline:none;background:#fafbfc;}
+.form-input:focus{border-color:var(--primary);}
+.map-wrap{border-radius:14px;overflow:hidden;border:2px solid #e8eaf0;position:relative;margin-bottom:8px;}
+#formMap{height:220px;}
+.gps-btn{position:absolute;top:10px;right:10px;z-index:999;width:42px;height:42px;border-radius:50%;background:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.2);}
+.gps-btn svg{width:20px;height:20px;fill:var(--primary);}
+.coords-hint{font-size:12px;color:var(--subtext);margin-bottom:16px;}
+.coords-hint.has-pin{color:var(--green);font-weight:700;}
+.sheet-footer{padding:12px 20px 28px;flex-shrink:0;border-top:1px solid #f0f2f5;}
+.save-btn{width:100%;height:52px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(12,74,166,0.3);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <button class="back-btn" onclick="history.back()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+  <div class="topbar-title">ที่อยู่จัดส่ง</div>
+  <button class="add-btn-top" onclick="openForm()">+ เพิ่ม</button>
+</div>
+
+<div id="content"></div>
+
+<!-- FORM SHEET -->
+<div class="sheet-overlay" id="sheetOverlay" onclick="closeForm()"></div>
+<div class="form-sheet" id="formSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head">
+    <div class="sheet-title" id="formTitle">เพิ่มที่อยู่ใหม่</div>
+    <button class="sheet-close" onclick="closeForm()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+  </div>
+  <div class="form-body">
+    <div class="form-field"><div class="form-label">ชื่อผู้รับ</div><input class="form-input" id="f-name" placeholder="เช่น บ้าน, ที่ทำงาน, คุณนิด"></div>
+    <div class="form-field"><div class="form-label">เบอร์โทร</div><input class="form-input" id="f-phone" type="tel" placeholder="08X-XXX-XXXX"></div>
+    <div class="form-field">
+      <div class="form-label">รายละเอียดที่อยู่</div>
+      <input class="form-input" id="f-address" placeholder="บ้านเลขที่ ซอย ถนน จุดสังเกต">
+    </div>
+    <div class="form-field">
+      <div class="form-label">ปักหมุดตำแหน่ง (แตะแผนที่หรือใช้ GPS)</div>
+      <div class="map-wrap">
+        <div id="formMap"></div>
+        <button class="gps-btn" onclick="getGPS()"><svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06z"/></svg></button>
+      </div>
+      <div class="coords-hint" id="coordsHint">แตะแผนที่เพื่อปักหมุดที่อยู่</div>
+    </div>
+  </div>
+  <div class="sheet-footer"><button class="save-btn" onclick="saveAddress()">บันทึกที่อยู่</button></div>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+let addresses = JSON.parse(localStorage.getItem("addresses")||"[]");
+let defaultIdx = parseInt(localStorage.getItem("defaultAddress")||"0");
+let editIdx = -1;
+let formMap = null, formMarker = null, pinLat = null, pinLng = null;
+
+function renderList(){
+  const el = document.getElementById("content");
+  if(!addresses.length){
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg></div><div class="empty-title">ยังไม่มีที่อยู่</div><div class="empty-sub">เพิ่มที่อยู่จัดส่งเพื่อความสะดวก</div><button class="empty-add-btn" onclick="openForm()">เพิ่มที่อยู่แรก</button></div>';
+    return;
+  }
+  el.innerHTML = '<div class="addr-list">'+addresses.map((a,i)=>'<div class="addr-card '+(i===defaultIdx?'default':'')+'">'
+    +'<div class="addr-card-icon"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg></div>'
+    +'<div class="addr-card-body">'
+    +'<div class="addr-card-top"><div class="addr-card-name">'+a.name+'</div>'+(i===defaultIdx?'<div class="default-badge">ที่อยู่หลัก</div>':'')+'</div>'
+    +'<div class="addr-card-phone">'+a.phone+'</div>'
+    +'<div class="addr-card-text">'+a.address+'</div>'
+    +(a.lat?'<div style="font-size:12px;color:var(--green);margin-top:4px">ปักหมุดแล้ว</div>':'')
+    +'<div class="addr-card-actions">'
+    +'<button class="addr-action-btn btn-edit" onclick="openForm('+i+')">แก้ไข</button>'
+    +(i!==defaultIdx?'<button class="addr-action-btn btn-default" onclick="setDefault('+i+')">ตั้งเป็นหลัก</button>':'')
+    +'<button class="addr-action-btn btn-del" onclick="deleteAddr('+i+')">ลบ</button>'
+    +'</div></div></div>'
+  ).join('')+'</div>';
+}
+
+function setDefault(i){ defaultIdx=i; localStorage.setItem("defaultAddress",i); renderList(); }
+function deleteAddr(i){
+  if(!confirm("ลบที่อยู่นี้?")) return;
+  addresses.splice(i,1);
+  if(defaultIdx>=addresses.length) defaultIdx=Math.max(0,addresses.length-1);
+  save(); renderList();
+}
+function save(){ localStorage.setItem("addresses",JSON.stringify(addresses)); localStorage.setItem("defaultAddress",defaultIdx); }
+
+function openForm(idx){
+  editIdx = idx!==undefined ? idx : -1;
+  document.getElementById("formTitle").textContent = editIdx>=0?"แก้ไขที่อยู่":"เพิ่มที่อยู่ใหม่";
+  pinLat=null; pinLng=null;
+  if(editIdx>=0){
+    const a=addresses[editIdx];
+    document.getElementById("f-name").value=a.name||"";
+    document.getElementById("f-phone").value=a.phone||"";
+    document.getElementById("f-address").value=a.address||"";
+    if(a.lat){ pinLat=a.lat; pinLng=a.lng; document.getElementById("coordsHint").textContent="ปักหมุดแล้ว: "+a.lat.toFixed(5)+", "+a.lng.toFixed(5); document.getElementById("coordsHint").className="coords-hint has-pin"; }
+    else { document.getElementById("coordsHint").textContent="แตะแผนที่เพื่อปักหมุดที่อยู่"; document.getElementById("coordsHint").className="coords-hint"; }
+  } else {
+    ["f-name","f-phone","f-address"].forEach(id=>document.getElementById(id).value="");
+    document.getElementById("coordsHint").textContent="แตะแผนที่เพื่อปักหมุดที่อยู่";
+    document.getElementById("coordsHint").className="coords-hint";
+  }
+  document.getElementById("sheetOverlay").classList.add("show");
+  document.getElementById("formSheet").classList.add("show");
+  setTimeout(initMap,300);
+}
+
+function closeForm(){
+  document.getElementById("sheetOverlay").classList.remove("show");
+  document.getElementById("formSheet").classList.remove("show");
+}
+
+function initMap(){
+  if(formMap){ formMap.invalidateSize(); if(pinLat) formMap.setView([pinLat,pinLng],16); return; }
+  const lat=pinLat||13.7563, lng=pinLng||100.5018;
+  formMap=L.map("formMap").setView([lat,lng],pinLat?16:13);
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(formMap);
+  if(pinLat) placePin(pinLat,pinLng);
+  formMap.on("click",e=>placePin(e.latlng.lat,e.latlng.lng));
+}
+
+function placePin(lat,lng){
+  if(formMarker) formMap.removeLayer(formMarker);
+  formMarker=L.marker([lat,lng]).addTo(formMap);
+  formMap.setView([lat,lng],16);
+  pinLat=lat; pinLng=lng;
+  document.getElementById("coordsHint").textContent="ปักหมุดแล้ว: "+lat.toFixed(5)+", "+lng.toFixed(5);
+  document.getElementById("coordsHint").className="coords-hint has-pin";
+}
+
+function getGPS(){
+  if(!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(pos=>placePin(pos.coords.latitude,pos.coords.longitude),()=>alert("ไม่สามารถเข้าถึง GPS ได้"));
+}
+
+function saveAddress(){
+  const name=document.getElementById("f-name").value.trim();
+  const phone=document.getElementById("f-phone").value.trim();
+  const address=document.getElementById("f-address").value.trim();
+  if(!name||!address){ alert("กรุณากรอกชื่อและที่อยู่"); return; }
+  const obj={name,phone,address,lat:pinLat||null,lng:pinLng||null};
+  if(editIdx>=0) addresses[editIdx]=obj;
+  else addresses.push(obj);
+  save(); closeForm(); renderList();
+}
+
+renderList();
+</script>
+</body>
+</html>
