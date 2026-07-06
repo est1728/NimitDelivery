@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>จัดการร้านค้า - Nimit Delivery</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+<style>
+:root {
+  --primary: #0c4aa6;
+  --primary-dark: #083570;
+  --primary-light: #e8f0fe;
+  --gray: #f5f6f8;
+  --text: #0f172a;
+  --subtext: #64748b;
+  --green: #16a34a;
+  --green-light: #dcfce7;
+  --red: #dc2626;
+  --red-light: #fee2e2;
+  --orange: #ea580c;
+  --orange-light: #fff7ed;
+  --shadow-sm: 0 1px 4px rgba(15,23,42,0.08);
+  --shadow-md: 0 4px 14px rgba(15,23,42,0.10);
+}
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Arial',sans-serif; -webkit-tap-highlight-color:transparent; }
+body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
+
+.topbar {
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  padding:14px 16px; color:#fff; display:flex; align-items:center; gap:12px;
+  position:sticky; top:0; z-index:100;
+}
+.back-btn { width:36px; height:36px; border:none; border-radius:50%; background:rgba(255,255,255,0.18); cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.back-btn svg { width:18px; height:18px; stroke:#fff; fill:none; stroke-width:2.5; }
+.topbar-title { font-size:17px; font-weight:800; flex:1; }
+.save-btn { padding:8px 18px; border:none; border-radius:20px; background:rgba(255,255,255,0.2); color:#fff; font-size:14px; font-weight:700; cursor:pointer; white-space:nowrap; }
+
+/* SHOP HEADER */
+.shop-header { background:#fff; margin-bottom:8px; }
+.shop-banner { width:100%; height:130px; background:linear-gradient(135deg,#dde8fa,#c2d4f5); position:relative; cursor:pointer; overflow:hidden; }
+.shop-banner img { width:100%; height:100%; object-fit:cover; }
+.edit-overlay { position:absolute; inset:0; background:rgba(0,0,0,0.35); display:flex; align-items:center; justify-content:center; opacity:0; transition:0.2s; }
+.shop-banner:hover .edit-overlay, .shop-banner:active .edit-overlay { opacity:1; }
+.edit-overlay span { color:#fff; font-size:13px; font-weight:700; display:flex; align-items:center; gap:6px; }
+.edit-overlay span svg { width:16px; height:16px; fill:#fff; }
+
+.shop-profile-row { padding:0 16px; position:relative; height:32px; }
+.shop-avatar-wrap { position:absolute; top:-26px; left:16px; width:52px; height:52px; border-radius:50%; border:3px solid #fff; background:var(--primary-light); overflow:hidden; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.15); display:flex; align-items:center; justify-content:center; }
+.shop-avatar-wrap img { width:100%; height:100%; object-fit:cover; }
+.shop-avatar-wrap svg { width:24px; height:24px; fill:var(--primary); }
+
+.shop-open-row { display:flex; align-items:center; justify-content:space-between; padding:0 16px 14px; }
+.shop-name-display { font-size:17px; font-weight:800; color:var(--text); }
+.toggle-wrap { display:flex; align-items:center; gap:8px; }
+.toggle-label { font-size:13px; color:var(--subtext); font-weight:600; }
+.toggle { width:44px; height:24px; background:#cbd5e1; border-radius:12px; position:relative; cursor:pointer; border:none; transition:background 0.3s; flex-shrink:0; }
+.toggle.on { background:var(--green); }
+.toggle::after { content:''; position:absolute; width:18px; height:18px; background:#fff; border-radius:50%; top:3px; left:3px; transition:left 0.25s; box-shadow:0 1px 3px rgba(0,0,0,0.2); }
+.toggle.on::after { left:23px; }
+
+.section { background:#fff; margin:8px 0; padding:16px; }
+.section-title { font-size:15px; font-weight:800; color:var(--text); margin-bottom:14px; }
+
+.field { margin-bottom:12px; }
+.field-label { font-size:13px; font-weight:700; color:var(--subtext); margin-bottom:5px; }
+.field-input { width:100%; height:46px; border:2px solid #eef0f4; border-radius:12px; padding:0 14px; font-size:15px; outline:none; background:#fafbfc; transition:border 0.2s; }
+.field-input:focus { border-color:var(--primary); background:#fff; }
+.field-row { display:flex; gap:10px; }
+.field-row .field { flex:1; margin-bottom:0; }
+
+/* MENU LIST */
+.menu-list-section { background:#fff; margin:8px 0; padding:16px; }
+.menu-list-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.menu-count-title { font-size:15px; font-weight:800; color:var(--text); }
+.add-menu-btn { display:flex; align-items:center; gap:6px; padding:8px 16px; border:none; border-radius:20px; background:var(--primary); color:#fff; font-size:14px; font-weight:700; cursor:pointer; }
+.add-menu-btn svg { width:14px; height:14px; fill:#fff; }
+
+.menu-card { border:2px solid #f0f2f5; border-radius:14px; margin-bottom:10px; overflow:hidden; }
+.menu-card.open { border-color:var(--primary); }
+.menu-card-header { display:flex; align-items:center; gap:12px; padding:12px 14px; cursor:pointer; background:#fff; }
+.menu-thumb { width:48px; height:48px; border-radius:10px; background:var(--gray); flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+.menu-thumb img { width:100%; height:100%; object-fit:cover; }
+.menu-thumb svg { width:20px; height:20px; fill:#cbd5e1; }
+.menu-meta { flex:1; min-width:0; }
+.menu-meta-name { font-size:14px; font-weight:800; color:var(--text); }
+.menu-meta-sub { font-size:12px; color:var(--subtext); margin-top:2px; }
+.menu-card-actions { display:flex; gap:6px; flex-shrink:0; }
+.icon-btn { width:32px; height:32px; border-radius:9px; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.icon-btn svg { width:15px; height:15px; }
+.btn-del { background:var(--red-light); }
+.btn-del svg { fill:var(--red); }
+.expand-btn { width:28px; height:28px; border-radius:8px; border:none; background:var(--gray); cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:transform 0.2s; }
+.expand-btn.open { transform:rotate(180deg); }
+.expand-btn svg { width:16px; height:16px; fill:var(--subtext); }
+
+/* MENU FORM */
+.menu-form { padding:14px; border-top:2px solid var(--gray); background:#fafbfc; }
+.form-field { margin-bottom:12px; }
+.form-label { font-size:13px; font-weight:700; color:var(--subtext); margin-bottom:5px; }
+.form-input { width:100%; height:46px; border:2px solid #eef0f4; border-radius:12px; padding:0 14px; font-size:15px; outline:none; background:#fff; transition:border 0.2s; }
+.form-input:focus { border-color:var(--primary); background:#fff; }
+.form-row { display:flex; gap:10px; }
+.form-row .form-field { flex:1; margin-bottom:0; }
+.form-img-preview { width:100%; height:90px; border-radius:12px; background:var(--gray); margin-bottom:8px; overflow:hidden; display:flex; align-items:center; justify-content:center; cursor:pointer; border:2px dashed #e2e8f0; }
+.form-img-preview img { width:100%; height:100%; object-fit:cover; }
+.form-img-preview svg { width:28px; height:28px; fill:#cbd5e1; }
+
+/* OPTION GROUPS */
+.option-groups-wrap { margin-top:14px; }
+.option-groups-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.option-groups-label { font-size:14px; font-weight:800; color:var(--text); }
+.add-group-btn { display:flex; align-items:center; gap:4px; padding:6px 12px; border:none; border-radius:20px; background:var(--primary-light); color:var(--primary); font-size:12px; font-weight:700; cursor:pointer; }
+.add-group-btn svg { width:12px; height:12px; fill:var(--primary); }
+
+.group-card { background:#fff; border:2px solid #e2e8f0; border-radius:12px; padding:12px; margin-bottom:10px; }
+.group-header { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.group-title-input { flex:1; height:38px; border:2px solid #eef0f4; border-radius:10px; padding:0 12px; font-size:14px; font-weight:700; outline:none; background:#fff; }
+.group-title-input:focus { border-color:var(--primary); }
+
+.required-row { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+.req-label { font-size:11px; font-weight:700; color:var(--subtext); white-space:nowrap; }
+.mini-toggle { width:34px; height:20px; background:#cbd5e1; border-radius:10px; position:relative; cursor:pointer; border:none; transition:background 0.3s; flex-shrink:0; }
+.mini-toggle.on { background:var(--orange); }
+.mini-toggle::after { content:''; position:absolute; width:14px; height:14px; background:#fff; border-radius:50%; top:3px; left:3px; transition:left 0.25s; }
+.mini-toggle.on::after { left:17px; }
+.req-badge { font-size:10px; font-weight:700; padding:2px 7px; border-radius:20px; white-space:nowrap; }
+.req-badge.on { background:var(--orange-light); color:var(--orange); }
+.req-badge.off { background:var(--gray); color:var(--subtext); }
+
+.del-group-btn { width:28px; height:28px; border-radius:8px; border:none; background:var(--red-light); cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.del-group-btn svg { width:13px; height:13px; fill:var(--red); }
+
+.option-list { display:flex; flex-direction:column; gap:6px; }
+.option-row { display:flex; align-items:center; gap:6px; }
+.opt-name { flex:1; height:36px; border:2px solid #eef0f4; border-radius:10px; padding:0 10px; font-size:13px; outline:none; background:#fff; min-width:0; }
+.opt-name:focus { border-color:var(--primary); }
+.opt-price-wrap { display:flex; align-items:center; gap:4px; flex-shrink:0; }
+.opt-price-label { font-size:12px; color:var(--subtext); font-weight:600; white-space:nowrap; }
+.opt-price { width:62px; height:36px; border:2px solid #eef0f4; border-radius:10px; padding:0 8px; font-size:13px; outline:none; text-align:right; background:#fff; }
+.opt-price:focus { border-color:var(--primary); }
+.del-opt-btn { width:28px; height:28px; border-radius:8px; border:none; background:var(--red-light); cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.del-opt-btn svg { width:12px; height:12px; fill:var(--red); }
+
+.add-opt-btn { width:100%; height:34px; border:2px dashed #e2e8f0; border-radius:10px; background:#fff; color:var(--subtext); font-size:12px; cursor:pointer; margin-top:6px; display:flex; align-items:center; justify-content:center; gap:4px; }
+.add-opt-btn svg { width:13px; height:13px; fill:var(--subtext); }
+
+.save-menu-btn { width:100%; height:46px; border:none; border-radius:12px; background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:#fff; font-size:15px; font-weight:800; cursor:pointer; margin-top:14px; box-shadow:0 4px 12px rgba(12,74,166,0.25); }
+
+/* MODAL */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:500; display:none; align-items:flex-end; }
+.modal-overlay.show { display:flex; }
+.modal { background:#fff; width:100%; border-radius:22px 22px 0 0; padding:20px 16px 36px; max-height:80vh; overflow-y:auto; }
+.modal-handle { width:36px; height:4px; background:#e2e8f0; border-radius:2px; margin:0 auto 16px; }
+.modal-title { font-size:17px; font-weight:800; margin-bottom:14px; }
+.url-preview { width:100%; height:90px; border-radius:12px; background:var(--gray); overflow:hidden; display:flex; align-items:center; justify-content:center; margin-bottom:10px; }
+.url-preview img { width:100%; height:100%; object-fit:cover; }
+.url-preview svg { width:30px; height:30px; fill:#cbd5e1; }
+.modal-input { width:100%; height:46px; border:2px solid #eef0f4; border-radius:12px; padding:0 14px; font-size:15px; outline:none; background:#fafbfc; margin-bottom:12px; }
+.modal-input:focus { border-color:var(--primary); }
+.modal-save-btn { width:100%; height:50px; border:none; border-radius:12px; background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:#fff; font-size:15px; font-weight:800; cursor:pointer; }
+.modal-cancel-btn { width:100%; height:50px; border:none; border-radius:12px; background:var(--gray); color:var(--text); font-size:15px; font-weight:700; cursor:pointer; margin-top:8px; }
+
+.empty-menu { text-align:center; padding:32px 20px; color:var(--subtext); font-size:14px; }
+
+/* ===== CROP OVERLAY ===== */
+.crop-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:1000; display:none; flex-direction:column; align-items:center; justify-content:center; padding:20px; }
+.crop-overlay.show { display:flex; }
+.crop-title { color:#fff; font-size:16px; font-weight:800; margin-bottom:6px; }
+.crop-hint { font-size:12px; color:rgba(255,255,255,0.6); margin-bottom:16px; text-align:center; }
+.crop-container { position:relative; overflow:hidden; background:#000; touch-action:none; border-radius:8px; }
+.crop-img { display:block; position:absolute; user-select:none; pointer-events:none; }
+.crop-frame { position:absolute; border:2px solid #fff; box-shadow:0 0 0 9999px rgba(0,0,0,0.55); cursor:move; touch-action:none; }
+.crop-frame.circle-shape { border-radius:50%; }
+.crop-handle { position:absolute; width:20px; height:20px; background:#fff; border-radius:50%; border:2px solid var(--primary); }
+.ch-tl { top:-10px; left:-10px; cursor:nw-resize; }
+.ch-tr { top:-10px; right:-10px; cursor:ne-resize; }
+.ch-bl { bottom:-10px; left:-10px; cursor:sw-resize; }
+.ch-br { bottom:-10px; right:-10px; cursor:se-resize; }
+.crop-actions { display:flex; gap:12px; margin-top:16px; width:320px; max-width:100%; }
+.crop-btn { flex:1; height:48px; border:none; border-radius:12px; font-size:15px; font-weight:800; cursor:pointer; }
+.crop-confirm { background:var(--primary); color:#fff; }
+.crop-cancel { background:rgba(255,255,255,0.15); color:#fff; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <button class="back-btn" onclick="history.back()">
+    <svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  </button>
+  <div class="topbar-title" id="pageTitle">จัดการร้านค้า</div>
+  <button class="save-btn" onclick="saveShopInfo()">บันทึก</button>
+</div>
+
+<div class="shop-header">
+  <div class="shop-banner" id="bannerWrap" onclick="openBannerModal()">
+    <div id="bannerInner" style="width:100%;height:100%;background:#eef3fb;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px"><svg viewBox="0 0 24 24" style="width:36px;height:36px;fill:#b8ccee;opacity:0.7"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg><span style="font-size:12px;color:#b8ccee;font-weight:700">เพิ่มรูปปก</span></div>
+    <div class="edit-overlay">
+      <span><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>เปลี่ยนแบนเนอร์</span>
+    </div>
+  </div>
+  <div class="shop-profile-row">
+    <div class="shop-avatar-wrap" id="avatarWrap" onclick="openAvatarModal()">
+      <div id="avatarInner" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#eef3fb"><svg viewBox="0 0 24 24" style="width:22px;height:22px;fill:#b8ccee"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
+    </div>
+  </div>
+  <div class="shop-open-row">
+    <div class="shop-name-display" id="shopNameDisplay">ชื่อร้าน</div>
+    <div class="toggle-wrap">
+      <span class="toggle-label" id="openLabel">ปิดอยู่</span>
+      <button class="toggle" id="openToggle" onclick="toggleOpen()"></button>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">ข้อมูลร้านค้า</div>
+  <div class="field">
+    <div class="field-label">ชื่อร้าน</div>
+    <input class="field-input" id="shopName" placeholder="เช่น ร้านส้มตำ" oninput="document.getElementById('shopNameDisplay').textContent=this.value||'ชื่อร้าน'">
+  </div>
+  <div class="field">
+    <div class="field-label">คำอธิบาย</div>
+    <input class="field-input" id="shopDesc" placeholder="อาหารอีสาน อร่อยมาก">
+  </div>
+  <div class="field-row">
+    <div class="field">
+      <div class="field-label">เบอร์โทร</div>
+      <input class="field-input" id="shopPhone" type="tel" placeholder="08X-XXX-XXXX">
+    </div>
+    <div class="field">
+      <div class="field-label">เวลาส่ง</div>
+      <input class="field-input" id="shopDeliveryTime" placeholder="20-30 นาที">
+    </div>
+  </div>
+  <div class="field" style="margin-bottom:12px">
+    <div class="field-label">ที่อยู่ร้าน</div>
+    <input class="field-input" id="shopAddress" placeholder="เยื้องการไฟฟ้า...">
+  </div>
+  <div class="field" style="margin-bottom:0">
+    <div class="field-label" style="display:flex;align-items:center;justify-content:space-between">
+      <span>ตำแหน่งร้าน (พิกัด GPS)</span>
+      <button onclick="getShopGPS()" style="font-size:12px;font-weight:700;color:var(--primary);background:var(--primary-light);border:none;border-radius:20px;padding:4px 12px;cursor:pointer">ใช้ตำแหน่งปัจจุบัน</button>
+    </div>
+    <div id="shopMapWrap" style="margin-top:8px;border-radius:14px;overflow:hidden;border:2px solid #e8eaf0;position:relative">
+      <div id="shopMap" style="height:200px;width:100%"></div>
+    </div>
+    <div id="shopCoordsBox" style="margin-top:8px;padding:8px 12px;background:var(--primary-light);border-radius:10px;font-size:12px;font-weight:700;color:var(--primary);display:none">
+      <span id="shopCoordsText"></span>
+    </div>
+    <input type="hidden" id="shopLat">
+    <input type="hidden" id="shopLng">
+  </div>
+</div>
+
+<div class="menu-list-section">
+  <div class="menu-list-header">
+    <div class="menu-count-title">เมนู (<span id="menuCount">0</span>)</div>
+    <button class="add-menu-btn" onclick="openNewMenuForm()">
+      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      เพิ่มเมนู
+    </button>
+  </div>
+  <div id="menuList"><div class="empty-menu">ยังไม่มีเมนู</div></div>
+</div>
+
+<!-- BANNER MODAL -->
+<div class="modal-overlay" id="bannerModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">รูปแบนเนอร์</div>
+    <div class="url-preview" id="bannerPreviewEl" onclick="document.getElementById('bannerFileInput').click()" style="cursor:pointer"></div>
+    <input type="file" accept="image/*" id="bannerFileInput" style="display:none" onchange="onCropFileSelect(event,'banner','bannerPreviewEl','bannerUrlInput')">
+    <button class="modal-save-btn" style="background:var(--primary-light);color:var(--primary);box-shadow:none;margin-bottom:10px" onclick="document.getElementById('bannerFileInput').click()">เลือกรูปจากเครื่อง</button>
+    <div class="field-label" style="margin-bottom:6px">หรือวาง URL รูปแบนเนอร์</div>
+    <input class="modal-input" id="bannerUrlInput" placeholder="https://..." oninput="livePreview('bannerPreviewEl','bannerUrlInput')">
+    <button class="modal-save-btn" onclick="saveBanner()">บันทึก</button>
+    <button class="modal-cancel-btn" onclick="closeModal('bannerModal')">ยกเลิก</button>
+  </div>
+</div>
+
+<!-- AVATAR MODAL -->
+<div class="modal-overlay" id="avatarModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">รูปโปรไฟล์ร้าน</div>
+    <div class="url-preview" id="avatarPreviewEl" onclick="document.getElementById('avatarFileInput').click()" style="width:90px;height:90px;border-radius:50%;margin:0 auto 10px;cursor:pointer"></div>
+    <input type="file" accept="image/*" id="avatarFileInput" style="display:none" onchange="onCropFileSelect(event,'circle','avatarPreviewEl','avatarUrlInput')">
+    <button class="modal-save-btn" style="background:var(--primary-light);color:var(--primary);box-shadow:none;margin-bottom:10px" onclick="document.getElementById('avatarFileInput').click()">เลือกรูปจากเครื่อง</button>
+    <div class="field-label" style="margin-bottom:6px">หรือวาง URL รูปโปรไฟล์</div>
+    <input class="modal-input" id="avatarUrlInput" placeholder="https://..." oninput="livePreview('avatarPreviewEl','avatarUrlInput')">
+    <button class="modal-save-btn" onclick="saveAvatar()">บันทึก</button>
+    <button class="modal-cancel-btn" onclick="closeModal('avatarModal')">ยกเลิก</button>
+  </div>
+</div>
+
+<!-- CROP OVERLAY (ใช้ร่วมกันสำหรับรูปทั้งหมด) -->
+<div class="crop-overlay" id="cropOverlay">
+  <div class="crop-title" id="cropTitle">ปรับรูป</div>
+  <div class="crop-hint">ลากเพื่อย้าย · ลากมุมเพื่อปรับขนาด</div>
+  <div class="crop-container" id="cropContainer">
+    <img class="crop-img" id="cropImg" draggable="false">
+    <div class="crop-frame" id="cropFrame">
+      <div class="crop-handle ch-tl" id="ch-tl"></div>
+      <div class="crop-handle ch-tr" id="ch-tr"></div>
+      <div class="crop-handle ch-bl" id="ch-bl"></div>
+      <div class="crop-handle ch-br" id="ch-br"></div>
+    </div>
+  </div>
+  <div class="crop-actions">
+    <button class="crop-btn crop-cancel" onclick="closeCrop()">ยกเลิก</button>
+    <button class="crop-btn crop-confirm" onclick="confirmCrop()">ใช้รูปนี้</button>
+  </div>
+</div>
+<canvas id="cropCanvas" style="display:none"></canvas>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, getDocs, deleteDoc, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
+  authDomain: "nimit-delivery.firebaseapp.com",
+  projectId: "nimit-delivery",
+  storageBucket: "nimit-delivery.firebasestorage.app",
+  messagingSenderId: "233476256130",
+  appId: "1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const params = new URLSearchParams(window.location.search);
+const shopId = params.get("id");
+let isOpen = false, bannerUrl = "", avatarUrl = "";
+let menus = [];
+let openMenuId = null;
+let shopMap = null, shopMarker = null;
+
+// ============ SHOP LOAD ============
+async function loadShop() {
+  if (!shopId) return;
+  const snap = await getDoc(doc(db,"shops",shopId));
+  if (!snap.exists()) return;
+  const s = snap.data();
+  document.getElementById("pageTitle").textContent = s.name||"จัดการร้านค้า";
+  document.getElementById("shopNameDisplay").textContent = s.name||"ชื่อร้าน";
+  document.getElementById("shopName").value = s.name||"";
+  document.getElementById("shopDesc").value = s.desc||"";
+  document.getElementById("shopPhone").value = s.phone||"";
+  document.getElementById("shopDeliveryTime").value = s.deliveryTime||"";
+  document.getElementById("shopAddress").value = s.address||"";
+  isOpen = s.isOpen||false; bannerUrl = s.bannerUrl||""; avatarUrl = s.avatarUrl||"";
+  updateOpenToggle(); updateBanner(); updateAvatar();
+  // โหลดพิกัด
+  if(s.lat && s.lng){
+    document.getElementById("shopLat").value = s.lat;
+    document.getElementById("shopLng").value = s.lng;
+    document.getElementById("shopCoordsText").textContent = s.lat.toFixed(5)+", "+s.lng.toFixed(5);
+    document.getElementById("shopCoordsBox").style.display = "block";
+  }
+  initShopMap(s.lat||13.7563, s.lng||100.5018, !!(s.lat && s.lng));
+  loadMenus();
+}
+
+function initShopMap(lat, lng, hasPin){
+  setTimeout(function(){
+    if(shopMap) return;
+    shopMap = L.map("shopMap").setView([lat, lng], hasPin ? 16 : 13);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(shopMap);
+    if(hasPin) placeShopMarker(lat, lng);
+    shopMap.on("click", function(e){ placeShopMarker(e.latlng.lat, e.latlng.lng); });
+  }, 200);
+}
+
+function placeShopMarker(lat, lng){
+  if(shopMarker) shopMap.removeLayer(shopMarker);
+  shopMarker = L.marker([lat, lng]).addTo(shopMap);
+  shopMap.setView([lat, lng], 16);
+  document.getElementById("shopLat").value = lat;
+  document.getElementById("shopLng").value = lng;
+  document.getElementById("shopCoordsText").textContent = lat.toFixed(5)+", "+lng.toFixed(5);
+  document.getElementById("shopCoordsBox").style.display = "block";
+}
+
+window.getShopGPS = function(){
+  if(!navigator.geolocation){ alert("ไม่รองรับ GPS"); return; }
+  navigator.geolocation.getCurrentPosition(
+    function(pos){ placeShopMarker(pos.coords.latitude, pos.coords.longitude); },
+    function(){ alert("ไม่สามารถเข้าถึง GPS ได้"); }
+  );
+};
+
+function updateOpenToggle() {
+  document.getElementById("openToggle").className = `toggle ${isOpen?'on':''}`;
+  document.getElementById("openLabel").textContent = isOpen?"เปิดอยู่":"ปิดอยู่";
+}
+function updateBanner() {
+  document.getElementById("bannerInner").innerHTML = bannerUrl
+    ? `<img src="${bannerUrl}" style="width:100%;height:100%;object-fit:cover">`
+    : `<div style="width:100%;height:100%;background:#eef3fb;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px"><svg viewBox="0 0 24 24" style="width:36px;height:36px;fill:#b8ccee;opacity:0.7"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg><span style="font-size:12px;color:#b8ccee;font-weight:700">เพิ่มรูปปก</span></div>`;
+}
+function updateAvatar() {
+  document.getElementById("avatarInner").innerHTML = avatarUrl
+    ? `<img src="${avatarUrl}" style="width:100%;height:100%;object-fit:cover">`
+    : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#eef3fb"><svg viewBox="0 0 24 24" style="width:22px;height:22px;fill:#b8ccee"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>`;
+}
+
+window.toggleOpen = function() { isOpen=!isOpen; updateOpenToggle(); }
+
+// ============ MENU LOAD ============
+async function loadMenus() {
+  const snap = await getDocs(collection(db,"shops",shopId,"menus"));
+  menus = [];
+  snap.forEach(d => menus.push({id:d.id,...d.data()}));
+  document.getElementById("menuCount").textContent = menus.length;
+  renderMenuList();
+}
+
+function renderMenuList() {
+  const el = document.getElementById("menuList");
+  if (!menus.length) { el.innerHTML='<div class="empty-menu">ยังไม่มีเมนู กด + เพิ่มเมนู</div>'; return; }
+  el.innerHTML = menus.map(m => renderMenuCard(m)).join('');
+}
+
+function renderMenuCard(m) {
+  const isOpen = openMenuId === m.id;
+  return `
+  <div class="menu-card ${isOpen?'open':''}" id="card-${m.id}">
+    <div class="menu-card-header" onclick="toggleMenu('${m.id}')">
+      <div class="menu-thumb">
+        ${m.imgUrl?`<img src="${m.imgUrl}">`:`<div style="display:flex;flex-direction:column;align-items:center;gap:6px"><svg viewBox="0 0 24 24" style="width:28px;height:28px;fill:#b8ccee;opacity:0.8"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg><span style="font-size:11px;color:#b8ccee;font-weight:700">เพิ่มรูปเมนู</span></div>`}
+      </div>
+      <div class="menu-meta">
+        <div class="menu-meta-name">${m.name||'ไม่มีชื่อ'}</div>
+        <div class="menu-meta-sub">฿${m.price||0} ${m.category?`· ${m.category}`:''} ${m.optionGroups?.length?`· ${m.optionGroups.length} กลุ่ม`:''}</div>
+      </div>
+      <div class="menu-card-actions" onclick="event.stopPropagation()">
+        <button class="icon-btn btn-del" onclick="deleteMenu('${m.id}')">
+          <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+        </button>
+      </div>
+      <button class="expand-btn ${isOpen?'open':''}" onclick="event.stopPropagation();toggleMenu('${m.id}')">
+        <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+      </button>
+    </div>
+    ${isOpen ? renderMenuForm(m) : ''}
+  </div>`;
+}
+
+function renderMenuForm(m) {
+  const groups = m.optionGroups||[];
+  return `
+  <div class="menu-form" id="form-${m.id}">
+    <div class="form-row">
+      <div class="form-field">
+        <div class="form-label">ชื่อเมนู</div>
+        <input class="form-input" id="fi-name-${m.id}" value="${esc(m.name)}" placeholder="ชื่อเมนู">
+      </div>
+      <div class="form-field">
+        <div class="form-label">ราคาร้าน (฿)</div>
+        <input class="form-input" id="fi-price-${m.id}" type="number" value="${m.price||''}" placeholder="50">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-field">
+        <div class="form-label">หมวดหมู่</div>
+        <input class="form-input" id="fi-cat-${m.id}" value="${esc(m.category)}" placeholder="อาหารจานเดียว">
+      </div>
+      <div class="form-field">
+        <div class="form-label">GP% เพิ่มเติม</div>
+        <input class="form-input" id="fi-gp-${m.id}" type="number" value="${m.gp||0}">
+      </div>
+    </div>
+    <div class="form-field">
+      <div class="form-label">คำอธิบาย</div>
+      <input class="form-input" id="fi-desc-${m.id}" value="${esc(m.desc)}" placeholder="อร่อยมาก">
+    </div>
+    <div class="form-field">
+      <div class="form-label">รูปเมนู</div>
+      <div class="form-img-preview" id="imgPreview-${m.id}" onclick="document.getElementById('imgFile-${m.id}').click()">
+        ${m.imgUrl?`<img src="${m.imgUrl}">`:`<div style="display:flex;flex-direction:column;align-items:center;gap:6px"><svg viewBox="0 0 24 24" style="width:28px;height:28px;fill:#b8ccee;opacity:0.8"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg><span style="font-size:11px;color:#b8ccee;font-weight:700">เพิ่มรูปเมนู</span></div>`}
+      </div>
+      <input type="file" accept="image/*" id="imgFile-${m.id}" style="display:none" onchange="onCropFileSelect(event,'menu','imgPreview-${m.id}','fi-img-${m.id}')">
+      <input type="hidden" id="fi-img-${m.id}" value="${esc(m.imgUrl)}">
+    </div>
+
+    <div class="option-groups-wrap">
+      <div class="option-groups-header">
+        <div class="option-groups-label">กลุ่มตัวเลือก</div>
+        <button class="add-group-btn" onclick="addGroup('${m.id}')">
+          <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          เพิ่มกลุ่ม
+        </button>
+      </div>
+      <div id="groups-${m.id}">
+        ${groups.map((g,gi) => renderGroupCard(m.id,g,gi)).join('')}
+      </div>
+    </div>
+
+    <button class="save-menu-btn" onclick="saveMenu('${m.id}')">บันทึกเมนูนี้</button>
+  </div>`;
+}
+
+function renderGroupCard(menuId, g, gi) {
+  const opts = g.options||[];
+  return `
+  <div class="group-card" id="gc-${menuId}-${gi}">
+    <div class="group-header">
+      <input class="group-title-input" id="gt-${menuId}-${gi}" value="${esc(g.title)}" placeholder="ชื่อกลุ่ม เช่น ระดับเผ็ด">
+      <div class="required-row">
+        <span class="req-label">บังคับ</span>
+        <button class="mini-toggle ${g.required?'on':''}" id="greq-${menuId}-${gi}" onclick="toggleReq('${menuId}',${gi})"></button>
+        <span class="req-badge ${g.required?'on':'off'}" id="greq-badge-${menuId}-${gi}">${g.required?'บังคับ':'ไม่บังคับ'}</span>
+      </div>
+      <button class="del-group-btn" onclick="delGroup('${menuId}',${gi})">
+        <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+      </button>
+    </div>
+    <div class="option-list" id="opts-${menuId}-${gi}">
+      ${opts.map((o,oi) => renderOptionRow(menuId,gi,oi,o)).join('')}
+    </div>
+    <button class="add-opt-btn" onclick="addOption('${menuId}',${gi})">
+      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      เพิ่มตัวเลือก
+    </button>
+  </div>`;
+}
+
+function renderOptionRow(menuId,gi,oi,o) {
+  return `
+  <div class="option-row" id="opt-${menuId}-${gi}-${oi}">
+    <input class="opt-name" id="on-${menuId}-${gi}-${oi}" value="${esc(o.name)}" placeholder="ชื่อตัวเลือก">
+    <div class="opt-price-wrap">
+      <span class="opt-price-label">+฿</span>
+      <input class="opt-price" id="op-${menuId}-${gi}-${oi}" type="number" value="${o.price||0}">
+    </div>
+    <button class="del-opt-btn" onclick="delOption('${menuId}',${gi},${oi})">
+      <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+    </button>
+  </div>`;
+}
+
+function esc(v) { return (v||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+// ============ MENU INTERACTIONS ============
+window.toggleMenu = function(menuId) {
+  // บันทึก state form ก่อน toggle
+  saveFormState(openMenuId);
+  openMenuId = openMenuId===menuId ? null : menuId;
+  renderMenuList();
+  if (openMenuId) {
+    setTimeout(()=>{
+      const el = document.getElementById(`card-${openMenuId}`);
+      el?.scrollIntoView({behavior:'smooth',block:'nearest'});
+    },100);
+  }
+}
+
+// บันทึก state ลงใน menus array โดยไม่ re-render
+function saveFormState(menuId) {
+  if (!menuId) return;
+  const m = menus.find(x=>x.id===menuId);
+  if (!m) return;
+  const name = document.getElementById(`fi-name-${menuId}`)?.value;
+  const price = document.getElementById(`fi-price-${menuId}`)?.value;
+  const cat = document.getElementById(`fi-cat-${menuId}`)?.value;
+  const gp = document.getElementById(`fi-gp-${menuId}`)?.value;
+  const desc = document.getElementById(`fi-desc-${menuId}`)?.value;
+  const img = document.getElementById(`fi-img-${menuId}`)?.value;
+  if (name !== undefined) m.name = name;
+  if (price !== undefined) m.price = parseFloat(price)||0;
+  if (cat !== undefined) m.category = cat;
+  if (gp !== undefined) m.gp = parseFloat(gp)||0;
+  if (desc !== undefined) m.desc = desc;
+  if (img !== undefined) m.imgUrl = img;
+  // groups
+  (m.optionGroups||[]).forEach((g,gi)=>{
+    const title = document.getElementById(`gt-${menuId}-${gi}`)?.value;
+    if (title !== undefined) g.title = title;
+    (g.options||[]).forEach((o,oi)=>{
+      const oname = document.getElementById(`on-${menuId}-${gi}-${oi}`)?.value;
+      const oprice = document.getElementById(`op-${menuId}-${gi}-${oi}`)?.value;
+      if (oname !== undefined) o.name = oname;
+      if (oprice !== undefined) o.price = parseFloat(oprice)||0;
+    });
+  });
+}
+
+window.toggleReq = function(menuId,gi) {
+  saveFormState(menuId);
+  const m = menus.find(x=>x.id===menuId);
+  if(!m||!m.optionGroups[gi]) return;
+  m.optionGroups[gi].required = !m.optionGroups[gi].required;
+  // อัพ UI เฉพาะ toggle ไม่ re-render
+  const btn = document.getElementById(`greq-${menuId}-${gi}`);
+  const badge = document.getElementById(`greq-badge-${menuId}-${gi}`);
+  const isR = m.optionGroups[gi].required;
+  if(btn) btn.className=`mini-toggle ${isR?'on':''}`;
+  if(badge) { badge.className=`req-badge ${isR?'on':'off'}`; badge.textContent=isR?'บังคับ':'ไม่บังคับ'; }
+}
+
+window.addGroup = function(menuId) {
+  saveFormState(menuId);
+  const m = menus.find(x=>x.id===menuId);
+  if(!m) return;
+  if(!m.optionGroups) m.optionGroups=[];
+  m.optionGroups.push({title:'',required:false,options:[{name:'',price:0}]});
+  // re-render เฉพาะ groups
+  reRenderGroups(menuId,m);
+}
+
+window.delGroup = function(menuId,gi) {
+  saveFormState(menuId);
+  const m = menus.find(x=>x.id===menuId);
+  if(!m) return;
+  m.optionGroups.splice(gi,1);
+  reRenderGroups(menuId,m);
+}
+
+window.addOption = function(menuId,gi) {
+  saveFormState(menuId);
+  const m = menus.find(x=>x.id===menuId);
+  if(!m||!m.optionGroups[gi]) return;
+  m.optionGroups[gi].options.push({name:'',price:0});
+  // เพิ่มแถวใหม่โดยไม่ re-render ทั้งหมด
+  const oi = m.optionGroups[gi].options.length-1;
+  const optsEl = document.getElementById(`opts-${menuId}-${gi}`);
+  if(optsEl) {
+    const div = document.createElement('div');
+    div.innerHTML = renderOptionRow(menuId,gi,oi,{name:'',price:0});
+    optsEl.appendChild(div.firstElementChild);
+  }
+}
+
+window.delOption = function(menuId,gi,oi) {
+  saveFormState(menuId);
+  const m = menus.find(x=>x.id===menuId);
+  if(!m||!m.optionGroups[gi]) return;
+  m.optionGroups[gi].options.splice(oi,1);
+  reRenderGroups(menuId,m);
+}
+
+function reRenderGroups(menuId,m) {
+  const el = document.getElementById(`groups-${menuId}`);
+  if(!el) return;
+  el.innerHTML = (m.optionGroups||[]).map((g,gi)=>renderGroupCard(menuId,g,gi)).join('');
+}
+
+// ============ NEW MENU ============
+window.openNewMenuForm = function() {
+  saveFormState(openMenuId);
+  // เพิ่ม temp menu
+  const tmpId = `_new_${Date.now()}`;
+  menus.unshift({id:tmpId,name:'',price:0,category:'',gp:0,desc:'',imgUrl:'',optionGroups:[]});
+  openMenuId = tmpId;
+  document.getElementById("menuCount").textContent = menus.length;
+  renderMenuList();
+  window.scrollTo({top:document.getElementById('menuList').offsetTop-20,behavior:'smooth'});
+}
+
+// ============ SAVE MENU ============
+window.saveMenu = async function(menuId) {
+  saveFormState(menuId);
+  const m = menus.find(x=>x.id===menuId);
+  if(!m) return;
+  if(!m.name) { alert("กรุณากรอกชื่อเมนู"); return; }
+
+  const data = {
+    name:m.name, price:m.price||0, category:m.category||'',
+    gp:m.gp||0, desc:m.desc||'', imgUrl:m.imgUrl||'',
+    optionGroups: (m.optionGroups||[]).filter(g=>g.title).map(g=>({
+      title:g.title, required:!!g.required,
+      options:(g.options||[]).filter(o=>o.name)
+    })),
+    updatedAt:serverTimestamp()
+  };
+
+  try {
+    if(menuId.startsWith('_new_')) {
+      data.createdAt = serverTimestamp();
+      const ref = await addDoc(collection(db,"shops",shopId,"menus"),data);
+      // replace temp id
+      m.id = ref.id;
+    } else {
+      await updateDoc(doc(db,"shops",shopId,"menus",menuId),data);
+    }
+    openMenuId = null;
+    loadMenus();
+  } catch(e) { alert("เกิดข้อผิดพลาด: "+e.message); }
+}
+
+window.deleteMenu = async function(menuId) {
+  if(!confirm("ลบเมนูนี้?")) return;
+  if(!menuId.startsWith('_new_')) {
+    await deleteDoc(doc(db,"shops",shopId,"menus",menuId));
+  }
+  menus = menus.filter(m=>m.id!==menuId);
+  if(openMenuId===menuId) openMenuId=null;
+  document.getElementById("menuCount").textContent = menus.length;
+  renderMenuList();
+}
+
+// ============ SHOP SAVE ============
+window.saveShopInfo = async function() {
+  if(!shopId) return;
+  try {
+    const latVal = document.getElementById("shopLat").value;
+    const lngVal = document.getElementById("shopLng").value;
+    const updateData = {
+      name:document.getElementById("shopName").value.trim(),
+      desc:document.getElementById("shopDesc").value.trim(),
+      phone:document.getElementById("shopPhone").value.trim(),
+      deliveryTime:document.getElementById("shopDeliveryTime").value.trim(),
+      address:document.getElementById("shopAddress").value.trim(),
+      isOpen, bannerUrl, avatarUrl,
+      updatedAt:serverTimestamp()
+    };
+    if(latVal && lngVal){
+      updateData.lat = parseFloat(latVal);
+      updateData.lng = parseFloat(lngVal);
+    }
+    await updateDoc(doc(db,"shops",shopId), updateData);
+    alert("บันทึกสำเร็จ");
+  } catch(e) { alert("เกิดข้อผิดพลาด"); }
+}
+
+// ============ BANNER / AVATAR ============
+window.openBannerModal = function() {
+  document.getElementById("bannerUrlInput").value = bannerUrl;
+  livePreview('bannerPreviewEl','bannerUrlInput');
+  document.getElementById("bannerModal").classList.add("show");
+}
+window.openAvatarModal = function() {
+  document.getElementById("avatarUrlInput").value = avatarUrl;
+  livePreview('avatarPreviewEl','avatarUrlInput');
+  document.getElementById("avatarModal").classList.add("show");
+}
+window.saveBanner = function() {
+  bannerUrl = document.getElementById("bannerUrlInput").value.trim();
+  updateBanner(); closeModal("bannerModal");
+}
+window.saveAvatar = function() {
+  avatarUrl = document.getElementById("avatarUrlInput").value.trim();
+  updateAvatar(); closeModal("avatarModal");
+}
+window.livePreview = function(previewId,inputId) {
+  const url = document.getElementById(inputId)?.value.trim();
+  const el = document.getElementById(previewId);
+  if(!el) return;
+  if(url) el.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover">`;
+  else el.innerHTML=`<svg viewBox="0 0 24 24" style="width:28px;height:28px;fill:#cbd5e1"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2z"/></svg>`;
+}
+window.closeModal = function(id) { document.getElementById(id).classList.remove("show"); }
+
+// ============ IMAGE CROP ENGINE (ใช้ร่วมกัน: รูปโปรไฟล์/แบนเนอร์/เมนู) ============
+let cropTargetPreviewId = null, cropTargetInputId = null, cropShape = null;
+let cropImgNaturalW, cropImgNaturalH, cropImgDisplayW, cropImgDisplayH, cropImgOffsetX = 0, cropImgOffsetY = 0;
+let cropFrameX, cropFrameY, cropFrameW, cropFrameH;
+let cropDragging = false, cropResizing = false, cropResizeHandle = '';
+let cropStartX, cropStartY, cropStartFX, cropStartFY, cropStartFW, cropStartFH;
+
+window.onCropFileSelect = function(event, shape, previewElId, targetInputId) {
+  const file = event.target.files[0];
+  if (!file) return;
+  cropShape = shape; cropTargetPreviewId = previewElId; cropTargetInputId = targetInputId;
+  const reader = new FileReader();
+  reader.onload = e => openCropOverlay(e.target.result);
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
+function openCropOverlay(src) {
+  const cropImgEl = document.getElementById("cropImg");
+  const cropContainerEl = document.getElementById("cropContainer");
+
+  let cw = 320, ch = 320;
+  if (cropShape === 'banner') { cw = 320; ch = 180; }
+  cropContainerEl.style.width = cw + 'px';
+  cropContainerEl.style.height = ch + 'px';
+
+  cropImgEl.onload = () => {
+    cropImgNaturalW = cropImgEl.naturalWidth;
+    cropImgNaturalH = cropImgEl.naturalHeight;
+    const scale = Math.max(cw / cropImgNaturalW, ch / cropImgNaturalH);
+    cropImgDisplayW = cropImgNaturalW * scale;
+    cropImgDisplayH = cropImgNaturalH * scale;
+    cropImgOffsetX = (cw - cropImgDisplayW) / 2;
+    cropImgOffsetY = (ch - cropImgDisplayH) / 2;
+    cropImgEl.style.width = cropImgDisplayW + 'px';
+    cropImgEl.style.height = cropImgDisplayH + 'px';
+    cropImgEl.style.left = cropImgOffsetX + 'px';
+    cropImgEl.style.top = cropImgOffsetY + 'px';
+
+    if (cropShape === 'circle' || cropShape === 'menu') {
+      const size = Math.min(cw, ch) * 0.78;
+      cropFrameW = size; cropFrameH = size;
+    } else {
+      cropFrameW = cw * 0.9; cropFrameH = cropFrameW * 9 / 16;
+    }
+    cropFrameX = (cw - cropFrameW) / 2;
+    cropFrameY = (ch - cropFrameH) / 2;
+    updateCropFrame();
+
+    const titles = { circle: 'รูปโปรไฟล์ร้าน', banner: 'รูปแบนเนอร์', menu: 'รูปเมนู' };
+    document.getElementById("cropTitle").textContent = `ปรับ${titles[cropShape] || 'รูป'}`;
+    document.getElementById("cropOverlay").classList.add("show");
+  };
+  cropImgEl.src = src;
+}
+
+function updateCropFrame() {
+  const frameEl = document.getElementById("cropFrame");
+  frameEl.style.left = cropFrameX + 'px';
+  frameEl.style.top = cropFrameY + 'px';
+  frameEl.style.width = cropFrameW + 'px';
+  frameEl.style.height = cropFrameH + 'px';
+  frameEl.className = `crop-frame${(cropShape === 'circle') ? ' circle-shape' : ''}`;
+}
+
+document.getElementById("cropFrame").addEventListener('pointerdown', e => {
+  if (e.target.classList.contains('crop-handle')) return;
+  cropDragging = true;
+  cropStartX = e.clientX; cropStartY = e.clientY;
+  cropStartFX = cropFrameX; cropStartFY = cropFrameY;
+  e.preventDefault();
+});
+['tl','tr','bl','br'].forEach(h => {
+  document.getElementById(`ch-${h}`).addEventListener('pointerdown', e => {
+    cropResizing = true; cropResizeHandle = h;
+    cropStartX = e.clientX; cropStartY = e.clientY;
+    cropStartFX = cropFrameX; cropStartFY = cropFrameY;
+    cropStartFW = cropFrameW; cropStartFH = cropFrameH;
+    e.stopPropagation(); e.preventDefault();
+  });
+});
+document.addEventListener('pointermove', e => {
+  if (!cropDragging && !cropResizing) return;
+  const cropContainerEl = document.getElementById("cropContainer");
+  const cw = parseInt(cropContainerEl.style.width), ch = parseInt(cropContainerEl.style.height);
+  const dx = e.clientX - cropStartX, dy = e.clientY - cropStartY;
+
+  if (cropDragging) {
+    cropFrameX = Math.max(0, Math.min(cw - cropFrameW, cropStartFX + dx));
+    cropFrameY = Math.max(0, Math.min(ch - cropFrameH, cropStartFY + dy));
+    updateCropFrame();
+  }
+  if (cropResizing) {
+    const lockSquare = cropShape !== 'banner';
+    let newW = cropStartFW, newH = cropStartFH, newX = cropStartFX, newY = cropStartFY;
+    if (cropResizeHandle === 'br') { newW = Math.max(60, cropStartFW + dx); newH = lockSquare ? newW : Math.max(40, cropStartFH + dy); }
+    else if (cropResizeHandle === 'bl') { newW = Math.max(60, cropStartFW - dx); newH = lockSquare ? newW : Math.max(40, cropStartFH + dy); newX = cropStartFX + cropStartFW - newW; }
+    else if (cropResizeHandle === 'tr') { newW = Math.max(60, cropStartFW + dx); newH = lockSquare ? newW : Math.max(40, cropStartFH - dy); newY = lockSquare ? cropStartFY + cropStartFH - newH : cropStartFY + cropStartFH - newH; }
+    else if (cropResizeHandle === 'tl') { newW = Math.max(60, cropStartFW - dx); newH = lockSquare ? newW : Math.max(40, cropStartFH - dy); newX = cropStartFX + cropStartFW - newW; newY = cropStartFY + cropStartFH - newH; }
+    newX = Math.max(0, newX); newY = Math.max(0, newY);
+    if (newX + newW > cw) newW = cw - newX;
+    if (newY + newH > ch) newH = ch - newY;
+    cropFrameX = newX; cropFrameY = newY; cropFrameW = newW; cropFrameH = newH;
+    updateCropFrame();
+  }
+});
+document.addEventListener('pointerup', () => { cropDragging = false; cropResizing = false; });
+
+window.confirmCrop = function() {
+  const cropImgEl = document.getElementById("cropImg");
+  const canvas = document.getElementById("cropCanvas");
+  const scaleX = cropImgNaturalW / cropImgDisplayW, scaleY = cropImgNaturalH / cropImgDisplayH;
+  const cropX = (cropFrameX - cropImgOffsetX) * scaleX;
+  const cropY = (cropFrameY - cropImgOffsetY) * scaleY;
+  const cropW = cropFrameW * scaleX, cropH = cropFrameH * scaleY;
+
+  let outW = 800, outH = 800;
+  if (cropShape === 'banner') { outW = 1200; outH = 675; }
+  canvas.width = outW; canvas.height = outH;
+  const ctx = canvas.getContext('2d');
+  if (cropShape === 'circle') { ctx.save(); ctx.beginPath(); ctx.arc(outW/2, outH/2, outW/2, 0, Math.PI*2); ctx.clip(); }
+  ctx.drawImage(cropImgEl, cropX, cropY, cropW, cropH, 0, 0, outW, outH);
+  if (cropShape === 'circle') ctx.restore();
+
+  const base64 = canvas.toDataURL('image/jpeg', 0.85);
+
+  const previewEl = document.getElementById(cropTargetPreviewId);
+  if (previewEl) previewEl.innerHTML = `<img src="${base64}" style="width:100%;height:100%;object-fit:cover">`;
+  const inputEl = document.getElementById(cropTargetInputId);
+  if (inputEl) inputEl.value = base64;
+
+  closeCrop();
+}
+window.closeCrop = function() { document.getElementById("cropOverlay").classList.remove("show"); }
+
+loadShop();
+</script>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</body>
+</html>

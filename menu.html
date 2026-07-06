@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เมนู - Nimit Delivery</title>
+<style>
+:root{
+  --primary:#0c4aa6; --primary-dark:#083570; --primary-light:#e8f0fe;
+  --bg:#eef3fb; --text:#0f172a; --subtext:#64748b;
+  --white:#fff; --shadow-sm:0 1px 4px rgba(15,23,42,0.06);
+  --shadow-md:0 4px 14px rgba(15,23,42,0.09);
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Arial',sans-serif;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);min-height:100vh;padding-bottom:120px;}
+
+/* BANNER AREA */
+.banner-area{width:100%;height:110px;background:var(--bg);position:relative;}
+.banner-area img{width:100%;height:100%;object-fit:cover;}
+.banner-top-btns{position:absolute;top:14px;left:16px;right:16px;display:flex;justify-content:space-between;z-index:10;}
+
+/* TOPBAR (hidden, replaced by banner-top-btns) */
+.back-btn{width:40px;height:40px;border-radius:50%;background:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);}
+.back-btn svg{width:18px;height:18px;fill:none;stroke:var(--text);stroke-width:2.5;}
+.cart-top-btn{width:40px;height:40px;border-radius:50%;background:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);position:relative;}
+.cart-top-btn svg{width:20px;height:20px;fill:var(--primary);}
+.cart-badge{position:absolute;top:-3px;right:-3px;background:#ef4444;color:#fff;font-size:10px;font-weight:800;min-width:16px;height:16px;border-radius:20px;display:none;align-items:center;justify-content:center;padding:0 4px;}
+
+/* SHOP HEADER */
+.shop-header{background:#fff;border-bottom:1px solid #eaecf0;padding:0 16px 16px;}
+.shop-avatar-row{height:40px;position:relative;padding:0 16px;}
+.shop-avatar{width:72px;height:72px;border-radius:18px;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,0.12);overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:absolute;top:-36px;left:16px;border:3px solid #fff;}
+.shop-avatar img{width:100%;height:100%;object-fit:cover;}
+.shop-avatar-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+.shop-avatar-placeholder svg{width:28px;height:28px;fill:#c7d7f0;}
+.shop-profile{display:flex;flex-direction:column;gap:2px;padding:8px 16px 14px;}
+.shop-title{font-size:20px;font-weight:800;color:var(--text);}
+.shop-desc-text{font-size:13px;color:var(--subtext);}
+
+/* SECTION TITLE */
+.section-title{font-size:18px;font-weight:800;color:var(--text);margin-bottom:12px;}
+
+/* SEARCH */
+.search-wrap{position:relative;margin-bottom:14px;}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:16px;height:16px;fill:none;stroke:#94a3b8;stroke-width:2;}
+.search-box{width:100%;height:46px;border:none;border-radius:14px;background:#fff;padding:0 16px 0 42px;font-size:15px;outline:none;color:var(--text);box-shadow:var(--shadow-sm);}
+
+/* CATEGORY TABS */
+.cat-scroll{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-bottom:14px;}
+.cat-scroll::-webkit-scrollbar{display:none;}
+.cat-btn{padding:8px 18px;border-radius:20px;border:none;background:#fff;font-size:13px;font-weight:700;color:var(--subtext);cursor:pointer;white-space:nowrap;box-shadow:var(--shadow-sm);}
+.cat-btn.active{background:var(--primary);color:#fff;}
+
+/* MENU CARDS */
+.menu-list{display:flex;flex-direction:column;gap:12px;}
+.menu-card{background:#fff;border-radius:16px;padding:12px;display:flex;gap:12px;align-items:center;box-shadow:var(--shadow-sm);cursor:pointer;transition:transform 0.12s;}
+.menu-card:active{transform:scale(0.98);}
+.menu-img{width:80px;height:80px;border-radius:12px;background:var(--bg);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.menu-img img{width:100%;height:100%;object-fit:cover;}
+.menu-img-placeholder svg{width:28px;height:28px;fill:#c7d7f0;}
+.menu-info{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;}
+.menu-name{font-size:15px;font-weight:800;color:var(--text);margin-bottom:4px;}
+.menu-desc{font-size:12px;color:var(--subtext);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px;}
+.menu-bottom{display:flex;align-items:center;justify-content:space-between;}
+.menu-price{font-size:17px;font-weight:800;color:var(--primary);}
+
+/* ปุ่มตะกร้า */
+.cart-add-btn{width:42px;height:42px;border-radius:50%;background:var(--primary);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(12,74,166,0.3);flex-shrink:0;}
+.cart-add-btn svg{width:20px;height:20px;fill:#fff;}
+
+/* qty ctrl ตอนมีอยู่แล้ว */
+.qty-ctrl{display:flex;align-items:center;gap:8px;}
+.qty-btn{width:32px;height:32px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;}
+.qty-btn.minus{background:#fee2e2;color:#dc2626;}
+.qty-btn.plus{background:var(--primary);color:#fff;}
+.qty-num{font-size:15px;font-weight:800;min-width:24px;text-align:center;color:var(--text);}
+
+/* POPUP */
+.popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:500;display:none;align-items:flex-end;backdrop-filter:blur(2px);}
+.popup-overlay.show{display:flex;}
+.popup-box{background:#fff;width:100%;border-radius:24px 24px 0 0;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;}
+.popup-img-wrap{height:200px;background:var(--bg);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.popup-img-wrap img{width:100%;height:100%;object-fit:cover;}
+.popup-img-placeholder{display:flex;align-items:center;justify-content:center;width:100%;height:100%;}
+.popup-img-placeholder svg{width:48px;height:48px;fill:#c7d7f0;}
+.popup-header{padding:16px 20px 0;flex-shrink:0;}
+.popup-name{font-size:18px;font-weight:800;color:var(--text);}
+.popup-price{font-size:15px;font-weight:700;color:var(--primary);margin-top:4px;}
+.popup-body{flex:1;overflow-y:auto;padding:16px 20px;}
+.option-group-section{margin-bottom:20px;}
+.og-title-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.og-title{font-size:15px;font-weight:800;color:var(--text);}
+.og-required-badge{font-size:10px;font-weight:700;background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:20px;}
+.og-optional-badge{font-size:10px;font-weight:700;background:var(--primary-light);color:var(--primary);padding:2px 8px;border-radius:20px;}
+.og-select-hint{font-size:12px;color:var(--subtext);margin-left:auto;}
+.option-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:2px solid #f0f2f5;margin-bottom:6px;cursor:pointer;transition:all 0.15s;}
+.option-item.selected{border-color:var(--primary);background:var(--primary-light);}
+.option-item.selected-multi{border-color:var(--primary);background:var(--primary-light);}
+.opt-radio{width:18px;height:18px;border-radius:50%;border:2px solid #cbd5e1;flex-shrink:0;transition:all 0.15s;}
+.opt-radio.checked{border-color:var(--primary);background:var(--primary);box-shadow:inset 0 0 0 3px #fff;}
+.opt-checkbox{width:18px;height:18px;border-radius:5px;border:2px solid #cbd5e1;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+.opt-checkbox.checked{border-color:var(--primary);background:var(--primary);}
+.opt-checkbox.checked svg{stroke:#fff;}
+.opt-checkbox svg{width:11px;height:11px;stroke:transparent;stroke-width:3;fill:none;}
+.opt-name-text{flex:1;font-size:14px;font-weight:600;color:var(--text);}
+.opt-price-text{font-size:13px;font-weight:700;color:var(--primary);}
+.popup-note{margin-top:4px;}
+.popup-note-label{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.popup-note-input{width:100%;border:2px solid #e8eaf0;border-radius:12px;padding:10px 14px;font-size:14px;outline:none;resize:none;height:66px;font-family:inherit;}
+.popup-note-input:focus{border-color:var(--primary);}
+.popup-footer{flex-shrink:0;padding:14px 20px 30px;border-top:1px solid #f0f2f5;display:flex;gap:10px;}
+.popup-cancel-btn{flex:1;height:52px;border:2px solid #e2e8f0;border-radius:14px;background:#fff;color:var(--text);font-size:15px;font-weight:700;cursor:pointer;}
+.popup-add-btn{flex:2;height:52px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(12,74,166,0.3);}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.error-shake{animation:shake 0.4s ease;}
+
+/* CART BAR */
+.cart-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;box-shadow:0 -2px 14px rgba(0,0,0,0.08);padding:12px 16px 26px;display:none;}
+.cart-bar-inner{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));border-radius:16px;padding:14px 18px;cursor:pointer;}
+.cart-bar-icon svg{width:22px;height:22px;fill:#fff;}
+.cart-bar-info{flex:1;}
+.cart-bar-qty{font-size:12px;color:rgba(255,255,255,0.8);font-weight:700;}
+.cart-bar-total{font-size:17px;font-weight:800;color:#fff;}
+.cart-bar-arrow svg{width:20px;height:20px;fill:#fff;}
+
+.loading{text-align:center;padding:60px 20px;color:var(--subtext);font-size:14px;}
+.closed-banner{background:#fee2e2;border-radius:14px;padding:12px 16px;margin-bottom:14px;font-size:14px;font-weight:700;color:#dc2626;text-align:center;}
+</style>
+</head>
+<body>
+
+<!-- BANNER + TOPBAR FLOAT -->
+<div class="banner-area" id="bannerArea">
+  <div class="banner-top-btns">
+    <button class="back-btn" onclick="window.location.href='shops.html'"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+    <button class="cart-top-btn" onclick="window.location.href='cart.html'">
+      <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg>
+      <span class="cart-badge" id="topCartBadge">0</span>
+    </button>
+  </div>
+</div>
+
+<div class="shop-header">
+  <div class="shop-avatar-row">
+    <div class="shop-avatar" id="shopAvatar">
+      <div class="shop-avatar-placeholder"><svg viewBox="0 0 24 24"><path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/></svg></div>
+    </div>
+  </div>
+  <div class="shop-profile">
+    <div class="shop-title" id="shopNameTitle">ร้านค้า</div>
+    <div class="shop-desc-text" id="shopDescText"></div>
+  </div>
+  <div class="closed-banner" id="closedBanner" style="display:none">ร้านนี้ปิดอยู่ในขณะนี้</div>
+  <div class="section-title">เมนูอาหาร</div>
+  <div class="search-wrap">
+    <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input class="search-box" id="searchBox" type="text" placeholder="ค้นหาเมนู..." oninput="onSearch()">
+  </div>
+  <div class="cat-scroll" id="catScroll"></div>
+</div>
+
+<div style="padding:0 8px"><div style="padding:0 8px 10px">
+  <div id="menuContainer"><div class="loading">กำลังโหลดเมนู...</div></div>
+</div>
+
+<!-- POPUP -->
+<div class="popup-overlay" id="optionPopup">
+  <div class="popup-box">
+    <div class="popup-img-wrap" id="popupImgWrap">
+      <div class="popup-img-placeholder"><svg viewBox="0 0 24 24"><path d="M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26 1.44 1.42 2.43 2.89 2.43 5.29v8.05zM1 21.99V21h15.03v.99c0 .55-.45 1-1.01 1H2.01c-.56 0-1.01-.45-1.01-1zm15.03-7c0-4.5-6.72-5-8.03-5-1.28 0-8 .5-8 5h16.03z"/></svg></div>
+    </div>
+    <div class="popup-header">
+      <div class="popup-name" id="popupName"></div>
+      <div class="popup-price" id="popupPrice"></div>
+    </div>
+    <div class="popup-body" id="popupBody"></div>
+    <div class="popup-footer">
+      <button class="popup-cancel-btn" onclick="closePopup()">ยกเลิก</button>
+      <button class="popup-add-btn" id="popupAddBtn" onclick="addToCartFromPopup()">เพิ่มลงตะกร้า ฿<span id="popupTotal">0</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- CART BAR -->
+<div class="cart-bar" id="cartBar">
+  <div class="cart-bar-inner" onclick="window.location.href='cart.html'">
+    <div class="cart-bar-icon"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg></div>
+    <div class="cart-bar-info">
+      <div class="cart-bar-qty"><span id="cartCount">0</span> รายการ</div>
+      <div class="cart-bar-total">฿<span id="cartTotal">0</span></div>
+    </div>
+    <div class="cart-bar-arrow"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
+  authDomain:"nimit-delivery.firebaseapp.com",
+  projectId:"nimit-delivery",
+  storageBucket:"nimit-delivery.firebasestorage.app",
+  messagingSenderId:"233476256130",
+  appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const shopId = localStorage.getItem("selectedShopId");
+const shopName = localStorage.getItem("selectedShopName");
+document.getElementById("shopNameTitle").textContent = shopName || "ร้านค้า";
+
+let cart = JSON.parse(localStorage.getItem("cart") || "{}");
+let allMenus = [], filteredMenus = [], categories = [], currentCat = "ทั้งหมด";
+let gpPercent = 0, popupMenu = null, popupSelections = {};
+
+async function loadSettings(){
+  try{ const s=await getDoc(doc(db,"settings","pricing")); if(s.exists()) gpPercent=s.data().gpPercent||0; }catch(e){}
+}
+
+async function loadShopInfo(){
+  try{
+    const s=await getDoc(doc(db,"shops",shopId));
+    if(s.exists()){
+      const d=s.data();
+      if(d.desc) document.getElementById("shopDescText").textContent=d.desc;
+      if(!d.isOpen) document.getElementById("closedBanner").style.display="block";
+      const avatar=document.getElementById("shopAvatar");
+      if(d.avatarUrl) avatar.innerHTML=`<img src="${d.avatarUrl}">`;
+      const banner=document.getElementById("bannerArea");
+      if(d.bannerUrl) banner.innerHTML=`<img src="${d.bannerUrl}"><div class="banner-top-btns"><button class="back-btn" onclick="window.location.href='shops.html'"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button><button class="cart-top-btn" onclick="window.location.href='cart.html'"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg><span class="cart-badge" id="topCartBadge">0</span></button></div>`;
+    }
+  }catch(e){}
+}
+
+function calcPrice(base,menuGp){ return Math.ceil(base*(1+(gpPercent+(menuGp||0))/100)); }
+
+async function loadMenu(){
+  await loadSettings();
+  await loadShopInfo();
+  try{
+    const snap=await getDocs(collection(db,"shops",shopId,"menus"));
+    allMenus=[]; snap.forEach(d=>allMenus.push({id:d.id,...d.data()}));
+    categories=["ทั้งหมด",...new Set(allMenus.map(m=>m.category).filter(Boolean))];
+    renderCats(); applyFilter();
+  }catch(e){ document.getElementById("menuContainer").innerHTML='<div class="loading">โหลดไม่ได้</div>'; }
+}
+
+function renderCats(){
+  document.getElementById("catScroll").innerHTML=categories.map(c=>
+    `<button class="cat-btn ${c===currentCat?'active':''}" onclick="selectCat('${c}')">${c}</button>`
+  ).join('');
+}
+
+function applyFilter(){
+  const q=document.getElementById("searchBox").value.toLowerCase();
+  filteredMenus=allMenus.filter(m=>{
+    const matchCat=currentCat==="ทั้งหมด"||m.category===currentCat;
+    const matchQ=!q||m.name.toLowerCase().includes(q);
+    return matchCat&&matchQ;
+  });
+  renderMenus();
+}
+
+window.selectCat=function(c){ currentCat=c; renderCats(); applyFilter(); }
+window.onSearch=function(){ applyFilter(); }
+
+function qtyInCart(menuId){ return cart[shopId]?.items?.filter(i=>i.id===menuId).reduce((s,i)=>s+i.qty,0)||0; }
+
+function renderMenus(){
+  const el=document.getElementById("menuContainer");
+  if(!filteredMenus.length){ el.innerHTML='<div class="loading">ไม่มีเมนู</div>'; return; }
+  el.innerHTML=`<div class="menu-list">${filteredMenus.map(m=>{
+    const dp=calcPrice(m.price,m.gp);
+    const qty=qtyInCart(m.id);
+    return `<div class="menu-card" onclick="openMenuPopup('${m.id}')">
+      <div class="menu-img">
+        ${m.imgUrl
+          ?`<img src="${m.imgUrl}" onerror="this.parentElement.innerHTML='<div class=menu-img-placeholder><svg viewBox=\\'0 0 24 24\\'><path d=\\'M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26 1.44 1.42 2.43 2.89 2.43 5.29v8.05zM1 21.99V21h15.03v.99c0 .55-.45 1-1.01 1H2.01c-.56 0-1.01-.45-1.01-1zm15.03-7c0-4.5-6.72-5-8.03-5-1.28 0-8 .5-8 5h16.03z\\'/></svg></div>'">`
+          :`<div class="menu-img-placeholder"><svg viewBox="0 0 24 24"><path d="M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26 1.44 1.42 2.43 2.89 2.43 5.29v8.05zM1 21.99V21h15.03v.99c0 .55-.45 1-1.01 1H2.01c-.56 0-1.01-.45-1.01-1zm15.03-7c0-4.5-6.72-5-8.03-5-1.28 0-8 .5-8 5h16.03z"/></svg></div>`
+        }
+      </div>
+      <div class="menu-info">
+        <div class="menu-name">${m.name}</div>
+        ${m.desc?`<div class="menu-desc">${m.desc}</div>`:''}
+        <div class="menu-bottom">
+          <div class="menu-price">฿${dp}</div>
+          ${qty>0
+            ?`<div class="qty-ctrl" onclick="event.stopPropagation()">
+                <button class="qty-btn minus" onclick="quickRemove('${m.id}')">−</button>
+                <div class="qty-num">${qty}</div>
+                <button class="qty-btn plus" onclick="event.stopPropagation();openMenuPopup('${m.id}')">+</button>
+              </div>`
+            :`<button class="cart-add-btn" onclick="event.stopPropagation();openMenuPopup('${m.id}')">
+                <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg>
+              </button>`
+          }
+        </div>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// POPUP
+window.openMenuPopup=function(menuId){
+  const m=allMenus.find(x=>x.id===menuId); if(!m) return;
+  popupMenu=m; popupSelections={};
+  document.getElementById("popupImgWrap").innerHTML=m.imgUrl
+    ?`<img src="${m.imgUrl}">`
+    :`<div class="popup-img-placeholder"><svg viewBox="0 0 24 24"><path d="M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26 1.44 1.42 2.43 2.89 2.43 5.29v8.05zM1 21.99V21h15.03v.99c0 .55-.45 1-1.01 1H2.01c-.56 0-1.01-.45-1.01-1zm15.03-7c0-4.5-6.72-5-8.03-5-1.28 0-8 .5-8 5h16.03z"/></svg></div>`;
+  document.getElementById("popupName").textContent=m.name;
+  document.getElementById("popupPrice").textContent=`฿${calcPrice(m.price,m.gp)}`;
+  renderPopupBody(); updatePopupTotal();
+  document.getElementById("optionPopup").classList.add("show");
+  document.getElementById("optionPopup").querySelector('.popup-box').scrollTop=0;
+}
+
+function renderPopupBody(){
+  const m=popupMenu; const groups=m.optionGroups||[];
+  let html='';
+  groups.forEach((g,gi)=>{
+    html+=`<div class="option-group-section" id="og-${gi}">
+      <div class="og-title-row"><div class="og-title">${g.title}</div>
+      ${g.required?`<div class="og-required-badge">บังคับ</div>`:`<div class="og-optional-badge">ไม่บังคับ</div>`}
+      <div class="og-select-hint">${g.required?'เลือก 1':'เลือกได้หลายอย่าง'}</div></div>`;
+    (g.options||[]).forEach(o=>{
+      const sel=g.required?popupSelections[gi]===o.name:(popupSelections[gi] instanceof Set&&popupSelections[gi].has(o.name));
+      if(g.required){
+        html+=`<div class="option-item ${sel?'selected':''}" onclick="selectOption(${gi},'${o.name.replace(/'/g,"\\'")}',${o.price||0},true)">
+          <div class="opt-radio ${sel?'checked':''}"></div>
+          <div class="opt-name-text">${o.name}</div>
+          ${o.price?`<div class="opt-price-text">+฿${o.price}</div>`:''}</div>`;
+      } else {
+        html+=`<div class="option-item ${sel?'selected-multi':''}" onclick="selectOption(${gi},'${o.name.replace(/'/g,"\\'")}',${o.price||0},false)">
+          <div class="opt-checkbox ${sel?'checked':''}"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="opt-name-text">${o.name}</div>
+          ${o.price?`<div class="opt-price-text">+฿${o.price}</div>`:''}</div>`;
+      }
+    });
+    html+=`</div>`;
+  });
+  html+=`<div class="popup-note"><div class="popup-note-label">คำแนะนำเพิ่มเติม</div><textarea class="popup-note-input" id="popupNote" placeholder="เช่น ไม่ใส่ผัก, หวานน้อย"></textarea></div>`;
+  document.getElementById("popupBody").innerHTML=html;
+}
+
+window.selectOption=function(gi,optName,optPrice,isSingle){
+  if(isSingle){ popupSelections[gi]=popupSelections[gi]===optName?null:optName; }
+  else{ if(!(popupSelections[gi] instanceof Set)) popupSelections[gi]=new Set(); if(popupSelections[gi].has(optName)) popupSelections[gi].delete(optName); else popupSelections[gi].add(optName); }
+  renderPopupBody(); updatePopupTotal();
+}
+
+function updatePopupTotal(){
+  const m=popupMenu; if(!m) return;
+  const base=calcPrice(m.price,m.gp); let extra=0;
+  (m.optionGroups||[]).forEach((g,gi)=>{
+    if(g.required&&popupSelections[gi]){ const opt=g.options.find(o=>o.name===popupSelections[gi]); extra+=opt?.price||0; }
+    else if(!g.required&&popupSelections[gi] instanceof Set){ popupSelections[gi].forEach(name=>{ const opt=g.options.find(o=>o.name===name); extra+=opt?.price||0; }); }
+  });
+  document.getElementById("popupTotal").textContent=base+extra;
+}
+
+window.addToCartFromPopup=function(){
+  const m=popupMenu; if(!m) return;
+  let missing=false;
+  (m.optionGroups||[]).forEach((g,gi)=>{ if(g.required&&!popupSelections[gi]){ missing=true; const el=document.getElementById(`og-${gi}`); if(el){el.classList.remove('error-shake');void el.offsetWidth;el.classList.add('error-shake');} } });
+  if(missing) return;
+  const selectedOptions=[];
+  (m.optionGroups||[]).forEach((g,gi)=>{
+    if(g.required&&popupSelections[gi]){ const opt=g.options.find(o=>o.name===popupSelections[gi]); selectedOptions.push({groupTitle:g.title,name:popupSelections[gi],price:opt?.price||0}); }
+    else if(!g.required&&popupSelections[gi] instanceof Set){ popupSelections[gi].forEach(name=>{ const opt=g.options.find(o=>o.name===name); selectedOptions.push({groupTitle:g.title,name,price:opt?.price||0}); }); }
+  });
+  const base=calcPrice(m.price,m.gp);
+  const extra=selectedOptions.reduce((s,o)=>s+o.price,0);
+  if(!cart[shopId]) cart[shopId]={shopName,items:[]};
+  cart[shopId].items.push({id:m.id,name:m.name,basePrice:m.price,price:base+extra,qty:1,imgUrl:m.imgUrl||'',options:selectedOptions,optionGroups:m.optionGroups,note:document.getElementById("popupNote")?.value||''});
+  localStorage.setItem("cart",JSON.stringify(cart));
+  closePopup(); renderMenus(); updateCartBar();
+}
+
+window.quickRemove=function(menuId){
+  if(!cart[shopId]) return;
+  const items=cart[shopId].items;
+  const lastIdx=[...items].map((item,i)=>({item,i})).filter(x=>x.item.id===menuId).pop()?.i;
+  if(lastIdx!==undefined){ items[lastIdx].qty--; if(items[lastIdx].qty<=0) items.splice(lastIdx,1); }
+  if(!cart[shopId].items.length) delete cart[shopId];
+  localStorage.setItem("cart",JSON.stringify(cart));
+  renderMenus(); updateCartBar();
+}
+
+window.closePopup=function(){ document.getElementById("optionPopup").classList.remove("show"); popupMenu=null; popupSelections={}; }
+document.getElementById("optionPopup").addEventListener('click',function(e){ if(e.target===this) closePopup(); });
+
+function updateCartBar(){
+  let qty=0,total=0;
+  Object.values(cart).forEach(sc=>sc.items?.forEach(i=>{qty+=i.qty;total+=i.price*i.qty;}));
+  document.getElementById("cartCount").textContent=qty;
+  document.getElementById("cartTotal").textContent=total;
+  document.getElementById("cartBar").style.display=qty>0?"block":"none";
+  const badge=document.getElementById("topCartBadge");
+  badge.textContent=qty; badge.style.display=qty>0?"flex":"none";
+}
+
+updateCartBar();
+loadMenu();
+</script>
+</body>
+</html>

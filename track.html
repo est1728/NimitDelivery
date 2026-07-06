@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ติดตามออเดอร์ - Nimit Delivery</title>
+<style>
+:root{
+  --primary:#0c4aa6; --primary-dark:#083570; --primary-light:#e8f0fe;
+  --gray:#f5f6f8; --text:#0f172a; --subtext:#64748b;
+  --green:#16a34a; --green-light:#dcfce7;
+  --red:#dc2626; --red-light:#fee2e2;
+  --orange:#ea580c; --orange-light:#fff7ed;
+  --shadow-sm:0 1px 4px rgba(15,23,42,0.06);
+  --shadow-md:0 4px 14px rgba(15,23,42,0.08);
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Arial',sans-serif;-webkit-tap-highlight-color:transparent;}
+body{background:var(--gray);min-height:100vh;}
+.page{display:none;}
+.page.active{display:block;}
+
+.topbar{background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:14px 16px;color:#fff;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;}
+.back-btn{width:38px;height:38px;border:none;border-radius:12px;background:rgba(255,255,255,0.18);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.back-btn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2.5;}
+.topbar-title{font-size:17px;font-weight:800;flex:1;}
+
+.list-container{padding:16px;padding-bottom:30px;}
+.group-label{font-size:12px;font-weight:800;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin:14px 0 8px;}
+
+.order-shop-card{background:#fff;border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow-sm);cursor:pointer;transition:transform 0.15s;display:flex;align-items:center;gap:14px;}
+.order-shop-card:active{transform:scale(0.98);}
+.shop-status-icon{width:48px;height:48px;border-radius:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.shop-status-icon svg{width:24px;height:24px;}
+.icon-pending{background:var(--orange-light);}
+.icon-pending svg{fill:var(--orange);}
+.icon-active{background:var(--primary-light);}
+.icon-active svg{fill:var(--primary);}
+.icon-delivering{background:var(--green-light);}
+.icon-delivering svg{fill:var(--green);}
+.icon-done{background:#f1f5f9;}
+.icon-done svg{fill:var(--subtext);}
+.order-shop-info{flex:1;min-width:0;}
+.order-shop-name{font-size:15px;font-weight:800;color:var(--text);margin-bottom:3px;}
+.order-shop-status{font-size:13px;font-weight:600;margin-bottom:3px;}
+.order-shop-items{font-size:12px;color:var(--subtext);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.order-shop-time{font-size:11px;color:var(--subtext);margin-top:3px;}
+.order-shop-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}
+.order-total{font-size:15px;font-weight:800;color:var(--primary);}
+.status-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;}
+.badge-pending{background:var(--orange-light);color:var(--orange);}
+.badge-active{background:var(--primary-light);color:var(--primary);}
+.badge-delivering{background:var(--green-light);color:var(--green);}
+.badge-done{background:#f1f5f9;color:var(--subtext);}
+.badge-rejected{background:var(--red-light);color:var(--red);}
+.arrow-icon{width:20px;height:20px;fill:var(--subtext);}
+.mini-progress{display:flex;gap:3px;margin-top:6px;}
+.mini-dot{flex:1;height:3px;border-radius:2px;background:#e2e8f0;}
+.mini-dot.done{background:var(--green);}
+.mini-dot.active{background:var(--primary);}
+
+.empty-state{text-align:center;padding:80px 24px;}
+.empty-icon{width:80px;height:80px;border-radius:50%;background:#fff;box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
+.empty-icon svg{width:36px;height:36px;fill:#cbd5e1;}
+.empty-title{font-size:17px;font-weight:800;color:var(--text);margin-bottom:6px;}
+.empty-sub{font-size:14px;color:var(--subtext);margin-bottom:24px;line-height:1.6;}
+.empty-btn{height:50px;padding:0 32px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:15px;font-weight:800;cursor:pointer;}
+
+/* DETAIL */
+.detail-header{background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:20px;color:#fff;border-radius:0 0 24px 24px;}
+.detail-order-id{font-size:13px;opacity:0.8;margin-bottom:4px;}
+.detail-shop-name{font-size:20px;font-weight:800;margin-bottom:12px;}
+.detail-status-text{font-size:15px;font-weight:700;margin-bottom:12px;}
+.timeline-wrap{display:flex;gap:0;margin-top:4px;}
+.timeline-step{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.timeline-dot{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;}
+.timeline-dot.done{background:#4ade80;border-color:#4ade80;}
+.timeline-dot.active{background:#fff;border-color:#fff;}
+.timeline-dot svg{width:13px;height:13px;}
+.timeline-dot.done svg{fill:#fff;}
+.timeline-dot.active svg{fill:var(--primary);}
+.timeline-dot:not(.done):not(.active) svg{fill:rgba(255,255,255,0.4);}
+.timeline-label{font-size:9px;font-weight:700;color:rgba(255,255,255,0.7);text-align:center;line-height:1.2;}
+.timeline-label.active{color:#fff;}
+.timeline-label.done{color:rgba(255,255,255,0.9);}
+.timeline-line{flex:1;height:2px;background:rgba(255,255,255,0.2);margin-top:13px;}
+.timeline-line.done{background:#4ade80;}
+
+.detail-container{padding:16px;padding-bottom:30px;}
+.info-card{background:#fff;border-radius:18px;padding:16px;box-shadow:var(--shadow-sm);margin-bottom:14px;}
+.info-card-title{font-size:13px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--gray);display:flex;align-items:center;gap:8px;}
+.info-card-title svg{width:16px;height:16px;fill:var(--primary);}
+.rider-row{display:flex;align-items:center;gap:12px;}
+.rider-avatar{width:48px;height:48px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.rider-avatar svg{width:24px;height:24px;fill:var(--primary);}
+.rider-name{font-size:15px;font-weight:800;color:var(--text);}
+.rider-plate{font-size:12px;color:var(--subtext);margin-top:2px;}
+.rider-actions{display:flex;gap:8px;margin-top:12px;}
+.action-btn{flex:1;height:42px;border-radius:12px;border:none;background:var(--primary-light);color:var(--primary);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+.action-btn svg{width:14px;height:14px;fill:var(--primary);}
+.info-row{display:flex;justify-content:space-between;padding:6px 0;font-size:14px;border-bottom:1px solid #f5f6f8;}
+.info-row:last-child{border-bottom:none;}
+.info-label{color:var(--subtext);}
+.info-value{font-weight:700;color:var(--text);text-align:right;max-width:65%;}
+.items-header{display:grid;grid-template-columns:1fr auto auto;gap:4px 10px;font-size:11px;font-weight:700;color:var(--subtext);text-transform:uppercase;margin-bottom:8px;}
+.item-row{display:grid;grid-template-columns:1fr auto auto;gap:4px 10px;font-size:13px;padding:7px 0;border-bottom:1px solid #f5f6f8;}
+.item-row:last-child{border-bottom:none;}
+.item-option-text{font-size:11px;color:var(--subtext);margin-top:2px;}
+.done-banner{background:var(--green);border-radius:16px;padding:16px;text-align:center;margin-bottom:14px;color:#fff;}
+.done-banner svg{width:32px;height:32px;fill:#fff;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto;}
+.done-banner-title{font-size:16px;font-weight:800;}
+.done-banner-sub{font-size:13px;opacity:0.85;margin-top:4px;}
+</style>
+</head>
+<body>
+
+<!-- LIST PAGE -->
+<div id="listPage" class="page active">
+  <div class="topbar">
+    <button class="back-btn" onclick="window.location.href='shops.html'"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+    <div class="topbar-title">ติดตามออเดอร์</div>
+  </div>
+  <div class="list-container">
+    <div id="activeOrders"></div>
+    <div id="doneOrders"></div>
+  </div>
+</div>
+
+<!-- DETAIL PAGE -->
+<div id="detailPage" class="page">
+  <div class="detail-header">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      <button class="back-btn" onclick="showList()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+      <div>
+        <div class="detail-order-id" id="d-orderId">AMJ-XXXXXX</div>
+        <div class="detail-shop-name" id="d-shopName">ชื่อร้าน</div>
+      </div>
+    </div>
+    <div class="detail-status-text" id="d-statusText">รอรับออเดอร์</div>
+    <div class="timeline-wrap" id="d-timeline"></div>
+  </div>
+  <div class="detail-container">
+    <div class="done-banner" id="doneBanner" style="display:none">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+      <div class="done-banner-title">ส่งออเดอร์เสร็จสิ้น</div>
+      <div class="done-banner-sub" id="d-doneTime">-</div>
+    </div>
+    <div class="info-card" id="riderCard" style="display:none">
+      <div class="info-card-title"><svg viewBox="0 0 24 24"><path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/></svg>ไรเดอร์ของคุณ</div>
+      <div class="rider-row">
+        <div class="rider-avatar"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
+        <div><div class="rider-name" id="d-riderName">-</div><div class="rider-plate" id="d-riderPhone">-</div></div>
+      </div>
+      <div class="rider-actions">
+        <button class="action-btn" id="d-callRider"><svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>โทรหาไรเดอร์</button>
+      </div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-title"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg>รายการสินค้า</div>
+      <div class="items-header"><span>สินค้า</span><span>จำนวน</span><span>ราคา</span></div>
+      <div id="d-items"></div>
+      <div style="display:flex;justify-content:space-between;padding-top:10px;margin-top:6px;border-top:2px solid var(--gray);font-size:16px;font-weight:800;color:var(--primary)"><span>ยอดรวม</span><span id="d-total">฿0</span></div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-title"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>ข้อมูลจัดส่ง</div>
+      <div class="info-row"><span class="info-label">ชื่อ</span><span class="info-value" id="d-cusName">-</span></div>
+      <div class="info-row"><span class="info-label">โทร</span><span class="info-value" id="d-cusPhone">-</span></div>
+      <div class="info-row"><span class="info-label">ที่อยู่</span><span class="info-value" id="d-cusAddr">-</span></div>
+      <div class="info-row"><span class="info-label">ชำระเงิน</span><span class="info-value" id="d-payMethod">-</span></div>
+      <div class="info-row"><span class="info-label">ค่าส่ง</span><span class="info-value" id="d-delivery">-</span></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, onSnapshot, collection, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
+  authDomain:"nimit-delivery.firebaseapp.com",
+  projectId:"nimit-delivery",
+  storageBucket:"nimit-delivery.firebasestorage.app",
+  messagingSenderId:"233476256130",
+  appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const statusSteps = [
+  { key:"pending",    label:"รอรับ",      icon:'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>' },
+  { key:"accepted",   label:"รับแล้ว",    icon:'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>' },
+  { key:"picking",    label:"ไปร้าน",     icon:'<path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/>' },
+  { key:"arrived",    label:"ถึงร้าน",    icon:'<path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/>' },
+  { key:"delivering", label:"กำลังส่ง",   icon:'<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/>' },
+  { key:"done",       label:"เสร็จสิ้น",  icon:'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>' }
+];
+const statusLabel = { pending:"รอรับออเดอร์", accepted:"รับงานแล้ว", picking:"ไรเดอร์กำลังไปร้าน", arrived:"ถึงร้านแล้ว", delivering:"ไรเดอร์กำลังส่งมาหาคุณ", done:"ส่งเสร็จสิ้น", rejected:"ถูกยกเลิก" };
+const statusIconClass = { pending:"icon-pending", accepted:"icon-active", picking:"icon-active", arrived:"icon-active", delivering:"icon-delivering", done:"icon-done", rejected:"icon-done" };
+const statusBadgeClass = { pending:"badge-pending", accepted:"badge-active", picking:"badge-active", arrived:"badge-active", delivering:"badge-delivering", done:"badge-done", rejected:"badge-rejected" };
+
+let currentDetailDocId = null;
+let listUnsub = null;
+
+// ===== BUG FIX: query Firebase ตรงๆ ด้วย customerPhone แทน localStorage =====
+// เพื่อให้ catch ออเดอร์ใหม่ที่สั่งทีหลังได้ทุกร้าน
+function loadOrderList(){
+  const phone = JSON.parse(localStorage.getItem("customerData")||"{}").phone;
+  if(!phone){ renderEmpty(); return; }
+
+  if(listUnsub) listUnsub();
+
+  // ฟัง realtime ทุก order ของ customer คนนี้ที่ยังไม่เสร็จ + เสร็จวันนี้
+  listUnsub = onSnapshot(
+    query(collection(db,"orders"), where("customer.phone","==",phone)),
+    snap => {
+      const orders = [];
+      snap.forEach(d => orders.push({docId:d.id,...d.data()}));
+      // เรียงใหม่ก่อนเก่า
+      orders.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+      renderOrderList(orders);
+    }
+  );
+}
+
+function renderEmpty(){
+  document.getElementById("activeOrders").innerHTML=`
+    <div class="empty-state">
+      <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a2.996 2.996 0 0 0-5.5-1.65l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-2 .89-2 2v11c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2z"/></svg></div>
+      <div class="empty-title">ไม่มีออเดอร์ปัจจุบัน</div>
+      <div class="empty-sub">ออเดอร์ที่กำลังดำเนินการจะแสดงที่นี่</div>
+      <button class="empty-btn" onclick="window.location.href='shops.html'">เลือกร้านสั่งอาหาร</button>
+    </div>`;
+  document.getElementById("doneOrders").innerHTML="";
+}
+
+function renderOrderList(orders){
+  if(!orders.length){ renderEmpty(); return; }
+  const active=orders.filter(o=>!["done","rejected"].includes(o.status));
+  const done=orders.filter(o=>["done","rejected"].includes(o.status));
+  const activeEl=document.getElementById("activeOrders");
+  activeEl.innerHTML=active.length ? `<div class="group-label">กำลังดำเนินการ (${active.length})</div>`+active.map(o=>renderOrderCard(o)).join('') : '';
+  const doneEl=document.getElementById("doneOrders");
+  doneEl.innerHTML=done.length ? `<div class="group-label">เสร็จสิ้น / ยกเลิก</div>`+done.map(o=>renderOrderCard(o)).join('') : '';
+  if(!active.length&&!done.length) renderEmpty();
+}
+
+function renderOrderCard(o){
+  const currentIdx=statusSteps.findIndex(s=>s.key===o.status);
+  const miniDots=statusSteps.slice(0,-1).map((s,i)=>
+    `<div class="mini-dot ${i<currentIdx?'done':i===currentIdx?'active':''}"></div>`
+  ).join('');
+  const items=(o.items||[]).map(i=>i.name).join(', ');
+  const time=o.createdAt?.toDate?o.createdAt.toDate().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):'';
+  return `<div class="order-shop-card" onclick="openDetail('${o.docId}')">
+    <div class="shop-status-icon ${statusIconClass[o.status]||'icon-active'}">
+      <svg viewBox="0 0 24 24">${statusSteps.find(s=>s.key===o.status)?.icon||''}</svg>
+    </div>
+    <div class="order-shop-info">
+      <div class="order-shop-name">${o.shopName||'-'}</div>
+      <div class="order-shop-status" style="color:${o.status==='done'?'var(--green)':o.status==='rejected'?'var(--red)':'var(--primary)'}">${statusLabel[o.status]||o.status}</div>
+      <div class="order-shop-items">${items}</div>
+      ${!["done","rejected"].includes(o.status)?`<div class="mini-progress">${miniDots}</div>`:''}
+      <div class="order-shop-time">${time}</div>
+    </div>
+    <div class="order-shop-right">
+      <div class="order-total">฿${o.grandTotal||0}</div>
+      <div class="status-badge ${statusBadgeClass[o.status]||'badge-active'}">${o.orderId}</div>
+      <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
+  </div>`;
+}
+
+// ===== DETAIL =====
+window.openDetail=function(docId){
+  currentDetailDocId=docId;
+  document.getElementById("listPage").classList.remove("active");
+  document.getElementById("detailPage").classList.add("active");
+  onSnapshot(doc(db,"orders",docId),snap=>{
+    if(snap.exists()) renderDetail({docId,...snap.data()});
+  });
+}
+window.showList=function(){
+  document.getElementById("detailPage").classList.remove("active");
+  document.getElementById("listPage").classList.add("active");
+}
+
+function renderDetail(o){
+  document.getElementById("d-orderId").textContent=o.orderId;
+  document.getElementById("d-shopName").textContent=o.shopName||'-';
+  document.getElementById("d-statusText").textContent=statusLabel[o.status]||o.status;
+  const currentIdx=statusSteps.findIndex(s=>s.key===o.status);
+  let timelineHTML='';
+  statusSteps.forEach((s,i)=>{
+    const isDone=i<currentIdx, isActive=i===currentIdx;
+    if(i>0) timelineHTML+=`<div class="timeline-line ${isDone?'done':''}"></div>`;
+    timelineHTML+=`<div class="timeline-step">
+      <div class="timeline-dot ${isDone?'done':isActive?'active':''}"><svg viewBox="0 0 24 24">${s.icon}</svg></div>
+      <div class="timeline-label ${isDone?'done':isActive?'active':''}">${s.label}</div>
+    </div>`;
+  });
+  document.getElementById("d-timeline").innerHTML=timelineHTML;
+  document.getElementById("doneBanner").style.display=o.status==='done'?'block':'none';
+  if(o.status==='done') document.getElementById("d-doneTime").textContent=o.createdAt?.toDate?`ส่งถึงแล้วเมื่อ ${o.createdAt.toDate().toLocaleString('th-TH')}`:'';
+  if(o.riderName&&o.status!=='pending'){
+    document.getElementById("riderCard").style.display="block";
+    document.getElementById("d-riderName").textContent=o.riderName;
+    document.getElementById("d-riderPhone").textContent=o.riderPhone||'-';
+    document.getElementById("d-callRider").onclick=()=>{ if(o.riderPhone) window.location.href=`tel:${o.riderPhone}`; };
+  } else { document.getElementById("riderCard").style.display="none"; }
+  document.getElementById("d-items").innerHTML=(o.items||[]).map(i=>`
+    <div class="item-row">
+      <div><div>${i.name}</div>${i.options?.length?`<div class="item-option-text">${i.options.map(op=>op.name).join(', ')}</div>`:''}</div>
+      <div>x${i.qty}</div><div>฿${i.price*i.qty}</div>
+    </div>`).join('');
+  document.getElementById("d-total").textContent=`฿${o.grandTotal||0}`;
+  const cus=o.customer||{};
+  document.getElementById("d-cusName").textContent=cus.name||'-';
+  document.getElementById("d-cusPhone").textContent=cus.phone||'-';
+  document.getElementById("d-cusAddr").textContent=cus.address||'-';
+  document.getElementById("d-payMethod").textContent=o.paymentMethod==='cash'?'เงินสด':'โอนเงิน';
+  document.getElementById("d-delivery").textContent=o.deliveryFee>0?`฿${o.deliveryFee}`:'ฟรี';
+}
+
+const urlParams=new URLSearchParams(window.location.search);
+const directOrderId=urlParams.get("orderId");
+if(directOrderId){ openDetail(directOrderId); }
+else{ loadOrderList(); }
+</script>
+</body>
+</html>

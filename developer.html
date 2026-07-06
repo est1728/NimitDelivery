@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nimit Developer Center</title>
+<style>
+:root{
+  --primary:#0c4aa6;--primary-dark:#083570;--primary-light:#e8f0fe;
+  --gray:#f5f6f8;--text:#0f172a;--subtext:#64748b;
+  --green:#16a34a;--green-light:#dcfce7;
+  --red:#dc2626;--red-light:#fee2e2;
+  --orange:#ea580c;--orange-light:#fff7ed;
+  --shadow-sm:0 1px 3px rgba(15,23,42,0.05);
+  --shadow-md:0 6px 18px rgba(15,23,42,0.08);
+  --shadow-lg:0 12px 32px rgba(12,74,166,0.15);
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Arial',sans-serif;-webkit-tap-highlight-color:transparent;}
+body{background:var(--gray);min-height:100vh;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{from{transform:scale(0.92);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ===== LOGIN ===== */
+.login-page{min-height:100vh;display:flex;flex-direction:column;background:#fff;}
+.login-topbar{padding:16px 20px;border-bottom:1px solid #f0f0f0;}
+.login-topbar-logo{font-size:20px;font-weight:800;color:var(--primary);}
+.login-hero{background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:36px 24px 48px;border-radius:0 0 32px 32px;}
+.login-hero h1{font-size:26px;font-weight:800;color:#fff;margin-bottom:6px;}
+.login-hero p{font-size:15px;color:rgba(255,255,255,0.85);}
+.login-container{padding:24px 20px;flex:1;}
+.login-label{font-size:13px;font-weight:700;color:var(--subtext);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;}
+.login-input{width:100%;height:56px;border:2px solid #e0e0e0;border-radius:16px;padding:0 20px;font-size:18px;outline:none;transition:border 0.2s;background:#fff;}
+.login-input:focus{border-color:var(--primary);}
+.login-btn{width:100%;height:56px;border:none;border-radius:16px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:17px;font-weight:800;margin-top:20px;cursor:pointer;box-shadow:0 6px 16px rgba(12,74,166,0.3);}
+.login-btn:disabled{background:#c5cfe8;box-shadow:none;cursor:not-allowed;}
+.login-error{color:#e53935;font-size:13px;margin-top:6px;display:none;}
+.login-note{margin-top:24px;text-align:center;color:var(--subtext);font-size:13px;line-height:1.6;}
+
+/* ===== MAIN ===== */
+.main-page{display:none;min-height:100vh;}
+.topbar{background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:200;}
+.topbar-logo{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.topbar-logo svg{width:18px;height:18px;fill:#fff;}
+.topbar-title{font-size:16px;font-weight:800;color:#fff;flex:1;}
+.topbar-btn{height:34px;padding:0 12px;border:none;border-radius:10px;background:rgba(255,255,255,0.18);color:#fff;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.topbar-btn svg{width:14px;height:14px;fill:#fff;}
+
+/* TABS */
+.tabs{display:flex;background:#fff;border-bottom:1px solid #eaecf0;position:sticky;top:62px;z-index:190;}
+.tab{flex:1;padding:12px 0;text-align:center;font-size:13px;font-weight:700;color:var(--subtext);cursor:pointer;border:none;background:none;position:relative;}
+.tab.active{color:var(--primary);}
+.tab.active::after{content:'';position:absolute;bottom:-1px;left:15%;right:15%;height:3px;background:var(--primary);border-radius:3px 3px 0 0;}
+
+/* PANELS */
+.panel{display:none;padding:16px;padding-bottom:32px;animation:fadeIn 0.2s ease-out;}
+.panel.active{display:block;}
+
+/* UPLOAD ZONE */
+.upload-zone{border:2px dashed #c7d7f0;border-radius:18px;padding:32px 20px;text-align:center;background:#fff;cursor:pointer;transition:all 0.2s;margin-bottom:16px;}
+.upload-zone.dragover{border-color:var(--primary);background:var(--primary-light);}
+.upload-zone svg{width:40px;height:40px;fill:#c7d7f0;margin-bottom:12px;display:block;margin-left:auto;margin-right:auto;}
+.upload-zone-title{font-size:16px;font-weight:800;color:var(--text);margin-bottom:4px;}
+.upload-zone-sub{font-size:13px;color:var(--subtext);margin-bottom:16px;}
+.upload-btns{display:flex;gap:10px;justify-content:center;}
+.upload-btn-file{height:40px;padding:0 20px;border:none;border-radius:20px;background:var(--primary);color:#fff;font-size:13px;font-weight:700;cursor:pointer;}
+.upload-btn-folder{height:40px;padding:0 20px;border:2px solid var(--primary);border-radius:20px;background:#fff;color:var(--primary);font-size:13px;font-weight:700;cursor:pointer;}
+
+/* FILE LIST */
+.section-title{font-size:13px;font-weight:800;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.file-list{background:#fff;border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:16px;}
+.file-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #f5f6f8;}
+.file-item:last-child{border-bottom:none;}
+.file-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.file-icon.html{background:#fff3e0;}
+.file-icon.html svg{fill:#f59e0b;}
+.file-icon.css{background:#e0f2fe;}
+.file-icon.css svg{fill:#0284c7;}
+.file-icon.js{background:#fef3c7;}
+.file-icon.js svg{fill:#d97706;}
+.file-icon.other{background:var(--gray);}
+.file-icon.other svg{fill:var(--subtext);}
+.file-icon svg{width:18px;height:18px;}
+.file-info{flex:1;min-width:0;}
+.file-name{font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.file-size{font-size:11px;color:var(--subtext);margin-top:2px;}
+.file-status{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;flex-shrink:0;}
+.status-new{background:var(--green-light);color:var(--green);}
+.status-replace{background:var(--orange-light);color:var(--orange);}
+.status-skip{background:#f1f5f9;color:var(--subtext);}
+.file-actions{display:flex;gap:6px;flex-shrink:0;}
+.file-action-btn{width:28px;height:28px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.btn-replace{background:var(--orange-light);}
+.btn-replace svg{width:13px;height:13px;fill:var(--orange);}
+.btn-skip{background:#f1f5f9;}
+.btn-skip svg{width:13px;height:13px;fill:var(--subtext);}
+.btn-remove{background:var(--red-light);}
+.btn-remove svg{width:13px;height:13px;fill:var(--red);}
+
+/* DIFF VIEWER */
+.diff-card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:12px;}
+.diff-header{padding:12px 16px;background:var(--gray);display:flex;align-items:center;gap:10px;cursor:pointer;}
+.diff-filename{font-size:13px;font-weight:800;color:var(--text);flex:1;font-family:monospace;}
+.diff-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;}
+.diff-body{padding:12px 16px;overflow-x:auto;display:none;}
+.diff-body.show{display:block;}
+.diff-line{font-size:12px;font-family:monospace;line-height:1.7;white-space:pre-wrap;word-break:break-all;}
+.diff-add{color:var(--green);background:#f0fdf4;border-left:3px solid var(--green);padding-left:8px;}
+.diff-remove{color:var(--red);background:#fef2f2;border-left:3px solid var(--red);padding-left:8px;}
+.diff-ctx{color:var(--subtext);}
+
+/* PUSH BAR */
+.push-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #eaecf0;padding:12px 16px 26px;box-shadow:0 -4px 16px rgba(0,0,0,0.06);z-index:300;}
+.push-summary{font-size:13px;color:var(--subtext);margin-bottom:10px;text-align:center;}
+.push-summary span{font-weight:800;color:var(--primary);}
+.push-btn{width:100%;height:52px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(12,74,166,0.3);display:flex;align-items:center;justify-content:center;gap:10px;}
+.push-btn svg{width:20px;height:20px;fill:#fff;}
+.push-btn:disabled{background:#cbd5e1;box-shadow:none;cursor:not-allowed;}
+
+/* HISTORY */
+.history-card{background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow-sm);}
+.history-top{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.history-icon{width:36px;height:36px;border-radius:10px;background:var(--green-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.history-icon svg{width:18px;height:18px;fill:var(--green);}
+.history-icon.fail{background:var(--red-light);}
+.history-icon.fail svg{fill:var(--red);}
+.history-msg{font-size:14px;font-weight:700;color:var(--text);flex:1;}
+.history-time{font-size:11px;color:var(--subtext);}
+.history-files{font-size:12px;color:var(--subtext);margin-bottom:8px;}
+.rollback-btn{height:34px;padding:0 14px;border:1.5px solid var(--orange);border-radius:10px;background:#fff;color:var(--orange);font-size:12px;font-weight:700;cursor:pointer;}
+
+/* SETTINGS */
+.settings-card{background:#fff;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow-sm);}
+.settings-title{font-size:13px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid var(--gray);}
+.settings-field{margin-bottom:14px;}
+.settings-field:last-child{margin-bottom:0;}
+.settings-label{font-size:13px;font-weight:700;color:var(--subtext);margin-bottom:6px;}
+.settings-input{width:100%;height:46px;border:2px solid #eef0f4;border-radius:12px;padding:0 14px;font-size:14px;outline:none;background:#fafbfc;font-family:monospace;}
+.settings-input:focus{border-color:var(--primary);}
+.settings-hint{font-size:12px;color:var(--subtext);margin-top:4px;line-height:1.5;}
+.settings-save-btn{width:100%;height:48px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:15px;font-weight:800;cursor:pointer;margin-top:4px;}
+.settings-status{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;font-size:13px;font-weight:700;margin-bottom:14px;}
+.settings-status.connected{background:var(--green-light);color:var(--green);}
+.settings-status.disconnected{background:var(--red-light);color:var(--red);}
+.settings-status svg{width:16px;height:16px;}
+.settings-status.connected svg{fill:var(--green);}
+.settings-status.disconnected svg{fill:var(--red);}
+
+/* CONFIRM MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:500;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
+.modal-overlay.show{display:flex;}
+.modal-box{background:#fff;border-radius:22px;width:100%;max-width:380px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.2);animation:popIn 0.2s ease-out;}
+.modal-head{background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:20px;color:#fff;text-align:center;}
+.modal-head svg{width:32px;height:32px;fill:#fff;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto;}
+.modal-head-title{font-size:17px;font-weight:800;}
+.modal-head-sub{font-size:13px;opacity:0.8;margin-top:4px;}
+.modal-body{padding:16px 20px;}
+.commit-input{width:100%;height:46px;border:2px solid #eef0f4;border-radius:12px;padding:0 14px;font-size:14px;outline:none;margin-bottom:10px;}
+.commit-input:focus{border-color:var(--primary);}
+.modal-file-summary{background:var(--gray);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--subtext);margin-bottom:14px;max-height:120px;overflow-y:auto;}
+.modal-file-summary div{margin-bottom:4px;}
+.modal-file-summary div:last-child{margin-bottom:0;}
+.modal-btns{display:flex;gap:10px;}
+.modal-cancel{flex:1;height:48px;border:2px solid #e2e8f0;border-radius:12px;background:#fff;color:var(--text);font-size:14px;font-weight:700;cursor:pointer;}
+.modal-confirm{flex:2;height:48px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:14px;font-weight:800;cursor:pointer;}
+
+/* DEPLOY STATUS */
+.deploy-status{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:400;background:#fff;border-radius:16px;padding:14px 20px;box-shadow:var(--shadow-lg);display:none;align-items:center;gap:12px;min-width:280px;border:2px solid var(--primary-light);}
+.deploy-status.show{display:flex;animation:fadeIn 0.2s ease-out;}
+.deploy-spinner{width:20px;height:20px;border:2.5px solid var(--primary-light);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;}
+.deploy-text{flex:1;}
+.deploy-title{font-size:14px;font-weight:800;color:var(--text);}
+.deploy-sub{font-size:12px;color:var(--subtext);margin-top:2px;}
+.deploy-check{width:20px;height:20px;flex-shrink:0;display:none;}
+.deploy-check svg{width:20px;height:20px;fill:var(--green);}
+
+/* TOAST */
+.toast-wrap{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:900;pointer-events:none;width:100%;padding:0 16px;}
+.toast{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:14px;font-size:14px;font-weight:700;color:#fff;box-shadow:0 8px 20px rgba(0,0,0,0.18);margin-bottom:8px;animation:toastIn 0.25s ease-out;}
+.toast svg{width:18px;height:18px;fill:#fff;flex-shrink:0;}
+.toast.success{background:var(--green);}
+.toast.error{background:var(--red);}
+.toast.info{background:var(--primary);}
+@keyframes toastIn{from{transform:translateY(-12px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes toastOut{from{opacity:1}to{opacity:0}}
+
+.empty-state{text-align:center;padding:48px 20px;}
+.empty-state svg{width:48px;height:48px;fill:#cbd5e1;margin:0 auto 14px;display:block;}
+.empty-state p{font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.empty-state span{font-size:13px;color:var(--subtext);}
+</style>
+</head>
+<body>
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- ===== LOGIN ===== -->
+<div class="login-page" id="loginPage" style="display:none">
+  <div class="login-topbar"><div class="login-topbar-logo">Nimit Developer Center</div></div>
+  <div class="login-hero">
+    <h1>Developer Center</h1>
+    <p>ระบบจัดการไฟล์และ Deploy</p>
+  </div>
+  <div class="login-container">
+    <div class="login-label">รหัสผู้พัฒนา</div>
+    <input id="loginInput" class="login-input" type="password" placeholder="กรอกรหัสผู้พัฒนา" autocomplete="off" oninput="onCodeInput(this)">
+    <div id="loginError" class="login-error">รหัสผ่านไม่ถูกต้อง</div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()" disabled>เข้าสู่ระบบ</button>
+    <div class="login-note">เข้าถึงได้เฉพาะผู้พัฒนาระบบเท่านั้น</div>
+  </div>
+</div>
+
+<!-- ===== MAIN ===== -->
+<div class="main-page" id="mainPage" style="display:block">
+  <div class="topbar">
+    <div class="topbar-logo"><svg viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg></div>
+    <div class="topbar-title">Developer Center</div>
+    <button class="topbar-btn" onclick="logout()"><svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>ออก</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-deploy" onclick="switchTab('deploy')">Deploy</button>
+    <button class="tab" id="tab-diff" onclick="switchTab('diff')">Diff</button>
+    <button class="tab" id="tab-history" onclick="switchTab('history')">ประวัติ</button>
+    <button class="tab" id="tab-settings" onclick="switchTab('settings')">ตั้งค่า</button>
+  </div>
+
+  <!-- DEPLOY TAB -->
+  <div class="panel active" id="panel-deploy" style="padding-bottom:140px">
+    <div class="upload-zone" id="uploadZone">
+      <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+      <div class="upload-zone-title">ลากไฟล์มาวางที่นี่</div>
+      <div class="upload-zone-sub">หรือกดปุ่มเพื่อเลือกไฟล์</div>
+      <div class="upload-btns">
+        <button class="upload-btn-file" onclick="document.getElementById('fileInput').click()">เลือกไฟล์</button>
+        <button class="upload-btn-folder" onclick="document.getElementById('folderInput').click()">เลือกโฟลเดอร์</button>
+      </div>
+    </div>
+    <input type="file" id="fileInput" multiple style="display:none" onchange="onFilesSelected(this.files)">
+    <input type="file" id="folderInput" multiple webkitdirectory style="display:none" onchange="onFilesSelected(this.files)">
+
+    <div id="fileListSection" style="display:none">
+      <div class="section-title">
+        <span>ไฟล์ที่เลือก (<span id="fileCount">0</span>)</span>
+        <button onclick="clearFiles()" style="font-size:12px;color:var(--red);background:none;border:none;cursor:pointer;font-weight:700">ล้างทั้งหมด</button>
+      </div>
+      <div class="file-list" id="fileList"></div>
+    </div>
+  </div>
+
+  <!-- DIFF TAB -->
+  <div class="panel" id="panel-diff" style="padding-bottom:32px">
+    <div id="diffContent">
+      <div class="empty-state"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg><p>ยังไม่มีไฟล์</p><span>เลือกไฟล์ใน Deploy tab ก่อน</span></div>
+    </div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div class="panel" id="panel-history" style="padding-bottom:32px">
+    <div id="historyContent">
+      <div class="empty-state"><svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18z"/></svg><p>ยังไม่มีประวัติ</p><span>ประวัติการ Deploy จะแสดงที่นี่</span></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS TAB -->
+  <div class="panel" id="panel-settings" style="padding-bottom:32px">
+    <div class="settings-card">
+      <div class="settings-title">GitHub Connection</div>
+      <div class="settings-status disconnected" id="githubStatus">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z"/></svg>
+        <span id="githubStatusText">ยังไม่ได้เชื่อมต่อ</span>
+      </div>
+      <div class="settings-field">
+        <div class="settings-label">GitHub Personal Access Token</div>
+        <input class="settings-input" id="githubToken" type="password" placeholder="ghp_xxxxxxxxxxxx">
+        <div class="settings-hint">สร้างได้ที่ GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic) → ติ๊ก repo</div>
+      </div>
+      <div class="settings-field">
+        <div class="settings-label">GitHub Username</div>
+        <input class="settings-input" id="githubUser" placeholder="est1728">
+      </div>
+      <div class="settings-field">
+        <div class="settings-label">Repository Name</div>
+        <input class="settings-input" id="githubRepo" placeholder="NimitDelivery">
+      </div>
+      <div class="settings-field" style="margin-bottom:0">
+        <div class="settings-label">Branch</div>
+        <input class="settings-input" id="githubBranch" placeholder="main">
+      </div>
+      <button class="settings-save-btn" style="margin-top:14px" onclick="saveSettings()">บันทึกและทดสอบการเชื่อมต่อ</button>
+    </div>
+    <div class="settings-card">
+      <div class="settings-title">ข้อมูลระบบ</div>
+      <div style="font-size:13px;color:var(--subtext);line-height:1.8">
+        <div>เวอร์ชัน: <b style="color:var(--text)">1.0.0</b></div>
+        <div>โปรเจกต์: <b style="color:var(--text)">Nimit Delivery</b></div>
+        <div>Deploy: <b style="color:var(--text)">Vercel (auto)</b></div>
+        <div>สถานะ: <b id="sysStatus" style="color:var(--green)">พร้อมใช้งาน</b></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PUSH BAR (แสดงเมื่อมีไฟล์) -->
+  <div class="push-bar" id="pushBar" style="display:none">
+    <div class="push-summary">พร้อม Push <span id="pushFileCount">0</span> ไฟล์ขึ้น GitHub</div>
+    <button class="push-btn" id="pushBtn" onclick="openPushConfirm()">
+      <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+      Push to GitHub
+    </button>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+      <div class="modal-head-title">ยืนยันการ Push</div>
+      <div class="modal-head-sub">ตรวจสอบไฟล์ก่อน Deploy</div>
+    </div>
+    <div class="modal-body">
+      <input class="commit-input" id="commitMsg" placeholder="Commit message เช่น fix: แก้บั๊กหน้าร้าน">
+      <div class="modal-file-summary" id="confirmFileList"></div>
+      <div class="modal-btns">
+        <button class="modal-cancel" onclick="closeConfirm()">ยกเลิก</button>
+        <button class="modal-confirm" onclick="doPush()">Push เลย</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DEPLOY STATUS -->
+<div class="deploy-status" id="deployStatus">
+  <div class="deploy-spinner" id="deploySpinner"></div>
+  <div class="deploy-check" id="deployCheck"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>
+  <div class="deploy-text">
+    <div class="deploy-title" id="deployTitle">กำลัง Push ไฟล์...</div>
+    <div class="deploy-sub" id="deploySub">อย่าปิดหน้าต่างนี้</div>
+  </div>
+</div>
+
+<script>
+const DEV_PASSWORD = 'KJNFY63ESTC_CUI';
+let pendingFiles = []; // {name, content, status: 'new'|'replace'|'skip', size}
+let deployHistory = JSON.parse(localStorage.getItem('devHistory')||'[]');
+let settings = JSON.parse(localStorage.getItem('devSettings')||'{}');
+
+// ===== LOGIN =====
+// login handled by index.html
+loadSettings();
+renderHistory();
+function logout(){ window.location.href='index.html'; }
+
+// ===== TABS =====
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('panel-'+tab).classList.add('active');
+}
+
+// ===== FILE HANDLING =====
+const ALLOWED_EXT = ['html','css','js','json','txt','md','svg','ico','png','jpg','jpeg','gif','webp'];
+
+function onFilesSelected(fileList){
+  const files = Array.from(fileList);
+  files.forEach(file=>{
+    const ext = file.name.split('.').pop().toLowerCase();
+    if(!ALLOWED_EXT.includes(ext)) return;
+    const existing = pendingFiles.findIndex(f=>f.name===file.name);
+    const reader = new FileReader();
+    reader.onload = e=>{
+      const content = e.target.result;
+      if(existing >= 0){
+        // ชื่อซ้ำ — ถามก่อน
+        pendingFiles[existing] = {name:file.name, content, status:'replace', size:file.size, raw:file};
+      } else {
+        pendingFiles.push({name:file.name, content, status:'new', size:file.size, raw:file});
+      }
+      renderFileList();
+    };
+    // อ่านเป็น text ยกเว้นรูป
+    if(['png','jpg','jpeg','gif','webp','ico','svg'].includes(ext)){
+      reader.readAsDataURL(file);
+    } else {
+      reader.readAsText(file,'utf-8');
+    }
+  });
+}
+
+// Drag & Drop
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('dragover', e=>{e.preventDefault();zone.classList.add('dragover');});
+zone.addEventListener('dragleave', ()=>zone.classList.remove('dragover'));
+zone.addEventListener('drop', e=>{
+  e.preventDefault(); zone.classList.remove('dragover');
+  onFilesSelected(e.dataTransfer.files);
+});
+
+function renderFileList(){
+  const active = pendingFiles.filter(f=>f.status!=='skip');
+  document.getElementById('fileListSection').style.display = pendingFiles.length?'block':'none';
+  document.getElementById('fileCount').textContent = pendingFiles.length;
+  document.getElementById('pushBar').style.display = active.length?'block':'none';
+  document.getElementById('pushFileCount').textContent = active.length;
+
+  document.getElementById('fileList').innerHTML = pendingFiles.map((f,i)=>{
+    const ext = f.name.split('.').pop().toLowerCase();
+    const iconClass = ['html'].includes(ext)?'html':['css'].includes(ext)?'css':['js'].includes(ext)?'js':'other';
+    const sz = f.size<1024?f.size+'B':f.size<1024*1024?(f.size/1024).toFixed(1)+'KB':(f.size/1024/1024).toFixed(1)+'MB';
+    return '<div class="file-item">'
+      +'<div class="file-icon '+iconClass+'"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg></div>'
+      +'<div class="file-info"><div class="file-name">'+f.name+'</div><div class="file-size">'+sz+'</div></div>'
+      +'<div class="file-status status-'+f.status+'">'+(f.status==='new'?'ใหม่':f.status==='replace'?'แทนที่':'ข้าม')+'</div>'
+      +'<div class="file-actions">'
+      +(f.status==='skip'?'<button class="file-action-btn btn-replace" onclick="setFileStatus('+i+',\'replace\')" title="แทนที่"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></button>':
+        '<button class="file-action-btn btn-skip" onclick="setFileStatus('+i+',\'skip\')" title="ข้าม"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>')
+      +'<button class="file-action-btn btn-remove" onclick="removeFile('+i+')" title="ลบ"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>'
+      +'</div></div>';
+  }).join('');
+
+  renderDiff();
+}
+
+function setFileStatus(idx, status){ pendingFiles[idx].status=status; renderFileList(); }
+function removeFile(idx){ pendingFiles.splice(idx,1); renderFileList(); }
+function clearFiles(){ pendingFiles=[]; renderFileList(); }
+
+// ===== DIFF =====
+function renderDiff(){
+  const active = pendingFiles.filter(f=>f.status!=='skip' && !f.name.match(/\.(png|jpg|jpeg|gif|webp|ico)$/i));
+  if(!active.length){
+    document.getElementById('diffContent').innerHTML='<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg><p>ยังไม่มีไฟล์</p><span>เลือกไฟล์ใน Deploy tab ก่อน</span></div>';
+    return;
+  }
+  document.getElementById('diffContent').innerHTML = active.map((f,i)=>{
+    const lines = f.content.split('\n').slice(0,30);
+    const preview = lines.map(l=>'<div class="diff-line diff-add">+ '+escHtml(l)+'</div>').join('');
+    return '<div class="diff-card">'
+      +'<div class="diff-header" onclick="toggleDiff('+i+')">'
+      +'<div class="diff-filename">'+f.name+'</div>'
+      +'<div class="diff-badge status-'+f.status+'">'+(f.status==='new'?'ใหม่':'แทนที่')+'</div>'
+      +'</div>'
+      +'<div class="diff-body" id="diff-'+i+'">'+preview+(f.content.split('\n').length>30?'<div class="diff-line diff-ctx">... และอีก '+(f.content.split('\n').length-30)+' บรรทัด</div>':'')+'</div>'
+      +'</div>';
+  }).join('');
+}
+function toggleDiff(i){
+  const el=document.getElementById('diff-'+i);
+  el.classList.toggle('show');
+}
+function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ===== PUSH =====
+function openPushConfirm(){
+  if(!settings.token||!settings.user||!settings.repo){
+    showToast("กรุณาตั้งค่า GitHub Token ก่อน","error");
+    switchTab('settings'); return;
+  }
+  const active = pendingFiles.filter(f=>f.status!=='skip');
+  document.getElementById('commitMsg').value='update: อัพเดตไฟล์ '+active.length+' ไฟล์';
+  document.getElementById('confirmFileList').innerHTML = active.map(f=>'<div>'+(f.status==='new'?'➕':'🔄')+' '+f.name+'</div>').join('');
+  document.getElementById('confirmModal').classList.add('show');
+}
+function closeConfirm(){ document.getElementById('confirmModal').classList.remove('show'); }
+
+async function doPush(){
+  closeConfirm();
+  const active = pendingFiles.filter(f=>f.status!=='skip');
+  const msg = document.getElementById('commitMsg').value.trim()||'update files';
+  showDeployStatus('กำลัง Push ไฟล์...','อย่าปิดหน้าต่างนี้');
+
+  const token = settings.token, user = settings.user, repo = settings.repo, branch = settings.branch||'main';
+  let success=0, fail=0, failFiles=[];
+
+  for(let i=0;i<active.length;i++){
+    const f = active[i];
+    showDeployStatus('กำลัง Push ('+( i+1)+'/'+active.length+')','ไฟล์: '+f.name);
+    try{
+      // ดึง SHA เดิม (ถ้ามี)
+      let sha = null;
+      const getRes = await fetch('https://api.github.com/repos/'+user+'/'+repo+'/contents/'+encodeURIComponent(f.name),{
+        headers:{'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json'}
+      });
+      if(getRes.ok){ const d=await getRes.json(); sha=d.sha; }
+
+      // encode content
+      let content;
+      if(f.name.match(/\.(png|jpg|jpeg|gif|webp|ico)$/i)){
+        content = f.content.split(',')[1];
+      } else {
+        content = btoa(unescape(encodeURIComponent(f.content)));
+      }
+
+      const body = {message:msg+' ('+f.name+')', content, branch};
+      if(sha) body.sha = sha;
+
+      const putRes = await fetch('https://api.github.com/repos/'+user+'/'+repo+'/contents/'+encodeURIComponent(f.name),{
+        method:'PUT',
+        headers:{'Authorization':'token '+token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
+        body:JSON.stringify(body)
+      });
+      if(putRes.ok) success++;
+      else { fail++; failFiles.push(f.name); }
+    }catch(e){ fail++; failFiles.push(f.name); }
+  }
+
+  // บันทึก history
+  const histItem = {
+    msg, files:active.map(f=>f.name), time:new Date().toISOString(),
+    success:fail===0, failFiles
+  };
+  deployHistory.unshift(histItem);
+  localStorage.setItem('devHistory', JSON.stringify(deployHistory.slice(0,50)));
+  renderHistory();
+
+  if(fail===0){
+    showDeployDone('Push สำเร็จ '+success+' ไฟล์','Vercel กำลัง Deploy อัตโนมัติ...');
+    clearFiles();
+    showToast('Push สำเร็จ! Vercel กำลัง deploy...','success');
+  } else {
+    hideDeployStatus();
+    showToast('Push สำเร็จ '+success+' ไฟล์ / ล้มเหลว '+fail+' ไฟล์','error');
+  }
+}
+
+// ===== HISTORY =====
+function renderHistory(){
+  if(!deployHistory.length){
+    document.getElementById('historyContent').innerHTML='<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18z"/></svg><p>ยังไม่มีประวัติ</p><span>ประวัติการ Deploy จะแสดงที่นี่</span></div>';
+    return;
+  }
+  document.getElementById('historyContent').innerHTML = deployHistory.map((h,i)=>{
+    const d=new Date(h.time);
+    const timeStr=d.toLocaleDateString('th-TH',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+    return '<div class="history-card">'
+      +'<div class="history-top">'
+      +'<div class="history-icon '+(h.success?'':'fail')+'"><svg viewBox="0 0 24 24"><path d="'+(h.success?'M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z':'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z')+'"/></svg></div>'
+      +'<div class="history-msg">'+h.msg+'</div>'
+      +'<div class="history-time">'+timeStr+'</div>'
+      +'</div>'
+      +'<div class="history-files">'+h.files.join(', ')+'</div>'
+      +(h.success?'<button class="rollback-btn" onclick="rollback('+i+')">Rollback</button>':'<div style="font-size:12px;color:var(--red)">ล้มเหลว: '+h.failFiles.join(', ')+'</div>')
+      +'</div>';
+  }).join('');
+}
+
+async function rollback(idx){
+  if(!confirm('Rollback ไปยัง commit นี้?')) return;
+  showToast('Rollback ยังไม่รองรับในเวอร์ชันนี้','info');
+}
+
+// ===== SETTINGS =====
+function loadSettings(){
+  settings = JSON.parse(localStorage.getItem('devSettings')||'{}');
+  if(settings.token) document.getElementById('githubToken').value=settings.token;
+  if(settings.user) document.getElementById('githubUser').value=settings.user;
+  if(settings.repo) document.getElementById('githubRepo').value=settings.repo;
+  if(settings.branch) document.getElementById('githubBranch').value=settings.branch||'main';
+  updateGithubStatus();
+}
+
+async function saveSettings(){
+  settings = {
+    token: document.getElementById('githubToken').value.trim(),
+    user: document.getElementById('githubUser').value.trim(),
+    repo: document.getElementById('githubRepo').value.trim(),
+    branch: document.getElementById('githubBranch').value.trim()||'main'
+  };
+  localStorage.setItem('devSettings', JSON.stringify(settings));
+
+  // ทดสอบการเชื่อมต่อ
+  showToast('กำลังทดสอบการเชื่อมต่อ...','info');
+  try{
+    const res = await fetch('https://api.github.com/repos/'+settings.user+'/'+settings.repo,{
+      headers:{'Authorization':'token '+settings.token}
+    });
+    if(res.ok){
+      updateGithubStatus(true);
+      showToast('เชื่อมต่อ GitHub สำเร็จ!','success');
+    } else {
+      updateGithubStatus(false);
+      showToast('Token หรือ Repo ไม่ถูกต้อง','error');
+    }
+  }catch(e){ updateGithubStatus(false); showToast('เชื่อมต่อไม่ได้','error'); }
+}
+
+function updateGithubStatus(connected){
+  const el = document.getElementById('githubStatus');
+  const txt = document.getElementById('githubStatusText');
+  if(connected===undefined) connected = !!(settings.token&&settings.user&&settings.repo);
+  el.className = 'settings-status '+(connected?'connected':'disconnected');
+  el.querySelector('svg').innerHTML = connected
+    ? '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>'
+    : '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z"/>';
+  txt.textContent = connected
+    ? 'เชื่อมต่อกับ '+settings.user+'/'+settings.repo
+    : 'ยังไม่ได้เชื่อมต่อ';
+}
+
+// ===== DEPLOY STATUS =====
+function showDeployStatus(title, sub){
+  const el=document.getElementById('deployStatus');
+  el.classList.add('show');
+  document.getElementById('deploySpinner').style.display='block';
+  document.getElementById('deployCheck').style.display='none';
+  document.getElementById('deployTitle').textContent=title;
+  document.getElementById('deploySub').textContent=sub;
+}
+function showDeployDone(title,sub){
+  document.getElementById('deploySpinner').style.display='none';
+  document.getElementById('deployCheck').style.display='block';
+  document.getElementById('deployTitle').textContent=title;
+  document.getElementById('deploySub').textContent=sub;
+  setTimeout(()=>hideDeployStatus(),4000);
+}
+function hideDeployStatus(){ document.getElementById('deployStatus').classList.remove('show'); }
+
+// ===== TOAST =====
+function showToast(msg,type){
+  const icons={
+    success:'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>',
+    error:'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z"/>',
+    info:'<path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>'
+  };
+  const el=document.createElement('div');
+  el.className='toast '+(type||'info');
+  el.innerHTML='<svg viewBox="0 0 24 24">'+(icons[type]||icons.info)+'</svg><span>'+msg+'</span>';
+  document.getElementById('toastWrap').appendChild(el);
+  setTimeout(()=>{el.style.animation='toastOut 0.2s ease-in forwards';setTimeout(()=>el.remove(),200);},3000);
+}
+</script>
+</body>
+</html>
