@@ -58,7 +58,8 @@ body { background:var(--gray); min-height:100vh; padding-bottom:120px; }
 /* SHOP GROUP */
 .shop-group { background:#fff; border-radius:16px; margin:12px 14px; box-shadow:var(--shadow-sm); overflow:hidden; }
 .shop-group-header { display:flex; align-items:center; gap:10px; padding:12px 14px; border-bottom:1px solid #f0f2f5; }
-.shop-checkbox { width:20px; height:20px; border-radius:6px; border:2px solid var(--primary); background:var(--primary); display:flex; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer; }
+.shop-checkbox { width:20px; height:20px; border-radius:6px; border:2px solid #cbd5e1; background:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer; transition:all 0.15s; }
+.shop-checkbox.checked { border-color:var(--primary); background:var(--primary); }
 .shop-checkbox svg { width:12px; height:12px; stroke:#fff; fill:none; stroke-width:3; }
 .shop-name-link { font-size:14px; font-weight:800; color:var(--text); flex:1; cursor:pointer; display:flex; align-items:center; gap:4px; }
 .shop-name-link svg { width:14px; height:14px; fill:var(--subtext); }
@@ -184,7 +185,7 @@ body { background:var(--gray); min-height:100vh; padding-bottom:120px; }
     <div class="total-label">ยอดรวม</div>
     <div class="total-amount">฿<span id="total-amount">0</span></div>
   </div>
-  <button class="confirm-btn" id="confirm-btn" onclick="goCheckout()">ยืนยันคำสั่งซื้อ</button>
+  <button class="confirm-btn" id="confirm-btn" onclick="goCheckout()">สั่งซื้อที่เลือก (<span id="selected-count">0</span> ร้าน)</button>
 </div>
 
 <!-- OPTION MODAL -->
@@ -262,6 +263,8 @@ function calcTotal(){
   return Object.keys(cart).reduce((s,sid)=>s+cart[sid].items.reduce((ss,i)=>ss+i.price*i.qty,0),0);
 }
 
+let selectedShops = new Set();
+
 function renderFood(){
   cleanCart();
   const shopIds=Object.keys(cart);
@@ -274,17 +277,20 @@ function renderFood(){
     document.getElementById("bottom-bar").style.display="none";
     return;
   }
+  if(selectedShops.size===0) shopIds.forEach(id=>selectedShops.add(id));
+  selectedShops.forEach(id=>{ if(!cart[id]) selectedShops.delete(id); });
   document.getElementById("empty-food").style.display="none";
   document.getElementById("bottom-bar").style.display="block";
-  document.getElementById("total-amount").textContent=calcTotal();
+  updateSelectedTotal();
 
   document.getElementById("shop-groups").innerHTML=shopIds.map(shopId=>{
     const grp=cart[shopId];
+    const isSelected=selectedShops.has(shopId);
     return `
-    <div class="shop-group">
+    <div class="shop-group" style="opacity:${isSelected?1:0.55}">
       <div class="shop-group-header">
-        <div class="shop-checkbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="shop-name-link" onclick="window.location.href='menu.html'">
+        <div class="shop-checkbox ${isSelected?'checked':''}" onclick="toggleShop('${shopId}')"> ${isSelected?'<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>
+        <div class="shop-name-link" onclick="goToShop('${shopId}')">
           ${grp.shopName}
           <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
         </div>
@@ -392,39 +398,29 @@ window.switchTab=function(tab){
 function genOrderId(){ const c="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"; let r="AMJ-"; for(let i=0;i<6;i++) r+=c[Math.floor(Math.random()*c.length)]; return r; }
 function genGroupId(){ return "GRP-"+Date.now().toString(36)+Math.random().toString(36).substring(2,6); }
 
+window.toggleShop=function(shopId){
+  if(selectedShops.has(shopId)) selectedShops.delete(shopId);
+  else selectedShops.add(shopId);
+  renderFood();
+}
+window.goToShop=function(shopId){
+  localStorage.setItem("selectedShopId",shopId);
+  localStorage.setItem("selectedShopName",cart[shopId].shopName);
+  window.location.href="menu.html";
+}
+function updateSelectedTotal(){
+  const sel=Array.from(selectedShops).filter(id=>cart[id]);
+  const total=sel.reduce((s,sid)=>s+cart[sid].items.reduce((ss,i)=>ss+i.price*i.qty,0),0);
+  document.getElementById("total-amount").textContent=total;
+  document.getElementById("selected-count").textContent=sel.length;
+  document.getElementById("confirm-btn").disabled=sel.length===0;
+}
+
 window.goCheckout=async function(){
-  const shopIds=Object.keys(cart);
-  if(!shopIds.length) return;
-  const btn=document.getElementById("confirm-btn");
-  btn.disabled=true; btn.textContent="กำลังสั่ง...";
-  try{
-    const groupId=genGroupId();
-    const orderDocs=[];
-    for(const shopId of shopIds){
-      const grp=cart[shopId];
-      const meta=shopMeta[shopId]||{};
-      const subtotal=grp.items.reduce((s,i)=>s+i.price*i.qty,0);
-      const baseCost=grp.items.reduce((s,i)=>s+i.basePrice*i.qty,0);
-      const deliveryFee=shopDeliveryFees[shopId]||0;
-      const grandTotal=subtotal+deliveryFee;
-      const totalDiff=(subtotal-baseCost)+deliveryFee;
-      const walletCut=Math.round(totalDiff*walletPercent/100);
-      const riderEarn=Math.round(totalDiff*riderPercent/100);
-      const orderId=genOrderId();
-      const ref=await addDoc(collection(db,"orders"),{
-        orderId,groupId,shopId,shopName:grp.shopName,
-        shopPhone:meta.phone||'',shopAddress:meta.address||'',shopLat:meta.lat||null,shopLng:meta.lng||null,
-        customer:customerData,items:grp.items,
-        subtotal,baseCost,deliveryFee,grandTotal,totalDiff,walletCut,riderEarn,
-        paymentMethod:"cash",status:"pending",createdAt:serverTimestamp()
-      });
-      orderDocs.push({docId:ref.id,orderId,shopName:grp.shopName});
-    }
-    localStorage.setItem("currentGroupId",groupId);
-    localStorage.setItem("currentOrderDocs",JSON.stringify(orderDocs));
-    localStorage.removeItem("cart");
-    window.location.href="track.html";
-  }catch(e){ alert("เกิดข้อผิดพลาด"); btn.disabled=false; btn.textContent="ยืนยันคำสั่งซื้อ"; }
+  const sel=Array.from(selectedShops).filter(id=>cart[id]);
+  if(!sel.length) return;
+  localStorage.setItem("checkoutShops",JSON.stringify(sel));
+  window.location.href="checkout.html";
 }
 
 // MODAL (for editing options in cart)
