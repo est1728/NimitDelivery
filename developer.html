@@ -620,104 +620,359 @@ function renderScanResults(totalE,totalW,totalI){
   wrap.innerHTML=html;
 }
 
-// AUTO-FIX ENGINE
+
+// ================================================================
+// PREPROCESSOR: แปลงโค้ดให้เข้าใจโครงสร้างก่อนตรวจ
+// ================================================================
+
+// สร้าง "clean line" โดย strip strings และ comments ออก
+// เพื่อป้องกัน false positive จากข้อความในสตริง/comment
+function cleanLine(line) {
+  var result = '';
+  var i = 0, len = line.length;
+  var inStr = false, strChar = '';
+  while(i < len) {
+    var ch = line[i];
+    if(!inStr) {
+      if(ch === '/' && line[i+1] === '/') break; // single-line comment → หยุด
+      if(ch === '"' || ch === "'" || ch === '`') {
+        inStr = true; strChar = ch;
+        result += '\u0000'; // placeholder
+        i++; continue;
+      }
+      result += ch;
+    } else {
+      if(ch === '\\') { i += 2; continue; } // escape sequence
+      if(ch === strChar) { inStr = false; }
+      result += '\u0000'; // mask string content
+    }
+    i++;
+  }
+  return result;
+}
+
+// ตรวจสอบว่า pattern ที่เจอนั้นอยู่ใน code จริงๆ หรืออยู่ใน string/comment
+function inCode(line, pattern) {
+  var cl = cleanLine(line);
+  return cl.indexOf(pattern) >= 0;
+}
+
+// วิเคราะห์ multiline: สร้าง context map ว่าบรรทัดไหนอยู่ใน block comment
+function buildCommentMap(lines) {
+  var inBlock = false;
+  var map = [];
+  for(var i=0; i<lines.length; i++) {
+    var l = lines[i];
+    if(!inBlock && l.indexOf('/*') >= 0) {
+      inBlock = true;
+      if(l.indexOf('*/') > l.indexOf('/*')) inBlock = false;
+    } else if(inBlock && l.indexOf('*/') >= 0) {
+      inBlock = false;
+    }
+    map.push(inBlock);
+  }
+  return map;
+}
+
+// ================================================================
+// KNOWLEDGE BASE: rules แต่ละอันรู้จัก detect + วิธีแก้
+// ================================================================
+var RULES = [
+
+  // ─── SECURITY ───────────────────────────────────────────────
+
+  {id:'token_gh', lv:'e', cat:'🔒 Security',
+   detect: function(cl, orig) {
+     return inCode(orig,'ghp_') && /ghp_[A-Za-z0-9]{20,}/.test(orig);
+   },
+   msg:'พบ GitHub Token ฝังในโค้ด!',
+   detail:'ลบออก ใช้ localStorage.getItem แทน',
+   fixable:false, fix:null},
+
+  {id:'xss_innerHTML', lv:'w', cat:'🔒 XSS Risk',
+   detect: function(cl, orig) {
+     if(!inCode(orig,'.innerHTML')) return false; // ต้องอยู่ใน code จริง
+     if(cl.indexOf('esc(') >= 0) return false;    // มี esc() แล้ว
+     // มี template var ${...} หรือ string concat ใน assignment
+     var hasAssign = /\.innerHTML\s*[\+]?=/.test(cl);
+     if(!hasAssign) return false;
+     // มีตัวแปรใน template literal หรือ concat?
+     var hasTpl = /\$\{[^}]+\}/.test(orig);
+     var hasConcat = orig.indexOf("'+") >= 0 || orig.indexOf("+'") >= 0;
+     return hasTpl || hasConcat;
+   },
+   msg:'innerHTML ใช้กับตัวแปร ไม่มี esc()',
+   detail:'อาจโดนฝังสคริปต์ถ้า data มาจาก user',
+   fixable:true,
+   fix: function(orig) {
+     // wrap ${expr} ที่ยังไม่มี esc()
+     var r = orig.replace(/\$\{([^}]+)\}/g, function(m, inner) {
+       inner = inner.trim();
+       if(!inner || inner.indexOf('esc(') >= 0) return m;
+       if(/^[\d"'`\-]/.test(inner)) return m;     // ข้าม literal
+       if(/^[\d\s+\-*/=!&|?:,<>]+$/.test(inner)) return m; // ข้าม operators
+       if(/^\w+\s*\(/.test(inner)) return m;       // ข้าม function call
+       return '${esc('+inner+')}';
+     });
+     // wrap '+var+' concat
+     r = r.replace(/([^(+])\+([a-zA-Z_$][a-zA-Z0-9_$.]*)\+(['"])/g,
+       function(m,b,v,a){ return (v.indexOf('esc(')>=0)?m:b+'+esc('+v+')+'+a; });
+     return r;
+   }},
+
+  // ─── LOGIC ──────────────────────────────────────────────────
+
+  {id:'firebase_no_await', lv:'e', cat:'🔧 Logic',
+   detect: function(cl, orig) {
+     if(cl.indexOf('await') >= 0) return false;
+     var FB=['getDocs(','addDoc(','updateDoc(','setDoc(','deleteDoc(','getDoc('];
+     return FB.some(function(f){ return inCode(orig,f); });
+   },
+   msg:'Firebase call ไม่มี await',
+   detail:'ต้องใช้ await ไม่งั้นได้ Promise แทนข้อมูล',
+   fixable:true,
+   fix: function(orig) {
+     var FB=['getDocs(','addDoc(','updateDoc(','setDoc(','deleteDoc(','getDoc('];
+     FB.forEach(function(f){
+       if(orig.indexOf(f)>=0 && orig.indexOf('await')<0)
+         orig = orig.replace(f,'await '+f);
+     });
+     return orig;
+   }},
+
+  {id:'firebase_no_try', lv:'w', cat:'⚠️ Logic',
+   detect: function(cl, orig, prevClean) {
+     var FB=['await getDocs(','await addDoc(','await updateDoc(',
+             'await setDoc(','await deleteDoc(','await getDoc('];
+     var hasFB = FB.some(function(f){ return orig.indexOf(f)>=0; });
+     if(!hasFB) return false;
+     var prev = prevClean.slice(-10).join(' ');
+     return prev.indexOf('try{') < 0 && prev.indexOf('try {') < 0;
+   },
+   msg:'Firebase call ไม่มี try-catch',
+   detail:'ถ้า network หลุดจะ crash ไม่แสดง error',
+   fixable:true, fix:null}, // handle แบบ block ใน applyFixes
+
+  {id:'assign_in_if', lv:'e', cat:'🔧 Logic',
+   detect: function(cl, orig) {
+     if(!/^\s*if\s*\(/.test(orig)) return false;
+     // ใน condition มี = แต่ไม่ใช่ ==, ===, !=, !==, >=, <=, =>
+     var cond = cl.replace(/===|!==|==|!=|<=|>=|=>/g,'__');
+     return /[^!<>=+\-*/]=[^=]/.test(cond);
+   },
+   msg:'ใช้ = (assign) แทน === (compare) ใน if',
+   detail:'JavaScript จะ assign ค่า แทนที่จะเปรียบเทียบ',
+   fixable:true,
+   fix: function(orig) {
+     return orig.replace(/([^=!<>+\-*/])=([^=>])/g, function(m,b,a){
+       return b+'==='+a;
+     });
+   }},
+
+  {id:'missing_await_async', lv:'w', cat:'⚠️ Logic',
+   detect: function(cl, orig) {
+     // เรียก async function โดยไม่มี await (ดูจากชื่อ function ที่ลงท้าย Async)
+     if(cl.indexOf('await') >= 0) return false;
+     return /\b\w+Async\s*\(/.test(cl) || /\bfetch\s*\(/.test(cl);
+   },
+   msg:'เรียก async function โดยไม่มี await',
+   detail:'ควรใส่ await เพื่อรอผลลัพธ์',
+   fixable:true,
+   fix: function(orig) {
+     return orig.replace(/(fetch\s*\()/g,'await $1');
+   }},
+
+  // ─── CLEAN CODE ─────────────────────────────────────────────
+
+  {id:'console_log', lv:'i', cat:'🧹 Clean Code',
+   detect: function(cl, orig) {
+     return inCode(orig,'console.log(');
+   },
+   msg:'มี console.log ค้างในโค้ด',
+   detail:'ควรลบก่อน deploy',
+   fixable:true,
+   fix: function(orig) {
+     var indent = orig.match(/^(\s*)/)[1];
+     return indent+'// [removed] '+orig.trim();
+   }},
+
+  {id:'deep_nesting', lv:'i', cat:'🧹 Clean Code',
+   detect: function(cl, orig) {
+     var indent = orig.length - orig.replace(/^ */,'').length;
+     return indent >= 24 && /^\s*if\s*\(/.test(orig);
+   },
+   msg:'if ซ้อนกันลึกเกิน 6 ชั้น',
+   detail:'ลอง early return หรือแตกเป็นฟังก์ชันย่อย',
+   fixable:false, fix:null}
+];
+
+// ================================================================
+// ANALYZE FILE — ใช้ preprocessor + rules
+// ================================================================
+function analyzeFile(fname, code) {
+  var issues = [];
+  var lines = code.split('\n');
+  var isHTML = /\.html$/i.test(fname);
+  var isJS   = /\.js$/i.test(fname);
+
+  // สร้าง comment map (multiline)
+  var commentMap = buildCommentMap(lines);
+  var cleanLines = lines.map(function(l){ return cleanLine(l); });
+
+  for(var i=0; i<lines.length; i++) {
+    if(commentMap[i]) continue; // ข้ามบรรทัดที่อยู่ใน /* */
+    var orig = lines[i];
+    var cl = cleanLines[i];
+    var prevCl = cleanLines.slice(Math.max(0,i-10),i);
+
+    RULES.forEach(function(rule){
+      try {
+        if(rule.detect(cl, orig, prevCl)) {
+          issues.push({lv:rule.lv, n:i+1, cat:rule.cat,
+            msg:rule.msg, detail:rule.detail,
+            fixable:rule.fixable, ruleId:rule.id});
+        }
+      } catch(e){}
+    });
+  }
+
+  // ── File-level checks ──
+  // ปีกกาไม่สมดุล (นับเฉพาะใน code zone)
+  if(!isHTML) {
+    var codeOnly = lines.map(function(l,i){ return commentMap[i]?'':cleanLine(l); }).join('\n');
+    var op=(codeOnly.match(/\{/g)||[]).length;
+    var cl2=(codeOnly.match(/\}/g)||[]).length;
+    if(Math.abs(op-cl2)>0)
+      issues.push({lv:'e',n:0,cat:'🔧 Syntax',
+        msg:'ปีกกาไม่สมดุล: {='+op+' }='+cl2,
+        detail:'ขาดหรือเกิน '+Math.abs(op-cl2)+' อัน',fixable:false,ruleId:'brace'});
+  }
+  // ขาด esc() function
+  if(code.indexOf('function esc(')<0 && code.indexOf('.innerHTML')>=0) {
+    var hasXSS = issues.some(function(x){ return x.ruleId==='xss_innerHTML'; });
+    if(hasXSS) issues.push({lv:'w',n:0,cat:'🔒 XSS Fix',
+      msg:'ยังไม่มี esc() function ในไฟล์',
+      detail:'กด แก้อัตโนมัติ เพื่อเพิ่ม',fixable:true,ruleId:'missing_esc_fn'});
+  }
+  return issues;
+}
+
+// ================================================================
+// APPLY FIXES — แก้ครั้งเดียวครบ + verify ผล
+// ================================================================
 function applyFixes(fname, code) {
   var fixed = code;
-  var fixCount = 0;
+  var fixLog = [];
   var isHTML = /\.html$/i.test(fname);
-  var isJS = /\.js$/i.test(fname);
+  var isJS   = /\.js$/i.test(fname);
+  var snapshot = code; // เก็บไว้ rollback
+
+  // FIX A: เพิ่ม esc() function ถ้ายังไม่มี
+  if(fixed.indexOf('function esc(')<0 && fixed.indexOf('.innerHTML')>=0) {
+    var fn = 'function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\\"/g,"&quot;");}';
+    var ct = '<'+'/'+'script>';
+    if(isHTML && fixed.indexOf(ct)>=0) {
+      fixed = fixed.replace(ct, fn+'\n'+ct);
+    } else if(isJS) { fixed = fn+'\n'+fixed; }
+    fixLog.push('เพิ่ม esc() function');
+  }
+
+  // FIX B: รัน line-level rules ที่มี fix function
+  var lines = fixed.split('\n');
+  var commentMap = buildCommentMap(lines);
   var changed = false;
-
-  // === FIX 1: เพิ่ม esc() function ถ้ายังไม่มี ===
-  if(fixed.indexOf('function esc(') < 0 && fixed.indexOf('.innerHTML') >= 0) {
-    var escFn = 'function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;"); }';
-    var closeTag = '<' + '/' + 'script>';
-    if(isHTML && fixed.indexOf(closeTag) >= 0) {
-      fixed = fixed.replace(closeTag, escFn + '\n' + closeTag);
-      fixCount++; changed = true;
-    } else if(isJS) {
-      fixed = escFn + '\n' + fixed;
-      fixCount++; changed = true;
-    }
-  }
-
-  // === FIX 2: XSS - เพิ่ม esc() ถ้ายังไม่มีแล้วมี innerHTML ===
-  // (การ wrap ทุก variable อัตโนมัตินั้นซับซ้อนเกินไปและอาจพัง)
-  // ทำแค่: ถ้าไม่มี esc() เลย → เพิ่ม esc() function ให้ใช้งานได้
-  // (ซึ่งทำไปแล้วใน FIX 1 แล้ว)
-  // ส่วน false positive จาก scanner → handle ใน doScan แทน
-
-  // === FIX 3: Firebase try-catch สำหรับ .js ===
-  if(isJS) {
-    var FB_CALLS = ['await getDocs(','await addDoc(','await updateDoc(','await setDoc(','await deleteDoc(','await getDoc('];
-    var jsArr = fixed.split('\n');
-    var res = [];
-    var j = 0;
-    while(j < jsArr.length) {
-      var ln = jsArr[j];
-      var lt = ln.trim();
-      var hasFB = FB_CALLS.some(function(fb){ return lt.indexOf(fb) >= 0; });
-      if(hasFB) {
-        // ดูย้อนหลัง 10 บรรทัดว่ามี try { แล้วหรือยัง
-        var lookback = res.slice(Math.max(0, res.length-10)).join('\n');
-        var inTry = lookback.indexOf('try{') >= 0 || lookback.indexOf('try {') >= 0 || lookback.indexOf('try{') >= 0;
-        if(!inTry) {
-          var ind = ln.match(/^(\s*)/)[1];
-          // หาสิ้นสุดของ statement (บรรทัดที่ลงท้ายด้วย ; หรือ })
-          var end = j;
-          for(var k = j; k < Math.min(j+8, jsArr.length); k++) {
-            end = k;
-            var kt = jsArr[k].trim();
-            if(kt.endsWith(';') || kt.endsWith('}') || kt.endsWith('),')) break;
+  for(var i=0; i<lines.length; i++) {
+    if(commentMap[i]) continue;
+    var orig = lines[i];
+    var cl = cleanLine(orig);
+    var prevCl = lines.slice(Math.max(0,i-10),i).map(function(l){ return cleanLine(l); });
+    RULES.forEach(function(rule){
+      if(!rule.fix || rule.ruleId==='firebase_no_try') return;
+      try {
+        if(rule.detect(cl, orig, prevCl)) {
+          var newLine = rule.fix(orig);
+          if(newLine !== orig) {
+            lines[i] = newLine;
+            orig = newLine;
+            fixLog.push(rule.msg+' (บรรทัด '+(i+1)+')');
+            changed = true;
           }
-          res.push(ind + 'try {');
-          for(var k2 = j; k2 <= end; k2++) res.push(jsArr[k2]);
-          res.push(ind + '} catch(e) { showToast && showToast("เกิดข้อผิดพลาด","error"); console.error(e); }');
-          fixCount++; changed = true;
-          j = end + 1;
-          continue;
         }
+      } catch(e){}
+    });
+  }
+  if(changed) fixed = lines.join('\n');
+
+  // FIX C: Firebase try-catch (block-level)
+  var arr = fixed.split('\n');
+  var out = []; var j=0;
+  var FB = ['await getDocs(','await addDoc(','await updateDoc(',
+            'await setDoc(','await deleteDoc(','await getDoc('];
+  while(j<arr.length) {
+    var ln=arr[j], lt=ln.trim();
+    var hasFB = FB.some(function(f){ return ln.indexOf(f)>=0; });
+    if(hasFB) {
+      var look = out.slice(Math.max(0,out.length-10)).join(' ');
+      if(look.indexOf('try{')<0 && look.indexOf('try {')<0) {
+        var ind=ln.match(/^(\s*)/)[1];
+        var end=j;
+        for(var k=j;k<Math.min(j+5,arr.length);k++){
+          end=k; if(arr[k].trim().endsWith(';')) break;
+        }
+        out.push(ind+'try {');
+        for(var k2=j;k2<=end;k2++) out.push(arr[k2]);
+        out.push(ind+'} catch(e){ if(typeof showToast==="function")showToast("เกิดข้อผิดพลาด","error"); console.error(e); }');
+        fixLog.push('เพิ่ม try-catch (บรรทัด '+(j+1)+')');
+        j=end+1; continue;
       }
-      res.push(ln);
-      j++;
     }
-    if(changed) fixed = res.join('\n');
+    out.push(ln); j++;
+  }
+  if(fixLog.some(function(l){return l.indexOf('try-catch')>=0;})) fixed=out.join('\n');
+
+  // FIX D: Verify — ตรวจ brace balance หลังแก้
+  if(!isHTML) {
+    var codeOnly = fixed.split('\n').map(function(l){ return cleanLine(l); }).join('\n');
+    var op=(codeOnly.match(/\{/g)||[]).length;
+    var cl=(codeOnly.match(/\}/g)||[]).length;
+    if(Math.abs(op-cl) > Math.abs((snapshot.match(/\{/g)||[]).length-(snapshot.match(/\}/g)||[]).length)) {
+      // แก้แล้วพัง → rollback
+      console.warn('Fix caused brace mismatch, rolling back '+fname);
+      fixed = snapshot;
+      fixLog.push('[ROLLBACK] การแก้ทำให้ syntax พัง ย้อนกลับอัตโนมัติ');
+    }
   }
 
-  return { code: fixed, fixCount: fixCount };
+  return {code:fixed, fixCount:fixLog.length, log:fixLog};
 }
 
 async function startAutoFix() {
   if(!cfg.token||!cfg.user||!cfg.repo){toast('กรุณาตั้งค่า GitHub Token ก่อน','error');switchTab('settings');return;}
-  var fixableFiles = scanResults.filter(function(r){
-    return r.issues.some(function(iss){return iss.fixable;});
-  });
-  if(!fixableFiles.length){toast('ไม่มีไฟล์ที่แก้อัตโนมัติได้','info');return;}
 
-  // เรียงลำดับ: error ก่อน แล้วตาม warning
-  fixableFiles.sort(function(a,b){
-    var ae=a.issues.filter(function(i){return i.lv==='e';}).length;
-    var be=b.issues.filter(function(i){return i.lv==='e';}).length;
-    return be-ae;
+  // ดึงไฟล์ทั้งหมดที่ต้อง fix จาก repo (ไม่แค่ fixable จาก scan)
+  // เพราะ scanner อาจไม่ครอบคลุมทุก pattern
+  var allCodeFiles = repoFiles.filter(function(f){
+    return f.type==='file' && /\.(html|js|css)$/.test(f.name);
   });
+  if(!allCodeFiles.length){toast('ไม่มีไฟล์ในระบบ โหลดที่แท็บ ไฟล์ ก่อน','info');return;}
 
   // แสดง progress sheet
   document.getElementById('fixOverlay').classList.add('show');
   document.getElementById('fixDoneBtn').style.display='none';
   document.getElementById('fixProgressFill').style.width='0%';
-  document.getElementById('fixProgressText').textContent='0 / '+fixableFiles.length+' ไฟล์';
-  document.getElementById('fixSheetSub').textContent='กำลังแก้ไข '+fixableFiles.length+' ไฟล์...';
+  document.getElementById('fixProgressText').textContent='0 / '+allCodeFiles.length+' ไฟล์';
+  document.getElementById('fixSheetSub').textContent='กำลังดาวน์โหลดและวิเคราะห์ทุกไฟล์...';
 
   // สร้าง step items
-  document.getElementById('fixSteps').innerHTML = fixableFiles.map(function(r,i){
+  document.getElementById('fixSteps').innerHTML = allCodeFiles.map(function(f,i){
     return '<div class="fix-step" id="fstep'+i+'"><div class="fix-step-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>'
-      +'<div class="fix-step-name">'+r.name+'</div>'
+      +'<div class="fix-step-name">'+f.name+'</div>'
       +'<div class="fix-step-status">รอ...</div></div>';
   }).join('');
 
   var successFiles = [];
-  for(var i=0; i<fixableFiles.length; i++){
-    var r = fixableFiles[i];
+  for(var i=0; i<allCodeFiles.length; i++){
+    var r = allCodeFiles[i];
     var stepEl = document.getElementById('fstep'+i);
     // running
     stepEl.className = 'fix-step running';
@@ -727,7 +982,7 @@ async function startAutoFix() {
 
     try {
       // โหลดโค้ดล่าสุด
-      var res = await fetch(r.url);
+      var res = await fetch(r.download_url);
       var code = await res.text();
 
       // apply fixes
@@ -735,7 +990,7 @@ async function startAutoFix() {
 
       if(result.fixCount > 0) {
         // push ขึ้น GitHub
-        var shaRes = await fetch('https://api.github.com/repos/'+cfg.user+'/'+cfg.repo+'/contents/'+encodeURIComponent(r.name),{headers:{'Authorization':'token '+cfg.token}});
+        var shaRes = await fetch('https://api.github.com/repos/'+cfg.user+'/'+cfg.repo+'/contents/'+encodeURIComponent(r.name||r.name),{headers:{'Authorization':'token '+cfg.token}});
         var shaData = await shaRes.json();
         var content = btoa(unescape(encodeURIComponent(result.code)));
         var pushRes = await fetch('https://api.github.com/repos/'+cfg.user+'/'+cfg.repo+'/contents/'+encodeURIComponent(r.name),{
@@ -766,35 +1021,34 @@ async function startAutoFix() {
     // update progress
     var pct = Math.round((i+1)/fixableFiles.length*100);
     document.getElementById('fixProgressFill').style.width=pct+'%';
-    document.getElementById('fixProgressText').textContent=(i+1)+' / '+fixableFiles.length+' ไฟล์';
+    document.getElementById('fixProgressText').textContent=(i+1)+' / '+allCodeFiles.length+' ไฟล์';
   }
-
-  // เสร็จ
-  document.getElementById('fixSheetSub').textContent='เสร็จสิ้น! แก้ไขแล้ว '+successFiles.length+' ไฟล์ Vercel กำลัง Deploy...';
-  document.getElementById('fixDoneBtn').style.display='block';
 
   // บันทึก history
   if(successFiles.length > 0) {
     var h={msg:'auto-fix: แก้ไขอัตโนมัติ '+successFiles.length+' ไฟล์',files:successFiles,time:new Date().toISOString(),ok:true,failList:[]};
     history2.unshift(h); localStorage.setItem('devHist',JSON.stringify(history2.slice(0,50)));
   }
-}
 
-async function closeFixSheet() {
-  document.getElementById('fixOverlay').classList.remove('show');
-  // รีสแกนหลังแก้
+  // รีสแกนครั้งเดียวเพื่อยืนยัน
+  document.getElementById('fixSheetSub').textContent='กำลังตรวจสอบผล...';
+  document.getElementById('fixProgressFill').style.width='100%';
   scanCache = {};
   await autoRunScan();
-  // ถ้ายังมีปัญหาที่แก้ได้ ให้รันซ้ำอัตโนมัติ
-  var stillFixable = scanResults.some(function(r){
-    return r.issues.some(function(iss){ return iss.fixable; });
-  });
-  if(stillFixable) {
-    toast('ยังมีปัญหาที่แก้ได้ กำลังรันซ้ำ...','info');
-    setTimeout(startAutoFix, 1200);
-  } else {
-    toast('แก้ไขทั้งหมดเสร็จสิ้น! ไม่มีปัญหาที่แก้อัตโนมัติได้แล้ว','success');
-  }
+
+  // จบ - แสดงผล
+  var remaining = scanResults.reduce(function(s,r){
+    return s + r.issues.filter(function(i){return i.lv==='e'||i.lv==='w';}).length;
+  },0);
+  document.getElementById('fixSheetSub').textContent = successFiles.length > 0
+    ? 'แก้ไขเสร็จสิ้น '+successFiles.length+' ไฟล์ ✓'+(remaining>0?' ยังมี '+remaining+' ปัญหาที่ต้องแก้มือ':'  ไม่มีปัญหาเหลือแล้ว!')
+    : 'ตรวจแล้ว ไม่มีอะไรที่แก้อัตโนมัติได้';
+  document.getElementById('fixDoneBtn').style.display='block';
+  if(successFiles.length > 0) toast('แก้ไขเสร็จ '+successFiles.length+' ไฟล์!','success');
+}
+
+function closeFixSheet() {
+  document.getElementById('fixOverlay').classList.remove('show');
 }
 
 // HISTORY
