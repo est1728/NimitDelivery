@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nimit Developer Center</title>
+<style>
+:root{--primary:#0c4aa6;--primary-dark:#083570;--primary-light:#e8f0fe;--gray:#f5f6f8;--text:#0f172a;--subtext:#64748b;--green:#16a34a;--green-light:#dcfce7;--red:#dc2626;--red-light:#fee2e2;--orange:#ea580c;--orange-light:#fff7ed;--shadow-sm:0 1px 3px rgba(15,23,42,0.05);}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Arial',sans-serif;-webkit-tap-highlight-color:transparent;}
+body{background:var(--gray);min-height:100vh;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes toastIn{from{transform:translateY(-10px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes toastOut{to{opacity:0}}
+@keyframes popIn{from{transform:scale(0.92);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.topbar{background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:200;}
+.tbar-logo{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;}
+.tbar-logo svg{width:18px;height:18px;fill:#fff;}
+.tbar-title{font-size:16px;font-weight:800;color:#fff;flex:1;}
+.tbar-btn{height:34px;padding:0 12px;border:none;border-radius:10px;background:rgba(255,255,255,0.18);color:#fff;font-size:12px;font-weight:700;cursor:pointer;}
+.tabs{display:flex;background:#fff;border-bottom:1px solid #eaecf0;position:sticky;top:62px;z-index:190;overflow-x:auto;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex-shrink:0;padding:12px 14px;font-size:13px;font-weight:700;color:var(--subtext);cursor:pointer;border:none;background:none;position:relative;white-space:nowrap;}
+.tab.active{color:var(--primary);}
+.tab.active::after{content:'';position:absolute;bottom:-1px;left:15%;right:15%;height:3px;background:var(--primary);border-radius:3px 3px 0 0;}
+.tab-badge{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;color:#fff;font-size:10px;font-weight:800;border-radius:20px;padding:0 4px;margin-left:4px;vertical-align:middle;}
+.panel{display:none;padding:14px 16px 120px;animation:fadeIn 0.18s ease-out;}
+.panel.active{display:block;}
+.sec-label{font-size:12px;font-weight:800;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
+/* UPLOAD */
+.drop-zone{border:2px dashed #c7d7f0;border-radius:18px;padding:28px 20px;text-align:center;background:#fff;cursor:pointer;transition:all 0.2s;margin-bottom:14px;}
+.drop-zone.over{border-color:var(--primary);background:var(--primary-light);}
+.drop-zone svg{width:36px;height:36px;fill:#c7d7f0;display:block;margin:0 auto 10px;}
+.drop-zone h3{font-size:15px;font-weight:800;color:var(--text);margin-bottom:4px;}
+.drop-zone p{font-size:13px;color:var(--subtext);margin-bottom:14px;}
+.drop-btns{display:flex;gap:10px;justify-content:center;}
+.btn-files{height:38px;padding:0 18px;border:none;border-radius:20px;background:var(--primary);color:#fff;font-size:13px;font-weight:700;cursor:pointer;}
+.btn-folder{height:38px;padding:0 18px;border:2px solid var(--primary);border-radius:20px;background:#fff;color:var(--primary);font-size:13px;font-weight:700;cursor:pointer;}
+.file-list-card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:14px;}
+.file-row{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid #f5f6f8;}
+.file-row:last-child{border-bottom:none;}
+.fi-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.fi-ic.html{background:#fff3e0;} .fi-ic.html svg{fill:#f59e0b;}
+.fi-ic.css{background:#e0f2fe;} .fi-ic.css svg{fill:#0284c7;}
+.fi-ic.js{background:#fef3c7;} .fi-ic.js svg{fill:#d97706;}
+.fi-ic.other{background:var(--gray);} .fi-ic.other svg{fill:var(--subtext);}
+.fi-ic svg{width:16px;height:16px;}
+.fi-info{flex:1;min-width:0;}
+.fi-name{font-size:13px;font-weight:700;color:var(--text);font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fi-size{font-size:11px;color:var(--subtext);}
+.fi-tag{font-size:11px;font-weight:700;padding:2px 7px;border-radius:20px;flex-shrink:0;}
+.tag-new{background:var(--green-light);color:var(--green);}
+.tag-replace{background:var(--orange-light);color:var(--orange);}
+.tag-skip{background:#f1f5f9;color:var(--subtext);}
+.fi-acts{display:flex;gap:5px;}
+.fi-act{width:26px;height:26px;border-radius:7px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.fi-act svg{width:12px;height:12px;}
+.act-skip{background:#f1f5f9;} .act-skip svg{fill:var(--subtext);}
+.act-restore{background:var(--green-light);} .act-restore svg{fill:var(--green);}
+.act-del{background:var(--red-light);} .act-del svg{fill:var(--red);}
+.push-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #eaecf0;padding:10px 16px 22px;box-shadow:0 -4px 16px rgba(0,0,0,0.06);z-index:300;display:none;}
+.push-sum{font-size:13px;color:var(--subtext);text-align:center;margin-bottom:8px;}
+.push-sum b{color:var(--primary);}
+.push-btn{width:100%;height:50px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(12,74,166,0.3);display:flex;align-items:center;justify-content:center;gap:10px;}
+.push-btn svg{width:18px;height:18px;fill:#fff;}
+.diff-card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:10px;}
+.diff-head{padding:11px 14px;background:var(--gray);display:flex;align-items:center;gap:10px;cursor:pointer;}
+.diff-fname{font-size:13px;font-weight:700;color:var(--text);flex:1;font-family:monospace;}
+.diff-body{padding:12px 14px;background:#0f172a;display:none;}
+.diff-body.open{display:block;}
+.diff-line{font-size:11px;font-family:monospace;line-height:1.6;color:#4ade80;white-space:pre-wrap;word-break:break-all;}
+.diff-ctx{color:#94a3b8;}
+/* FILES */
+.repo-bar{background:#fff;border-radius:14px;padding:12px 14px;box-shadow:var(--shadow-sm);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.repo-info{font-size:13px;color:var(--subtext);} .repo-info b{color:var(--text);}
+.ref-btn{width:34px;height:34px;border:none;border-radius:10px;background:var(--primary-light);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.ref-btn svg{width:16px;height:16px;fill:var(--primary);}
+.check-card{background:#fff;border-radius:14px;padding:13px 14px;box-shadow:var(--shadow-sm);margin-bottom:10px;}
+.check-title{font-size:12px;font-weight:800;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
+.chk{display:flex;align-items:center;gap:7px;padding:4px 0;font-size:13px;font-weight:600;font-family:monospace;}
+.chk svg{width:14px;height:14px;flex-shrink:0;}
+.chk-ok{color:var(--green);} .chk-ok svg{fill:var(--green);}
+.chk-miss{color:var(--red);} .chk-miss svg{fill:var(--red);}
+.exp-list{background:#fff;border-radius:14px;overflow:hidden;box-shadow:var(--shadow-sm);}
+.exp-row{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid #f5f6f8;cursor:pointer;}
+.exp-row:last-child{border-bottom:none;} .exp-row:active{background:var(--primary-light);}
+.exp-ic{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.exp-ic svg{width:15px;height:15px;}
+.exp-name{font-size:13px;font-weight:700;color:var(--text);flex:1;font-family:monospace;}
+.exp-size{font-size:11px;color:var(--subtext);}
+/* SCAN */
+.scan-topbar{background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow-sm);margin-bottom:12px;}
+.scan-chip-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;max-height:150px;overflow-y:auto;}
+.scan-chip{padding:6px 10px;border-radius:20px;border:1.5px solid #e2e8f0;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;font-family:monospace;transition:all 0.12s;}
+.scan-chip.sel{border-color:var(--primary);background:var(--primary-light);color:var(--primary);}
+.scan-actions{display:flex;gap:8px;}
+.scan-run-btn{flex:1;height:48px;border:none;border-radius:12px;background:var(--gray);color:var(--text);font-size:14px;font-weight:700;cursor:pointer;}
+.scan-run-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.autofix-btn{flex:2;height:48px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--green),#15803d);color:#fff;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(22,163,74,0.3);}
+.autofix-btn:disabled{background:#cbd5e1;box-shadow:none;cursor:not-allowed;}
+.autofix-btn svg{width:18px;height:18px;fill:#fff;}
+.scan-sum{display:flex;gap:8px;margin-bottom:12px;}
+.scan-sum-box{flex:1;padding:10px 8px;border-radius:12px;text-align:center;}
+.scan-sum-box.e{background:var(--red-light);} .scan-sum-box.w{background:var(--orange-light);}
+.scan-sum-box.i{background:var(--primary-light);} .scan-sum-box.ok{background:var(--green-light);}
+.scan-sum-num{font-size:20px;font-weight:800;}
+.scan-sum-box.e .scan-sum-num{color:var(--red);} .scan-sum-box.w .scan-sum-num{color:var(--orange);}
+.scan-sum-box.i .scan-sum-num{color:var(--primary);} .scan-sum-box.ok .scan-sum-num{color:var(--green);}
+.scan-sum-lbl{font-size:11px;font-weight:700;color:var(--subtext);}
+.scan-file-block{background:#fff;border-radius:14px;overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:10px;}
+.scan-file-head{padding:11px 14px;background:var(--gray);display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+.scan-file-hname{font-size:13px;font-weight:700;color:var(--text);font-family:monospace;flex:1;}
+.scan-count{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:6px;}
+.scan-count.e{background:var(--red-light);color:var(--red);}
+.scan-count.w{background:var(--orange-light);color:var(--orange);}
+.scan-count.ok{background:var(--green-light);color:var(--green);}
+.scan-issue-list{display:none;}
+.scan-issue-list.open{display:block;}
+.scan-issue{display:flex;gap:10px;padding:9px 14px;border-bottom:1px solid #f5f6f8;}
+.scan-issue:last-child{border-bottom:none;}
+.iss-ico{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.iss-ico.e{background:var(--red-light);} .iss-ico.e svg{fill:var(--red);}
+.iss-ico.w{background:var(--orange-light);} .iss-ico.w svg{fill:var(--orange);}
+.iss-ico.i{background:var(--primary-light);} .iss-ico.i svg{fill:var(--primary);}
+.iss-ico svg{width:12px;height:12px;}
+.iss-body{flex:1;}
+.iss-loc{font-size:11px;font-weight:700;color:var(--subtext);margin-bottom:2px;font-family:monospace;}
+.iss-msg{font-size:13px;font-weight:700;color:var(--text);}
+.iss-detail{font-size:12px;color:var(--subtext);margin-top:2px;line-height:1.5;}
+.iss-fixable{font-size:11px;font-weight:700;color:var(--green);margin-top:3px;}
+/* AUTO-FIX PROGRESS */
+.fix-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:500;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);}
+.fix-overlay.show{display:flex;}
+.fix-sheet{background:#fff;border-radius:24px 24px 0 0;width:100%;padding:20px 20px 36px;animation:slideUp 0.3s ease-out;}
+.fix-sheet-title{font-size:17px;font-weight:800;color:var(--text);margin-bottom:4px;text-align:center;}
+.fix-sheet-sub{font-size:13px;color:var(--subtext);text-align:center;margin-bottom:20px;}
+.fix-progress-bar{height:8px;background:#e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:10px;}
+.fix-progress-fill{height:100%;background:linear-gradient(90deg,var(--green),#22c55e);border-radius:8px;transition:width 0.4s ease;}
+.fix-progress-text{font-size:12px;color:var(--subtext);text-align:center;margin-bottom:16px;}
+.fix-steps{display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;}
+.fix-step{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--gray);}
+.fix-step.running{background:var(--primary-light);}
+.fix-step.done{background:var(--green-light);}
+.fix-step.error{background:var(--red-light);}
+.fix-step-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.fix-step.running .fix-step-icon{background:var(--primary);}
+.fix-step.done .fix-step-icon{background:var(--green);}
+.fix-step.error .fix-step-icon{background:var(--red);}
+.fix-step-icon svg{width:14px;height:14px;fill:#fff;}
+.fix-step-icon .spin{animation:spin 0.8s linear infinite;}
+.fix-step-name{font-size:13px;font-weight:700;color:var(--text);font-family:monospace;flex:1;}
+.fix-step-status{font-size:11px;color:var(--subtext);}
+.fix-step.done .fix-step-status{color:var(--green);font-weight:700;}
+.fix-step.error .fix-step-status{color:var(--red);font-weight:700;}
+.fix-done-btn{width:100%;height:50px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:15px;font-weight:800;cursor:pointer;margin-top:16px;display:none;}
+/* VIEWER */
+.viewer{position:fixed;inset:0;background:#0f172a;z-index:400;display:none;flex-direction:column;}
+.viewer.open{display:flex;}
+.viewer-bar{background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:13px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.viewer-back{width:36px;height:36px;border:none;border-radius:10px;background:rgba(255,255,255,0.18);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.viewer-back svg{width:17px;height:17px;stroke:#fff;fill:none;stroke-width:2.5;}
+.viewer-name{font-size:14px;font-weight:800;color:#fff;flex:1;font-family:monospace;}
+.viewer-body{flex:1;overflow:auto;}
+.viewer-code{padding:14px;font-size:11px;font-family:monospace;line-height:1.7;color:#e2e8f0;white-space:pre;tab-size:2;}
+.lnum{color:#475569;user-select:none;margin-right:14px;min-width:28px;display:inline-block;text-align:right;}
+/* HISTORY */
+.hist-card{background:#fff;border-radius:14px;padding:13px 16px;margin-bottom:10px;box-shadow:var(--shadow-sm);}
+.hist-top{display:flex;align-items:center;gap:10px;margin-bottom:5px;}
+.hist-ico{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.hist-ico.ok{background:var(--green-light);} .hist-ico.ok svg{fill:var(--green);}
+.hist-ico.fail{background:var(--red-light);} .hist-ico.fail svg{fill:var(--red);}
+.hist-ico svg{width:17px;height:17px;}
+.hist-msg{font-size:14px;font-weight:700;color:var(--text);flex:1;}
+.hist-time{font-size:11px;color:var(--subtext);}
+.hist-files{font-size:12px;color:var(--subtext);}
+/* SETTINGS */
+.s-card{background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow-sm);margin-bottom:12px;}
+.s-title{font-size:12px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--gray);}
+.s-field{margin-bottom:12px;} .s-field:last-child{margin-bottom:0;}
+.s-label{font-size:13px;font-weight:700;color:var(--subtext);margin-bottom:5px;}
+.s-input{width:100%;height:46px;border:2px solid #eef0f4;border-radius:12px;padding:0 12px;font-size:13px;outline:none;background:#fafbfc;font-family:monospace;}
+.s-input:focus{border-color:var(--primary);}
+.s-hint{font-size:11px;color:var(--subtext);margin-top:4px;line-height:1.5;}
+.s-save{width:100%;height:48px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:15px;font-weight:800;cursor:pointer;margin-top:12px;}
+.conn-row{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:12px;font-size:13px;font-weight:700;margin-bottom:12px;}
+.conn-row.ok{background:var(--green-light);color:var(--green);} .conn-row.fail{background:var(--red-light);color:var(--red);}
+.conn-row svg{width:15px;height:15px;flex-shrink:0;}
+.conn-row.ok svg{fill:var(--green);} .conn-row.fail svg{fill:var(--red);}
+/* CONFIRM MODAL */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:500;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
+.modal-ov.show{display:flex;}
+.modal{background:#fff;border-radius:20px;width:100%;max-width:380px;overflow:hidden;animation:popIn 0.2s ease-out;}
+.modal-head{background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:18px 20px;color:#fff;text-align:center;}
+.modal-head svg{width:28px;height:28px;fill:#fff;display:block;margin:0 auto 6px;}
+.modal-head h3{font-size:16px;font-weight:800;}
+.modal-body{padding:14px 18px;}
+.commit-in{width:100%;height:44px;border:2px solid #eef0f4;border-radius:12px;padding:0 12px;font-size:14px;outline:none;margin-bottom:10px;}
+.commit-in:focus{border-color:var(--primary);}
+.modal-files{background:var(--gray);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--subtext);margin-bottom:12px;max-height:100px;overflow-y:auto;font-family:monospace;}
+.modal-btns{display:flex;gap:8px;}
+.m-cancel{flex:1;height:46px;border:2px solid #e2e8f0;border-radius:12px;background:#fff;color:var(--text);font-size:14px;font-weight:700;cursor:pointer;}
+.m-ok{flex:2;height:46px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:14px;font-weight:800;cursor:pointer;}
+.deploy-bar{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:600;background:#fff;border-radius:14px;padding:12px 18px;box-shadow:0 8px 24px rgba(0,0,0,0.12);display:none;align-items:center;gap:10px;min-width:260px;border:2px solid var(--primary-light);}
+.deploy-bar.show{display:flex;}
+.d-spin{width:18px;height:18px;border:2.5px solid var(--primary-light);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;}
+.d-chk{width:18px;height:18px;display:none;}
+.d-chk svg{width:18px;height:18px;fill:var(--green);}
+.d-title{font-size:13px;font-weight:800;color:var(--text);} .d-sub{font-size:11px;color:var(--subtext);}
+.empty{text-align:center;padding:40px 20px;}
+.empty svg{width:40px;height:40px;fill:#cbd5e1;display:block;margin:0 auto 12px;}
+.empty p{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.empty span{font-size:13px;color:var(--subtext);}
+.toast-wrap{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:900;pointer-events:none;width:100%;padding:0 14px;}
+.toast{display:flex;align-items:center;gap:8px;padding:11px 14px;border-radius:12px;font-size:13px;font-weight:700;color:#fff;box-shadow:0 8px 20px rgba(0,0,0,0.18);margin-bottom:8px;animation:toastIn 0.25s ease-out;}
+.toast svg{width:16px;height:16px;fill:#fff;flex-shrink:0;}
+.toast.success{background:var(--green);} .toast.error{background:var(--red);} .toast.info{background:var(--primary);}
+</style>
+</head>
+<body>
+<div class="toast-wrap" id="toastWrap"></div>
+<div class="topbar">
+  <div class="tbar-logo"><svg viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg></div>
+  <div class="tbar-title">Developer Center</div>
+  <button class="tbar-btn" onclick="window.location.href='index.html'">ออก</button>
+</div>
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('deploy')">Deploy</button>
+  <button class="tab" onclick="switchTab('diff')">Diff</button>
+  <button class="tab" onclick="switchTab('files')">ไฟล์</button>
+  <button class="tab" onclick="switchTab('scan')">สแกน<span class="tab-badge" id="scanBadge" style="display:none;background:var(--red)">0</span></button>
+  <button class="tab" onclick="switchTab('history')">ประวัติ</button>
+  <button class="tab" onclick="switchTab('settings')">ตั้งค่า</button>
+</div>
+
+<!-- DEPLOY -->
+<div class="panel active" id="panel-deploy">
+  <div class="drop-zone" id="dropZone">
+    <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+    <h3>ลากไฟล์มาวางที่นี่</h3><p>รองรับ .html .css .js</p>
+    <div class="drop-btns">
+      <button class="btn-files" onclick="document.getElementById('fi').click()">เลือกไฟล์</button>
+      <button class="btn-folder" onclick="document.getElementById('fo').click()">เลือกโฟลเดอร์</button>
+    </div>
+  </div>
+  <input type="file" id="fi" multiple style="display:none" onchange="onPick(this.files)">
+  <input type="file" id="fo" multiple webkitdirectory style="display:none" onchange="onPick(this.files)">
+  <div id="deployFileSec" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div class="sec-label">ไฟล์ที่เลือก (<span id="fileCount">0</span>)</div>
+      <button onclick="clearFiles()" style="font-size:12px;color:var(--red);background:none;border:none;cursor:pointer;font-weight:700">ล้าง</button>
+    </div>
+    <div class="file-list-card" id="fileListEl"></div>
+  </div>
+</div>
+
+<!-- DIFF -->
+<div class="panel" id="panel-diff">
+  <div id="diffEl"><div class="empty"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg><p>ยังไม่มีไฟล์</p><span>เลือกไฟล์ใน Deploy ก่อน</span></div></div>
+</div>
+
+<!-- FILES -->
+<div class="panel" id="panel-files">
+  <div class="repo-bar">
+    <div class="repo-info">Repo: <b id="repoLabel">-</b></div>
+    <button class="ref-btn" onclick="loadFiles()"><svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></button>
+  </div>
+  <div class="check-card"><div class="check-title">ตรวจสอบไฟล์หลัก</div><div id="checkEl"><span style="font-size:13px;color:var(--subtext)">กด refresh</span></div></div>
+  <div class="sec-label" style="margin-bottom:8px">ไฟล์ทั้งหมด</div>
+  <div id="expListEl"><div class="empty"><svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a2.996 2.996 0 0 0-5.5-1.65l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-2 .89-2 2v11c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2z"/></svg><p>ยังไม่มีข้อมูล</p><span>กด refresh</span></div></div>
+</div>
+
+<!-- SCAN -->
+<div class="panel" id="panel-scan">
+  <div class="scan-topbar">
+    <div class="sec-label">ไฟล์ที่สแกน (โหลดอัตโนมัติเมื่อเชื่อม GitHub)</div>
+    <div class="scan-chip-wrap" id="scanChips"><span style="font-size:13px;color:var(--subtext)">โหลดไฟล์ที่แท็บ ไฟล์ ก่อน</span></div>
+    <div class="scan-actions">
+      <button class="scan-run-btn" id="scanRunBtn" onclick="runScan()" disabled>สแกนใหม่</button>
+      <button class="autofix-btn" id="autofixBtn" onclick="startAutoFix()" disabled>
+        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+        แก้ทั้งหมดอัตโนมัติ
+      </button>
+    </div>
+  </div>
+  <div id="scanResultWrap"></div>
+</div>
+
+<!-- HISTORY -->
+<div class="panel" id="panel-history">
+  <div id="histEl"><div class="empty"><svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18z"/></svg><p>ยังไม่มีประวัติ</p></div></div>
+</div>
+
+<!-- SETTINGS -->
+<div class="panel" id="panel-settings">
+  <div class="s-card">
+    <div class="s-title">GitHub Connection</div>
+    <div class="conn-row fail" id="connRow"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z"/></svg><span id="connText">ยังไม่ได้เชื่อมต่อ</span></div>
+    <div class="s-field"><div class="s-label">GitHub Token</div><input class="s-input" id="sToken" type="password" placeholder="ghp_xxxxxxxxxxxx"><div class="s-hint">Settings → Developer settings → Personal access tokens → Tokens (classic) → ติ๊ก repo</div></div>
+    <div class="s-field"><div class="s-label">Username</div><input class="s-input" id="sUser" placeholder="est1728"></div>
+    <div class="s-field"><div class="s-label">Repository</div><input class="s-input" id="sRepo" placeholder="NimitDelivery"></div>
+    <div class="s-field" style="margin-bottom:0"><div class="s-label">Branch</div><input class="s-input" id="sBranch" placeholder="main"></div>
+    <button class="s-save" onclick="saveSettings()">บันทึกและทดสอบการเชื่อมต่อ</button>
+  </div>
+</div>
+
+<!-- PUSH BAR -->
+<div class="push-bar" id="pushBar" style="display:none">
+  <div class="push-sum">พร้อม Push <b id="pushCount">0</b> ไฟล์</div>
+  <button class="push-btn" onclick="openConfirm()"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Push to GitHub</button>
+</div>
+
+<!-- FILE VIEWER -->
+<div class="viewer" id="viewer">
+  <div class="viewer-bar">
+    <button class="viewer-back" onclick="closeViewer()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+    <div class="viewer-name" id="viewerName">file.html</div>
+  </div>
+  <div class="viewer-body"><div class="viewer-code" id="viewerCode"></div></div>
+</div>
+
+<!-- PUSH CONFIRM MODAL -->
+<div class="modal-ov" id="confirmModal">
+  <div class="modal">
+    <div class="modal-head"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg><h3>ยืนยันการ Push</h3></div>
+    <div class="modal-body">
+      <input class="commit-in" id="commitMsg" placeholder="Commit message">
+      <div class="modal-files" id="confirmFiles"></div>
+      <div class="modal-btns"><button class="m-cancel" onclick="closeConfirm()">ยกเลิก</button><button class="m-ok" onclick="doPush()">Push เลย</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- AUTO-FIX PROGRESS SHEET -->
+<div class="fix-overlay" id="fixOverlay">
+  <div class="fix-sheet">
+    <div class="fix-sheet-title">กำลังแก้ไขอัตโนมัติ</div>
+    <div class="fix-sheet-sub" id="fixSheetSub">เตรียมระบบ...</div>
+    <div class="fix-progress-bar"><div class="fix-progress-fill" id="fixProgressFill" style="width:0%"></div></div>
+    <div class="fix-progress-text" id="fixProgressText">0 / 0 ไฟล์</div>
+    <div class="fix-steps" id="fixSteps"></div>
+    <button class="fix-done-btn" id="fixDoneBtn" onclick="closeFixSheet()">เสร็จสิ้น ✓</button>
+  </div>
+</div>
+
+<!-- DEPLOY STATUS -->
+<div class="deploy-bar" id="deployBar">
+  <div class="d-spin" id="dSpin"></div>
+  <div class="d-chk" id="dChk"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>
+  <div><div class="d-title" id="dTitle">กำลัง Push...</div><div class="d-sub" id="dSub">อย่าปิดหน้าต่าง</div></div>
+</div>
+
+<script>
+var cfg = JSON.parse(localStorage.getItem('devCfg')||'{}');
+var history2 = JSON.parse(localStorage.getItem('devHist')||'[]');
+var files = [];
+var repoFiles = [];
+var scanCache = {};
+var scanSelected = [];
+var scanResults = [];
+var EXPECTED = ['index.html','register.html','shops.html','menu.html','cart.html','checkout.html','track.html','address.html','admin.html','admin-style.css','admin-logic.js','rider.html','shop-admin.html','shop-manage.html','developer.html'];
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+  var names=['deploy','diff','files','scan','history','settings'];
+  var idx=names.indexOf(tab);
+  if(idx>=0) document.querySelectorAll('.tab')[idx].classList.add('active');
+  document.getElementById('panel-'+tab).classList.add('active');
+  if(tab==='files') loadFiles();
+  if(tab==='history') renderHistory();
+  if(tab==='scan') renderScanChips();
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtSize(b){return b<1024?b+'B':b<1048576?(b/1024).toFixed(1)+'KB':(b/1048576).toFixed(1)+'MB';}
+function iclass(n){var e=n.split('.').pop().toLowerCase();return e==='html'?'html':e==='css'?'css':e==='js'?'js':'other';}
+
+// DEPLOY
+var ALLOWED=['html','css','js','json','txt','md','svg','ico','png','jpg','jpeg','gif','webp'];
+function onPick(fl){
+  Array.from(fl).forEach(function(file){
+    var ext=file.name.split('.').pop().toLowerCase();
+    if(ALLOWED.indexOf(ext)<0) return;
+    var reader=new FileReader();
+    reader.onload=function(e){
+      var content=e.target.result;
+      var idx=files.findIndex(function(f){return f.name===file.name;});
+      var obj={name:file.name,content:content,status:idx>=0?'replace':'new',size:file.size};
+      if(idx>=0) files[idx]=obj; else files.push(obj);
+      renderDeploy();
+    };
+    if(/\.(png|jpg|jpeg|gif|webp|ico)$/i.test(file.name)) reader.readAsDataURL(file);
+    else reader.readAsText(file,'utf-8');
+  });
+}
+var dz=document.getElementById('dropZone');
+dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('over');});
+dz.addEventListener('dragleave',function(){dz.classList.remove('over');});
+dz.addEventListener('drop',function(e){e.preventDefault();dz.classList.remove('over');onPick(e.dataTransfer.files);});
+function renderDeploy(){
+  var active=files.filter(function(f){return f.status!=='skip';});
+  document.getElementById('deployFileSec').style.display=files.length?'block':'none';
+  document.getElementById('fileCount').textContent=files.length;
+  document.getElementById('pushBar').style.display=active.length?'block':'none';
+  document.getElementById('pushCount').textContent=active.length;
+  document.getElementById('fileListEl').innerHTML=files.map(function(f,i){
+    var ic=iclass(f.name);
+    return '<div class="file-row"><div class="fi-ic '+ic+'"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg></div>'
+      +'<div class="fi-info"><div class="fi-name">'+f.name+'</div><div class="fi-size">'+fmtSize(f.size)+'</div></div>'
+      +'<div class="fi-tag tag-'+f.status+'">'+(f.status==='new'?'ใหม่':f.status==='replace'?'แทนที่':'ข้าม')+'</div>'
+      +'<div class="fi-acts">'
+      +(f.status==='skip'?'<button class="fi-act act-restore" onclick="setSt('+i+',\'replace\')"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></button>'
+      :'<button class="fi-act act-skip" onclick="setSt('+i+',\'skip\')"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>')
+      +'<button class="fi-act act-del" onclick="delFile('+i+')"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>'
+      +'</div></div>';
+  }).join('');
+  renderDiff();
+}
+function setSt(i,s){files[i].status=s;renderDeploy();}
+function delFile(i){files.splice(i,1);renderDeploy();}
+function clearFiles(){files=[];renderDeploy();}
+function renderDiff(){
+  var active=files.filter(function(f){return f.status!=='skip'&&!/\.(png|jpg|jpeg|gif|webp|ico)$/i.test(f.name);});
+  if(!active.length){document.getElementById('diffEl').innerHTML='<div class="empty"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg><p>ยังไม่มีไฟล์</p><span>เลือกไฟล์ใน Deploy ก่อน</span></div>';return;}
+  document.getElementById('diffEl').innerHTML=active.map(function(f,i){
+    var lines=f.content.split('\n').slice(0,30);
+    return '<div class="diff-card"><div class="diff-head" onclick="document.getElementById(\'d'+i+'\').classList.toggle(\'open\')">'
+      +'<div class="diff-fname">'+f.name+'</div><div class="fi-tag tag-'+f.status+'">'+(f.status==='new'?'ใหม่':'แทนที่')+'</div></div>'
+      +'<div class="diff-body" id="d'+i+'">'+lines.map(function(l){return '<div class="diff-line">+ '+esc(l)+'</div>';}).join('')
+      +(f.content.split('\n').length>30?'<div class="diff-line diff-ctx">...อีก '+(f.content.split('\n').length-30)+' บรรทัด</div>':'')
+      +'</div></div>';
+  }).join('');
+}
+function openConfirm(){
+  if(!cfg.token||!cfg.user||!cfg.repo){toast('กรุณาตั้งค่า GitHub Token ก่อน','error');switchTab('settings');return;}
+  var active=files.filter(function(f){return f.status!=='skip';});
+  document.getElementById('commitMsg').value='update: อัพเดต '+active.length+' ไฟล์';
+  document.getElementById('confirmFiles').innerHTML=active.map(function(f){return (f.status==='new'?'+ ':' ')+f.name;}).join('<br>');
+  document.getElementById('confirmModal').classList.add('show');
+}
+function closeConfirm(){document.getElementById('confirmModal').classList.remove('show');}
+async function doPush(){
+  closeConfirm();
+  var active=files.filter(function(f){return f.status!=='skip';});
+  var msg=document.getElementById('commitMsg').value.trim()||'update files';
+  showDeploy('กำลัง Push...','อย่าปิดหน้าต่าง');
+  var ok=0,fail=0,failList=[];
+  for(var i=0;i<active.length;i++){
+    var f=active[i]; showDeploy('Push ('+(i+1)+'/'+active.length+')',f.name);
+    try{
+      var sha=null;
+      var gr=await fetch('https://api.github.com/repos/'+cfg.user+'/'+cfg.repo+'/contents/'+encodeURIComponent(f.name),{headers:{'Authorization':'token '+cfg.token}});
+      if(gr.ok){var gd=await gr.json();sha=gd.sha;}
+      var content=/\.(png|jpg|jpeg|gif|webp|ico)$/i.test(f.name)?f.content.split(',')[1]:btoa(unescape(encodeURIComponent(f.content)));
+      var body={message:msg+' ('+f.name+')',content:content,branch:cfg.branch||'main'};
+      if(sha) body.sha=sha;
+      var pr=await fetch('https://api.github.com/repos/'+cfg.user+'/'+cfg.repo+'/contents/'+encodeURIComponent(f.name),{method:'PUT',headers:{'Authorization':'token '+cfg.token,'Content-Type':'application/json'},body:JSON.stringify(body)});
+      if(pr.ok) ok++; else{fail++;failList.push(f.name);}
+    }catch(e){fail++;failList.push(f.name);}
+  }
+  var h={msg:msg,files:active.map(function(f){return f.name;}),time:new Date().toISOString(),ok:fail===0,failList:failList};
+  history2.unshift(h); localStorage.setItem('devHist',JSON.stringify(history2.slice(0,50)));
+  if(fail===0){showDeployDone('Push สำเร็จ '+ok+' ไฟล์','Vercel กำลัง Deploy...');clearFiles();toast('Push สำเร็จ!','success');}
+  else{hideDeploy();toast('สำเร็จ '+ok+' ล้มเหลว '+fail,'error');}
+}
+
+// FILES
+async function loadFiles(){
+  if(!cfg.token||!cfg.user||!cfg.repo){document.getElementById('expListEl').innerHTML='<div class="empty"><p style="color:var(--red)">กรุณาตั้งค่า GitHub Token</p></div>';return;}
+  document.getElementById('repoLabel').textContent=cfg.user+'/'+cfg.repo;
+  document.getElementById('expListEl').innerHTML='<div class="empty"><p>กำลังโหลด...</p></div>';
+  try{
+    var res=await fetch('https://api.github.com/repos/'+cfg.user+'/'+cfg.repo+'/contents',{headers:{'Authorization':'token '+cfg.token}});
+    if(!res.ok){document.getElementById('expListEl').innerHTML='<div class="empty"><p style="color:var(--red)">โหลดไม่ได้</p></div>';return;}
+    repoFiles=await res.json();
+    renderFiles(); renderCheck();
+    scanCache={};
+    scanSelected=repoFiles.filter(function(f){return f.type==='file'&&/\.(html|js|css)$/.test(f.name);}).map(function(f){return f.name;});
+    autoRunScan();
+  }catch(e){}
+}
+function renderFiles(){
+  var f=repoFiles.filter(function(f){return f.type==='file';});
+  document.getElementById('expListEl').innerHTML='<div class="exp-list">'+f.map(function(fi){
+    var ic=iclass(fi.name);
+    return '<div class="exp-row" onclick="openViewer(\''+fi.name+'\',\''+fi.download_url+'\')">'
+      +'<div class="exp-ic fi-ic '+ic+'"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg></div>'
+      +'<div class="exp-name">'+fi.name+'</div><div class="exp-size">'+fmtSize(fi.size)+'</div>'
+      +'<svg style="width:13px;height:13px;fill:var(--subtext);flex-shrink:0" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>';
+  }).join('')+'</div>';
+}
+function renderCheck(){
+  var names=repoFiles.map(function(f){return f.name;});
+  document.getElementById('checkEl').innerHTML=EXPECTED.map(function(f){
+    var ok=names.indexOf(f)>=0;
+    return '<div class="chk '+(ok?'chk-ok':'chk-miss')+'"><svg viewBox="0 0 24 24"><path d="'+(ok?'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z':'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z')+'"/></svg>'+f+'</div>';
+  }).join('');
+}
+async function openViewer(name,url){
+  document.getElementById('viewerName').textContent=name;
+  document.getElementById('viewerCode').textContent='กำลังโหลด...';
+  document.getElementById('viewer').classList.add('open');
+  try{var res=await fetch(url);var txt=await res.text();var lines=txt.split('\n');document.getElementById('viewerCode').innerHTML=lines.map(function(l,i){return '<span class="lnum">'+(i+1)+'</span>'+esc(l);}).join('\n');}
+  catch(e){document.getElementById('viewerCode').textContent='โหลดไม่ได้';}
+}
+function closeViewer(){document.getElementById('viewer').classList.remove('open');}
+
+// SCANNER
+function renderScanChips(){
+  var el=document.getElementById('scanChips');
+  if(!repoFiles.length){el.innerHTML='<span style="font-size:13px;color:var(--subtext)">โหลดไฟล์ที่แท็บ ไฟล์ ก่อน</span>';return;}
+  var cf=repoFiles.filter(function(f){return f.type==='file'&&/\.(html|js|css)$/.test(f.name);});
+  el.innerHTML=cf.map(function(f){
+    var sel=scanSelected.indexOf(f.name)>=0;
+    return '<div class="scan-chip'+(sel?' sel':'')+'" onclick="toggleScanChip(\''+f.name+'\')">'+f.name+'</div>';
+  }).join('');
+  document.getElementById('scanRunBtn').disabled=scanSelected.length===0;
+  document.getElementById('autofixBtn').disabled=scanSelected.length===0;
+}
+function toggleScanChip(name){
+  var idx=scanSelected.indexOf(name);
+  if(idx>=0) scanSelected.splice(idx,1); else scanSelected.push(name);
+  renderScanChips();
+}
+async function autoRunScan(){
+  if(!scanSelected.length) return;
+  var cf=repoFiles.filter(function(f){return scanSelected.indexOf(f.name)>=0;});
+  for(var i=0;i<cf.length;i++){
+    if(!scanCache[cf[i].name]){try{var r=await fetch(cf[i].download_url);scanCache[cf[i].name]=await r.text();}catch(e){}}
+  }
+  doScan();
+}
+async function runScan(){
+  document.getElementById('scanRunBtn').disabled=true;
+  document.getElementById('scanResultWrap').innerHTML='<div style="text-align:center;padding:24px;color:var(--subtext)">กำลังสแกน...</div>';
+  var cf=repoFiles.filter(function(f){return scanSelected.indexOf(f.name)>=0;});
+  for(var i=0;i<cf.length;i++){try{var r=await fetch(cf[i].download_url);scanCache[cf[i].name]=await r.text();}catch(e){}}
+  doScan();
+  document.getElementById('scanRunBtn').disabled=false;
+}
+
+function analyzeFile(fname,code){
+  var issues=[];
+  var lines=code.split('\n');
+  var isHTML=/\.html$/i.test(fname);
+  for(var i=0;i<lines.length;i++){
+    var line=lines[i]; var n=i+1; var t=line.trim();
+    if(t.indexOf('ghp_')>=0&&/ghp_[A-Za-z0-9]{20}/.test(t)) issues.push({lv:'e',n:n,cat:'🔒 Security',msg:'พบ GitHub Token ฝังในโค้ด!',detail:'ลบออก ใช้ localStorage แทน',fixable:false});
+    if(t.indexOf('AIzaSy')>=0) issues.push({lv:'i',n:n,cat:'ℹ️ Info',msg:'Firebase API Key (ปกติไม่อันตราย)',detail:'Firebase apiKey เป็น public by design',fixable:false});
+    if(t.indexOf('.innerHTML')>=0&&(t.indexOf('${')>=0||(t.indexOf("'+")>=0&&t.indexOf("+'")>=0))&&t.charAt(0)!=='/'&&t.charAt(0)!=='*'){
+      var allWrapped=true;
+      (t.match(/\$\{([^}]+)\}/g)||[]).forEach(function(m){var inner=m.slice(2,-1).trim();if(inner&&inner.indexOf('esc(')<0&&!/^[\d"'`]/.test(inner))allWrapped=false;});
+      (t.match(/\+([a-zA-Z_$][\w.$?()]*(?:\|\|[^+'"]+)?)\+/g)||[]).forEach(function(m){var inner=m.slice(1,-1).trim();if(inner&&inner.indexOf('esc(')<0&&inner.indexOf('(')<0)allWrapped=false;});
+      if(!allWrapped) issues.push({lv:'w',n:n,cat:'🔒 XSS Risk',msg:'innerHTML ใช้กับตัวแปร ยังไม่มี esc()',detail:'อาจเสี่ยง XSS ถ้า data มาจาก user',fixable:false,fix:'add_esc'});
+    }
+    if(!isHTML&&(t.indexOf('await getDocs(')>=0||t.indexOf('await addDoc(')>=0||t.indexOf('await updateDoc(')>=0||t.indexOf('await setDoc(')>=0||t.indexOf('await deleteDoc(')>=0)){
+      var prev=lines.slice(Math.max(0,i-8),i).join('\n');
+      if(prev.indexOf('try{')< 0&&prev.indexOf('try {')< 0) issues.push({lv:'w',n:n,cat:'⚠️ Logic',msg:'Firebase call ไม่มี try-catch',detail:'ถ้า network หลุดจะ crash',fixable:true,fix:'add_try'});
+    }
+    var indent=line.length-line.replace(/^ */,'').length;
+    if((t.indexOf('if(')===0||t.indexOf('if (')===0)&&indent>=20) issues.push({lv:'i',n:n,cat:'🧹 Clean Code',msg:'if ซ้อนกันลึกมาก',detail:'ลอง early return หรือแตกฟังก์ชัน',fixable:false});
+  }
+  if(!isHTML){var op=(code.match(/\{/g)||[]).length;var cl=(code.match(/\}/g)||[]).length;if(Math.abs(op-cl)>0) issues.push({lv:'e',n:0,cat:'🔧 Syntax',msg:'ปีกกาไม่สมดุล: { = '+op+' } = '+cl,detail:'ขาดหรือเกิน '+Math.abs(op-cl)+' อัน',fixable:false});}
+  // ถ้าไม่มี esc() เลย แต่มี innerHTML + ตัวแปร = fixable (เพิ่ม esc fn ให้)
+  if(code.indexOf('function esc(') < 0 && code.indexOf('.innerHTML') >= 0) {
+    var hasVarInner = issues.some(function(iss){return iss.cat==='🔒 XSS Risk';});
+    if(hasVarInner) issues.push({lv:'w',n:0,cat:'🔒 XSS Fix',msg:'ยังไม่มี esc() function ในไฟล์นี้',detail:'กด แก้อัตโนมัติ เพื่อเพิ่ม esc() helper',fixable:true,fix:'add_esc_fn'});
+  }
+  return issues;
+}
+
+function doScan(){
+  scanResults=[];
+  var totalE=0,totalW=0,totalI=0;
+  for(var k=0;k<scanSelected.length;k++){
+    var fname=scanSelected[k]; var content=scanCache[fname];
+    if(!content) continue;
+    var issues=analyzeFile(fname,content);
+    issues.forEach(function(iss){if(iss.lv==='e')totalE++;else if(iss.lv==='w')totalW++;else totalI++;});
+    scanResults.push({name:fname,issues:issues,url:repoFiles.find(function(f){return f.name===fname;})?.download_url});
+  }
+  var total=totalE+totalW;
+  var badge=document.getElementById('scanBadge');
+  if(total>0){badge.style.display='inline-flex';badge.textContent=total;badge.style.background=totalE>0?'var(--red)':'var(--orange)';}
+  else badge.style.display='none';
+  var fixableCount=0;
+  scanResults.forEach(function(r){r.issues.forEach(function(iss){if(iss.fixable)fixableCount++;});});
+  document.getElementById('autofixBtn').disabled=fixableCount===0||scanSelected.length===0;
+  renderScanResults(totalE,totalW,totalI);
+}
+
+function renderScanResults(totalE,totalW,totalI){
+  var wrap=document.getElementById('scanResultWrap');
+  if(totalE+totalW+totalI===0){wrap.innerHTML='<div style="background:#fff;border-radius:14px;padding:24px;text-align:center;box-shadow:var(--shadow-sm)"><div style="font-size:32px;margin-bottom:8px">✅</div><div style="font-size:16px;font-weight:800;color:var(--green)">ไม่พบปัญหา!</div></div>';return;}
+  var html='<div style="background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow-sm);margin-bottom:12px;"><div class="scan-sum">'
+    +'<div class="scan-sum-box e"><div class="scan-sum-num">'+totalE+'</div><div class="scan-sum-lbl">Critical</div></div>'
+    +'<div class="scan-sum-box w"><div class="scan-sum-num">'+totalW+'</div><div class="scan-sum-lbl">Warning</div></div>'
+    +'<div class="scan-sum-box i"><div class="scan-sum-num">'+totalI+'</div><div class="scan-sum-lbl">Info</div></div>'
+    +'</div></div>';
+  scanResults.forEach(function(r,ri){
+    if(!r.issues.length) return;
+    var ec=r.issues.filter(function(x){return x.lv==='e';}).length;
+    html+='<div class="scan-file-block"><div class="scan-file-head" onclick="document.getElementById(\'si'+ri+'\').classList.toggle(\'open\')">'
+      +'<div class="scan-file-hname">'+r.name+'</div>'
+      +'<div class="scan-count '+(ec>0?'e':'w')+'">'+r.issues.length+' ปัญหา</div></div>'
+      +'<div class="scan-issue-list open" id="si'+ri+'">';
+    r.issues.forEach(function(iss){
+      var ico=iss.lv==='e'?'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>'
+        :iss.lv==='w'?'<path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>'
+        :'<path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>';
+      html+='<div class="scan-issue"><div class="iss-ico '+iss.lv+'"><svg viewBox="0 0 24 24">'+ico+'</svg></div>'
+        +'<div class="iss-body">'+(iss.n>0?'<div class="iss-loc">'+r.name+':'+iss.n+'  '+iss.cat+'</div>':'<div class="iss-loc">'+r.name+'  '+iss.cat+'</div>')
+        +'<div class="iss-msg">'+iss.msg+'</div>'+(iss.detail?'<div class="iss-detail">'+iss.detail+'</div>':'')
+        +(iss.fixable?'<div class="iss-fixable">✓ แก้ได้อัตโนมัติ</div>':'')
+        +'</div></div>';
+    });
+    html+='</div></div>';
+  });
+  wrap.innerHTML=html;
+}
+
+// AUTO-FIX ENGINE
+function applyFixes(fname, code) {
+  var fixed = code;
+  var fixCount = 0;
+  var isHTML = /\.html$/i.test(fname);
+  var isJS = /\.js$/i.test(fname);
+  var changed = false;
+
+  // === FIX 1: เพิ่ม esc() function ถ้ายังไม่มี ===
+  if(fixed.indexOf('function esc(') < 0 && fixed.indexOf('.innerHTML') >= 0) {
+    var escFn = 'function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;"); }';
+    var closeTag = '<' + '/' + 'script>';
+    if(isHTML && fixed.indexOf(closeTag) >= 0) {
+      fixed = fixed.replace(closeTag, escFn + '\n' + closeTag);
+      fixCount++; changed = true;
+    } else if(isJS) {
+      fixed = escFn + '\n' + fixed;
+      fixCount++; changed = true;
+    }
+  }
+
+  // === FIX 2: XSS - เพิ่ม esc() ถ้ายังไม่มีแล้วมี innerHTML ===
+  // (การ wrap ทุก variable อัตโนมัตินั้นซับซ้อนเกินไปและอาจพัง)
+  // ทำแค่: ถ้าไม่มี esc() เลย → เพิ่ม esc() function ให้ใช้งานได้
+  // (ซึ่งทำไปแล้วใน FIX 1 แล้ว)
+  // ส่วน false positive จาก scanner → handle ใน doScan แทน
+
+  // === FIX 3: Firebase try-catch สำหรับ .js ===
+  if(isJS) {
+    var FB_CALLS = ['await getDocs(','await addDoc(','await updateDoc(','await setDoc(','await deleteDoc(','await getDoc('];
+    var jsArr = fixed.split('\n');
+    var res = [];
+    var j = 0;
+    while(j < jsArr.length) {
+      var ln = jsArr[j];
+      var lt = ln.trim();
+      var hasFB = FB_CALLS.some(function(fb){ return lt.indexOf(fb) >= 0; });
+      if(hasFB) {
+        // ดูย้อนหลัง 10 บรรทัดว่ามี try { แล้วหรือยัง
+        var lookback = res.slice(Math.max(0, res.length-10)).join('\n');
+        var inTry = lookback.indexOf('try{') >= 0 || lookback.indexOf('try {') >= 0 || lookback.indexOf('try{') >= 0;
+        if(!inTry) {
+          var ind = ln.match(/^(\s*)/)[1];
+          // หาสิ้นสุดของ statement (บรรทัดที่ลงท้ายด้วย ; หรือ })
+          var end = j;
+          for(var k = j; k < Math.min(j+8, jsArr.length); k++) {
+            end = k;
+            var kt = jsArr[k].trim();
+            if(kt.endsWith(';') || kt.endsWith('}') || kt.endsWith('),')) break;
+          }
+          res.push(ind + 'try {');
+          for(var k2 = j; k2 <= end; k2++) res.push(jsArr[k2]);
+          res.push(ind + '} catch(e) { showToast && showToast("เกิดข้อผิดพลาด","error"); console.error(e); }');
+          fixCount++; changed = true;
+          j = end + 1;
+          continue;
+        }
+      }
+      res.push(ln);
+      j++;
+    }
+    if(changed) fixed = res.join('\n');
+  }
+
+  return { code: fixed, fixCount: fixCount };
+}
+
+async function startAutoFix() {
+  if(!cfg.token||!cfg.user||!cfg.repo){toast('กรุณาตั้งค่า GitHub Token ก่อน','error');switchTab('settings');return;}
+  var fixableFiles = scanResults.filter(function(r){
+    return r.issues.some(function(iss){return iss.fixable;});
+  });
+  if(!fixableFiles.length){toast('ไม่มีไฟล์ที่แก้อัตโนมัติได้','info');return;}
+
+  // เรียงลำดับ: error ก่อน แล้วตาม warning
+  fixableFiles.sort(function(a,b){
+    var ae=a.issues.filter(function(i){return i.lv==='e';}).length;
+    var be=b.issues.filter(function(i){return i.lv==='e';}).length;
+    return be-ae;
+  });
+
+  // แสดง progress sheet
+  document.getElementById('fixOverlay').classList.add('show');
+  document.getElementById('fixDoneBtn').style.display='none';
+  document.getElementById('fixProgressFill').style.width='0%';
+  document.getElementById('fixProgressText').textContent='0 / '+fixableFiles.length+' ไฟล์';
+  document.getElementById('fixSheetSub').textContent='กำลังแก้ไข '+fixableFiles.length+' ไฟล์...';
+
+  // สร้าง step items
+  document.getElementById('fixSteps').innerHTML = fixableFiles.map(function(r,i){
+    return '<div class="fix-step" id="fstep'+i+'"><div class="fix-step-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>'
+      +'<div class="fix-step-name">'+r.name+'</div>'
+      +'<div class="fix-step-status">รอ...</div></div>';
+  }).join('');
+
+  var successFiles = [];
+  for(var i=0; i<fixableFiles.length; i++){
+    var r = fixableFiles[i];
+    var stepEl = document.getElementById('fstep'+i);
+    // running
+    stepEl.className = 'fix-step running';
+    stepEl.querySelector('.fix-step-icon').innerHTML = '<svg class="spin" viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>';
+    stepEl.querySelector('.fix-step-status').textContent = 'กำลังแก้...';
+    document.getElementById('fixSheetSub').textContent = 'กำลังแก้ไข: ' + r.name;
+
+    try {
+      // โหลดโค้ดล่าสุด
+      var res = await fetch(r.url);
+      var code = await res.text();
+
+      // apply fixes
+      var result = applyFixes(r.name, code);
+
+      if(result.fixCount > 0) {
+        // push ขึ้น GitHub
+        var shaRes = await fetch('https://api.github.com/repos/'+cfg.user+'/'+cfg.repo+'/contents/'+encodeURIComponent(r.name),{headers:{'Authorization':'token '+cfg.token}});
+        var shaData = await shaRes.json();
+        var content = btoa(unescape(encodeURIComponent(result.code)));
+        var pushRes = await fetch('https://api.github.com/repos/'+cfg.user+'/'+cfg.repo+'/contents/'+encodeURIComponent(r.name),{
+          method:'PUT',
+          headers:{'Authorization':'token '+cfg.token,'Content-Type':'application/json'},
+          body:JSON.stringify({message:'fix: auto-fix security & logic issues in '+r.name,content:content,sha:shaData.sha,branch:cfg.branch||'main'})
+        });
+        if(pushRes.ok){
+          stepEl.className='fix-step done';
+          stepEl.querySelector('.fix-step-icon').innerHTML='<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>';
+          stepEl.querySelector('.fix-step-status').textContent='แก้แล้ว '+result.fixCount+' จุด';
+          successFiles.push(r.name);
+        } else {
+          throw new Error('Push failed');
+        }
+      } else {
+        // fixCount=0 → mark เป็น info ไม่ใช่ error
+        stepEl.className='fix-step done';
+        stepEl.querySelector('.fix-step-icon').innerHTML='<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>';
+        stepEl.querySelector('.fix-step-status').textContent='ผ่านแล้ว ไม่ต้องแก้';
+      }
+    } catch(e) {
+      stepEl.className='fix-step error';
+      stepEl.querySelector('.fix-step-icon').innerHTML='<svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>';
+      stepEl.querySelector('.fix-step-status').textContent='ผิดพลาด';
+    }
+
+    // update progress
+    var pct = Math.round((i+1)/fixableFiles.length*100);
+    document.getElementById('fixProgressFill').style.width=pct+'%';
+    document.getElementById('fixProgressText').textContent=(i+1)+' / '+fixableFiles.length+' ไฟล์';
+  }
+
+  // เสร็จ
+  document.getElementById('fixSheetSub').textContent='เสร็จสิ้น! แก้ไขแล้ว '+successFiles.length+' ไฟล์ Vercel กำลัง Deploy...';
+  document.getElementById('fixDoneBtn').style.display='block';
+
+  // บันทึก history
+  if(successFiles.length > 0) {
+    var h={msg:'auto-fix: แก้ไขอัตโนมัติ '+successFiles.length+' ไฟล์',files:successFiles,time:new Date().toISOString(),ok:true,failList:[]};
+    history2.unshift(h); localStorage.setItem('devHist',JSON.stringify(history2.slice(0,50)));
+  }
+}
+
+async function closeFixSheet() {
+  document.getElementById('fixOverlay').classList.remove('show');
+  // รีสแกนหลังแก้
+  scanCache = {};
+  await autoRunScan();
+  // ถ้ายังมีปัญหาที่แก้ได้ ให้รันซ้ำอัตโนมัติ
+  var stillFixable = scanResults.some(function(r){
+    return r.issues.some(function(iss){ return iss.fixable; });
+  });
+  if(stillFixable) {
+    toast('ยังมีปัญหาที่แก้ได้ กำลังรันซ้ำ...','info');
+    setTimeout(startAutoFix, 1200);
+  } else {
+    toast('แก้ไขทั้งหมดเสร็จสิ้น! ไม่มีปัญหาที่แก้อัตโนมัติได้แล้ว','success');
+  }
+}
+
+// HISTORY
+function renderHistory(){
+  if(!history2.length){document.getElementById('histEl').innerHTML='<div class="empty"><svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18z"/></svg><p>ยังไม่มีประวัติ</p></div>';return;}
+  document.getElementById('histEl').innerHTML=history2.map(function(h){
+    var d=new Date(h.time);
+    var t=d.toLocaleDateString('th-TH',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+    return '<div class="hist-card"><div class="hist-top"><div class="hist-ico '+(h.ok?'ok':'fail')+'"><svg viewBox="0 0 24 24"><path d="'+(h.ok?'M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z':'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z')+'"/></svg></div><div class="hist-msg">'+h.msg+'</div><div class="hist-time">'+t+'</div></div><div class="hist-files">'+h.files.join(', ')+'</div></div>';
+  }).join('');
+}
+
+// SETTINGS
+function loadCfg(){
+  cfg=JSON.parse(localStorage.getItem('devCfg')||'{}');
+  if(cfg.token) document.getElementById('sToken').value=cfg.token;
+  if(cfg.user) document.getElementById('sUser').value=cfg.user;
+  if(cfg.repo) document.getElementById('sRepo').value=cfg.repo;
+  document.getElementById('sBranch').value=cfg.branch||'main';
+  updateConn();
+}
+async function saveSettings(){
+  cfg={token:document.getElementById('sToken').value.trim(),user:document.getElementById('sUser').value.trim(),repo:document.getElementById('sRepo').value.trim(),branch:document.getElementById('sBranch').value.trim()||'main'};
+  localStorage.setItem('devCfg',JSON.stringify(cfg));
+  toast('กำลังทดสอบ...','info');
+  try{
+    var res=await fetch('https://api.github.com/repos/'+cfg.user+'/'+cfg.repo,{headers:{'Authorization':'token '+cfg.token}});
+    updateConn(res.ok); toast(res.ok?'เชื่อมต่อสำเร็จ!':'Token หรือ Repo ไม่ถูกต้อง',res.ok?'success':'error');
+  }catch(e){updateConn(false);toast('เชื่อมต่อไม่ได้','error');}
+}
+function updateConn(ok){
+  if(ok===undefined) ok=!!(cfg.token&&cfg.user&&cfg.repo);
+  var row=document.getElementById('connRow');
+  row.className='conn-row '+(ok?'ok':'fail');
+  row.querySelector('svg').innerHTML=ok?'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>':'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z"/>';
+  document.getElementById('connText').textContent=ok?'เชื่อมต่อกับ '+cfg.user+'/'+cfg.repo:'ยังไม่ได้เชื่อมต่อ';
+}
+function showDeploy(t,s){var b=document.getElementById('deployBar');b.classList.add('show');document.getElementById('dSpin').style.display='block';document.getElementById('dChk').style.display='none';document.getElementById('dTitle').textContent=t;document.getElementById('dSub').textContent=s;}
+function showDeployDone(t,s){document.getElementById('dSpin').style.display='none';document.getElementById('dChk').style.display='block';document.getElementById('dTitle').textContent=t;document.getElementById('dSub').textContent=s;setTimeout(hideDeploy,4000);}
+function hideDeploy(){document.getElementById('deployBar').classList.remove('show');}
+function toast(msg,type){
+  var icons={success:'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>',error:'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z"/>',info:'<path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>'};
+  var el=document.createElement('div');
+  el.className='toast '+(type||'info');
+  el.innerHTML='<svg viewBox="0 0 24 24">'+(icons[type]||icons.info)+'</svg><span>'+msg+'</span>';
+  document.getElementById('toastWrap').appendChild(el);
+  setTimeout(function(){el.style.animation='toastOut 0.2s ease-in forwards';setTimeout(function(){el.remove();},200);},3000);
+}
+loadCfg();
+// auto-load files & scan ถ้ามี token แล้ว
+if(cfg.token && cfg.user && cfg.repo) {
+  loadFiles();
+}
+</script>
+</body>
+</html>
