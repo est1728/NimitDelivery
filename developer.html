@@ -548,9 +548,11 @@ function analyzeFile(fname,code){
     var line=lines[i]; var n=i+1; var t=line.trim();
     if(t.indexOf('ghp_')>=0&&/ghp_[A-Za-z0-9]{20}/.test(t)) issues.push({lv:'e',n:n,cat:'🔒 Security',msg:'พบ GitHub Token ฝังในโค้ด!',detail:'ลบออก ใช้ localStorage แทน',fixable:false});
     if(t.indexOf('AIzaSy')>=0) issues.push({lv:'i',n:n,cat:'ℹ️ Info',msg:'Firebase API Key (ปกติไม่อันตราย)',detail:'Firebase apiKey เป็น public by design',fixable:false});
-    if(t.indexOf('.innerHTML')>=0&&(t.indexOf('${')>=0||t.indexOf("'+")>=0||t.indexOf("+'")>=0)&&t.charAt(0)!=='/'&&t.charAt(0)!=='*'){
-      var hasEsc=t.indexOf('esc(')>=0;
-      if(!hasEsc) issues.push({lv:'w',n:n,cat:'🔒 XSS Risk',msg:'innerHTML ใช้กับตัวแปร ยังไม่มี esc()',detail:'อาจเสี่ยง XSS ถ้า data มาจาก user',fixable:true,fix:'add_esc'});
+    if(t.indexOf('.innerHTML')>=0&&(t.indexOf('${')>=0||(t.indexOf("'+")>=0&&t.indexOf("+'")>=0))&&t.charAt(0)!=='/'&&t.charAt(0)!=='*'){
+      var allWrapped=true;
+      (t.match(/\$\{([^}]+)\}/g)||[]).forEach(function(m){var inner=m.slice(2,-1).trim();if(inner&&inner.indexOf('esc(')<0&&!/^[\d"'`]/.test(inner))allWrapped=false;});
+      (t.match(/\+([a-zA-Z_$][\w.$?()]*(?:\|\|[^+'"]+)?)\+/g)||[]).forEach(function(m){var inner=m.slice(1,-1).trim();if(inner&&inner.indexOf('esc(')<0&&inner.indexOf('(')<0)allWrapped=false;});
+      if(!allWrapped) issues.push({lv:'w',n:n,cat:'🔒 XSS Risk',msg:'innerHTML ใช้กับตัวแปร ยังไม่มี esc()',detail:'อาจเสี่ยง XSS ถ้า data มาจาก user',fixable:true,fix:'add_esc'});
     }
     if(!isHTML&&(t.indexOf('await getDocs(')>=0||t.indexOf('await addDoc(')>=0||t.indexOf('await updateDoc(')>=0||t.indexOf('await setDoc(')>=0||t.indexOf('await deleteDoc(')>=0)){
       var prev=lines.slice(Math.max(0,i-8),i).join('\n');
@@ -619,86 +621,85 @@ function applyFixes(fname, code) {
   var fixCount = 0;
   var isHTML = /\.html$/i.test(fname);
   var isJS = /\.js$/i.test(fname);
+  var changed = false;
 
-  // 1. เพิ่ม esc() ถ้ายังไม่มีและมี innerHTML
+  // === FIX 1: เพิ่ม esc() function ถ้ายังไม่มี ===
   if(fixed.indexOf('function esc(') < 0 && fixed.indexOf('.innerHTML') >= 0) {
-    var escFn = '\nfunction esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }\n';
-    // ใส่ก่อน closing script tag
-    var closeTag = '</' + 'script>';
-    if(fixed.indexOf(closeTag) >= 0) {
-      fixed = fixed.replace(closeTag, escFn + closeTag);
-      fixCount++;
+    var escFn = 'function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;"); }';
+    var closeTag = '<' + '/' + 'script>';
+    if(isHTML && fixed.indexOf(closeTag) >= 0) {
+      fixed = fixed.replace(closeTag, escFn + '\n' + closeTag);
+      fixCount++; changed = true;
     } else if(isJS) {
-      fixed = escFn + fixed;
-      fixCount++;
+      fixed = escFn + '\n' + fixed;
+      fixCount++; changed = true;
     }
   }
 
-  // 2. XSS Fix: innerHTML + template literal หรือ string concat
-  // หาบรรทัดที่มี innerHTML กับตัวแปร แต่ไม่มี esc() แล้ว wrap
-  var lines = fixed.split('\n');
-  var newLines = [];
-  for(var i=0; i<lines.length; i++) {
-    var line = lines[i];
+  // === FIX 2: XSS - wrap ตัวแปรใน innerHTML ด้วย esc() ===
+  var lines2 = fixed.split('\n');
+  var out2 = [];
+  for(var i=0; i<lines2.length; i++) {
+    var line = lines2[i];
     var t = line.trim();
-    var hasInner = t.indexOf('.innerHTML') >= 0;
-    var hasVar = t.indexOf('${') >= 0 || (t.indexOf("'+") >= 0 && t.indexOf("+'") >= 0);
-    var hasEsc = t.indexOf('esc(') >= 0;
-    var isComment = t.charAt(0) === '/' || t.charAt(0) === '*';
-
-    if(hasInner && hasVar && !hasEsc && !isComment) {
-      // Wrap ตัวแปร ${xxx} ด้วย ${esc(xxx)}
-      var newLine = line.replace(/\$\{([^}]+)\}/g, function(m, p1) {
-        // ข้าม expression ที่เป็นตัวเลข/boolean/operator หรือมี esc แล้ว
-        if(/^[\d\s+\-*/<>=!&|?:'"]+$/.test(p1)) return m;
-        if(p1.indexOf('esc(') >= 0) return m;
-        if(p1.indexOf('||') < 0 && /^[o\.\?]/.test(p1)) return '${esc('+p1+')}';
-        return '${esc('+p1+')}';
+    // ตรวจว่าบรรทัดนี้มี innerHTML + ตัวแปร + ยังไม่มี esc()
+    if(t.indexOf('.innerHTML') >= 0 && t.indexOf('esc(') < 0 && t.charAt(0) !== '/' && t.charAt(0) !== '*') {
+      var newLine = line;
+      // แก้ template literal: ${varName} → ${esc(varName)}
+      newLine = newLine.replace(/\$\{([^}]+)\}/g, function(m, inner) {
+        inner = inner.trim();
+        if(!inner || inner.indexOf('esc(') >= 0) return m;
+        if(/^[\d"'`]/.test(inner)) return m; // ข้าม literal
+        if(/^[\d\s.+\-*/<>=!&|?:,]+$/.test(inner)) return m; // ข้าม pure operators
+        return '${esc(' + inner + ')}';
       });
-      if(newLine !== line) { fixCount++; line = newLine; }
+      // แก้ string concat: '+varName+' → '+esc(varName)+'
+      // Pattern: ตัวแปรที่อยู่ระหว่าง +'...อะไรก็ตาม...' หรือ '...'+varName+
+      newLine = newLine.replace(/([^'])\+([a-zA-Z_$][a-zA-Z0-9_$?.()\.]*(?:\|\|[^+'"]+)?)\+(['"])/g, function(m, before, varPart, after) {
+        if(varPart.indexOf('esc(') >= 0 || varPart.indexOf('(') >= 0) return m;
+        return before + '+esc(' + varPart + ')+' + after;
+      });
+      if(newLine !== line) { fixCount++; changed = true; line = newLine; }
     }
-    newLines.push(line);
+    out2.push(line);
   }
-  if(fixCount > 0) fixed = newLines.join('\n');
+  if(changed) fixed = out2.join('\n');
 
-  // 3. Firebase try-catch fix สำหรับ .js files
+  // === FIX 3: Firebase try-catch สำหรับ .js ===
   if(isJS) {
-    var firebaseCalls = ['await getDocs(','await addDoc(','await updateDoc(','await setDoc(','await deleteDoc(','await getDoc('];
-    var jsLines = fixed.split('\n');
-    var result = [];
-    var i2 = 0;
-    while(i2 < jsLines.length) {
-      var l = jsLines[i2];
-      var t2 = l.trim();
-      var hasFirebase = false;
-      for(var fc=0; fc<firebaseCalls.length; fc++) {
-        if(t2.indexOf(firebaseCalls[fc]) >= 0) { hasFirebase=true; break; }
-      }
-      if(hasFirebase) {
-        var prevBlock = result.slice(Math.max(0,result.length-8)).join('\n');
-        var inTry = prevBlock.indexOf('try{') >= 0 || prevBlock.indexOf('try {') >= 0;
+    var FB_CALLS = ['await getDocs(','await addDoc(','await updateDoc(','await setDoc(','await deleteDoc(','await getDoc('];
+    var jsArr = fixed.split('\n');
+    var res = [];
+    var j = 0;
+    while(j < jsArr.length) {
+      var ln = jsArr[j];
+      var lt = ln.trim();
+      var hasFB = FB_CALLS.some(function(fb){ return lt.indexOf(fb) >= 0; });
+      if(hasFB) {
+        // ดูย้อนหลัง 10 บรรทัดว่ามี try { แล้วหรือยัง
+        var lookback = res.slice(Math.max(0, res.length-10)).join('\n');
+        var inTry = lookback.indexOf('try{') >= 0 || lookback.indexOf('try {') >= 0 || lookback.indexOf('try{') >= 0;
         if(!inTry) {
-          var indent = l.match(/^(\s*)/)[1];
-          // หาบล็อกที่ต้องครอบ (ถึงบรรทัดที่ indent เท่ากัน)
-          var blockEnd = i2;
-          for(var j=i2; j<Math.min(i2+15,jsLines.length); j++) {
-            if(j > i2 && jsLines[j].trim() && jsLines[j].match(/^(\s*)/)[1].length <= indent.length && !jsLines[j].trim().startsWith('.')) {
-              blockEnd = j-1; break;
-            }
-            blockEnd = j;
+          var ind = ln.match(/^(\s*)/)[1];
+          // หาสิ้นสุดของ statement (บรรทัดที่ลงท้ายด้วย ; หรือ })
+          var end = j;
+          for(var k = j; k < Math.min(j+8, jsArr.length); k++) {
+            end = k;
+            var kt = jsArr[k].trim();
+            if(kt.endsWith(';') || kt.endsWith('}') || kt.endsWith('),')) break;
           }
-          result.push(indent + 'try {');
-          for(var j2=i2;j2<=blockEnd;j2++) result.push(jsLines[j2]);
-          result.push(indent + '} catch(e) { console.error("Firebase error:",e); }');
-          fixCount++;
-          i2 = blockEnd + 1;
+          res.push(ind + 'try {');
+          for(var k2 = j; k2 <= end; k2++) res.push(jsArr[k2]);
+          res.push(ind + '} catch(e) { showToast && showToast("เกิดข้อผิดพลาด","error"); console.error(e); }');
+          fixCount++; changed = true;
+          j = end + 1;
           continue;
         }
       }
-      result.push(l);
-      i2++;
+      res.push(ln);
+      j++;
     }
-    if(fixCount > 0) fixed = result.join('\n');
+    if(changed) fixed = res.join('\n');
   }
 
   return { code: fixed, fixCount: fixCount };
@@ -796,11 +797,21 @@ async function startAutoFix() {
   }
 }
 
-function closeFixSheet() {
+async function closeFixSheet() {
   document.getElementById('fixOverlay').classList.remove('show');
   // รีสแกนหลังแก้
   scanCache = {};
-  autoRunScan();
+  await autoRunScan();
+  // ถ้ายังมีปัญหาที่แก้ได้ ให้รันซ้ำอัตโนมัติ
+  var stillFixable = scanResults.some(function(r){
+    return r.issues.some(function(iss){ return iss.fixable; });
+  });
+  if(stillFixable) {
+    toast('ยังมีปัญหาที่แก้ได้ กำลังรันซ้ำ...','info');
+    setTimeout(startAutoFix, 1200);
+  } else {
+    toast('แก้ไขทั้งหมดเสร็จสิ้น! ไม่มีปัญหาที่แก้อัตโนมัติได้แล้ว','success');
+  }
 }
 
 // HISTORY
@@ -850,6 +861,10 @@ function toast(msg,type){
   setTimeout(function(){el.style.animation='toastOut 0.2s ease-in forwards';setTimeout(function(){el.remove();},200);},3000);
 }
 loadCfg();
+// auto-load files & scan ถ้ามี token แล้ว
+if(cfg.token && cfg.user && cfg.repo) {
+  loadFiles();
+}
 </script>
 </body>
 </html>
