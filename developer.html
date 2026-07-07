@@ -277,7 +277,7 @@ body{background:var(--gray);min-height:100vh;}
     <div class="scan-chip-wrap" id="scanChips"><span style="font-size:13px;color:var(--subtext)">โหลดไฟล์ที่แท็บ ไฟล์ ก่อน</span></div>
     <div class="scan-actions">
       <button class="scan-run-btn" id="scanRunBtn" onclick="runScan()" disabled>สแกนใหม่</button>
-      <button class="autofix-btn" id="autofixBtn" onclick="startAutoFix()" disabled>
+      <button class="autofix-btn" id="autofixBtn" onclick="_fixRound=0;startAutoFix()" disabled>
         <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
         แก้ทั้งหมดอัตโนมัติ
       </button>
@@ -946,33 +946,90 @@ function applyFixes(fname, code) {
   return {code:fixed, fixCount:fixLog.length, log:fixLog};
 }
 
-async function startAutoFix() {
-  if(!cfg.token||!cfg.user||!cfg.repo){toast('กรุณาตั้งค่า GitHub Token ก่อน','error');switchTab('settings');return;}
+var _fixRound = 0;
+var _MAX_ROUNDS = 5; // ป้องกันวนไม่จบ
 
-  // ดึงไฟล์ทั้งหมดที่ต้อง fix จาก repo (ไม่แค่ fixable จาก scan)
-  // เพราะ scanner อาจไม่ครอบคลุมทุก pattern
+async function _runFixLoop() {
+  _fixRound++;
+  if(_fixRound > _MAX_ROUNDS) {
+    document.getElementById('fixSheetSub').textContent = 'ครบ '+_MAX_ROUNDS+' รอบแล้ว ปัญหาที่เหลือต้องแก้มือ';
+    document.getElementById('fixDoneBtn').style.display='block';
+    _fixRound = 0;
+    return;
+  }
   var allCodeFiles = repoFiles.filter(function(f){
     return f.type==='file' && /\.(html|js|css)$/.test(f.name);
   });
-  if(!allCodeFiles.length){toast('ไม่มีไฟล์ในระบบ โหลดที่แท็บ ไฟล์ ก่อน','info');return;}
-
-  // แสดง progress sheet
-  document.getElementById('fixOverlay').classList.add('show');
-  document.getElementById('fixDoneBtn').style.display='none';
   document.getElementById('fixProgressFill').style.width='0%';
   document.getElementById('fixProgressText').textContent='0 / '+allCodeFiles.length+' ไฟล์';
-  document.getElementById('fixSheetSub').textContent='กำลังดาวน์โหลดและวิเคราะห์ทุกไฟล์...';
-
-  // สร้าง step items
+  document.getElementById('fixSheetSub').textContent='รอบที่ '+_fixRound+'/'+_MAX_ROUNDS+' กำลังแก้ไข...';
   document.getElementById('fixSteps').innerHTML = allCodeFiles.map(function(f,i){
     return '<div class="fix-step" id="fstep'+i+'"><div class="fix-step-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>'
       +'<div class="fix-step-name">'+f.name+'</div>'
       +'<div class="fix-step-status">รอ...</div></div>';
   }).join('');
-
   var successFiles = [];
+  var manualFixList = [];
   for(var i=0; i<allCodeFiles.length; i++){
     var r = allCodeFiles[i];
+    var stepEl = document.getElementById('fstep'+i);
+    stepEl.className='fix-step running';
+    stepEl.querySelector('.fix-step-icon').innerHTML='<svg class="spin" viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>';
+    stepEl.querySelector('.fix-step-status').textContent='กำลังแก้...';
+    document.getElementById('fixSheetSub').textContent='กำลังแก้: '+r.name;
+    try {
+      var res = await fetch(r.download_url);
+      var code = await res.text();
+      var result = applyFixes(r.name, code);
+      var contentChanged = result.code !== code;
+      if(result.fixCount > 0 && contentChanged) {
+        var shaRes = await fetch('https://api.github.com/repos/'+cfg.user+'/'+cfg.repo+'/contents/'+encodeURIComponent(r.name),{headers:{'Authorization':'token '+cfg.token}});
+        var shaData = await shaRes.json();
+        var encoded = btoa(unescape(encodeURIComponent(result.code)));
+        var pushRes = await fetch('https://api.github.com/repos/'+cfg.user+'/'+cfg.repo+'/contents/'+encodeURIComponent(r.name),{
+          method:'PUT',headers:{'Authorization':'token '+cfg.token,'Content-Type':'application/json'},
+          body:JSON.stringify({message:'fix: '+result.log.join(', '),content:encoded,sha:shaData.sha,branch:cfg.branch||'main'})
+        });
+        if(pushRes.ok){
+          stepEl.className='fix-step done';
+          stepEl.querySelector('.fix-step-icon').innerHTML='<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>';
+          stepEl.querySelector('.fix-step-status').textContent='แก้แล้ว '+result.fixCount+' จุด ✓';
+          successFiles.push(r.name);
+        } else { throw new Error('push failed'); }
+      } else if(result.fixCount > 0 && !contentChanged) {
+        stepEl.className='fix-step done';
+        stepEl.querySelector('.fix-step-icon').innerHTML='<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>';
+        stepEl.querySelector('.fix-step-status').textContent='⚠️ ต้องแก้มือ';
+        manualFixList.push({name:r.name,log:result.log});
+      } else {
+        stepEl.className='fix-step done';
+        stepEl.querySelector('.fix-step-icon').innerHTML='<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>';
+        stepEl.querySelector('.fix-step-status').textContent='ผ่านแล้ว ✓';
+      }
+    } catch(e) {
+      stepEl.className='fix-step error';
+      stepEl.querySelector('.fix-step-status').textContent='ผิดพลาด';
+    }
+    document.getElementById('fixProgressFill').style.width=Math.round((i+1)/allCodeFiles.length*100)+'%';
+    document.getElementById('fixProgressText').textContent=(i+1)+' / '+allCodeFiles.length+' ไฟล์';
+  }
+async function startAutoFix() {
+  if(!cfg.token||!cfg.user||!cfg.repo){toast('กรุณาตั้งค่า GitHub Token ก่อน','error');switchTab('settings');return;}
+
+  // เปิด overlay ก่อน แล้วเรียก _runFixLoop
+  var allCodeFiles = repoFiles.filter(function(f){
+    return f.type==='file' && /\.(html|js|css)$/.test(f.name);
+  });
+  if(!allCodeFiles.length){toast('ไม่มีไฟล์ โหลดที่แท็บ ไฟล์ ก่อน','info');return;}
+
+  // เปิด overlay แล้วเรียก _runFixLoop วนไปเรื่อยๆ จนเสร็จ
+  document.getElementById('fixOverlay').classList.add('show');
+  document.getElementById('fixDoneBtn').style.display='none';
+  await _runFixLoop();
+}
+// dummy ให้ compiler ไม่งง - โค้ดด้านล่างนี้ไม่ถูกใช้งาน
+async function _unusedDummy(){
+    var r = {name:'',download_url:''};
     var stepEl = document.getElementById('fstep'+i);
     // running
     stepEl.className = 'fix-step running';
@@ -1040,11 +1097,40 @@ async function startAutoFix() {
   var remaining = scanResults.reduce(function(s,r){
     return s + r.issues.filter(function(i){return i.lv==='e'||i.lv==='w';}).length;
   },0);
-  document.getElementById('fixSheetSub').textContent = successFiles.length > 0
-    ? 'แก้ไขเสร็จสิ้น '+successFiles.length+' ไฟล์ ✓'+(remaining>0?' ยังมี '+remaining+' ปัญหาที่ต้องแก้มือ':'  ไม่มีปัญหาเหลือแล้ว!')
-    : 'ตรวจแล้ว ไม่มีอะไรที่แก้อัตโนมัติได้';
-  document.getElementById('fixDoneBtn').style.display='block';
-  if(successFiles.length > 0) toast('แก้ไขเสร็จ '+successFiles.length+' ไฟล์!','success');
+  if(successFiles.length > 0) {
+    // rescan ดูว่ายังมีปัญหาอีกไหม
+    document.getElementById('fixSheetSub').textContent='กำลังตรวจซ้ำ...';
+    document.getElementById('fixProgressFill').style.width='100%';
+    scanCache = {};
+    await autoRunScan();
+    var stillFixable = scanResults.some(function(r){
+      return r.issues.some(function(iss){ return iss.fixable; });
+    });
+    if(stillFixable) {
+      // ยังมีที่แก้ได้ → เคลียร์ steps แล้ววนต่อในหน้าเดิมเลย
+      document.getElementById('fixSteps').innerHTML = '';
+      document.getElementById('fixProgressFill').style.width='0%';
+      document.getElementById('fixProgressText').textContent='';
+      document.getElementById('fixSheetSub').textContent='พบปัญหาเพิ่ม กำลังแก้ต่อ...';
+      setTimeout(_runFixLoop, 400);
+    } else {
+      // ไม่มีอะไรเหลือแล้ว → จบ แสดงปุ่มปิด
+      var msg = 'เสร็จสิ้น! แก้อัตโนมัติครบทุกอย่างแล้ว ✓';
+      if(manualFixList.length > 0)
+        msg += '\nต้องแก้มือ: '+manualFixList.map(function(x){return x.name;}).join(', ');
+      document.getElementById('fixSheetSub').textContent = msg;
+      _fixRound=0;
+      document.getElementById('fixDoneBtn').style.display='block';
+      toast('แก้ไขเสร็จสมบูรณ์!','success');
+    }
+  } else {
+    // ไม่มีอะไรแก้ได้เลย → จบเลย
+    var msg2 = manualFixList.length > 0
+      ? 'ต้องแก้มือ: '+manualFixList.map(function(x){return x.name;}).join(', ')
+      : 'ไม่มีปัญหาที่แก้อัตโนมัติได้แล้ว ✓';
+    document.getElementById('fixSheetSub').textContent = msg2;
+    document.getElementById('fixDoneBtn').style.display='block';
+  }
 }
 
 function closeFixSheet() {
