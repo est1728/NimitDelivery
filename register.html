@@ -129,7 +129,7 @@ window.saveData=async function(){
   try{
     await setDoc(doc(db,"customers",phone),customerData);
     localStorage.setItem("customerData",JSON.stringify(customerData));
-    window.location.href="shops.html";
+    window.location.href="address.html";
   }catch(e){ alert("เกิดข้อผิดพลาด กรุณาลองใหม่"); }
 }
 </script>
