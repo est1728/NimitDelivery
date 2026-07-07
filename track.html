@@ -238,7 +238,7 @@ function renderOrderList(orders){
   const active=orders.filter(o=>!["done","rejected"].includes(o.status));
   const done=orders.filter(o=>["done","rejected"].includes(o.status));
   const activeEl=document.getElementById("activeOrders");
-  activeEl.innerHTML=active.length ? `<div class="group-label">กำลังดำเนินการ (${active.length})</div>`+active.map(o=>renderOrderCard(o)).join('') : '';
+  activeEl.innerHTML=active.length ? `<div class="group-label">กำลังดำเนินการ (${esc(active.length)})</div>`+active.map(o=>renderOrderCard(o)).join('') : '';
   const doneEl=document.getElementById("doneOrders");
   doneEl.innerHTML=done.length ? `<div class="group-label">เสร็จสิ้น / ยกเลิก</div>`+done.map(o=>renderOrderCard(o)).join('') : '';
   if(!active.length&&!done.length) renderEmpty();
@@ -325,6 +325,8 @@ const urlParams=new URLSearchParams(window.location.search);
 const directOrderId=urlParams.get("orderId");
 if(directOrderId){ openDetail(directOrderId); }
 else{ loadOrderList(); }
+
+function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 </script>
 </body>
 </html>
