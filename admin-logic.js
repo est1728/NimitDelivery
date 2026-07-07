@@ -1,3 +1,5 @@
+
+function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, query, where, onSnapshot, doc, getDocs, updateDoc, setDoc, addDoc, deleteDoc, getDoc, serverTimestamp, orderBy, limit }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -125,7 +127,7 @@ function renderDetail(o){
   document.getElementById("detailAddress").textContent=o.customer?.address||'-';
   document.getElementById("detailTime").textContent=time;
   document.getElementById("detailRider").textContent=o.riderName||(o.riderId?'มีไรเดอร์':'ยังไม่มี');
-  document.getElementById("detailItems").innerHTML=(o.items||[]).map(i=>`<div class="detail-item-row"><span>${i.name} x${i.qty}</span><span>฿${i.price*i.qty}</span></div>`+(i.options?.length?`<div style="font-size:11px;color:var(--subtext);padding:0 0 4px 0">${i.options.map(op=>op.name).join(', ')}</div>`:'')).join('');
+  document.getElementById("detailItems").innerHTML=(o.items||[]).map(i=>`<div class="detail-item-row"><span>${esc(i.name)} x${esc(i.qty)}</span><span>฿${esc(i.price*i.qty)}</span></div>`+(i.options?.length?`<div style="font-size:11px;color:var(--subtext);padding:0 0 4px 0">${esc(i.options.map(op=>op.name).join(', '))}</div>`:'')).join('');
   document.getElementById("detailSubtotal").textContent='฿'+(o.subtotal||0);
   document.getElementById("detailDelivery").textContent='฿'+(o.deliveryFee||0);
   document.getElementById("detailTotal").textContent='฿'+(o.grandTotal||0);
@@ -391,7 +393,7 @@ function updatePricingPreview(){
   const rp=parseFloat(document.getElementById("riderPercent")?.value)||70;
   const base=50; const display=Math.ceil(base*(1+gp/100));
   const diff=display-base; const wallet=Math.round(diff*wp/100); const rider=Math.round(diff*rp/100);
-  document.getElementById("pricingPreview").innerHTML=`ตัวอย่าง: ร้าน ฿${base} → ลูกค้า ฿${display}<br>ส่วนต่าง ฿${diff} · กระเป๋า ฿${wallet} · ไรเดอร์ ฿${rider}`;
+  document.getElementById("pricingPreview").innerHTML=`ตัวอย่าง: ร้าน ฿${esc(base)} → ลูกค้า ฿${esc(display)}<br>ส่วนต่าง ฿${esc(diff)} · กระเป๋า ฿${esc(wallet)} · ไรเดอร์ ฿${esc(rider)}`;
 }
 ['gpPercent','gpSubPercent','walletPercent','riderPercent'].forEach(id=>document.getElementById(id)?.addEventListener('input',updatePricingPreview));
 window.savePricing=async function(){
@@ -427,7 +429,7 @@ window.showToast=function(message,type){
   };
   const el=document.createElement('div');
   el.className=`toast ${type}`;
-  el.innerHTML=`<svg viewBox="0 0 24 24">${icons[type]||icons.info}</svg><span>${message}</span>`;
+  el.innerHTML=`<svg viewBox="0 0 24 24">${esc(icons[type]||icons.info)}</svg><span>${esc(message)}</span>`;
   document.getElementById("toastWrap").appendChild(el);
   setTimeout(()=>{ el.style.animation='toastOut 0.2s ease-in forwards'; setTimeout(()=>el.remove(),200); },2400);
 }
