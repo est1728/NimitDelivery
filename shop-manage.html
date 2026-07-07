@@ -748,7 +748,7 @@ window.livePreview = function(previewId,inputId) {
   const url = document.getElementById(inputId)?.value.trim();
   const el = document.getElementById(previewId);
   if(!el) return;
-  if(url) el.innerHTML=`<img src="${esc(url)}" style="width:100%;height:100%;object-fit:cover">`;
+  if(url) el.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover">`;
   else el.innerHTML=`<svg viewBox="0 0 24 24" style="width:28px;height:28px;fill:#cbd5e1"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2z"/></svg>`;
 }
 window.closeModal = function(id) { document.getElementById(id).classList.remove("show"); }
@@ -880,7 +880,7 @@ window.confirmCrop = function() {
   const base64 = canvas.toDataURL('image/jpeg', 0.85);
 
   const previewEl = document.getElementById(cropTargetPreviewId);
-  if (previewEl) previewEl.innerHTML = `<img src="${esc(base64)}" style="width:100%;height:100%;object-fit:cover">`;
+  if (previewEl) previewEl.innerHTML = `<img src="${base64}" style="width:100%;height:100%;object-fit:cover">`;
   const inputEl = document.getElementById(cropTargetInputId);
   if (inputEl) inputEl.value = base64;
 
