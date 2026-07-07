@@ -14,22 +14,22 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Arial',sans-serif;-webkit-tap-highlight-color:transparent;}
 body{background:var(--gray);min-height:100vh;padding-bottom:24px;}
-.topbar{background:#fff;padding:12px 16px;border-bottom:1px solid #f0f0f0;position:sticky;top:0;z-index:100;}
+.topbar{background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:12px 16px;position:sticky;top:0;z-index:100;}
 .topbar-row1{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-.logo{font-size:18px;font-weight:800;color:var(--primary);}
+.logo{font-size:18px;font-weight:800;color:#fff;}
 .topbar-actions{display:flex;align-items:center;gap:8px;}
-.order-status-btn{height:36px;padding:0 12px;border-radius:20px;background:var(--green-light);border:none;cursor:pointer;display:none;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--green);}
-.order-status-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;}
+.order-status-btn{height:36px;padding:0 12px;border-radius:20px;background:rgba(255,255,255,0.18);border:none;cursor:pointer;display:none;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#fff;}
+.order-status-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;animation:pulse 1.5s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-.cart-icon-btn{width:40px;height:40px;border-radius:50%;background:var(--primary-light);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;}
-.cart-icon-btn svg{width:20px;height:20px;fill:var(--primary);}
+.cart-icon-btn{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.18);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;}
+.cart-icon-btn svg{width:20px;height:20px;fill:#fff;}
 .cart-badge{position:absolute;top:-3px;right:-3px;background:#ef4444;color:#fff;font-size:10px;font-weight:800;min-width:16px;height:16px;border-radius:20px;display:none;align-items:center;justify-content:center;padding:0 4px;}
-.address-chip{display:flex;align-items:center;gap:8px;background:var(--primary-light);padding:7px 12px;border-radius:20px;cursor:pointer;max-width:220px;}
-.address-chip svg{width:14px;height:14px;fill:var(--primary);flex-shrink:0;}
-.address-chip-text{font-size:13px;font-weight:700;color:var(--primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.address-chip{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.18);padding:7px 12px;border-radius:20px;cursor:pointer;max-width:220px;}
+.address-chip svg{width:14px;height:14px;fill:#fff;flex-shrink:0;}
+.address-chip-text{font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .search-wrap{position:relative;margin-top:10px;}
-.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:16px;height:16px;fill:none;stroke:#94a3b8;stroke-width:2;}
-.search-box{width:100%;height:44px;border:none;border-radius:12px;background:var(--gray);padding:0 16px 0 42px;font-size:15px;outline:none;color:var(--text);}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:16px;height:16px;fill:none;stroke:rgba(255,255,255,0.8);stroke-width:2;}
+.search-box{width:100%;height:44px;border:none;border-radius:12px;background:rgba(255,255,255,0.18);padding:0 16px 0 42px;font-size:15px;outline:none;color:#fff;}.search-box::placeholder{color:rgba(255,255,255,0.65);}
 .active-order-card{margin:12px 16px 0;background:linear-gradient(135deg,var(--primary),var(--primary-dark));border-radius:18px;padding:14px 16px;cursor:pointer;display:none;box-shadow:0 4px 14px rgba(12,74,166,0.25);}
 .active-order-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
 .active-order-id{font-size:14px;font-weight:800;color:#fff;}
@@ -43,23 +43,23 @@ body{background:var(--gray);min-height:100vh;padding-bottom:24px;}
 .active-order-status{font-size:13px;color:rgba(255,255,255,0.9);font-weight:600;}
 .active-order-arrow{font-size:12px;color:rgba(255,255,255,0.7);display:flex;align-items:center;gap:4px;}
 .active-order-arrow svg{width:14px;height:14px;fill:rgba(255,255,255,0.7);}
-.section-head{padding:18px 16px 10px;}
-.section-title-text{font-size:17px;font-weight:800;color:var(--text);}
-.ads-wrap{overflow:hidden;position:relative;margin-bottom:4px;}
+.section-head{padding:20px 16px 10px;display:flex;align-items:center;justify-content:space-between;}
+.section-title-text{font-size:17px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px;}.section-title-text::before{content:"";width:4px;height:20px;background:var(--primary);border-radius:2px;display:inline-block;}
+.ads-wrap{overflow:hidden;position:relative;margin-bottom:8px;}
 .ads-track{display:flex;transition:transform 0.5s ease;}
-.ad-slide{min-width:100%;padding:0 12px;box-sizing:border-box;}
-.ad-card{width:100%;height:180px;border-radius:12px;overflow:hidden;cursor:pointer;position:relative;}
+.ad-slide{min-width:100%;padding:0 16px;box-sizing:border-box;}
+.ad-card{width:100%;height:220px;border-radius:18px;overflow:hidden;cursor:pointer;position:relative;box-shadow:0 4px 16px rgba(12,74,166,0.15);}
 .ad-card img{width:100%;height:100%;object-fit:cover;}
-.ad-placeholder{width:100%;height:100%;background:linear-gradient(135deg,var(--primary),var(--primary-dark));display:flex;align-items:center;justify-content:center;}
+.ad-placeholder{width:100%;height:100%;background:linear-gradient(135deg,var(--primary),var(--primary-dark));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;}
 .ad-placeholder svg{width:28px;height:28px;fill:rgba(255,255,255,0.6);}
-.ad-caption{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(0,0,0,0.6),transparent);padding:20px 14px 10px;font-size:14px;font-weight:800;color:#fff;}
+.ad-caption{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(0,0,0,0.65),transparent);padding:28px 16px 14px;font-size:16px;font-weight:800;color:#fff;}
 .ads-dots{display:flex;justify-content:center;gap:6px;padding:8px 0;}
 .ads-dot{width:6px;height:6px;border-radius:50%;background:#cbd5e1;transition:all 0.3s;cursor:pointer;}
 .ads-dot.active{background:var(--primary);width:18px;border-radius:3px;}
 .popular-scroll{display:flex;gap:12px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;}
 .popular-scroll::-webkit-scrollbar{display:none;}
-.popular-card{background:#fff;border-radius:18px;width:180px;flex-shrink:0;overflow:hidden;box-shadow:var(--shadow-md);cursor:pointer;transition:transform 0.12s;}
-.popular-card-img{width:100%;height:150px;background:var(--gray);overflow:hidden;}
+.popular-card{background:#fff;border-radius:18px;width:160px;flex-shrink:0;overflow:hidden;box-shadow:var(--shadow-md);cursor:pointer;transition:transform 0.12s;}
+.popular-card-img{width:100%;height:120px;background:var(--gray);overflow:hidden;}
 .popular-card-img img{width:100%;height:100%;object-fit:cover;}
 .popular-card-placeholder{width:100%;height:100%;background:linear-gradient(135deg,#dde8fa,#c2d4f5);}
 .popular-card-body{padding:10px 12px 12px;}
@@ -138,12 +138,12 @@ body{background:var(--gray);min-height:100vh;padding-bottom:24px;}
   <div class="ads-dots" id="adsDots"></div>
 </div>
 
-<div id="popularSection" style="display:none">
+<div id="popularSection" style="display:none;background:#fff;padding:8px 0 16px;margin-bottom:8px;">
   <div class="section-head"><div class="section-title-text">ร้านยอดนิยม</div></div>
   <div class="popular-scroll" id="popularScroll"></div>
 </div>
 
-<div class="section-head"><div class="section-title-text">ร้านค้า</div></div>
+<div class="section-head"><div class="section-title-text">ร้านค้าทั้งหมด</div><div style="font-size:13px;color:var(--subtext);font-weight:600" id="shopCount"></div></div>
 <div id="shopsList"><div class="loading">กำลังโหลดร้านค้า...</div></div>
 
 <script type="module">
@@ -227,7 +227,7 @@ async function loadAds(){
     }
     document.getElementById("adsTrack").innerHTML = trackHTML;
     document.getElementById("adsDots").innerHTML = dotsHTML;
-    startAdAuto(ads.length);
+    startAdAuto(filteredAds.length);
   }catch(e){}
 }
 
