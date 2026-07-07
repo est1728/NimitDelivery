@@ -145,7 +145,7 @@ body{background:var(--gray);min-height:100vh;}
 .crop-confirm-btn{background:var(--primary);color:#fff;}
 .crop-hint{text-align:center;font-size:12px;color:rgba(255,255,255,0.5);padding-bottom:8px;flex-shrink:0;}
 .crop-canvas-wrap{flex:1;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;}
-.crop-img{position:absolute;transform-origin:0 0;touch-action:none;user-select:none;}
+.crop-img{position:absolute;touch-action:none;user-select:none;}
 .crop-frame{position:absolute;border:3px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,0.55);pointer-events:none;border-radius:8px;}
 
 /* DETAIL PAGE */
@@ -169,7 +169,7 @@ body{background:var(--gray);min-height:100vh;}
 .items-head{display:grid;grid-template-columns:1fr auto auto;gap:4px 12px;font-size:11px;font-weight:700;color:var(--subtext);text-transform:uppercase;margin-bottom:8px;}
 .ditem-row{display:grid;grid-template-columns:1fr auto auto;gap:4px 12px;font-size:13px;padding:7px 0;border-bottom:1px solid #f5f6f8;}
 .ditem-row:last-child{border-bottom:none;}
-.ditem-opt{font-size:11px;color:var(--subtext);margin-top:2px;}
+.ditem-opt{font-size:11px;color:var(--subtext);margin-top:4px;line-height:1.7;}
 .price-summary{background:linear-gradient(135deg,var(--primary-light),#f0f6ff);border-radius:16px;margin:12px 16px 0;padding:16px;}
 .price-summary-title{font-size:13px;font-weight:800;color:var(--primary);text-transform:uppercase;margin-bottom:12px;}
 .price-row{display:flex;justify-content:space-between;font-size:14px;padding:5px 0;}
@@ -453,7 +453,10 @@ function renderDetail(o){
     document.getElementById("callRiderBtn").onclick=()=>{if(o.riderPhone)window.location.href='tel:'+o.riderPhone;};
   } else {document.getElementById("d-riderRow").style.display="none";document.getElementById("callRiderBtn").style.display="none";}
   document.getElementById("callAdminBtn").onclick=()=>window.location.href='tel:'+ADMIN_PHONE;
-  document.getElementById("d-items").innerHTML=(o.items||[]).map(i=>'<div class="ditem-row"><div><div>'+i.name+'</div>'+(i.options?.length?'<div class="ditem-opt">'+i.options.map(op=>op.name).join(', ')+'</div>':'')+'</div><div>x'+i.qty+'</div><div>฿'+i.basePrice*i.qty+'</div></div>').join('');
+  document.getElementById("d-items").innerHTML=(o.items||[]).map(function(i){
+    var opts=i.options&&i.options.length?i.options.map(function(op){return '<div>• '+op.name+(op.price?'  +฿'+op.price:'')+'</div>';}).join(''):'';
+    return '<div class="ditem-row"><div><div style="font-weight:700">'+i.name+'</div>'+(opts?'<div class="ditem-opt">'+opts+'</div>':'')+'</div><div>x'+i.qty+'</div><div>฿'+(i.basePrice*i.qty)+'</div></div>';
+  }).join('');
   document.getElementById("d-baseCost").textContent='฿'+(o.baseCost||0);
 }
 
@@ -591,17 +594,20 @@ function applyImgTransform(){
   const minY=cropY+cropH-ih, maxY=cropY;
   imgX=Math.min(maxX,Math.max(minX,imgX));
   imgY=Math.min(maxY,Math.max(minY,imgY));
-  img.style.transform='translate('+imgX+'px,'+imgY+'px) scale('+imgScale+')';
-  img.style.width=img.naturalWidth+'px';
-  img.style.height=img.naturalHeight+'px';
+  // ใช้ left/top + width/height แทน transform เพื่อให้แสดงถูกต้องบนมือถือ
+  img.style.left=imgX+'px';
+  img.style.top=imgY+'px';
+  img.style.width=iw+'px';
+  img.style.height=ih+'px';
+  img.style.transform='';
 }
 
 // drag
 const cropWrap=document.getElementById?document.getElementById("cropCanvasWrap"):null;
 document.addEventListener("DOMContentLoaded",function(){
   const wrap=document.getElementById("cropCanvasWrap");
-  wrap.addEventListener("touchstart",function(e){isDragging=true;startX=e.touches[0].clientX-imgX;startY=e.touches[0].clientY-imgY;},{passive:true});
-  wrap.addEventListener("touchmove",function(e){if(!isDragging)return;imgX=e.touches[0].clientX-startX;imgY=e.touches[0].clientY-startY;applyImgTransform();},{passive:true});
+  wrap.addEventListener("touchstart",function(e){isDragging=true;startX=e.touches[0].clientX-imgX;startY=e.touches[0].clientY-imgY;e.preventDefault();},{passive:false});
+  wrap.addEventListener("touchmove",function(e){if(!isDragging)return;imgX=e.touches[0].clientX-startX;imgY=e.touches[0].clientY-startY;applyImgTransform();e.preventDefault();},{passive:false});
   wrap.addEventListener("touchend",function(){isDragging=false;});
   wrap.addEventListener("mousedown",function(e){isDragging=true;startX=e.clientX-imgX;startY=e.clientY-imgY;});
   wrap.addEventListener("mousemove",function(e){if(!isDragging)return;imgX=e.clientX-startX;imgY=e.clientY-startY;applyImgTransform();});
@@ -615,6 +621,7 @@ window.confirmCrop=function(){
   const maxW=800, scale=Math.min(1,maxW/cropW);
   canvas.width=cropW*scale; canvas.height=cropH*scale;
   const ctx=canvas.getContext("2d");
+  // คำนวณ offset จาก left/top ของรูปกับกรอบ
   const offsetX=cropX-imgX, offsetY=cropY-imgY;
   ctx.drawImage(img,offsetX/imgScale,offsetY/imgScale,cropW/imgScale,cropH/imgScale,0,0,canvas.width,canvas.height);
   adImgBase64=canvas.toDataURL("image/jpeg",0.75);
