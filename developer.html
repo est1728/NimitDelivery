@@ -755,18 +755,39 @@ var RULES = [
 
   {id:'assign_in_if', lv:'e', cat:'🔧 Logic',
    detect: function(cl, orig) {
-     if(!/^\s*if\s*\(/.test(orig)) return false;
-     // ใน condition มี = แต่ไม่ใช่ ==, ===, !=, !==, >=, <=, =>
-     var cond = cl.replace(/===|!==|==|!=|<=|>=|=>/g,'__');
-     return /[^!<>=+\-*/]=[^=]/.test(cond);
+     if(!/^\s*if\s*\(/.test(cl)) return false;
+     // นับวงเล็บเพื่อหา condition จริงๆ (ไม่ตรวจ body)
+     var startIdx = cl.indexOf('(');
+     if(startIdx < 0) return false;
+     var depth = 0, endIdx = -1;
+     for(var ci = startIdx; ci < cl.length; ci++) {
+       if(cl[ci] === '(') depth++;
+       else if(cl[ci] === ')') { depth--; if(depth === 0) { endIdx = ci; break; } }
+     }
+     if(endIdx < 0) return false;
+     var cond = cl.substring(startIdx+1, endIdx);
+     // เอา ===, !==, ==, !=, <=, >=, => ออกก่อน
+     var stripped = cond.replace(/===|!==|==|!=|<=|>=|=>/g,'__');
+     return /[^!<>=+\-*/\s]=[^=]/.test(stripped);
    },
    msg:'ใช้ = (assign) แทน === (compare) ใน if',
    detail:'JavaScript จะ assign ค่า แทนที่จะเปรียบเทียบ',
    fixable:true,
    fix: function(orig) {
-     return orig.replace(/([^=!<>+\-*/])=([^=>])/g, function(m,b,a){
-       return b+'==='+a;
-     });
+     // หา condition โดยนับวงเล็บ แล้วแก้เฉพาะในนั้น
+     var startIdx = orig.indexOf('(');
+     if(startIdx < 0) return orig;
+     var depth = 0, endIdx = -1;
+     for(var ci = startIdx; ci < orig.length; ci++) {
+       if(orig[ci] === '(') depth++;
+       else if(orig[ci] === ')') { depth--; if(depth === 0) { endIdx = ci; break; } }
+     }
+     if(endIdx < 0) return orig;
+     var before = orig.substring(0, startIdx+1);
+     var cond   = orig.substring(startIdx+1, endIdx);
+     var after  = orig.substring(endIdx);
+     var fixed  = cond.replace(/([^=!<>+\-*/\s])=([^=>])/g, function(m,b,a){ return b+'==='+a; });
+     return before + fixed + after;
    }},
 
   {id:'missing_await_async', lv:'w', cat:'⚠️ Logic',
@@ -837,15 +858,29 @@ function analyzeFile(fname, code) {
   }
 
   // ── File-level checks ──
-  // ปีกกาไม่สมดุล (นับเฉพาะใน code zone)
+  // ปีกกาไม่สมดุล - ใช้ multi-line string tracker
   if(!isHTML) {
-    var codeOnly = lines.map(function(l,i){ return commentMap[i]?'':cleanLine(l); }).join('\n');
-    var op=(codeOnly.match(/\{/g)||[]).length;
-    var cl2=(codeOnly.match(/\}/g)||[]).length;
-    if(Math.abs(op-cl2)>0)
+    var op=0, cl2=0;
+    var inML=false, mlChar=''; // multi-line string tracker
+    for(var bi=0; bi<code.length; bi++) {
+      var bch=code[bi];
+      if(!inML) {
+        if(bch==='/' && code[bi+1]==='/') { while(bi<code.length && code[bi]!=='\n') bi++; continue; }
+        if(bch==='/' && code[bi+1]==='*') { while(bi<code.length-1 && !(code[bi]==='*' && code[bi+1]==='/')) bi++; bi+=2; continue; }
+        if(bch==='"'||bch==="'"||bch==='`') { inML=true; mlChar=bch; continue; }
+        if(bch==='{') op++;
+        else if(bch==='}') cl2++;
+      } else {
+        if(bch==='\\') { bi++; continue; } // escape
+        if(bch===mlChar) inML=false;
+        // ในกรณี template literal มี ${} → ข้ามไปก่อน (ไม่นับ)
+      }
+    }
+    var diff=Math.abs(op-cl2);
+    if(diff>0)
       issues.push({lv:'e',n:0,cat:'🔧 Syntax',
         msg:'ปีกกาไม่สมดุล: {='+op+' }='+cl2,
-        detail:'ขาดหรือเกิน '+Math.abs(op-cl2)+' อัน',fixable:false,ruleId:'brace'});
+        detail:'ขาดหรือเกิน '+diff+' อัน',fixable:false,ruleId:'brace'});
   }
   // ขาด esc() function
   if(code.indexOf('function esc(')<0 && code.indexOf('.innerHTML')>=0) {
@@ -1017,14 +1052,26 @@ async function startAutoFix() {
   if(!cfg.token||!cfg.user||!cfg.repo){toast('กรุณาตั้งค่า GitHub Token ก่อน','error');switchTab('settings');return;}
 
   // เปิด overlay ก่อน แล้วเรียก _runFixLoop
+  // แสดง overlay ทันที ก่อนเช็คอะไรทั้งนั้น
+  document.getElementById('fixOverlay').classList.add('show');
+  document.getElementById('fixDoneBtn').style.display='none';
+  document.getElementById('fixSheetSub').textContent='กำลังเตรียมระบบ...';
+  document.getElementById('fixProgressFill').style.width='0%';
+  document.getElementById('fixSteps').innerHTML='';
+
+  // ถ้า repoFiles ว่าง ให้โหลดก่อน
+  if(!repoFiles.length) {
+    document.getElementById('fixSheetSub').textContent='กำลังโหลดไฟล์จาก GitHub...';
+    await loadFiles();
+  }
   var allCodeFiles = repoFiles.filter(function(f){
     return f.type==='file' && /\.(html|js|css)$/.test(f.name);
   });
-  if(!allCodeFiles.length){toast('ไม่มีไฟล์ โหลดที่แท็บ ไฟล์ ก่อน','info');return;}
-
-  // เปิด overlay แล้วเรียก _runFixLoop วนไปเรื่อยๆ จนเสร็จ
-  document.getElementById('fixOverlay').classList.add('show');
-  document.getElementById('fixDoneBtn').style.display='none';
+  if(!allCodeFiles.length){
+    document.getElementById('fixSheetSub').textContent='ไม่มีไฟล์ กรุณาตั้งค่า GitHub ก่อน';
+    document.getElementById('fixDoneBtn').style.display='block';
+    return;
+  }
   await _runFixLoop();
 }
 // dummy ให้ compiler ไม่งง - โค้ดด้านล่างนี้ไม่ถูกใช้งาน
