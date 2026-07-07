@@ -5,15 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nimit Developer Center</title>
 <style>
-:root{
-  --primary:#0c4aa6;--primary-dark:#083570;--primary-light:#e8f0fe;
-  --gray:#f5f6f8;--text:#0f172a;--subtext:#64748b;
-  --green:#16a34a;--green-light:#dcfce7;
-  --red:#dc2626;--red-light:#fee2e2;
-  --orange:#ea580c;--orange-light:#fff7ed;
-  --shadow-sm:0 1px 3px rgba(15,23,42,0.05);
-  --shadow-md:0 6px 18px rgba(15,23,42,0.08);
-}
+:root{--primary:#0c4aa6;--primary-dark:#083570;--primary-light:#e8f0fe;--gray:#f5f6f8;--text:#0f172a;--subtext:#64748b;--green:#16a34a;--green-light:#dcfce7;--red:#dc2626;--red-light:#fee2e2;--orange:#ea580c;--orange-light:#fff7ed;--shadow-sm:0 1px 3px rgba(15,23,42,0.05);--shadow-md:0 6px 18px rgba(15,23,42,0.08);}
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Arial',sans-serif;-webkit-tap-highlight-color:transparent;}
 body{background:var(--gray);min-height:100vh;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
@@ -23,27 +15,22 @@ body{background:var(--gray);min-height:100vh;}
 @keyframes toastIn{from{transform:translateY(-10px);opacity:0}to{transform:translateY(0);opacity:1}}
 @keyframes toastOut{to{opacity:0}}
 @keyframes popIn{from{transform:scale(0.92);opacity:0}to{transform:scale(1);opacity:1}}
-
 .topbar{background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:200;}
 .tbar-logo{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;}
 .tbar-logo svg{width:18px;height:18px;fill:#fff;}
 .tbar-title{font-size:16px;font-weight:800;color:#fff;flex:1;}
 .tbar-btn{height:34px;padding:0 12px;border:none;border-radius:10px;background:rgba(255,255,255,0.18);color:#fff;font-size:12px;font-weight:700;cursor:pointer;}
-
 .tabs{display:flex;background:#fff;border-bottom:1px solid #eaecf0;position:sticky;top:62px;z-index:190;overflow-x:auto;scrollbar-width:none;}
 .tabs::-webkit-scrollbar{display:none;}
 .tab{flex-shrink:0;padding:12px 14px;font-size:13px;font-weight:700;color:var(--subtext);cursor:pointer;border:none;background:none;position:relative;white-space:nowrap;}
 .tab.active{color:var(--primary);}
 .tab.active::after{content:'';position:absolute;bottom:-1px;left:15%;right:15%;height:3px;background:var(--primary);border-radius:3px 3px 0 0;}
-
+.tab-badge{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;color:#fff;font-size:10px;font-weight:800;border-radius:20px;padding:0 4px;margin-left:4px;vertical-align:middle;}
 .panel{display:none;padding:14px 16px 120px;animation:fadeIn 0.18s ease-out;}
 .panel.active{display:block;}
 .panel-ai{display:none;flex-direction:column;height:calc(100vh - 110px);padding:0;}
 .panel-ai.active{display:flex;}
-
 .sec-label{font-size:12px;font-weight:800;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
-
-/* UPLOAD */
 .drop-zone{border:2px dashed #c7d7f0;border-radius:18px;padding:28px 20px;text-align:center;background:#fff;cursor:pointer;transition:all 0.2s;margin-bottom:14px;}
 .drop-zone.over{border-color:var(--primary);background:var(--primary-light);}
 .drop-zone svg{width:36px;height:36px;fill:#c7d7f0;display:block;margin:0 auto 10px;}
@@ -52,7 +39,6 @@ body{background:var(--gray);min-height:100vh;}
 .drop-btns{display:flex;gap:10px;justify-content:center;}
 .btn-files{height:38px;padding:0 18px;border:none;border-radius:20px;background:var(--primary);color:#fff;font-size:13px;font-weight:700;cursor:pointer;}
 .btn-folder{height:38px;padding:0 18px;border:2px solid var(--primary);border-radius:20px;background:#fff;color:var(--primary);font-size:13px;font-weight:700;cursor:pointer;}
-
 .file-list-card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:14px;}
 .file-row{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid #f5f6f8;}
 .file-row:last-child{border-bottom:none;}
@@ -75,14 +61,11 @@ body{background:var(--gray);min-height:100vh;}
 .act-skip{background:#f1f5f9;} .act-skip svg{fill:var(--subtext);}
 .act-restore{background:var(--green-light);} .act-restore svg{fill:var(--green);}
 .act-del{background:var(--red-light);} .act-del svg{fill:var(--red);}
-
 .push-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #eaecf0;padding:10px 16px 22px;box-shadow:0 -4px 16px rgba(0,0,0,0.06);z-index:300;display:none;}
 .push-sum{font-size:13px;color:var(--subtext);text-align:center;margin-bottom:8px;}
 .push-sum b{color:var(--primary);}
 .push-btn{width:100%;height:50px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(12,74,166,0.3);display:flex;align-items:center;justify-content:center;gap:10px;}
 .push-btn svg{width:18px;height:18px;fill:#fff;}
-.push-btn:disabled{background:#cbd5e1;box-shadow:none;cursor:not-allowed;}
-
 .diff-card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:10px;}
 .diff-head{padding:11px 14px;background:var(--gray);display:flex;align-items:center;gap:10px;cursor:pointer;}
 .diff-fname{font-size:13px;font-weight:700;color:var(--text);flex:1;font-family:monospace;}
@@ -90,8 +73,6 @@ body{background:var(--gray);min-height:100vh;}
 .diff-body.open{display:block;}
 .diff-line{font-size:11px;font-family:monospace;line-height:1.6;color:#4ade80;white-space:pre-wrap;word-break:break-all;}
 .diff-ctx{color:#94a3b8;}
-
-/* REPO / FILES */
 .repo-bar{background:#fff;border-radius:14px;padding:12px 14px;box-shadow:var(--shadow-sm);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
 .repo-info{font-size:13px;color:var(--subtext);} .repo-info b{color:var(--text);}
 .ref-btn{width:34px;height:34px;border:none;border-radius:10px;background:var(--primary-light);cursor:pointer;display:flex;align-items:center;justify-content:center;}
@@ -110,8 +91,44 @@ body{background:var(--gray);min-height:100vh;}
 .exp-ic svg{width:15px;height:15px;}
 .exp-name{font-size:13px;font-weight:700;color:var(--text);flex:1;font-family:monospace;}
 .exp-size{font-size:11px;color:var(--subtext);}
-.exp-arr{width:14px;height:14px;fill:var(--subtext);}
-
+/* SCAN */
+.scan-chip-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;max-height:160px;overflow-y:auto;}
+.scan-chip{padding:6px 10px;border-radius:20px;border:1.5px solid #e2e8f0;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;font-family:monospace;transition:all 0.12s;}
+.scan-chip.sel{border-color:var(--primary);background:var(--primary-light);color:var(--primary);}
+.scan-run-btn{width:100%;height:48px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:14px;box-shadow:0 4px 14px rgba(12,74,166,0.25);}
+.scan-run-btn:disabled{background:#cbd5e1;box-shadow:none;cursor:not-allowed;}
+.scan-sum{display:flex;gap:8px;margin-bottom:12px;}
+.scan-sum-box{flex:1;padding:10px 8px;border-radius:12px;text-align:center;}
+.scan-sum-box.e{background:var(--red-light);}
+.scan-sum-box.w{background:var(--orange-light);}
+.scan-sum-box.i{background:var(--primary-light);}
+.scan-sum-box.ok{background:var(--green-light);}
+.scan-sum-num{font-size:20px;font-weight:800;}
+.scan-sum-box.e .scan-sum-num{color:var(--red);}
+.scan-sum-box.w .scan-sum-num{color:var(--orange);}
+.scan-sum-box.i .scan-sum-num{color:var(--primary);}
+.scan-sum-box.ok .scan-sum-num{color:var(--green);}
+.scan-sum-lbl{font-size:11px;font-weight:700;color:var(--subtext);}
+.scan-file-block{background:#fff;border-radius:14px;overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:10px;}
+.scan-file-head{padding:11px 14px;background:var(--gray);display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+.scan-file-hname{font-size:13px;font-weight:700;color:var(--text);font-family:monospace;}
+.scan-count{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;}
+.scan-count.e{background:var(--red-light);color:var(--red);}
+.scan-count.w{background:var(--orange-light);color:var(--orange);}
+.scan-count.ok{background:var(--green-light);color:var(--green);}
+.scan-issue-list{display:none;}
+.scan-issue-list.open{display:block;}
+.scan-issue{display:flex;gap:10px;padding:9px 14px;border-bottom:1px solid #f5f6f8;}
+.scan-issue:last-child{border-bottom:none;}
+.iss-ico{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.iss-ico.e{background:var(--red-light);} .iss-ico.e svg{fill:var(--red);}
+.iss-ico.w{background:var(--orange-light);} .iss-ico.w svg{fill:var(--orange);}
+.iss-ico.i{background:var(--primary-light);} .iss-ico.i svg{fill:var(--primary);}
+.iss-ico svg{width:12px;height:12px;}
+.iss-body{flex:1;}
+.iss-loc{font-size:11px;font-weight:700;color:var(--subtext);margin-bottom:2px;font-family:monospace;}
+.iss-msg{font-size:13px;font-weight:700;color:var(--text);}
+.iss-detail{font-size:12px;color:var(--subtext);margin-top:2px;line-height:1.5;}
 /* AI CHAT */
 .ai-status-bar{display:flex;align-items:center;gap:8px;padding:9px 14px;background:#fff;border-bottom:1px solid #f0f0f0;flex-shrink:0;}
 .ai-dot{width:8px;height:8px;border-radius:50%;background:#cbd5e1;flex-shrink:0;transition:background 0.3s;}
@@ -149,8 +166,6 @@ body{background:var(--gray);min-height:100vh;}
 .chat-send{width:38px;height:38px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .chat-send svg{width:17px;height:17px;fill:#fff;}
 .chat-send:disabled{background:#e2e8f0;}
-
-/* VIEWER */
 .viewer{position:fixed;inset:0;background:#0f172a;z-index:400;display:none;flex-direction:column;}
 .viewer.open{display:flex;}
 .viewer-bar{background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:13px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
@@ -161,8 +176,6 @@ body{background:var(--gray);min-height:100vh;}
 .viewer-body{flex:1;overflow:auto;}
 .viewer-code{padding:14px;font-size:11px;font-family:monospace;line-height:1.7;color:#e2e8f0;white-space:pre;tab-size:2;}
 .lnum{color:#475569;user-select:none;margin-right:14px;min-width:28px;display:inline-block;text-align:right;}
-
-/* HISTORY */
 .hist-card{background:#fff;border-radius:14px;padding:13px 16px;margin-bottom:10px;box-shadow:var(--shadow-sm);}
 .hist-top{display:flex;align-items:center;gap:10px;margin-bottom:5px;}
 .hist-ico{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -172,8 +185,6 @@ body{background:var(--gray);min-height:100vh;}
 .hist-msg{font-size:14px;font-weight:700;color:var(--text);flex:1;}
 .hist-time{font-size:11px;color:var(--subtext);}
 .hist-files{font-size:12px;color:var(--subtext);}
-
-/* SETTINGS */
 .s-card{background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow-sm);margin-bottom:12px;}
 .s-title{font-size:12px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--gray);}
 .s-field{margin-bottom:12px;}
@@ -189,8 +200,6 @@ body{background:var(--gray);min-height:100vh;}
 .conn-row svg{width:15px;height:15px;flex-shrink:0;}
 .conn-row.ok svg{fill:var(--green);}
 .conn-row.fail svg{fill:var(--red);}
-
-/* CONFIRM MODAL */
 .modal-ov{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:500;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
 .modal-ov.show{display:flex;}
 .modal{background:#fff;border-radius:20px;width:100%;max-width:380px;overflow:hidden;animation:popIn 0.2s ease-out;}
@@ -204,8 +213,6 @@ body{background:var(--gray);min-height:100vh;}
 .modal-btns{display:flex;gap:8px;}
 .m-cancel{flex:1;height:46px;border:2px solid #e2e8f0;border-radius:12px;background:#fff;color:var(--text);font-size:14px;font-weight:700;cursor:pointer;}
 .m-ok{flex:2;height:46px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:14px;font-weight:800;cursor:pointer;}
-
-/* DEPLOY STATUS */
 .deploy-bar{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:600;background:#fff;border-radius:14px;padding:12px 18px;box-shadow:0 8px 24px rgba(0,0,0,0.12);display:none;align-items:center;gap:10px;min-width:260px;border:2px solid var(--primary-light);}
 .deploy-bar.show{display:flex;}
 .d-spin{width:18px;height:18px;border:2.5px solid var(--primary-light);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;}
@@ -213,14 +220,10 @@ body{background:var(--gray);min-height:100vh;}
 .d-chk svg{width:18px;height:18px;fill:var(--green);}
 .d-title{font-size:13px;font-weight:800;color:var(--text);}
 .d-sub{font-size:11px;color:var(--subtext);}
-
-/* EMPTY */
 .empty{text-align:center;padding:40px 20px;}
 .empty svg{width:40px;height:40px;fill:#cbd5e1;display:block;margin:0 auto 12px;}
 .empty p{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;}
 .empty span{font-size:13px;color:var(--subtext);}
-
-/* TOAST */
 .toast-wrap{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:900;pointer-events:none;width:100%;padding:0 14px;}
 .toast{display:flex;align-items:center;gap:8px;padding:11px 14px;border-radius:12px;font-size:13px;font-weight:700;color:#fff;box-shadow:0 8px 20px rgba(0,0,0,0.18);margin-bottom:8px;animation:toastIn 0.25s ease-out;}
 .toast svg{width:16px;height:16px;fill:#fff;flex-shrink:0;}
@@ -231,18 +234,17 @@ body{background:var(--gray);min-height:100vh;}
 </head>
 <body>
 <div class="toast-wrap" id="toastWrap"></div>
-
 <div class="topbar">
   <div class="tbar-logo"><svg viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg></div>
   <div class="tbar-title">Developer Center</div>
   <button class="tbar-btn" onclick="window.location.href='index.html'">ออก</button>
 </div>
-
 <div class="tabs" id="tabsRow">
   <button class="tab active" onclick="switchTab('deploy')">Deploy</button>
   <button class="tab" onclick="switchTab('diff')">Diff</button>
   <button class="tab" onclick="switchTab('files')">ไฟล์</button>
   <button class="tab" onclick="switchTab('ai')">AI</button>
+  <button class="tab" onclick="switchTab('scan')">สแกน<span class="tab-badge" id="scanBadge" style="display:none;background:var(--red)">0</span></button>
   <button class="tab" onclick="switchTab('history')">ประวัติ</button>
   <button class="tab" onclick="switchTab('settings')">ตั้งค่า</button>
 </div>
@@ -250,8 +252,7 @@ body{background:var(--gray);min-height:100vh;}
 <div class="panel active" id="panel-deploy">
   <div class="drop-zone" id="dropZone">
     <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
-    <h3>ลากไฟล์มาวางที่นี่</h3>
-    <p>รองรับ .html .css .js</p>
+    <h3>ลากไฟล์มาวางที่นี่</h3><p>รองรับ .html .css .js</p>
     <div class="drop-btns">
       <button class="btn-files" onclick="document.getElementById('fi').click()">เลือกไฟล์</button>
       <button class="btn-folder" onclick="document.getElementById('fo').click()">เลือกโฟลเดอร์</button>
@@ -277,19 +278,16 @@ body{background:var(--gray);min-height:100vh;}
     <div class="repo-info">Repo: <b id="repoLabel">-</b></div>
     <button class="ref-btn" onclick="loadFiles()"><svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></button>
   </div>
-  <div class="check-card">
-    <div class="check-title">ตรวจสอบไฟล์หลัก</div>
-    <div id="checkEl"><span style="font-size:13px;color:var(--subtext)">กด refresh เพื่อตรวจสอบ</span></div>
-  </div>
+  <div class="check-card"><div class="check-title">ตรวจสอบไฟล์หลัก</div><div id="checkEl"><span style="font-size:13px;color:var(--subtext)">กด refresh</span></div></div>
   <div class="sec-label" style="margin-bottom:8px">ไฟล์ทั้งหมด</div>
-  <div id="expListEl"><div class="empty"><svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a2.996 2.996 0 0 0-5.5-1.65l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-2 .89-2 2v11c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2z"/></svg><p>ยังไม่มีข้อมูล</p><span>กด refresh เพื่อโหลด</span></div></div>
+  <div id="expListEl"><div class="empty"><svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a2.996 2.996 0 0 0-5.5-1.65l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-2 .89-2 2v11c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2z"/></svg><p>ยังไม่มีข้อมูล</p><span>กด refresh</span></div></div>
 </div>
 
 <div class="panel-ai" id="panel-ai">
   <div class="ai-status-bar">
     <div class="ai-dot loading" id="aiDot"></div>
     <div class="ai-status-text" id="aiStatusText">รอการเชื่อมต่อ...</div>
-    <button class="ai-ref-btn" onclick="initAI()" title="โหลดโค้ดใหม่"><svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></button>
+    <button class="ai-ref-btn" onclick="initAI()"><svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></button>
   </div>
   <div class="chat-msgs" id="chatMsgs">
     <div class="chat-welcome" id="chatWelcome">
@@ -309,11 +307,18 @@ body{background:var(--gray);min-height:100vh;}
       <textarea class="chat-input" id="chatInput" placeholder="ถามเกี่ยวกับโค้ด..." rows="1"
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"
         oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
-      <button class="chat-send" id="chatSendBtn" onclick="sendChat()">
-        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-      </button>
+      <button class="chat-send" id="chatSendBtn" onclick="sendChat()"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
     </div>
   </div>
+</div>
+
+<div class="panel" id="panel-scan">
+  <div style="background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow-sm);margin-bottom:12px;">
+    <div class="sec-label">ไฟล์ที่กำลังสแกน (สแกนอัตโนมัติเมื่อโหลดจาก GitHub)</div>
+    <div class="scan-chip-wrap" id="scanChips"><span style="font-size:13px;color:var(--subtext)">โหลดไฟล์ที่แท็บ ไฟล์ ก่อน</span></div>
+    <button class="scan-run-btn" id="scanRunBtn" onclick="runScan()" disabled>สแกนอีกครั้ง</button>
+  </div>
+  <div id="scanResultWrap"></div>
 </div>
 
 <div class="panel" id="panel-history">
@@ -323,10 +328,7 @@ body{background:var(--gray);min-height:100vh;}
 <div class="panel" id="panel-settings">
   <div class="s-card">
     <div class="s-title">GitHub Connection</div>
-    <div class="conn-row fail" id="connRow">
-      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z"/></svg>
-      <span id="connText">ยังไม่ได้เชื่อมต่อ</span>
-    </div>
+    <div class="conn-row fail" id="connRow"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z"/></svg><span id="connText">ยังไม่ได้เชื่อมต่อ</span></div>
     <div class="s-field"><div class="s-label">GitHub Token</div><input class="s-input" id="sToken" type="password" placeholder="ghp_xxxxxxxxxxxx"><div class="s-hint">Settings → Developer settings → Personal access tokens → Tokens (classic) → ติ๊ก repo</div></div>
     <div class="s-field"><div class="s-label">Username</div><input class="s-input" id="sUser" placeholder="est1728"></div>
     <div class="s-field"><div class="s-label">Repository</div><input class="s-input" id="sRepo" placeholder="NimitDelivery"></div>
@@ -337,9 +339,7 @@ body{background:var(--gray);min-height:100vh;}
 
 <div class="push-bar" id="pushBar">
   <div class="push-sum">พร้อม Push <b id="pushCount">0</b> ไฟล์</div>
-  <button class="push-btn" onclick="openConfirm()">
-    <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Push to GitHub
-  </button>
+  <button class="push-btn" onclick="openConfirm()"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Push to GitHub</button>
 </div>
 
 <div class="viewer" id="viewer">
@@ -357,10 +357,7 @@ body{background:var(--gray);min-height:100vh;}
     <div class="modal-body">
       <input class="commit-in" id="commitMsg" placeholder="Commit message">
       <div class="modal-files" id="confirmFiles"></div>
-      <div class="modal-btns">
-        <button class="m-cancel" onclick="closeConfirm()">ยกเลิก</button>
-        <button class="m-ok" onclick="doPush()">Push เลย</button>
-      </div>
+      <div class="modal-btns"><button class="m-cancel" onclick="closeConfirm()">ยกเลิก</button><button class="m-ok" onclick="doPush()">Push เลย</button></div>
     </div>
   </div>
 </div>
@@ -379,6 +376,8 @@ var repoFiles = [];
 var vName = '', vContent = '';
 var aiCtx = '';
 var chatHist = [];
+var scanCache = {};
+var scanSelected = [];
 var EXPECTED = ['index.html','register.html','shops.html','menu.html','cart.html','checkout.html','track.html','address.html','admin.html','admin-style.css','admin-logic.js','rider.html','shop-admin.html','shop-manage.html','developer.html'];
 
 function switchTab(tab) {
@@ -386,20 +385,20 @@ function switchTab(tab) {
   tabs.forEach(function(t) { t.classList.remove('active'); });
   var panels = document.querySelectorAll('.panel, .panel-ai');
   panels.forEach(function(p) { p.classList.remove('active'); });
-  var tabBtns = ['deploy','diff','files','ai','history','settings'];
-  var idx = tabBtns.indexOf(tab);
+  var names = ['deploy','diff','files','ai','scan','history','settings'];
+  var idx = names.indexOf(tab);
   if (idx >= 0) tabs[idx].classList.add('active');
   document.getElementById('panel-' + tab).classList.add('active');
   if (tab === 'files') loadFiles();
   if (tab === 'ai' && !aiCtx) initAI();
   if (tab === 'history') renderHistory();
+  if (tab === 'scan') renderScanChips();
 }
 
 function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function fmtSize(b) { return b < 1024 ? b+'B' : b < 1048576 ? (b/1024).toFixed(1)+'KB' : (b/1048576).toFixed(1)+'MB'; }
 function iclass(n) { var e = n.split('.').pop().toLowerCase(); return e==='html'?'html':e==='css'?'css':e==='js'?'js':'other'; }
 
-// DEPLOY
 var ALLOWED = ['html','css','js','json','txt','md','svg','ico','png','jpg','jpeg','gif','webp'];
 function onPick(fl) {
   Array.from(fl).forEach(function(file) {
@@ -430,16 +429,14 @@ function renderDeploy() {
   document.getElementById('pushCount').textContent = active.length;
   document.getElementById('fileListEl').innerHTML = files.map(function(f, i) {
     var ic = iclass(f.name);
-    return '<div class="file-row">'
-      + '<div class="fi-ic ' + ic + '"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg></div>'
-      + '<div class="fi-info"><div class="fi-name">' + f.name + '</div><div class="fi-size">' + fmtSize(f.size) + '</div></div>'
-      + '<div class="fi-tag tag-' + f.status + '">' + (f.status==='new'?'ใหม่':f.status==='replace'?'แทนที่':'ข้าม') + '</div>'
-      + '<div class="fi-acts">'
-      + (f.status === 'skip'
-        ? '<button class="fi-act act-restore" onclick="setSt(' + i + ',\'replace\')"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></button>'
-        : '<button class="fi-act act-skip" onclick="setSt(' + i + ',\'skip\')"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>')
-      + '<button class="fi-act act-del" onclick="delFile(' + i + ')"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>'
-      + '</div></div>';
+    return '<div class="file-row"><div class="fi-ic '+ic+'"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg></div>'
+      +'<div class="fi-info"><div class="fi-name">'+f.name+'</div><div class="fi-size">'+fmtSize(f.size)+'</div></div>'
+      +'<div class="fi-tag tag-'+f.status+'">'+(f.status==='new'?'ใหม่':f.status==='replace'?'แทนที่':'ข้าม')+'</div>'
+      +'<div class="fi-acts">'
+      +(f.status==='skip'?'<button class="fi-act act-restore" onclick="setSt('+i+',\'replace\')"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></button>'
+      :'<button class="fi-act act-skip" onclick="setSt('+i+',\'skip\')"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>')
+      +'<button class="fi-act act-del" onclick="delFile('+i+')"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>'
+      +'</div></div>';
   }).join('');
   renderDiff();
 }
@@ -451,258 +448,340 @@ function renderDiff() {
   if (!active.length) { document.getElementById('diffEl').innerHTML = '<div class="empty"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg><p>ยังไม่มีไฟล์</p><span>เลือกไฟล์ใน Deploy ก่อน</span></div>'; return; }
   document.getElementById('diffEl').innerHTML = active.map(function(f, i) {
     var lines = f.content.split('\n').slice(0, 30);
-    return '<div class="diff-card"><div class="diff-head" onclick="document.getElementById(\'d' + i + '\').classList.toggle(\'open\')">'
-      + '<div class="diff-fname">' + f.name + '</div>'
-      + '<div class="fi-tag tag-' + f.status + '">' + (f.status==='new'?'ใหม่':'แทนที่') + '</div>'
-      + '</div><div class="diff-body" id="d' + i + '">'
-      + lines.map(function(l) { return '<div class="diff-line">+ ' + esc(l) + '</div>'; }).join('')
-      + (f.content.split('\n').length > 30 ? '<div class="diff-line diff-ctx">...อีก ' + (f.content.split('\n').length-30) + ' บรรทัด</div>' : '')
-      + '</div></div>';
+    return '<div class="diff-card"><div class="diff-head" onclick="document.getElementById(\'d'+i+'\').classList.toggle(\'open\')">'
+      +'<div class="diff-fname">'+f.name+'</div><div class="fi-tag tag-'+f.status+'">'+(f.status==='new'?'ใหม่':'แทนที่')+'</div></div>'
+      +'<div class="diff-body" id="d'+i+'">'+lines.map(function(l) { return '<div class="diff-line">+ '+esc(l)+'</div>'; }).join('')
+      +(f.content.split('\n').length > 30 ? '<div class="diff-line diff-ctx">...อีก '+(f.content.split('\n').length-30)+' บรรทัด</div>' : '')
+      +'</div></div>';
   }).join('');
 }
 
-// PUSH
 function openConfirm() {
   if (!cfg.token || !cfg.user || !cfg.repo) { toast('กรุณาตั้งค่า GitHub Token ก่อน', 'error'); switchTab('settings'); return; }
   var active = files.filter(function(f) { return f.status !== 'skip'; });
   document.getElementById('commitMsg').value = 'update: อัพเดต ' + active.length + ' ไฟล์';
-  document.getElementById('confirmFiles').innerHTML = active.map(function(f) { return (f.status==='new'?'➕ ':'🔄 ') + f.name; }).join('<br>');
+  document.getElementById('confirmFiles').innerHTML = active.map(function(f) { return (f.status==='new'?'+ ':' ') + f.name; }).join('<br>');
   document.getElementById('confirmModal').classList.add('show');
 }
 function closeConfirm() { document.getElementById('confirmModal').classList.remove('show'); }
-
 async function doPush() {
   closeConfirm();
   var active = files.filter(function(f) { return f.status !== 'skip'; });
   var msg = document.getElementById('commitMsg').value.trim() || 'update files';
-  showDeploy('กำลัง Push ไฟล์...', 'อย่าปิดหน้าต่างนี้');
+  showDeploy('กำลัง Push...', 'อย่าปิดหน้าต่าง');
   var ok = 0, fail = 0, failList = [];
   for (var i = 0; i < active.length; i++) {
     var f = active[i];
     showDeploy('Push (' + (i+1) + '/' + active.length + ')', f.name);
     try {
       var sha = null;
-      var gr = await fetch('https://api.github.com/repos/' + cfg.user + '/' + cfg.repo + '/contents/' + encodeURIComponent(f.name), {headers: {'Authorization': 'token ' + cfg.token}});
+      var gr = await fetch('https://api.github.com/repos/'+cfg.user+'/'+cfg.repo+'/contents/'+encodeURIComponent(f.name), {headers:{'Authorization':'token '+cfg.token}});
       if (gr.ok) { var gd = await gr.json(); sha = gd.sha; }
       var content = /\.(png|jpg|jpeg|gif|webp|ico)$/i.test(f.name) ? f.content.split(',')[1] : btoa(unescape(encodeURIComponent(f.content)));
-      var body = {message: msg + ' (' + f.name + ')', content: content, branch: cfg.branch || 'main'};
+      var body = {message: msg+' ('+f.name+')', content: content, branch: cfg.branch||'main'};
       if (sha) body.sha = sha;
-      var pr = await fetch('https://api.github.com/repos/' + cfg.user + '/' + cfg.repo + '/contents/' + encodeURIComponent(f.name), {method: 'PUT', headers: {'Authorization': 'token ' + cfg.token, 'Content-Type': 'application/json'}, body: JSON.stringify(body)});
+      var pr = await fetch('https://api.github.com/repos/'+cfg.user+'/'+cfg.repo+'/contents/'+encodeURIComponent(f.name), {method:'PUT', headers:{'Authorization':'token '+cfg.token,'Content-Type':'application/json'}, body: JSON.stringify(body)});
       if (pr.ok) ok++; else { fail++; failList.push(f.name); }
     } catch(e) { fail++; failList.push(f.name); }
   }
-  var h = {msg: msg, files: active.map(function(f) { return f.name; }), time: new Date().toISOString(), ok: fail === 0, failList: failList};
+  var h = {msg: msg, files: active.map(function(f){return f.name;}), time: new Date().toISOString(), ok: fail===0, failList: failList};
   history2.unshift(h);
   localStorage.setItem('devHist', JSON.stringify(history2.slice(0, 50)));
-  if (fail === 0) { showDeployDone('Push สำเร็จ ' + ok + ' ไฟล์', 'Vercel กำลัง Deploy...'); clearFiles(); toast('Push สำเร็จ!', 'success'); }
-  else { hideDeploy(); toast('สำเร็จ ' + ok + ' ล้มเหลว ' + fail, 'error'); }
+  if (fail === 0) { showDeployDone('Push สำเร็จ '+ok+' ไฟล์', 'Vercel กำลัง Deploy...'); clearFiles(); toast('Push สำเร็จ!', 'success'); }
+  else { hideDeploy(); toast('สำเร็จ '+ok+' ล้มเหลว '+fail, 'error'); }
 }
 
-// FILES
 async function loadFiles() {
   if (!cfg.token || !cfg.user || !cfg.repo) { document.getElementById('expListEl').innerHTML = '<div class="empty"><p style="color:var(--red)">กรุณาตั้งค่า GitHub Token</p></div>'; return; }
-  document.getElementById('repoLabel').textContent = cfg.user + '/' + cfg.repo;
+  document.getElementById('repoLabel').textContent = cfg.user+'/'+cfg.repo;
   document.getElementById('expListEl').innerHTML = '<div class="empty"><p>กำลังโหลด...</p></div>';
   try {
-    var res = await fetch('https://api.github.com/repos/' + cfg.user + '/' + cfg.repo + '/contents', {headers: {'Authorization': 'token ' + cfg.token}});
+    var res = await fetch('https://api.github.com/repos/'+cfg.user+'/'+cfg.repo+'/contents', {headers:{'Authorization':'token '+cfg.token}});
     if (!res.ok) { document.getElementById('expListEl').innerHTML = '<div class="empty"><p style="color:var(--red)">โหลดไม่ได้</p></div>'; return; }
     repoFiles = await res.json();
-    renderFiles();
-    renderCheck();
+    renderFiles(); renderCheck();
+    // AUTO SCAN
+    scanCache = {};
+    scanSelected = repoFiles.filter(function(f){return f.type==='file'&&/\.(html|js|css)$/.test(f.name);}).map(function(f){return f.name;});
+    autoRunScan();
   } catch(e) {}
 }
 function renderFiles() {
-  var f = repoFiles.filter(function(f) { return f.type === 'file'; });
-  document.getElementById('expListEl').innerHTML = '<div class="exp-list">' + f.map(function(fi) {
+  var f = repoFiles.filter(function(f) { return f.type==='file'; });
+  document.getElementById('expListEl').innerHTML = '<div class="exp-list">'+f.map(function(fi) {
     var ic = iclass(fi.name);
-    return '<div class="exp-row" onclick="openViewer(\'' + fi.name + '\',\'' + fi.download_url + '\')">'
-      + '<div class="exp-ic fi-ic ' + ic + '"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg></div>'
-      + '<div class="exp-name">' + fi.name + '</div>'
-      + '<div class="exp-size">' + fmtSize(fi.size) + '</div>'
-      + '<svg class="exp-arr" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>'
-      + '</div>';
-  }).join('') + '</div>';
+    return '<div class="exp-row" onclick="openViewer(\''+fi.name+'\',\''+fi.download_url+'\')">'
+      +'<div class="exp-ic fi-ic '+ic+'"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg></div>'
+      +'<div class="exp-name">'+fi.name+'</div><div class="exp-size">'+fmtSize(fi.size)+'</div>'
+      +'<svg style="width:13px;height:13px;fill:var(--subtext)" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>';
+  }).join('')+'</div>';
 }
 function renderCheck() {
   var names = repoFiles.map(function(f) { return f.name; });
   document.getElementById('checkEl').innerHTML = EXPECTED.map(function(f) {
     var ok = names.indexOf(f) >= 0;
-    return '<div class="chk ' + (ok ? 'chk-ok' : 'chk-miss') + '"><svg viewBox="0 0 24 24"><path d="' + (ok ? 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z' : 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z') + '"/></svg>' + f + '</div>';
+    return '<div class="chk '+(ok?'chk-ok':'chk-miss')+'"><svg viewBox="0 0 24 24"><path d="'+(ok?'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z':'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z')+'"/></svg>'+f+'</div>';
   }).join('');
 }
 async function openViewer(name, url) {
-  vName = name;
+  vName = name; vContent = '';
   document.getElementById('viewerName').textContent = name;
   document.getElementById('viewerCode').textContent = 'กำลังโหลด...';
   document.getElementById('viewer').classList.add('open');
   try {
-    var res = await fetch(url);
-    vContent = await res.text();
+    var res = await fetch(url); vContent = await res.text();
     var lines = vContent.split('\n');
-    document.getElementById('viewerCode').innerHTML = lines.map(function(l, i) { return '<span class="lnum">' + (i+1) + '</span>' + esc(l); }).join('\n');
+    document.getElementById('viewerCode').innerHTML = lines.map(function(l,i){return '<span class="lnum">'+(i+1)+'</span>'+esc(l);}).join('\n');
   } catch(e) { document.getElementById('viewerCode').textContent = 'โหลดไม่ได้'; }
 }
 function closeViewer() { document.getElementById('viewer').classList.remove('open'); }
-function viewerToAI() {
-  closeViewer();
-  switchTab('ai');
-  if (!aiCtx) {
-    initAI().then(function() { document.getElementById('chatInput').value = 'ตรวจสอบไฟล์ ' + vName + ' มีบั๊กหรือปัญหาอะไรบ้าง?'; });
-  } else {
-    document.getElementById('chatInput').value = 'ตรวจสอบไฟล์ ' + vName + ' มีบั๊กหรือปัญหาอะไรบ้าง?';
+function viewerToAI() { closeViewer(); switchTab('ai'); if(!aiCtx) initAI().then(function(){document.getElementById('chatInput').value='ตรวจสอบ '+vName+' มีปัญหาอะไรบ้าง?';}); else document.getElementById('chatInput').value='ตรวจสอบ '+vName+' มีปัญหาอะไรบ้าง?'; }
+
+// AI
+async function initAI() {
+  if (!cfg.token||!cfg.user||!cfg.repo){setAIDot('error','กรุณาตั้งค่า GitHub Token');return;}
+  setAIDot('loading','กำลังโหลดโค้ดทั้งหมด...');
+  try {
+    var res = await fetch('https://api.github.com/repos/'+cfg.user+'/'+cfg.repo+'/contents',{headers:{'Authorization':'token '+cfg.token}});
+    if (!res.ok){setAIDot('error','โหลดไม่ได้');return;}
+    var all = await res.json();
+    var cf = all.filter(function(f){return f.type==='file'&&/\.(html|css|js)$/.test(f.name);});
+    var blocks = '';
+    for(var i=0;i<cf.length;i++){try{var r=await fetch(cf[i].download_url);var txt=await r.text();blocks+='\n\n==='+cf[i].name+'===\n'+txt.substring(0,5000)+(txt.length>5000?'\n...(ตัดสั้น)':'');}catch(e){}}
+    aiCtx = blocks; chatHist = [];
+    setAIDot('ready','โหลดแล้ว '+cf.length+' ไฟล์ พร้อมตอบคำถาม');
+  } catch(e){setAIDot('error','เกิดข้อผิดพลาด');}
+}
+function setAIDot(t,txt){document.getElementById('aiDot').className='ai-dot '+t;document.getElementById('aiStatusText').textContent=txt;}
+function quickAsk(m){document.getElementById('chatInput').value=m;sendChat();}
+async function sendChat(){
+  var input=document.getElementById('chatInput');
+  var msg=input.value.trim(); if(!msg)return;
+  input.value=''; input.style.height='auto';
+  document.getElementById('chatSendBtn').disabled=true;
+  addBubble('user',msg); var tid='tk'+Date.now(); addThinking(tid); scrollChat();
+  chatHist.push({role:'user',content:msg});
+  var sys='คุณคือ AI ผู้ช่วยพัฒนาระบบ Nimit Delivery ตอบเป็นภาษาไทย กระชับ ชัดเจน\n\nโค้ดทั้งหมด:\n'+(aiCtx||'(ยังไม่ได้โหลดโค้ด)');
+  try{
+    var resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:sys,messages:chatHist})});
+    var data=await resp.json();
+    var reply=(data.content||[]).map(function(b){return b.text||'';}).join('')||'ไม่สามารถตอบได้';
+    chatHist.push({role:'assistant',content:reply}); replaceThinking(tid,reply);
+  }catch(e){replaceThinking(tid,'เกิดข้อผิดพลาด: '+e.message);}
+  document.getElementById('chatSendBtn').disabled=false; scrollChat();
+}
+function addBubble(role,text){var w=document.getElementById('chatWelcome');if(w)w.style.display='none';var d=document.createElement('div');d.className='msg-wrap '+role;var b=document.createElement('div');b.className='bubble';b.textContent=text;d.appendChild(b);document.getElementById('chatMsgs').appendChild(d);}
+function addThinking(id){var w=document.getElementById('chatWelcome');if(w)w.style.display='none';var d=document.createElement('div');d.className='msg-wrap ai';d.id='w'+id;d.innerHTML='<div class="typing-wrap"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div>';document.getElementById('chatMsgs').appendChild(d);}
+function replaceThinking(id,text){var w=document.getElementById('w'+id);if(!w)return;w.innerHTML='';var b=document.createElement('div');b.className='bubble';b.textContent=text;w.appendChild(b);var cb=document.createElement('button');cb.className='copy-btn';cb.innerHTML='<svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg> คัดลอก';cb.onclick=function(){navigator.clipboard.writeText(text);toast('คัดลอกแล้ว','success');};w.appendChild(cb);}
+function scrollChat(){var el=document.getElementById('chatMsgs');el.scrollTop=el.scrollHeight;}
+
+// ===== SCANNER =====
+function renderScanChips(){
+  var el=document.getElementById('scanChips');
+  if(!repoFiles.length){el.innerHTML='<span style="font-size:13px;color:var(--subtext)">โหลดไฟล์ที่แท็บ ไฟล์ ก่อน</span>';return;}
+  var cf=repoFiles.filter(function(f){return f.type==='file'&&/\.(html|js|css)$/.test(f.name);});
+  el.innerHTML=cf.map(function(f){
+    var sel=scanSelected.indexOf(f.name)>=0;
+    return '<div class="scan-chip'+(sel?' sel':'')+'" onclick="toggleScanChip(\''+f.name+'\')">'+f.name+'</div>';
+  }).join('');
+  document.getElementById('scanRunBtn').disabled=scanSelected.length===0;
+}
+function toggleScanChip(name){
+  var idx=scanSelected.indexOf(name);
+  if(idx>=0)scanSelected.splice(idx,1); else scanSelected.push(name);
+  renderScanChips();
+}
+async function autoRunScan(){
+  if(!scanSelected.length)return;
+  var cf=repoFiles.filter(function(f){return scanSelected.indexOf(f.name)>=0;});
+  for(var i=0;i<cf.length;i++){
+    if(!scanCache[cf[i].name]){try{var r=await fetch(cf[i].download_url);scanCache[cf[i].name]=await r.text();}catch(e){}}
   }
+  doScan();
+}
+async function runScan(){
+  document.getElementById('scanRunBtn').disabled=true;
+  document.getElementById('scanResultWrap').innerHTML='<div style="text-align:center;padding:24px;color:var(--subtext)">กำลังสแกน...</div>';
+  var cf=repoFiles.filter(function(f){return scanSelected.indexOf(f.name)>=0;});
+  for(var i=0;i<cf.length;i++){try{var r=await fetch(cf[i].download_url);scanCache[cf[i].name]=await r.text();}catch(e){}}
+  doScan();
+  document.getElementById('scanRunBtn').disabled=false;
 }
 
-// AI CHAT
-async function initAI() {
-  if (!cfg.token || !cfg.user || !cfg.repo) { setAIDot('error', 'กรุณาตั้งค่า GitHub Token ก่อน'); return; }
-  setAIDot('loading', 'กำลังโหลดโค้ดทั้งหมด...');
-  try {
-    var res = await fetch('https://api.github.com/repos/' + cfg.user + '/' + cfg.repo + '/contents', {headers: {'Authorization': 'token ' + cfg.token}});
-    if (!res.ok) { setAIDot('error', 'โหลดไม่ได้'); return; }
-    var allFiles = await res.json();
-    var codeFiles = allFiles.filter(function(f) { return f.type === 'file' && /\.(html|css|js)$/.test(f.name); });
-    var blocks = '';
-    for (var i = 0; i < codeFiles.length; i++) {
-      try {
-        var r = await fetch(codeFiles[i].download_url);
-        var txt = await r.text();
-        blocks += '\n\n=== ' + codeFiles[i].name + ' ===\n' + txt.substring(0, 5000) + (txt.length > 5000 ? '\n...(ตัดสั้น)' : '');
-      } catch(e) {}
+function analyzeFile(fname, code){
+  var issues=[];
+  var lines=code.split('\n');
+  var isHTML=/\.html$/i.test(fname);
+  var isJS=/\.js$/i.test(fname);
+
+  for(var i=0;i<lines.length;i++){
+    var line=lines[i];
+    var n=i+1;
+    var t=line.trim();
+
+    // Security: Token ฝังโค้ด
+    if(t.indexOf('ghp_')>=0 && /ghp_[A-Za-z0-9]{20}/.test(t)){
+      issues.push({lv:'e',n:n,cat:'🔒 Security',msg:'พบ GitHub Token ฝังในโค้ด!',detail:'ลบออก ใช้ localStorage แทน'});
     }
-    aiCtx = blocks;
-    chatHist = [];
-    setAIDot('ready', 'โหลดแล้ว ' + codeFiles.length + ' ไฟล์ พร้อมตอบคำถาม');
-  } catch(e) { setAIDot('error', 'เกิดข้อผิดพลาด'); }
-}
-function setAIDot(type, text) {
-  document.getElementById('aiDot').className = 'ai-dot ' + type;
-  document.getElementById('aiStatusText').textContent = text;
-}
-function quickAsk(msg) {
-  document.getElementById('chatInput').value = msg;
-  sendChat();
-}
-async function sendChat() {
-  var input = document.getElementById('chatInput');
-  var msg = input.value.trim();
-  if (!msg) return;
-  input.value = '';
-  input.style.height = 'auto';
-  document.getElementById('chatSendBtn').disabled = true;
-  addBubble('user', msg);
-  var tid = 'tk' + Date.now();
-  addThinking(tid);
-  scrollChat();
-  chatHist.push({role: 'user', content: msg});
-  var sys = 'คุณคือ AI ผู้ช่วยพัฒนาระบบ Nimit Delivery ตอบเป็นภาษาไทย กระชับ ชัดเจน\n\nโค้ดทั้งหมด:\n' + (aiCtx || '(ยังไม่ได้โหลดโค้ด)');
-  try {
-    var resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({model: 'claude-sonnet-4-6', max_tokens: 1000, system: sys, messages: chatHist})
-    });
-    var data = await resp.json();
-    var reply = (data.content || []).map(function(b) { return b.text || ''; }).join('') || 'ไม่สามารถตอบได้';
-    chatHist.push({role: 'assistant', content: reply});
-    replaceThinking(tid, reply);
-  } catch(e) {
-    replaceThinking(tid, 'เกิดข้อผิดพลาด: ' + e.message);
+    if(t.indexOf('AIzaSy')>=0){
+      issues.push({lv:'e',n:n,cat:'🔒 Security',msg:'พบ Google API Key ฝังในโค้ด!',detail:'ไม่ควรใส่ API key ตรงๆ ใน repo'});
+    }
+
+    // Security: innerHTML + ตัวแปร = XSS
+    if(t.indexOf('.innerHTML')>=0 && (t.indexOf('${')>=0 || t.indexOf("'+")>=0 || t.indexOf("+'")>=0)){
+      if(t.charAt(0)!=='/' && t.charAt(0)!=='*'){
+        issues.push({lv:'w',n:n,cat:'🔒 XSS Risk',msg:'innerHTML ใช้กับตัวแปร',detail:'ถ้า input มาจากผู้ใช้ต้องผ่าน esc() ก่อน'});
+      }
+    }
+
+    // Security: Client-side password check
+    if((t.indexOf('password')>=0||t.indexOf('=== \'K')>=0||t.indexOf("=== \"K")>=0) && t.indexOf('if(')>=0 && t.charAt(0)!=='/' ){
+      issues.push({lv:'w',n:n,cat:'🔒 Security',msg:'ตรวจสอบรหัสผ่านฝั่ง client',detail:'คนกด F12 ดูรหัสได้ ควรรู้ไว้'});
+    }
+
+    // HTML: div ไม่ปิด
+    if(isHTML){
+      var opens=(t.match(/<div[^>]*>/g)||[]).length;
+      var closes=(t.match(/<\/div>/g)||[]).length;
+      if(opens>0 && opens>closes+1){
+        issues.push({lv:'i',n:n,cat:'🏗️ HTML',msg:'เปิด <div> '+opens+' ครั้ง ปิด '+closes+' ครั้งในบรรทัดเดียว',detail:'ตรวจสอบว่าปิดแท็กครบ'});
+      }
+    }
+
+    // Firebase ไม่มี try-catch
+    if(!isHTML && (t.indexOf('await getDocs(')>=0||t.indexOf('await addDoc(')>=0||t.indexOf('await updateDoc(')>=0)){
+      var prev=lines.slice(Math.max(0,i-8),i).join('\n');
+      if(prev.indexOf('try{')< 0 && prev.indexOf('try {')< 0){
+        issues.push({lv:'w',n:n,cat:'⚠️ Logic',msg:'Firebase call ไม่มี try-catch',detail:'ถ้า network หลุดจะ crash'});
+      }
+    }
+
+    // Clean code: if ซ้อนลึก
+    var indent=line.length-line.replace(/^ */,'').length;
+    if(t.indexOf('if(')===0||t.indexOf('if (')===0){
+      if(indent>=20){
+        issues.push({lv:'i',n:n,cat:'🧹 Clean Code',msg:'if ซ้อนกันลึกมาก (indent '+indent+'px)',detail:'ลอง early return หรือแตกฟังก์ชัน'});
+      }
+    }
   }
-  document.getElementById('chatSendBtn').disabled = false;
-  scrollChat();
+
+  // ปีกกาไม่สมดุล (ทั้งไฟล์)
+  if(!isHTML){
+    var op=(code.match(/\{/g)||[]).length;
+    var cl=(code.match(/\}/g)||[]).length;
+    if(Math.abs(op-cl)>0){
+      issues.push({lv:'e',n:0,cat:'🔧 Syntax',msg:'ปีกกาไม่สมดุล: { = '+op+' } = '+cl,detail:'ขาดหรือเกิน '+Math.abs(op-cl)+' อัน'});
+    }
+  }
+  if(isHTML){
+    var so=(code.match(/<script[^>]*>/gi)||[]).length;
+    var sc=(code.match(/<\/script>/gi)||[]).length;
+    if(so!==sc){issues.push({lv:'e',n:0,cat:'🔧 HTML Syntax',msg:'script tag ไม่สมดุล: '+so+' เปิด / '+sc+' ปิด',detail:''});}
+  }
+
+  return issues;
 }
-function addBubble(role, text) {
-  var welcome = document.getElementById('chatWelcome');
-  if (welcome) welcome.style.display = 'none';
-  var wrap = document.createElement('div');
-  wrap.className = 'msg-wrap ' + role;
-  var bub = document.createElement('div');
-  bub.className = 'bubble';
-  bub.textContent = text;
-  wrap.appendChild(bub);
-  document.getElementById('chatMsgs').appendChild(wrap);
+
+function doScan(){
+  var allResults=[];
+  var totalE=0,totalW=0,totalI=0;
+  for(var k=0;k<scanSelected.length;k++){
+    var fname=scanSelected[k];
+    var content=scanCache[fname];
+    if(!content)continue;
+    var issues=analyzeFile(fname,content);
+    issues.forEach(function(iss){if(iss.lv==='e')totalE++;else if(iss.lv==='w')totalW++;else totalI++;});
+    allResults.push({name:fname,issues:issues});
+  }
+  // update badge
+  var total=totalE+totalW;
+  var badge=document.getElementById('scanBadge');
+  if(total>0){badge.style.display='inline-flex';badge.textContent=total;badge.style.background=totalE>0?'var(--red)':'var(--orange)';}
+  else{badge.style.display='none';}
+
+  var wrap=document.getElementById('scanResultWrap');
+  if(totalE+totalW+totalI===0){wrap.innerHTML='<div style="background:#fff;border-radius:14px;padding:24px;text-align:center;box-shadow:var(--shadow-sm)"><div style="font-size:32px;margin-bottom:8px">✅</div><div style="font-size:16px;font-weight:800;color:var(--green)">ไม่พบปัญหา!</div><div style="font-size:13px;color:var(--subtext);margin-top:4px">โค้ดสะอาดดีมากครับ</div></div>';return;}
+
+  var html='<div style="background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow-sm);margin-bottom:12px;">'
+    +'<div class="scan-sum">'
+    +'<div class="scan-sum-box e"><div class="scan-sum-num">'+totalE+'</div><div class="scan-sum-lbl">Critical</div></div>'
+    +'<div class="scan-sum-box w"><div class="scan-sum-num">'+totalW+'</div><div class="scan-sum-lbl">Warning</div></div>'
+    +'<div class="scan-sum-box i"><div class="scan-sum-num">'+totalI+'</div><div class="scan-sum-lbl">Info</div></div>'
+    +'</div></div>';
+
+  allResults.forEach(function(r,ri){
+    if(!r.issues.length)return;
+    var ec=r.issues.filter(function(x){return x.lv==='e';}).length;
+    var cc=ec>0?'e':'w';
+    html+='<div class="scan-file-block">'
+      +'<div class="scan-file-head" onclick="document.getElementById(\'si'+ri+'\').classList.toggle(\'open\')">'
+      +'<div class="scan-file-hname">'+r.name+'</div>'
+      +'<div class="scan-count '+cc+'">'+r.issues.length+' ปัญหา</div></div>'
+      +'<div class="scan-issue-list open" id="si'+ri+'">';
+    r.issues.forEach(function(iss){
+      var ico=iss.lv==='e'?'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>'
+        :iss.lv==='w'?'<path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>'
+        :'<path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>';
+      html+='<div class="scan-issue"><div class="iss-ico '+iss.lv+'"><svg viewBox="0 0 24 24">'+ico+'</svg></div>'
+        +'<div class="iss-body">'
+        +(iss.n>0?'<div class="iss-loc">'+r.name+':'+iss.n+'  '+iss.cat+'</div>':'<div class="iss-loc">'+r.name+'  '+iss.cat+'</div>')
+        +'<div class="iss-msg">'+iss.msg+'</div>'
+        +(iss.detail?'<div class="iss-detail">'+iss.detail+'</div>':'')
+        +'</div></div>';
+    });
+    html+='</div></div>';
+  });
+  wrap.innerHTML=html;
 }
-function addThinking(id) {
-  var welcome = document.getElementById('chatWelcome');
-  if (welcome) welcome.style.display = 'none';
-  var wrap = document.createElement('div');
-  wrap.className = 'msg-wrap ai';
-  wrap.id = 'w' + id;
-  var dots = document.createElement('div');
-  dots.className = 'typing-wrap';
-  dots.innerHTML = '<div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div>';
-  wrap.appendChild(dots);
-  document.getElementById('chatMsgs').appendChild(wrap);
-}
-function replaceThinking(id, text) {
-  var wrap = document.getElementById('w' + id);
-  if (!wrap) return;
-  wrap.innerHTML = '';
-  var bub = document.createElement('div');
-  bub.className = 'bubble';
-  bub.textContent = text;
-  wrap.appendChild(bub);
-  var copyBtn = document.createElement('button');
-  copyBtn.className = 'copy-btn';
-  copyBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg> คัดลอก';
-  copyBtn.onclick = function() { navigator.clipboard.writeText(text); toast('คัดลอกแล้ว', 'success'); };
-  wrap.appendChild(copyBtn);
-}
-function scrollChat() { var el = document.getElementById('chatMsgs'); el.scrollTop = el.scrollHeight; }
 
 // HISTORY
-function renderHistory() {
-  if (!history2.length) { document.getElementById('histEl').innerHTML = '<div class="empty"><svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18z"/></svg><p>ยังไม่มีประวัติ</p></div>'; return; }
-  document.getElementById('histEl').innerHTML = history2.map(function(h) {
-    var d = new Date(h.time);
-    var t = d.toLocaleDateString('th-TH', {day:'numeric',month:'short'}) + ' ' + d.toLocaleTimeString('th-TH', {hour:'2-digit',minute:'2-digit'});
-    return '<div class="hist-card"><div class="hist-top"><div class="hist-ico ' + (h.ok?'ok':'fail') + '"><svg viewBox="0 0 24 24"><path d="' + (h.ok?'M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z':'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z') + '"/></svg></div><div class="hist-msg">' + h.msg + '</div><div class="hist-time">' + t + '</div></div><div class="hist-files">' + h.files.join(', ') + '</div></div>';
+function renderHistory(){
+  if(!history2.length){document.getElementById('histEl').innerHTML='<div class="empty"><svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18z"/></svg><p>ยังไม่มีประวัติ</p></div>';return;}
+  document.getElementById('histEl').innerHTML=history2.map(function(h){
+    var d=new Date(h.time);
+    var t=d.toLocaleDateString('th-TH',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+    return '<div class="hist-card"><div class="hist-top"><div class="hist-ico '+(h.ok?'ok':'fail')+'"><svg viewBox="0 0 24 24"><path d="'+(h.ok?'M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z':'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z')+'"/></svg></div><div class="hist-msg">'+h.msg+'</div><div class="hist-time">'+t+'</div></div><div class="hist-files">'+h.files.join(', ')+'</div></div>';
   }).join('');
 }
 
 // SETTINGS
-function loadCfg() {
-  cfg = JSON.parse(localStorage.getItem('devCfg') || '{}');
-  if (cfg.token) document.getElementById('sToken').value = cfg.token;
-  if (cfg.user) document.getElementById('sUser').value = cfg.user;
-  if (cfg.repo) document.getElementById('sRepo').value = cfg.repo;
-  document.getElementById('sBranch').value = cfg.branch || 'main';
+function loadCfg(){
+  cfg=JSON.parse(localStorage.getItem('devCfg')||'{}');
+  if(cfg.token)document.getElementById('sToken').value=cfg.token;
+  if(cfg.user)document.getElementById('sUser').value=cfg.user;
+  if(cfg.repo)document.getElementById('sRepo').value=cfg.repo;
+  document.getElementById('sBranch').value=cfg.branch||'main';
   updateConn();
 }
-async function saveSettings() {
-  cfg = {token: document.getElementById('sToken').value.trim(), user: document.getElementById('sUser').value.trim(), repo: document.getElementById('sRepo').value.trim(), branch: document.getElementById('sBranch').value.trim() || 'main'};
-  localStorage.setItem('devCfg', JSON.stringify(cfg));
-  toast('กำลังทดสอบ...', 'info');
-  try {
-    var res = await fetch('https://api.github.com/repos/' + cfg.user + '/' + cfg.repo, {headers: {'Authorization': 'token ' + cfg.token}});
+async function saveSettings(){
+  cfg={token:document.getElementById('sToken').value.trim(),user:document.getElementById('sUser').value.trim(),repo:document.getElementById('sRepo').value.trim(),branch:document.getElementById('sBranch').value.trim()||'main'};
+  localStorage.setItem('devCfg',JSON.stringify(cfg));
+  toast('กำลังทดสอบ...','info');
+  try{
+    var res=await fetch('https://api.github.com/repos/'+cfg.user+'/'+cfg.repo,{headers:{'Authorization':'token '+cfg.token}});
     updateConn(res.ok);
-    toast(res.ok ? 'เชื่อมต่อสำเร็จ!' : 'Token หรือ Repo ไม่ถูกต้อง', res.ok ? 'success' : 'error');
-  } catch(e) { updateConn(false); toast('เชื่อมต่อไม่ได้', 'error'); }
+    toast(res.ok?'เชื่อมต่อสำเร็จ!':'Token หรือ Repo ไม่ถูกต้อง',res.ok?'success':'error');
+  }catch(e){updateConn(false);toast('เชื่อมต่อไม่ได้','error');}
 }
-function updateConn(ok) {
-  if (ok === undefined) ok = !!(cfg.token && cfg.user && cfg.repo);
-  var row = document.getElementById('connRow');
-  row.className = 'conn-row ' + (ok ? 'ok' : 'fail');
-  row.querySelector('svg').innerHTML = ok
-    ? '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>'
-    : '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z"/>';
-  document.getElementById('connText').textContent = ok ? 'เชื่อมต่อกับ ' + cfg.user + '/' + cfg.repo : 'ยังไม่ได้เชื่อมต่อ';
+function updateConn(ok){
+  if(ok===undefined)ok=!!(cfg.token&&cfg.user&&cfg.repo);
+  var row=document.getElementById('connRow');
+  row.className='conn-row '+(ok?'ok':'fail');
+  row.querySelector('svg').innerHTML=ok?'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>':'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z"/>';
+  document.getElementById('connText').textContent=ok?'เชื่อมต่อกับ '+cfg.user+'/'+cfg.repo:'ยังไม่ได้เชื่อมต่อ';
 }
 
-// DEPLOY STATUS
-function showDeploy(title, sub) { var b = document.getElementById('deployBar'); b.classList.add('show'); document.getElementById('dSpin').style.display='block'; document.getElementById('dChk').style.display='none'; document.getElementById('dTitle').textContent=title; document.getElementById('dSub').textContent=sub; }
-function showDeployDone(title, sub) { document.getElementById('dSpin').style.display='none'; document.getElementById('dChk').style.display='block'; document.getElementById('dTitle').textContent=title; document.getElementById('dSub').textContent=sub; setTimeout(hideDeploy, 4000); }
-function hideDeploy() { document.getElementById('deployBar').classList.remove('show'); }
+function showDeploy(t,s){var b=document.getElementById('deployBar');b.classList.add('show');document.getElementById('dSpin').style.display='block';document.getElementById('dChk').style.display='none';document.getElementById('dTitle').textContent=t;document.getElementById('dSub').textContent=s;}
+function showDeployDone(t,s){document.getElementById('dSpin').style.display='none';document.getElementById('dChk').style.display='block';document.getElementById('dTitle').textContent=t;document.getElementById('dSub').textContent=s;setTimeout(hideDeploy,4000);}
+function hideDeploy(){document.getElementById('deployBar').classList.remove('show');}
 
-// TOAST
-function toast(msg, type) {
-  var icons = {success:'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>',error:'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z"/>',info:'<path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>'};
-  var el = document.createElement('div');
-  el.className = 'toast ' + (type || 'info');
-  el.innerHTML = '<svg viewBox="0 0 24 24">' + (icons[type] || icons.info) + '</svg><span>' + msg + '</span>';
+function toast(msg,type){
+  var icons={success:'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>',error:'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z"/>',info:'<path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>'};
+  var el=document.createElement('div');
+  el.className='toast '+(type||'info');
+  el.innerHTML='<svg viewBox="0 0 24 24">'+(icons[type]||icons.info)+'</svg><span>'+msg+'</span>';
   document.getElementById('toastWrap').appendChild(el);
-  setTimeout(function() { el.style.animation = 'toastOut 0.2s ease-in forwards'; setTimeout(function() { el.remove(); }, 200); }, 3000);
+  setTimeout(function(){el.style.animation='toastOut 0.2s ease-in forwards';setTimeout(function(){el.remove();},200);},3000);
 }
 
 loadCfg();
