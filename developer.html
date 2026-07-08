@@ -448,7 +448,7 @@ var EXPECTED = ['index.html','register.html','shops.html','menu.html','cart.html
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
   document.querySelectorAll('.panel,.ai-panel').forEach(function(p){p.classList.remove('active');});
-  var names=['deploy','diff','files','scan','history','settings'];
+  var names=['deploy','diff','files','scan','ai','history','settings'];
   var idx=names.indexOf(tab);
   if(idx>=0) document.querySelectorAll('.tab')[idx].classList.add('active');
   document.getElementById('panel-'+tab).classList.add('active');
