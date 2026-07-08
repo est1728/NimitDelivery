@@ -70,9 +70,9 @@ body{background:var(--gray);min-height:100vh;}
 .pill-rejected{background:var(--red-light);color:var(--red);}
 .order-amount{font-size:15px;font-weight:800;color:var(--text);}
 .order-card-body{padding:10px 14px;}
-.order-info-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);margin-bottom:6px;}
-.order-info-row:last-child{margin-bottom:0;}
-.order-info-row svg{width:14px;height:14px;fill:var(--subtext);flex-shrink:0;}
+.order-info-row,.order-meta{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);margin-bottom:6px;}
+.order-info-row:last-child,.order-meta:last-child{margin-bottom:0;}
+.order-info-row svg,.order-meta svg{width:14px;height:14px;fill:var(--subtext);flex-shrink:0;}
 .rider-chip{display:inline-flex;align-items:center;gap:4px;background:var(--primary-light);color:var(--primary);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
 .rider-chip svg{width:11px;height:11px;fill:var(--primary);}
 .empty-orders{text-align:center;padding:60px 20px;}
