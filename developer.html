@@ -524,8 +524,15 @@ function renderDiff(){
   }).join('');
 }
 function openConfirm(){
-  if(!cfg.token||!cfg.user||!cfg.repo){toast('กรุณาตั้งค่า GitHub Token ก่อน','error');switchTab('settings');return;}
+  // โหลด cfg ใหม่ทุกครั้งที่กด เผื่อ localStorage เปลี่ยน
+  cfg=JSON.parse(localStorage.getItem('devCfg')||'{}');
+  if(!cfg.token||!cfg.user||!cfg.repo){
+    toast('ยังไม่ได้ตั้งค่า GitHub Token กรุณาไปที่แท็บ ตั้งค่า','error');
+    switchTab('settings');
+    return;
+  }
   var active=files.filter(function(f){return f.status!=='skip';});
+  if(!active.length){toast('ยังไม่มีไฟล์ที่จะ Push','info');return;}
   document.getElementById('commitMsg').value='update: อัพเดต '+active.length+' ไฟล์';
   document.getElementById('confirmFiles').innerHTML=active.map(function(f){return (f.status==='new'?'+ ':' ')+f.name;}).join('<br>');
   document.getElementById('confirmModal').classList.add('show');
@@ -1289,13 +1296,24 @@ function renderHistory(){
 function loadCfg(){
   cfg=JSON.parse(localStorage.getItem('devCfg')||'{}');
   if(cfg.token) document.getElementById('sToken').value=cfg.token;
-  if(cfg.user) document.getElementById('sUser').value=cfg.user;
-  if(cfg.repo) document.getElementById('sRepo').value=cfg.repo;
+  if(cfg.user)  document.getElementById('sUser').value=cfg.user;
+  if(cfg.repo)  document.getElementById('sRepo').value=cfg.repo;
   document.getElementById('sBranch').value=cfg.branch||'main';
+  if(cfg.geminiKey){
+    document.getElementById('sGemini').value=cfg.geminiKey;
+    var gs=document.getElementById('geminiStatus');
+    if(gs){gs.className='conn-row ok';document.getElementById('geminiStatusText').textContent='ตั้งค่าแล้ว';}
+  }
   updateConn();
 }
 async function saveSettings(){
-  cfg={token:document.getElementById('sToken').value.trim(),user:document.getElementById('sUser').value.trim(),repo:document.getElementById('sRepo').value.trim(),branch:document.getElementById('sBranch').value.trim()||'main'};
+  // เก็บ field ที่มีอยู่แล้ว (เช่น geminiKey) ไว้ด้วย
+  cfg = Object.assign(cfg||{},{
+    token: document.getElementById('sToken').value.trim(),
+    user:  document.getElementById('sUser').value.trim(),
+    repo:  document.getElementById('sRepo').value.trim(),
+    branch:document.getElementById('sBranch').value.trim()||'main'
+  });
   localStorage.setItem('devCfg',JSON.stringify(cfg));
   toast('กำลังทดสอบ...','info');
   try{
