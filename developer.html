@@ -211,6 +211,49 @@ body{background:var(--gray);min-height:100vh;}
 .empty svg{width:40px;height:40px;fill:#cbd5e1;display:block;margin:0 auto 12px;}
 .empty p{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;}
 .empty span{font-size:13px;color:var(--subtext);}
+/* AI CHAT */
+.ai-panel{display:none;flex-direction:column;height:calc(100vh - 110px);padding:0;}
+.ai-panel.active{display:flex;}
+.ai-topbar{display:flex;align-items:center;gap:8px;padding:9px 14px;background:#fff;border-bottom:1px solid #f0f0f0;flex-shrink:0;}
+.ai-status-dot{width:8px;height:8px;border-radius:50%;background:#cbd5e1;flex-shrink:0;}
+.ai-status-dot.ready{background:var(--green);animation:none;}
+.ai-status-dot.busy{background:#f59e0b;animation:pulse 1s infinite;}
+.ai-status-dot.sleep{background:#94a3b8;}
+.ai-status-dot.error{background:var(--red);}
+.ai-status-text{font-size:12px;color:var(--subtext);flex:1;}
+.quota-badge{font-size:11px;font-weight:700;background:var(--primary-light);color:var(--primary);padding:3px 8px;border-radius:20px;}
+.chat-msgs{flex:1;overflow-y:auto;padding-bottom:100px;}
+.chat-welcome{display:flex;flex-direction:column;align-items:center;padding:40px 20px;text-align:center;}
+.chat-welcome-ico{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+.chat-welcome-ico svg{width:26px;height:26px;fill:#fff;}
+.chat-welcome h3{font-size:18px;font-weight:800;color:var(--text);margin-bottom:6px;}
+.chat-welcome p{font-size:13px;color:var(--subtext);line-height:1.6;max-width:280px;}
+.chat-suggestions{display:flex;flex-direction:column;gap:8px;margin-top:18px;width:100%;max-width:340px;}
+.chat-sugg{padding:11px 14px;background:#fff;border:1.5px solid #e8eaf0;border-radius:12px;font-size:13px;color:var(--text);cursor:pointer;text-align:left;font-weight:600;}
+.msg-wrap{padding:5px 14px;}
+.msg-wrap.user{display:flex;justify-content:flex-end;}
+.msg-wrap.ai{display:flex;flex-direction:column;align-items:flex-start;}
+.bubble{font-size:14px;line-height:1.7;white-space:pre-wrap;}
+.msg-wrap.user .bubble{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;padding:11px 16px;border-radius:20px 20px 4px 20px;max-width:82%;}
+.msg-wrap.ai .bubble{background:#fff;color:var(--text);padding:12px 16px;border-radius:20px 20px 20px 4px;max-width:90%;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+.typing-wrap{display:flex;gap:5px;padding:14px 16px;}
+.t-dot{width:7px;height:7px;border-radius:50%;background:var(--subtext);animation:typing 1s infinite;}
+.t-dot:nth-child(2){animation-delay:0.15s;}
+.t-dot:nth-child(3){animation-delay:0.3s;}
+@keyframes typing{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.copy-msg-btn{font-size:11px;color:var(--subtext);background:none;border:none;cursor:pointer;padding:3px 0;margin-top:3px;}
+.chat-input-area{position:fixed;bottom:0;left:0;right:0;padding:10px 14px 20px;background:linear-gradient(to top,#fff 85%,transparent);z-index:100;}
+.chat-input-box{display:flex;gap:8px;align-items:flex-end;background:#fff;border:2px solid #e8eaf0;border-radius:18px;padding:8px 8px 8px 14px;box-shadow:0 2px 12px rgba(0,0,0,0.06);}
+.chat-input-box:focus-within{border-color:var(--primary);}
+.chat-input{flex:1;border:none;outline:none;resize:none;font-size:15px;line-height:1.5;font-family:inherit;max-height:120px;background:transparent;color:var(--text);}
+.chat-send{width:38px;height:38px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.chat-send svg{width:17px;height:17px;fill:#fff;}
+.chat-send:disabled{background:#e2e8f0;}
+.sleep-banner{background:var(--gray);border-radius:12px;padding:14px;text-align:center;margin:16px;}
+.sleep-banner-icon{font-size:32px;margin-bottom:8px;}
+.sleep-banner-title{font-size:15px;font-weight:800;color:var(--text);}
+.sleep-banner-sub{font-size:13px;color:var(--subtext);margin-top:4px;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
 .toast-wrap{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:900;pointer-events:none;width:100%;padding:0 14px;}
 .toast{display:flex;align-items:center;gap:8px;padding:11px 14px;border-radius:12px;font-size:13px;font-weight:700;color:#fff;box-shadow:0 8px 20px rgba(0,0,0,0.18);margin-bottom:8px;animation:toastIn 0.25s ease-out;}
 .toast svg{width:16px;height:16px;fill:#fff;flex-shrink:0;}
@@ -229,6 +272,7 @@ body{background:var(--gray);min-height:100vh;}
   <button class="tab" onclick="switchTab('diff')">Diff</button>
   <button class="tab" onclick="switchTab('files')">ไฟล์</button>
   <button class="tab" onclick="switchTab('scan')">สแกน<span class="tab-badge" id="scanBadge" style="display:none;background:var(--red)">0</span></button>
+  <button class="tab" onclick="switchTab('ai')">🤖 AI</button>
   <button class="tab" onclick="switchTab('history')">ประวัติ</button>
   <button class="tab" onclick="switchTab('settings')">ตั้งค่า</button>
 </div>
@@ -286,6 +330,38 @@ body{background:var(--gray);min-height:100vh;}
   <div id="scanResultWrap"></div>
 </div>
 
+<!-- AI CHAT -->
+<div class="ai-panel" id="panel-ai">
+  <div class="ai-topbar">
+    <div class="ai-status-dot sleep" id="aiDot"></div>
+    <div class="ai-status-text" id="aiStatusText">รอตั้งค่า Gemini API Key</div>
+    <div class="quota-badge" id="quotaBadge">- / 500</div>
+  </div>
+  <div class="chat-msgs" id="chatMsgs">
+    <div class="chat-welcome" id="chatWelcome">
+      <div class="chat-welcome-ico"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>
+      <h3>Nimit AI (Gemini)</h3>
+      <p>ตรวจบั๊ก ช่องโหว่ แนะนำการแก้ไข — ส่งโค้ดมาได้เลย</p>
+      <div class="chat-suggestions">
+        <button class="chat-sugg" onclick="quickAsk('ตรวจสอบ shops.html มีบั๊กหรือช่องโหว่อะไรบ้าง?')">🔍 ตรวจ shops.html</button>
+        <button class="chat-sugg" onclick="quickAsk('ตรวจ admin-logic.js มีปัญหาอะไรบ้าง แก้ให้ด้วย')">🔧 ตรวจ admin-logic.js</button>
+        <button class="chat-sugg" onclick="quickAsk('ไฟล์ไหนในโปรเจกต์มีความเสี่ยงด้าน security บ้าง?')">🔒 ตรวจ Security</button>
+        <button class="chat-sugg" onclick="quickAsk('แนะนำการปรับปรุงโค้ดที่ควรทำก่อน launch')">🚀 แนะนำก่อน launch</button>
+      </div>
+    </div>
+  </div>
+  <div class="chat-input-area">
+    <div class="chat-input-box">
+      <textarea class="chat-input" id="chatInput" placeholder="ถามเกี่ยวกับโค้ด..." rows="1"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"
+        oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
+      <button class="chat-send" id="chatSendBtn" onclick="sendChat()">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- HISTORY -->
 <div class="panel" id="panel-history">
   <div id="histEl"><div class="empty"><svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18z"/></svg><p>ยังไม่มีประวัติ</p></div></div>
@@ -301,6 +377,15 @@ body{background:var(--gray);min-height:100vh;}
     <div class="s-field"><div class="s-label">Repository</div><input class="s-input" id="sRepo" placeholder="NimitDelivery"></div>
     <div class="s-field" style="margin-bottom:0"><div class="s-label">Branch</div><input class="s-input" id="sBranch" placeholder="main"></div>
     <button class="s-save" onclick="saveSettings()">บันทึกและทดสอบการเชื่อมต่อ</button>
+  </div>
+  <div class="s-card">
+    <div class="s-title">Gemini AI</div>
+    <div class="conn-row fail" id="geminiStatus"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z"/></svg><span id="geminiStatusText">ยังไม่ได้ตั้งค่า</span></div>
+    <div class="s-field"><div class="s-label">Gemini API Key</div><input class="s-input" id="sGemini" type="password" placeholder="AIzaSy..."><div class="s-hint">aistudio.google.com/app/apikey → Create API Key (ฟรี 500 req/วัน)</div></div>
+    <div style="background:var(--primary-light);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--primary);margin-top:4px">
+      🌙 เมื่อโควต้าหมด AI จะหยุดให้บริการอัตโนมัติและแจ้งเวลา reset (ตี 0)
+    </div>
+    <button class="s-save" onclick="saveGemini()" style="margin-top:12px">บันทึก Gemini Key</button
   </div>
 </div>
 
@@ -362,13 +447,14 @@ var EXPECTED = ['index.html','register.html','shops.html','menu.html','cart.html
 
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
-  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.panel,.ai-panel').forEach(function(p){p.classList.remove('active');});
   var names=['deploy','diff','files','scan','history','settings'];
   var idx=names.indexOf(tab);
   if(idx>=0) document.querySelectorAll('.tab')[idx].classList.add('active');
   document.getElementById('panel-'+tab).classList.add('active');
   if(tab==='files') loadFiles();
   if(tab==='history') renderHistory();
+  if(tab==='ai') initAITab();
   if(tab==='scan') renderScanChips();
 }
 
@@ -1230,6 +1316,136 @@ function toast(msg,type){
   document.getElementById('toastWrap').appendChild(el);
   setTimeout(function(){el.style.animation='toastOut 0.2s ease-in forwards';setTimeout(function(){el.remove();},200);},3000);
 }
+// ===== GEMINI AI =====
+var chatHistory = [];
+var quotaUsed = parseInt(localStorage.getItem('geminiQuotaUsed')||'0');
+var quotaDate = localStorage.getItem('geminiQuotaDate')||'';
+var QUOTA_MAX = 500;
+
+function checkQuotaReset() {
+  var today = new Date().toDateString();
+  if(quotaDate !== today) { quotaUsed=0; quotaDate=today; localStorage.setItem('geminiQuotaUsed','0'); localStorage.setItem('geminiQuotaDate',today); }
+}
+
+function updateQuotaUI() {
+  checkQuotaReset();
+  var left = QUOTA_MAX - quotaUsed;
+  document.getElementById('quotaBadge').textContent = left+' / '+QUOTA_MAX;
+  document.getElementById('quotaBadge').style.background = left < 50 ? 'var(--orange-light)' : 'var(--primary-light)';
+  document.getElementById('quotaBadge').style.color = left < 50 ? 'var(--orange)' : 'var(--primary)';
+}
+
+function initAITab() {
+  checkQuotaReset();
+  updateQuotaUI();
+  var key = cfg.geminiKey||'';
+  if(!key) { setAIStatus('sleep','ตั้งค่า Gemini API Key ในแท็บ ตั้งค่า ก่อน'); return; }
+  var left = QUOTA_MAX - quotaUsed;
+  if(left <= 0) {
+    setAIStatus('sleep', sleepMsg());
+    showSleepBanner();
+  } else {
+    setAIStatus('ready', 'พร้อมใช้งาน · เหลือ '+left+' req วันนี้');
+  }
+}
+
+function sleepMsg() {
+  var now = new Date();
+  var reset = new Date(); reset.setDate(reset.getDate()+1); reset.setHours(0,0,0,0);
+  var diff = Math.round((reset-now)/60000);
+  var h = Math.floor(diff/60), m = diff%60;
+  return '🌙 AI นอนหลับ โควต้าหมดแล้ว reset ใน '+h+'ชม. '+m+'นาที';
+}
+
+function showSleepBanner() {
+  var el = document.getElementById('chatWelcome');
+  if(el) el.style.display='none';
+  var msgs = document.getElementById('chatMsgs');
+  if(!document.getElementById('sleepBanner')) {
+    var b = document.createElement('div');
+    b.className='sleep-banner'; b.id='sleepBanner';
+    b.innerHTML='<div class="sleep-banner-icon">🌙</div><div class="sleep-banner-title">AI นอนหลับแล้ว</div><div class="sleep-banner-sub">'+sleepMsg()+'</div>';
+    msgs.appendChild(b);
+  }
+}
+
+function setAIStatus(type, text) {
+  document.getElementById('aiDot').className = 'ai-status-dot '+type;
+  document.getElementById('aiStatusText').textContent = text;
+}
+
+function quickAsk(msg) {
+  document.getElementById('chatInput').value = msg;
+  sendChat();
+}
+
+async function sendChat() {
+  checkQuotaReset();
+  var left = QUOTA_MAX - quotaUsed;
+  if(left <= 0) { showSleepBanner(); setAIStatus('sleep', sleepMsg()); return; }
+  var input = document.getElementById('chatInput');
+  var msg = input.value.trim(); if(!msg) return;
+  input.value=''; input.style.height='auto';
+  document.getElementById('chatSendBtn').disabled=true;
+  var welcome = document.getElementById('chatWelcome');
+  if(welcome) welcome.style.display='none';
+  addBubble('user', msg);
+  var tid='tk'+Date.now(); addThinking(tid); scrollChat();
+  chatHistory.push({role:'user', parts:[{text:msg}]});
+  setAIStatus('busy','กำลังคิด...');
+  var key = cfg.geminiKey||'';
+  if(!key) { replaceThinking(tid,'กรุณาตั้งค่า Gemini API Key ในแท็บ ตั้งค่า ก่อนครับ'); setAIStatus('error','ไม่มี API Key'); document.getElementById('chatSendBtn').disabled=false; return; }
+  var sysPrompt = 'คุณคือ AI ผู้เชี่ยวชาญตรวจสอบโค้ดระบบ Nimit Delivery (Food Delivery App) ตอบเป็นภาษาไทย กระชับ ชัดเจน ระบุเลขบรรทัดเสมอ ห้ามแก้ UI ห้ามเปลี่ยน style ถ้าจะแก้โค้ดให้แสดงเฉพาะบรรทัดที่แก้เท่านั้น';
+  var msgs = [{role:'user',parts:[{text:sysPrompt+' '+msg}]}];
+  if(chatHistory.length > 1) msgs = chatHistory.slice(-10);
+  try {
+    var resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+key, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({contents: msgs, generationConfig:{maxOutputTokens:2048,temperature:0.3}})
+    });
+    if(resp.status===429) { quotaUsed=QUOTA_MAX; localStorage.setItem('geminiQuotaUsed',String(QUOTA_MAX)); updateQuotaUI(); showSleepBanner(); setAIStatus('sleep',sleepMsg()); replaceThinking(tid,'โควต้าหมดแล้ว '+sleepMsg()); document.getElementById('chatSendBtn').disabled=false; return; }
+    var data = await resp.json();
+    if(data.error) throw new Error(data.error.message);
+    var reply = data.candidates?.[0]?.content?.parts?.[0]?.text||'ไม่ได้รับคำตอบ';
+    chatHistory.push({role:'model',parts:[{text:reply}]});
+    quotaUsed++; localStorage.setItem('geminiQuotaUsed',String(quotaUsed));
+    replaceThinking(tid, reply);
+    updateQuotaUI();
+    var left2 = QUOTA_MAX - quotaUsed;
+    setAIStatus('ready','พร้อมใช้งาน · เหลือ '+left2+' req วันนี้');
+    if(left2 <= 50) setAIStatus('busy','⚠️ โควต้าเหลือน้อย '+left2+' req');
+  } catch(e) {
+    replaceThinking(tid,'เกิดข้อผิดพลาด: '+e.message);
+    setAIStatus('error','เกิดข้อผิดพลาด');
+  }
+  document.getElementById('chatSendBtn').disabled=false;
+  scrollChat();
+}
+
+function addBubble(role,text){var d=document.createElement('div');d.className='msg-wrap '+role;var b=document.createElement('div');b.className='bubble';b.textContent=text;d.appendChild(b);document.getElementById('chatMsgs').appendChild(d);}
+function addThinking(id){var d=document.createElement('div');d.className='msg-wrap ai';d.id='w'+id;d.innerHTML='<div class="typing-wrap"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div>';document.getElementById('chatMsgs').appendChild(d);}
+function replaceThinking(id,text){
+  var w=document.getElementById('w'+id); if(!w)return;
+  w.innerHTML='';
+  var b=document.createElement('div');b.className='bubble';b.textContent=text;w.appendChild(b);
+  var cb=document.createElement('button');cb.className='copy-msg-btn';cb.textContent='คัดลอก';
+  cb.onclick=function(){navigator.clipboard.writeText(text);toast('คัดลอกแล้ว','success');};
+  w.appendChild(cb);
+}
+function scrollChat(){var el=document.getElementById('chatMsgs');if(el)el.scrollTop=el.scrollHeight;}
+
+function saveGemini() {
+  cfg.geminiKey = document.getElementById('sGemini').value.trim();
+  localStorage.setItem('devCfg',JSON.stringify(cfg));
+  if(cfg.geminiKey) {
+    var gs=document.getElementById('geminiStatus');
+    gs.className='conn-row ok';
+    gs.querySelector('svg').innerHTML='<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>';
+    document.getElementById('geminiStatusText').textContent='ตั้งค่าแล้ว พร้อมใช้งาน';
+    toast('บันทึก Gemini Key แล้ว','success');
+  }
+}
+
 loadCfg();
 // auto-load files & scan ถ้ามี token แล้ว
 if(cfg.token && cfg.user && cfg.repo) {
