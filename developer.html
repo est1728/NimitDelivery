@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nimit Developer Center</title>
+<style>
+:root{--primary:#0c4aa6;--primary-dark:#083570;--primary-light:#e8f0fe;--gray:#f5f6f8;--text:#0f172a;--subtext:#64748b;--green:#16a34a;--green-light:#dcfce7;--red:#dc2626;--red-light:#fee2e2;--orange:#ea580c;--orange-light:#fff7ed;--shadow-sm:0 1px 3px rgba(15,23,42,0.05);}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Arial',sans-serif;-webkit-tap-highlight-color:transparent;}
+body{background:var(--gray);min-height:100vh;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes toastIn{from{transform:translateY(-10px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes toastOut{to{opacity:0}}
+@keyframes popIn{from{transform:scale(0.92);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.topbar{background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:200;}
+.tbar-logo{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;}
+.tbar-logo svg{width:18px;height:18px;fill:#fff;}
+.tbar-title{font-size:16px;font-weight:800;color:#fff;flex:1;}
+.tbar-btn{height:34px;padding:0 12px;border:none;border-radius:10px;background:rgba(255,255,255,0.18);color:#fff;font-size:12px;font-weight:700;cursor:pointer;}
+.tabs{display:flex;background:#fff;border-bottom:1px solid #eaecf0;position:sticky;top:62px;z-index:190;overflow-x:auto;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex-shrink:0;padding:12px 14px;font-size:13px;font-weight:700;color:var(--subtext);cursor:pointer;border:none;background:none;position:relative;white-space:nowrap;}
+.tab.active{color:var(--primary);}
+.tab.active::after{content:'';position:absolute;bottom:-1px;left:15%;right:15%;height:3px;background:var(--primary);border-radius:3px 3px 0 0;}
+.tab-badge{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;color:#fff;font-size:10px;font-weight:800;border-radius:20px;padding:0 4px;margin-left:4px;vertical-align:middle;}
+.panel{display:none;padding:14px 16px 120px;animation:fadeIn 0.18s ease-out;}
+.panel.active{display:block;}
+.sec-label{font-size:12px;font-weight:800;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
+/* UPLOAD */
+.drop-zone{border:2px dashed #c7d7f0;border-radius:18px;padding:28px 20px;text-align:center;background:#fff;cursor:pointer;transition:all 0.2s;margin-bottom:14px;}
+.drop-zone.over{border-color:var(--primary);background:var(--primary-light);}
+.drop-zone svg{width:36px;height:36px;fill:#c7d7f0;display:block;margin:0 auto 10px;}
+.drop-zone h3{font-size:15px;font-weight:800;color:var(--text);margin-bottom:4px;}
+.drop-zone p{font-size:13px;color:var(--subtext);margin-bottom:14px;}
+.drop-btns{display:flex;gap:10px;justify-content:center;}
+.btn-files{height:38px;padding:0 18px;border:none;border-radius:20px;background:var(--primary);color:#fff;font-size:13px;font-weight:700;cursor:pointer;}
+.btn-folder{height:38px;padding:0 18px;border:2px solid var(--primary);border-radius:20px;background:#fff;color:var(--primary);font-size:13px;font-weight:700;cursor:pointer;}
+.file-list-card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:14px;}
+.file-row{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid #f5f6f8;}
+.file-row:last-child{border-bottom:none;}
+.fi-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.fi-ic.html{background:#fff3e0;} .fi-ic.html svg{fill:#f59e0b;}
+.fi-ic.css{background:#e0f2fe;} .fi-ic.css svg{fill:#0284c7;}
+.fi-ic.js{background:#fef3c7;} .fi-ic.js svg{fill:#d97706;}
+.fi-ic.other{background:var(--gray);} .fi-ic.other svg{fill:var(--subtext);}
+.fi-ic svg{width:16px;height:16px;}
+.fi-info{flex:1;min-width:0;}
+.fi-name{font-size:13px;font-weight:700;color:var(--text);font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fi-size{font-size:11px;color:var(--subtext);}
+.fi-tag{font-size:11px;font-weight:700;padding:2px 7px;border-radius:20px;flex-shrink:0;}
+.tag-new{background:var(--green-light);color:var(--green);}
+.tag-replace{background:var(--orange-light);color:var(--orange);}
+.tag-skip{background:#f1f5f9;color:var(--subtext);}
+.fi-acts{display:flex;gap:5px;}
+.fi-act{width:26px;height:26px;border-radius:7px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.fi-act svg{width:12px;height:12px;}
+.act-skip{background:#f1f5f9;} .act-skip svg{fill:var(--subtext);}
+.act-restore{background:var(--green-light);} .act-restore svg{fill:var(--green);}
+.act-del{background:var(--red-light);} .act-del svg{fill:var(--red);}
+.push-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #eaecf0;padding:10px 16px 22px;box-shadow:0 -4px 16px rgba(0,0,0,0.06);z-index:1000;display:none;}
+.push-sum{font-size:13px;color:var(--subtext);text-align:center;margin-bottom:8px;}
+.push-sum b{color:var(--primary);}
+.push-btn{width:100%;height:50px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(12,74,166,0.3);display:flex;align-items:center;justify-content:center;gap:10px;}
+.push-btn svg{width:18px;height:18px;fill:#fff;}
+.diff-card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:10px;}
+.diff-head{padding:11px 14px;background:var(--gray);display:flex;align-items:center;gap:10px;cursor:pointer;}
+.diff-fname{font-size:13px;font-weight:700;color:var(--text);flex:1;font-family:monospace;}
+.diff-body{padding:12px 14px;background:#0f172a;display:none;}
+.diff-body.open{display:block;}
+.diff-line{font-size:11px;font-family:monospace;line-height:1.6;color:#4ade80;white-space:pre-wrap;word-break:break-all;}
+.diff-ctx{color:#94a3b8;}
+/* FILES */
+.repo-bar{background:#fff;border-radius:14px;padding:12px 14px;box-shadow:var(--shadow-sm);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.repo-info{font-size:13px;color:var(--subtext);} .repo-info b{color:var(--text);}
+.ref-btn{width:34px;height:34px;border:none;border-radius:10px;background:var(--primary-light);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.ref-btn svg{width:16px;height:16px;fill:var(--primary);}
+.check-card{background:#fff;border-radius:14px;padding:13px 14px;box-shadow:var(--shadow-sm);margin-bottom:10px;}
+.check-title{font-size:12px;font-weight:800;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
+.chk{display:flex;align-items:center;gap:7px;padding:4px 0;font-size:13px;font-weight:600;font-family:monospace;}
+.chk svg{width:14px;height:14px;flex-shrink:0;}
+.chk-ok{color:var(--green);} .chk-ok svg{fill:var(--green);}
+.chk-miss{color:var(--red);} .chk-miss svg{fill:var(--red);}
+.exp-list{background:#fff;border-radius:14px;overflow:hidden;box-shadow:var(--shadow-sm);}
+.exp-row{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid #f5f6f8;cursor:pointer;}
+.exp-row:last-child{border-bottom:none;} .exp-row:active{background:var(--primary-light);}
+.exp-ic{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.exp-ic svg{width:15px;height:15px;}
+.exp-name{font-size:13px;font-weight:700;color:var(--text);flex:1;font-family:monospace;}
+.exp-size{font-size:11px;color:var(--subtext);}
+/* SCAN */
+.scan-topbar{background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow-sm);margin-bottom:12px;}
+.scan-chip-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;max-height:150px;overflow-y:auto;}
+.scan-chip{padding:6px 10px;border-radius:20px;border:1.5px solid #e2e8f0;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;font-family:monospace;transition:all 0.12s;}
+.scan-chip.sel{border-color:var(--primary);background:var(--primary-light);color:var(--primary);}
+.scan-actions{display:flex;gap:8px;}
+.scan-run-btn{flex:1;height:48px;border:none;border-radius:12px;background:var(--gray);color:var(--text);font-size:14px;font-weight:700;cursor:pointer;}
+.scan-run-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.autofix-btn{flex:2;height:48px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--green),#15803d);color:#fff;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(22,163,74,0.3);}
+.autofix-btn:disabled{background:#cbd5e1;box-shadow:none;cursor:not-allowed;}
+.autofix-btn svg{width:18px;height:18px;fill:#fff;}
+.scan-sum{display:flex;gap:8px;margin-bottom:12px;}
+.scan-sum-box{flex:1;padding:10px 8px;border-radius:12px;text-align:center;}
+.scan-sum-box.e{background:var(--red-light);} .scan-sum-box.w{background:var(--orange-light);}
+.scan-sum-box.i{background:var(--primary-light);} .scan-sum-box.ok{background:var(--green-light);}
+.scan-sum-num{font-size:20px;font-weight:800;}
+.scan-sum-box.e .scan-sum-num{color:var(--red);} .scan-sum-box.w .scan-sum-num{color:var(--orange);}
+.scan-sum-box.i .scan-sum-num{color:var(--primary);} .scan-sum-box.ok .scan-sum-num{color:var(--green);}
+.scan-sum-lbl{font-size:11px;font-weight:700;color:var(--subtext);}
+.scan-file-block{background:#fff;border-radius:14px;overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:10px;}
+.scan-file-head{padding:11px 14px;background:var(--gray);display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+.scan-file-hname{font-size:13px;font-weight:700;color:var(--text);font-family:monospace;flex:1;}
+.scan-count{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:6px;}
+.scan-count.e{background:var(--red-light);color:var(--red);}
+.scan-count.w{background:var(--orange-light);color:var(--orange);}
+.scan-count.ok{background:var(--green-light);color:var(--green);}
+.scan-issue-list{display:none;}
+.scan-issue-list.open{display:block;}
+.scan-issue{display:flex;gap:10px;padding:9px 14px;border-bottom:1px solid #f5f6f8;}
+.scan-issue:last-child{border-bottom:none;}
+.iss-ico{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.iss-ico.e{background:var(--red-light);} .iss-ico.e svg{fill:var(--red);}
+.iss-ico.w{background:var(--orange-light);} .iss-ico.w svg{fill:var(--orange);}
+.iss-ico.i{background:var(--primary-light);} .iss-ico.i svg{fill:var(--primary);}
+.iss-ico svg{width:12px;height:12px;}
+.iss-body{flex:1;}
+.iss-loc{font-size:11px;font-weight:700;color:var(--subtext);margin-bottom:2px;font-family:monospace;}
+.iss-msg{font-size:13px;font-weight:700;color:var(--text);}
+.iss-detail{font-size:12px;color:var(--subtext);margin-top:2px;line-height:1.5;}
+.iss-fixable{font-size:11px;font-weight:700;color:var(--green);margin-top:3px;}
+/* AUTO-FIX PROGRESS */
+.fix-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:500;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);}
+.fix-overlay.show{display:flex;}
+.fix-sheet{background:#fff;border-radius:24px 24px 0 0;width:100%;padding:20px 20px 36px;animation:slideUp 0.3s ease-out;}
+.fix-sheet-title{font-size:17px;font-weight:800;color:var(--text);margin-bottom:4px;text-align:center;}
+.fix-sheet-sub{font-size:13px;color:var(--subtext);text-align:center;margin-bottom:20px;}
+.fix-progress-bar{height:8px;background:#e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:10px;}
+.fix-progress-fill{height:100%;background:linear-gradient(90deg,var(--green),#22c55e);border-radius:8px;transition:width 0.4s ease;}
+.fix-progress-text{font-size:12px;color:var(--subtext);text-align:center;margin-bottom:16px;}
+.fix-steps{display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;}
+.fix-step{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--gray);}
+.fix-step.running{background:var(--primary-light);}
+.fix-step.done{background:var(--green-light);}
+.fix-step.error{background:var(--red-light);}
+.fix-step-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.fix-step.running .fix-step-icon{background:var(--primary);}
+.fix-step.done .fix-step-icon{background:var(--green);}
+.fix-step.error .fix-step-icon{background:var(--red);}
+.fix-step-icon svg{width:14px;height:14px;fill:#fff;}
+.fix-step-icon .spin{animation:spin 0.8s linear infinite;}
+.fix-step-name{font-size:13px;font-weight:700;color:var(--text);font-family:monospace;flex:1;}
+.fix-step-status{font-size:11px;color:var(--subtext);}
+.fix-step.done .fix-step-status{color:var(--green);font-weight:700;}
+.fix-step.error .fix-step-status{color:var(--red);font-weight:700;}
+.fix-done-btn{width:100%;height:50px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:15px;font-weight:800;cursor:pointer;margin-top:16px;display:none;}
+/* VIEWER */
+.viewer{position:fixed;inset:0;background:#0f172a;z-index:400;display:none;flex-direction:column;}
+.viewer.open{display:flex;}
+.viewer-bar{background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:13px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.viewer-back{width:36px;height:36px;border:none;border-radius:10px;background:rgba(255,255,255,0.18);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.viewer-back svg{width:17px;height:17px;stroke:#fff;fill:none;stroke-width:2.5;}
+.viewer-name{font-size:14px;font-weight:800;color:#fff;flex:1;font-family:monospace;}
+.viewer-body{flex:1;overflow:auto;}
+.viewer-code{padding:14px;font-size:11px;font-family:monospace;line-height:1.7;color:#e2e8f0;white-space:pre;tab-size:2;}
+.lnum{color:#475569;user-select:none;margin-right:14px;min-width:28px;display:inline-block;text-align:right;}
+/* HISTORY */
+.hist-card{background:#fff;border-radius:14px;padding:13px 16px;margin-bottom:10px;box-shadow:var(--shadow-sm);}
+.hist-top{display:flex;align-items:center;gap:10px;margin-bottom:5px;}
+.hist-ico{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.hist-ico.ok{background:var(--green-light);} .hist-ico.ok svg{fill:var(--green);}
+.hist-ico.fail{background:var(--red-light);} .hist-ico.fail svg{fill:var(--red);}
+.hist-ico svg{width:17px;height:17px;}
+.hist-msg{font-size:14px;font-weight:700;color:var(--text);flex:1;}
+.hist-time{font-size:11px;color:var(--subtext);}
+.hist-files{font-size:12px;color:var(--subtext);}
+/* SETTINGS */
+.s-card{background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow-sm);margin-bottom:12px;}
+.s-title{font-size:12px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--gray);}
+.s-field{margin-bottom:12px;} .s-field:last-child{margin-bottom:0;}
+.s-label{font-size:13px;font-weight:700;color:var(--subtext);margin-bottom:5px;}
+.s-input{width:100%;height:46px;border:2px solid #eef0f4;border-radius:12px;padding:0 12px;font-size:13px;outline:none;background:#fafbfc;font-family:monospace;}
+.s-input:focus{border-color:var(--primary);}
+.s-hint{font-size:11px;color:var(--subtext);margin-top:4px;line-height:1.5;}
+.s-save{width:100%;height:48px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:15px;font-weight:800;cursor:pointer;margin-top:12px;}
+.conn-row{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:12px;font-size:13px;font-weight:700;margin-bottom:12px;}
+.conn-row.ok{background:var(--green-light);color:var(--green);} .conn-row.fail{background:var(--red-light);color:var(--red);}
+.conn-row svg{width:15px;height:15px;flex-shrink:0;}
+.conn-row.ok svg{fill:var(--green);} .conn-row.fail svg{fill:var(--red);}
+/* CONFIRM MODAL */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:500;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
+.modal-ov.show{display:flex;}
+.modal{background:#fff;border-radius:20px;width:100%;max-width:380px;overflow:hidden;animation:popIn 0.2s ease-out;}
+.modal-head{background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:18px 20px;color:#fff;text-align:center;}
+.modal-head svg{width:28px;height:28px;fill:#fff;display:block;margin:0 auto 6px;}
+.modal-head h3{font-size:16px;font-weight:800;}
+.modal-body{padding:14px 18px;}
+.commit-in{width:100%;height:44px;border:2px solid #eef0f4;border-radius:12px;padding:0 12px;font-size:14px;outline:none;margin-bottom:10px;}
+.commit-in:focus{border-color:var(--primary);}
+.modal-files{background:var(--gray);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--subtext);margin-bottom:12px;max-height:100px;overflow-y:auto;font-family:monospace;}
+.modal-btns{display:flex;gap:8px;}
+.m-cancel{flex:1;height:46px;border:2px solid #e2e8f0;border-radius:12px;background:#fff;color:var(--text);font-size:14px;font-weight:700;cursor:pointer;}
+.m-ok{flex:2;height:46px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:14px;font-weight:800;cursor:pointer;}
+.deploy-bar{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:600;background:#fff;border-radius:14px;padding:12px 18px;box-shadow:0 8px 24px rgba(0,0,0,0.12);display:none;align-items:center;gap:10px;min-width:260px;border:2px solid var(--primary-light);}
+.deploy-bar.show{display:flex;}
+.d-spin{width:18px;height:18px;border:2.5px solid var(--primary-light);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;}
+.d-chk{width:18px;height:18px;display:none;}
+.d-chk svg{width:18px;height:18px;fill:var(--green);}
+.d-title{font-size:13px;font-weight:800;color:var(--text);} .d-sub{font-size:11px;color:var(--subtext);}
+.empty{text-align:center;padding:40px 20px;}
+.empty svg{width:40px;height:40px;fill:#cbd5e1;display:block;margin:0 auto 12px;}
+.empty p{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.empty span{font-size:13px;color:var(--subtext);}
+/* AI CHAT */
+.ai-panel{display:none;flex-direction:column;height:calc(100vh - 110px);padding:0;}
+.ai-panel.active{display:flex;}
+.ai-topbar{display:flex;align-items:center;gap:8px;padding:9px 14px;background:#fff;border-bottom:1px solid #f0f0f0;flex-shrink:0;}
+.ai-status-dot{width:8px;height:8px;border-radius:50%;background:#cbd5e1;flex-shrink:0;}
+.ai-status-dot.ready{background:var(--green);animation:none;}
+.ai-status-dot.busy{background:#f59e0b;animation:pulse 1s infinite;}
+.ai-status-dot.sleep{background:#94a3b8;}
+.ai-status-dot.error{background:var(--red);}
+.ai-status-text{font-size:12px;color:var(--subtext);flex:1;}
+.quota-badge{font-size:11px;font-weight:700;background:var(--primary-light);color:var(--primary);padding:3px 8px;border-radius:20px;}
+.chat-msgs{flex:1;overflow-y:auto;padding-bottom:100px;}
+.chat-welcome{display:flex;flex-direction:column;align-items:center;padding:40px 20px;text-align:center;}
+.chat-welcome-ico{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+.chat-welcome-ico svg{width:26px;height:26px;fill:#fff;}
+.chat-welcome h3{font-size:18px;font-weight:800;color:var(--text);margin-bottom:6px;}
+.chat-welcome p{font-size:13px;color:var(--subtext);line-height:1.6;max-width:280px;}
+.chat-suggestions{display:flex;flex-direction:column;gap:8px;margin-top:18px;width:100%;max-width:340px;}
+.chat-sugg{padding:11px 14px;background:#fff;border:1.5px solid #e8eaf0;border-radius:12px;font-size:13px;color:var(--text);cursor:pointer;text-align:left;font-weight:600;}
+.msg-wrap{padding:5px 14px;}
+.msg-wrap.user{display:flex;justify-content:flex-end;}
+.msg-wrap.ai{display:flex;flex-direction:column;align-items:flex-start;}
+.bubble{font-size:14px;line-height:1.7;white-space:pre-wrap;}
+.msg-wrap.user .bubble{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;padding:11px 16px;border-radius:20px 20px 4px 20px;max-width:82%;}
+.msg-wrap.ai .bubble{background:#fff;color:var(--text);padding:12px 16px;border-radius:20px 20px 20px 4px;max-width:90%;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+.typing-wrap{display:flex;gap:5px;padding:14px 16px;}
+.t-dot{width:7px;height:7px;border-radius:50%;background:var(--subtext);animation:typing 1s infinite;}
+.t-dot:nth-child(2){animation-delay:0.15s;}
+.t-dot:nth-child(3){animation-delay:0.3s;}
+@keyframes typing{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.copy-msg-btn{font-size:11px;color:var(--subtext);background:none;border:none;cursor:pointer;padding:3px 0;margin-top:3px;}
+.chat-input-area{position:fixed;bottom:0;left:0;right:0;padding:10px 14px 20px;background:linear-gradient(to top,#fff 85%,transparent);z-index:100;}
+.chat-input-box{display:flex;gap:8px;align-items:flex-end;background:#fff;border:2px solid #e8eaf0;border-radius:18px;padding:8px 8px 8px 14px;box-shadow:0 2px 12px rgba(0,0,0,0.06);}
+.chat-input-box:focus-within{border-color:var(--primary);}
+.chat-input{flex:1;border:none;outline:none;resize:none;font-size:15px;line-height:1.5;font-family:inherit;max-height:120px;background:transparent;color:var(--text);}
+.chat-send{width:38px;height:38px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.chat-send svg{width:17px;height:17px;fill:#fff;}
+.chat-send:disabled{background:#e2e8f0;}
+.sleep-banner{background:var(--gray);border-radius:12px;padding:14px;text-align:center;margin:16px;}
+.sleep-banner-icon{font-size:32px;margin-bottom:8px;}
+.sleep-banner-title{font-size:15px;font-weight:800;color:var(--text);}
+.sleep-banner-sub{font-size:13px;color:var(--subtext);margin-top:4px;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.toast-wrap{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:900;pointer-events:none;width:100%;padding:0 14px;}
+.toast{display:flex;align-items:center;gap:8px;padding:11px 14px;border-radius:12px;font-size:13px;font-weight:700;color:#fff;box-shadow:0 8px 20px rgba(0,0,0,0.18);margin-bottom:8px;animation:toastIn 0.25s ease-out;}
+.toast svg{width:16px;height:16px;fill:#fff;flex-shrink:0;}
+.toast.success{background:var(--green);} .toast.error{background:var(--red);} .toast.info{background:var(--primary);}
+</style>
+</head>
+<body>
+<div class="toast-wrap" id="toastWrap"></div>
+<div class="topbar">
+  <div class="tbar-logo"><svg viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg></div>
+  <div class="tbar-title">Developer Center</div>
+  <button class="tbar-btn" onclick="window.location.href='index.html'">ออก</button>
+</div>
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('deploy')">Deploy</button>
+  <button class="tab" onclick="switchTab('diff')">Diff</button>
+  <button class="tab" onclick="switchTab('files')">ไฟล์</button>
+  <button class="tab" onclick="switchTab('scan')">สแกน<span class="tab-badge" id="scanBadge" style="display:none;background:var(--red)">0</span></button>
+  <button class="tab" onclick="switchTab('ai')">🤖 AI</button>
+  <button class="tab" onclick="switchTab('history')">ประวัติ</button>
+  <button class="tab" onclick="switchTab('settings')">ตั้งค่า</button>
+</div>
+
+<!-- DEPLOY -->
+<div class="panel active" id="panel-deploy">
+  <div class="drop-zone" id="dropZone">
+    <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+    <h3>ลากไฟล์มาวางที่นี่</h3><p>รองรับ .html .css .js</p>
+    <div class="drop-btns">
+      <button class="btn-files" onclick="document.getElementById('fi').click()">เลือกไฟล์</button>
+      <button class="btn-folder" onclick="document.getElementById('fo').click()">เลือกโฟลเดอร์</button>
+    </div>
+  </div>
+  <input type="file" id="fi" multiple style="display:none" onchange="onPick(this.files)">
+  <input type="file" id="fo" multiple webkitdirectory style="display:none" onchange="onPick(this.files)">
+  <div id="deployFileSec" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div class="sec-label">ไฟล์ที่เลือก (<span id="fileCount">0</span>)</div>
+      <button onclick="clearFiles()" style="font-size:12px;color:var(--red);background:none;border:none;cursor:pointer;font-weight:700">ล้าง</button>
+    </div>
+    <div class="file-list-card" id="fileListEl"></div>
+    <button id="inlinePushBtn" onclick="openConfirm()" style="width:100%;height:52px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:15px;font-weight:800;cursor:pointer;margin-top:12px;box-shadow:0 4px 14px rgba(12,74,166,0.3);display:flex;align-items:center;justify-content:center;gap:10px">
+      <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:#fff"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+      Push to GitHub (<span id="pushCount2">0</span> ไฟล์)
+    </button>
+  </div>
+</div>
+
+<!-- DIFF -->
+<div class="panel" id="panel-diff">
+  <div id="diffEl"><div class="empty"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg><p>ยังไม่มีไฟล์</p><span>เลือกไฟล์ใน Deploy ก่อน</span></div></div>
+</div>
+
+<!-- FILES -->
+<div class="panel" id="panel-files">
+  <div class="repo-bar">
+    <div class="repo-info">Repo: <b id="repoLabel">-</b></div>
+    <button class="ref-btn" onclick="loadFiles()"><svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></button>
+  </div>
+  <div class="check-card"><div class="check-title">ตรวจสอบไฟล์หลัก</div><div id="checkEl"><span style="font-size:13px;color:var(--subtext)">กด refresh</span></div></div>
+  <div class="sec-label" style="margin-bottom:8px">ไฟล์ทั้งหมด</div>
+  <div id="expListEl"><div class="empty"><svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a2.996 2.996 0 0 0-5.5-1.65l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-2 .89-2 2v11c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2z"/></svg><p>ยังไม่มีข้อมูล</p><span>กด refresh</span></div></div>
+</div>
+
+<!-- SCAN -->
+<div class="panel" id="panel-scan">
+  <div class="scan-topbar">
+    <div class="sec-label">ไฟล์ที่สแกน (โหลดอัตโนมัติเมื่อเชื่อม GitHub)</div>
+    <div class="scan-chip-wrap" id="scanChips"><span style="font-size:13px;color:var(--subtext)">โหลดไฟล์ที่แท็บ ไฟล์ ก่อน</span></div>
+    <div class="scan-actions">
+      <button class="scan-run-btn" id="scanRunBtn" onclick="runScan()" disabled>สแกนใหม่</button>
+      <button class="autofix-btn" id="autofixBtn" onclick="_fixRound=0;startAutoFix()" disabled>
+        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+        แก้ทั้งหมดอัตโนมัติ
+      </button>
+    </div>
+  </div>
+  <div id="scanResultWrap"></div>
+</div>
+
+<!-- AI CHAT -->
+<div class="ai-panel" id="panel-ai">
+  <div class="ai-topbar">
+    <div class="ai-status-dot sleep" id="aiDot"></div>
+    <div class="ai-status-text" id="aiStatusText">รอตั้งค่า Gemini API Key</div>
+    <div class="quota-badge" id="quotaBadge">- / 500</div>
+  </div>
+  <div class="chat-msgs" id="chatMsgs">
+    <div class="chat-welcome" id="chatWelcome">
+      <div class="chat-welcome-ico"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>
+      <h3>Nimit AI (Gemini)</h3>
+      <p>ตรวจบั๊ก ช่องโหว่ แนะนำการแก้ไข — ส่งโค้ดมาได้เลย</p>
+      <div class="chat-suggestions">
+        <button class="chat-sugg" onclick="quickAsk('ตรวจสอบ shops.html มีบั๊กหรือช่องโหว่อะไรบ้าง?')">🔍 ตรวจ shops.html</button>
+        <button class="chat-sugg" onclick="quickAsk('ตรวจ admin-logic.js มีปัญหาอะไรบ้าง แก้ให้ด้วย')">🔧 ตรวจ admin-logic.js</button>
+        <button class="chat-sugg" onclick="quickAsk('ไฟล์ไหนในโปรเจกต์มีความเสี่ยงด้าน security บ้าง?')">🔒 ตรวจ Security</button>
+        <button class="chat-sugg" onclick="quickAsk('แนะนำการปรับปรุงโค้ดที่ควรทำก่อน launch')">🚀 แนะนำก่อน launch</button>
+      </div>
+    </div>
+  </div>
+  <div class="chat-input-area">
+    <div class="chat-input-box">
+      <textarea class="chat-input" id="chatInput" placeholder="ถามเกี่ยวกับโค้ด..." rows="1"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"
+        oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
+      <button class="chat-send" id="chatSendBtn" onclick="sendChat()">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div class="panel" id="panel-history">
+  <div id="histEl"><div class="empty"><svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18z"/></svg><p>ยังไม่มีประวัติ</p></div></div>
+</div>
+
+<!-- SETTINGS -->
+<div class="panel" id="panel-settings">
+  <div class="s-card">
+    <div class="s-title">GitHub Connection</div>
+    <div class="conn-row fail" id="connRow"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z"/></svg><span id="connText">ยังไม่ได้เชื่อมต่อ</span></div>
+    <div class="s-field"><div class="s-label">GitHub Token</div><input class="s-input" id="sToken" type="password" placeholder="ghp_xxxxxxxxxxxx"><div class="s-hint">Settings → Developer settings → Personal access tokens → Tokens (classic) → ติ๊ก repo</div></div>
+    <div class="s-field"><div class="s-label">Username</div><input class="s-input" id="sUser" placeholder="est1728"></div>
+    <div class="s-field"><div class="s-label">Repository</div><input class="s-input" id="sRepo" placeholder="NimitDelivery"></div>
+    <div class="s-field" style="margin-bottom:0"><div class="s-label">Branch</div><input class="s-input" id="sBranch" placeholder="main"></div>
+    <button class="s-save" onclick="saveSettings()">บันทึกและทดสอบการเชื่อมต่อ</button>
+  </div>
+  <div class="s-card">
+    <div class="s-title">Gemini AI</div>
+    <div class="conn-row fail" id="geminiStatus"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z"/></svg><span id="geminiStatusText">ยังไม่ได้ตั้งค่า</span></div>
+    <div class="s-field"><div class="s-label">Gemini API Key</div><input class="s-input" id="sGemini" type="password" placeholder="AIzaSy..."><div class="s-hint">aistudio.google.com/app/apikey → Create API Key (ฟรี 500 req/วัน)</div></div>
+    <div style="background:var(--primary-light);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--primary);margin-top:4px">
+      🌙 เมื่อโควต้าหมด AI จะหยุดให้บริการอัตโนมัติและแจ้งเวลา reset (ตี 0)
+    </div>
+    <button class="s-save" onclick="saveGemini()" style="margin-top:12px">บันทึก Gemini Key</button><button onclick="resetQuota()" style="width:100%;height:44px;border:2px solid var(--primary);border-radius:12px;background:#fff;color:var(--primary);font-size:14px;font-weight:700;cursor:pointer;margin-top:8px">🔄 Reset Quota (ถ้า quota ค้าง)</button
+  </div>
+</div>
+
+<!-- PUSH BAR -->
+<div class="push-bar" id="pushBar" style="display:none">
+  <div class="push-sum">พร้อม Push <b id="pushCount">0</b> ไฟล์</div>
+  <button class="push-btn" onclick="openConfirm()"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Push to GitHub</button>
+</div>
+
+<!-- FILE VIEWER -->
+<div class="viewer" id="viewer">
+  <div class="viewer-bar">
+    <button class="viewer-back" onclick="closeViewer()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+    <div class="viewer-name" id="viewerName">file.html</div>
+  </div>
+  <div class="viewer-body"><div class="viewer-code" id="viewerCode"></div></div>
+</div>
+
+<!-- PUSH CONFIRM MODAL -->
+<div class="modal-ov" id="confirmModal">
+  <div class="modal">
+    <div class="modal-head"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg><h3>ยืนยันการ Push</h3></div>
+    <div class="modal-body">
+      <input class="commit-in" id="commitMsg" placeholder="Commit message">
+      <div class="modal-files" id="confirmFiles"></div>
+      <div class="modal-btns"><button class="m-cancel" onclick="closeConfirm()">ยกเลิก</button><button class="m-ok" onclick="doPush()">Push เลย</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- AUTO-FIX PROGRESS SHEET -->
+<div class="fix-overlay" id="fixOverlay">
+  <div class="fix-sheet">
+    <div class="fix-sheet-title">กำลังแก้ไขอัตโนมัติ</div>
+    <div class="fix-sheet-sub" id="fixSheetSub">เตรียมระบบ...</div>
+    <div class="fix-progress-bar"><div class="fix-progress-fill" id="fixProgressFill" style="width:0%"></div></div>
+    <div class="fix-progress-text" id="fixProgressText">0 / 0 ไฟล์</div>
+    <div class="fix-steps" id="fixSteps"></div>
+    <button class="fix-done-btn" id="fixDoneBtn" onclick="closeFixSheet()">เสร็จสิ้น ✓</button>
+  </div>
+</div>
+
+<!-- DEPLOY STATUS -->
+<div class="deploy-bar" id="deployBar">
+  <div class="d-spin" id="dSpin"></div>
+  <div class="d-chk" id="dChk"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>
+  <div><div class="d-title" id="dTitle">กำลัง Push...</div><div class="d-sub" id="dSub">อย่าปิดหน้าต่าง</div></div>
+</div>
+
+<script>
+var cfg = JSON.parse(localStorage.getItem('devCfg')||'{}');
+var history2 = JSON.parse(localStorage.getItem('devHist')||'[]');
+var files = [];
+var repoFiles = [];
+var scanCache = {};
+var scanSelected = [];
+var scanResults = [];
+var EXPECTED = ['index.html','register.html','shops.html','menu.html','cart.html','checkout.html','track.html','address.html','admin.html','admin-style.css','admin-logic.js','rider.html','shop-admin.html','shop-manage.html','developer.html'];
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.panel,.ai-panel').forEach(function(p){p.classList.remove('active');});
+  var names=['deploy','diff','files','scan','ai','history','settings'];
+  var idx=names.indexOf(tab);
+  if(idx>=0) document.querySelectorAll('.tab')[idx].classList.add('active');
+  document.getElementById('panel-'+tab).classList.add('active');
+  if(tab==='files') loadFiles();
+  if(tab==='history') renderHistory();
+  if(tab==='ai') initAITab();
+  if(tab==='scan') renderScanChips();
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtSize(b){return b<1024?b+'B':b<1048576?(b/1024).toFixed(1)+'KB':(b/1048576).toFixed(1)+'MB';}
+function iclass(n){var e=n.split('.').pop().toLowerCase();return e==='html'?'html':e==='css'?'css':e==='js'?'js':'other';}
+
+// DEPLOY
+var ALLOWED=['html','css','js','json','txt','md','svg','ico','png','jpg','jpeg','gif','webp'];
+function onPick(fl){
+  Array.from(fl).forEach(function(file){
+    var ext=file.name.split('.').pop().toLowerCase();
+    if(ALLOWED.indexOf(ext)<0) return;
+    var reader=new FileReader();
+    reader.onload=function(e){
+      var content=e.target.result;
+      var idx=files.findIndex(function(f){return f.name===file.name;});
+      var obj={name:file.name,content:content,status:idx>=0?'replace':'new',size:file.size};
+      if(idx>=0) files[idx]=obj; else files.push(obj);
+      renderDeploy();
+    };
+    if(/\.(png|jpg|jpeg|gif|webp|ico)$/i.test(file.name)) reader.readAsDataURL(file);
+    else reader.readAsText(file,'utf-8');
+  });
+}
+var dz=document.getElementById('dropZone');
+dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('over');});
+dz.addEventListener('dragleave',function(){dz.classList.remove('over');});
+dz.addEventListener('drop',function(e){e.preventDefault();dz.classList.remove('over');onPick(e.dataTransfer.files);});
+function renderDeploy(){
+  var active=files.filter(function(f){return f.status!=='skip';});
+  document.getElementById('deployFileSec').style.display=files.length?'block':'none';
+  document.getElementById('fileCount').textContent=files.length;
+  document.getElementById('pushBar').style.display=active.length?'block':'none';
+  document.getElementById('pushCount').textContent=active.length;
+  var pc2=document.getElementById('pushCount2'); if(pc2) pc2.textContent=active.length;
+  document.getElementById('fileListEl').innerHTML=files.map(function(f,i){
+    var ic=iclass(f.name);
+    return '<div class="file-row"><div class="fi-ic '+ic+'"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg></div>'
+      +'<div class="fi-info"><div class="fi-name">'+f.name+'</div><div class="fi-size">'+fmtSize(f.size)+'</div></div>'
+      +'<div class="fi-tag tag-'+f.status+'">'+(f.status==='new'?'ใหม่':f.status==='replace'?'แทนที่':'ข้าม')+'</div>'
+      +'<div class="fi-acts">'
+      +(f.status==='skip'?'<button class="fi-act act-restore" onclick="setSt('+i+',\'replace\')"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></button>'
+      :'<button class="fi-act act-skip" onclick="setSt('+i+',\'skip\')"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>')
+      +'<button class="fi-act act-del" onclick="delFile('+i+')"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>'
+      +'</div></div>';
+  }).join('');
+  renderDiff();
+}
+function setSt(i,s){files[i].status=s;renderDeploy();}
+function delFile(i){files.splice(i,1);renderDeploy();}
+function clearFiles(){files=[];renderDeploy();}
+function renderDiff(){
+  var active=files.filter(function(f){return f.status!=='skip'&&!/\.(png|jpg|jpeg|gif|webp|ico)$/i.test(f.name);});
+  if(!active.length){document.getElementById('diffEl').innerHTML='<div class="empty"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg><p>ยังไม่มีไฟล์</p><span>เลือกไฟล์ใน Deploy ก่อน</span></div>';return;}
+  document.getElementById('diffEl').innerHTML=active.map(function(f,i){
+    var lines=f.content.split('\n').slice(0,30);
+    return '<div class="diff-card"><div class="diff-head" onclick="document.getElementById(\'d'+i+'\').classList.toggle(\'open\')">'
+      +'<div class="diff-fname">'+f.name+'</div><div class="fi-tag tag-'+f.status+'">'+(f.status==='new'?'ใหม่':'แทนที่')+'</div></div>'
+      +'<div class="diff-body" id="d'+i+'">'+lines.map(function(l){return '<div class="diff-line">+ '+esc(l)+'</div>';}).join('')
+      +(f.content.split('\n').length>30?'<div class="diff-line diff-ctx">...อีก '+(f.content.split('\n').length-30)+' บรรทัด</div>':'')
+      +'</div></div>';
+  }).join('');
+}
+function openConfirm(){
+  // โหลด cfg ใหม่ทุกครั้งที่กด เผื่อ localStorage เปลี่ยน
+  cfg=JSON.parse(localStorage.getItem('devCfg')||'{}');
+  if(!cfg.token||!cfg.user||!cfg.repo){
+    toast('ยังไม่ได้ตั้งค่า GitHub Token กรุณาไปที่แท็บ ตั้งค่า','error');
+    switchTab('settings');
+    return;
+  }
+  var active=files.filter(function(f){return f.status!=='skip';});
+  if(!active.length){toast('ยังไม่มีไฟล์ที่จะ Push','info');return;}
+  document.getElementById('commitMsg').value='update: อัพเดต '+active.length+' ไฟล์';
+  document.getElementById('confirmFiles').innerHTML=active.map(function(f){return (f.status==='new'?'+ ':' ')+f.name;}).join('<br>');
+  document.getElementById('confirmModal').classList.add('show');
+}
+function closeConfirm(){document.getElementById('confirmModal').classList.remove('show');}
+async function doPush(){
+  closeConfirm();
+  var active=files.filter(function(f){return f.status!=='skip';});
+  var msg=document.getElementById('commitMsg').value.trim()||'update files';
+  showDeploy('กำลัง Push...','อย่าปิดหน้าต่าง');
+  var ok=0,fail=0,failList=[];
+  for(var i=0;i<active.length;i++){
+    var f=active[i]; showDeploy('Push ('+(i+1)+'/'+active.length+')',f.name);
+    try{
+      var sha=null;
+      var gr=await fetch('https://api.github.com/repos/'+cfg.user+'/'+cfg.repo+'/contents/'+encodeURIComponent(f.name),{headers:{'Authorization':'token '+cfg.token}});
+      if(gr.ok){var gd=await gr.json();sha=gd.sha;}
+      var content=/\.(png|jpg|jpeg|gif|webp|ico)$/i.test(f.name)?f.content.split(',')[1]:btoa(unescape(encodeURIComponent(f.content)));
+      var body={message:msg+' ('+f.name+')',content:content,branch:cfg.branch||'main'};
+      if(sha) body.sha=sha;
+      var pr=await fetch('https://api.github.com/repos/'+cfg.user+'/'+cfg.repo+'/contents/'+encodeURIComponent(f.name),{method:'PUT',headers:{'Authorization':'token '+cfg.token,'Content-Type':'application/json'},body:JSON.stringify(body)});
+      if(pr.ok) ok++; else{fail++;failList.push(f.name);}
+    }catch(e){fail++;failList.push(f.name);}
+  }
+  var h={msg:msg,files:active.map(function(f){return f.name;}),time:new Date().toISOString(),ok:fail===0,failList:failList};
+  history2.unshift(h); localStorage.setItem('devHist',JSON.stringify(history2.slice(0,50)));
+  if(fail===0){showDeployDone('Push สำเร็จ '+ok+' ไฟล์','Vercel กำลัง Deploy...');clearFiles();toast('Push สำเร็จ!','success');}
+  else{hideDeploy();toast('สำเร็จ '+ok+' ล้มเหลว '+fail,'error');}
+}
+
+// FILES
+async function loadFiles(){
+  if(!cfg.token||!cfg.user||!cfg.repo){document.getElementById('expListEl').innerHTML='<div class="empty"><p style="color:var(--red)">กรุณาตั้งค่า GitHub Token</p></div>';return;}
+  document.getElementById('repoLabel').textContent=cfg.user+'/'+cfg.repo;
+  document.getElementById('expListEl').innerHTML='<div class="empty"><p>กำลังโหลด...</p></div>';
+  try{
+    var res=await fetch('https://api.github.com/repos/'+cfg.user+'/'+cfg.repo+'/contents',{headers:{'Authorization':'token '+cfg.token}});
+    if(!res.ok){document.getElementById('expListEl').innerHTML='<div class="empty"><p style="color:var(--red)">โหลดไม่ได้</p></div>';return;}
+    repoFiles=await res.json();
+    renderFiles(); renderCheck();
+    scanCache={};
+    scanSelected=repoFiles.filter(function(f){return f.type==='file'&&/\.(html|js|css)$/.test(f.name);}).map(function(f){return f.name;});
+    autoRunScan();
+  }catch(e){}
+}
+function renderFiles(){
+  var f=repoFiles.filter(function(f){return f.type==='file';});
+  document.getElementById('expListEl').innerHTML='<div class="exp-list">'+f.map(function(fi){
+    var ic=iclass(fi.name);
+    return '<div class="exp-row" onclick="openViewer(\''+fi.name+'\',\''+fi.download_url+'\')">'
+      +'<div class="exp-ic fi-ic '+ic+'"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg></div>'
+      +'<div class="exp-name">'+fi.name+'</div><div class="exp-size">'+fmtSize(fi.size)+'</div>'
+      +'<svg style="width:13px;height:13px;fill:var(--subtext);flex-shrink:0" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>';
+  }).join('')+'</div>';
+}
+function renderCheck(){
+  var names=repoFiles.map(function(f){return f.name;});
+  document.getElementById('checkEl').innerHTML=EXPECTED.map(function(f){
+    var ok=names.indexOf(f)>=0;
+    return '<div class="chk '+(ok?'chk-ok':'chk-miss')+'"><svg viewBox="0 0 24 24"><path d="'+(ok?'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z':'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z')+'"/></svg>'+f+'</div>';
+  }).join('');
+}
+async function openViewer(name,url){
+  document.getElementById('viewerName').textContent=name;
+  document.getElementById('viewerCode').textContent='กำลังโหลด...';
+  document.getElementById('viewer').classList.add('open');
+  try{var res=await fetch(url);var txt=await res.text();var lines=txt.split('\n');document.getElementById('viewerCode').innerHTML=lines.map(function(l,i){return '<span class="lnum">'+(i+1)+'</span>'+esc(l);}).join('\n');}
+  catch(e){document.getElementById('viewerCode').textContent='โหลดไม่ได้';}
+}
+function closeViewer(){document.getElementById('viewer').classList.remove('open');}
+
+// SCANNER
+function renderScanChips(){
+  var el=document.getElementById('scanChips');
+  if(!repoFiles.length){el.innerHTML='<span style="font-size:13px;color:var(--subtext)">โหลดไฟล์ที่แท็บ ไฟล์ ก่อน</span>';return;}
+  var cf=repoFiles.filter(function(f){return f.type==='file'&&/\.(html|js|css)$/.test(f.name);});
+  el.innerHTML=cf.map(function(f){
+    var sel=scanSelected.indexOf(f.name)>=0;
+    return '<div class="scan-chip'+(sel?' sel':'')+'" onclick="toggleScanChip(\''+f.name+'\')">'+f.name+'</div>';
+  }).join('');
+  document.getElementById('scanRunBtn').disabled=scanSelected.length===0;
+  document.getElementById('autofixBtn').disabled=scanSelected.length===0;
+}
+function toggleScanChip(name){
+  var idx=scanSelected.indexOf(name);
+  if(idx>=0) scanSelected.splice(idx,1); else scanSelected.push(name);
+  renderScanChips();
+}
+async function autoRunScan(){
+  if(!scanSelected.length) return;
+  var cf=repoFiles.filter(function(f){return scanSelected.indexOf(f.name)>=0;});
+  for(var i=0;i<cf.length;i++){
+    if(!scanCache[cf[i].name]){try{var r=await fetch(cf[i].download_url);scanCache[cf[i].name]=await r.text();}catch(e){}}
+  }
+  doScan();
+}
+async function runScan(){
+  document.getElementById('scanRunBtn').disabled=true;
+  document.getElementById('scanResultWrap').innerHTML='<div style="text-align:center;padding:24px;color:var(--subtext)">กำลังสแกน...</div>';
+  var cf=repoFiles.filter(function(f){return scanSelected.indexOf(f.name)>=0;});
+  for(var i=0;i<cf.length;i++){try{var r=await fetch(cf[i].download_url);scanCache[cf[i].name]=await r.text();}catch(e){}}
+  doScan();
+  document.getElementById('scanRunBtn').disabled=false;
+}
+
+function analyzeFile(fname,code){
+  var issues=[];
+  var lines=code.split('\n');
+  var isHTML=/\.html$/i.test(fname);
+  for(var i=0;i<lines.length;i++){
+    var line=lines[i]; var n=i+1; var t=line.trim();
+    if(t.indexOf('ghp_')>=0&&/ghp_[A-Za-z0-9]{20}/.test(t)) issues.push({lv:'e',n:n,cat:'🔒 Security',msg:'พบ GitHub Token ฝังในโค้ด!',detail:'ลบออก ใช้ localStorage แทน',fixable:false});
+    if(t.indexOf('AIzaSy')>=0) issues.push({lv:'i',n:n,cat:'ℹ️ Info',msg:'Firebase API Key (ปกติไม่อันตราย)',detail:'Firebase apiKey เป็น public by design',fixable:false});
+    if(t.indexOf('.innerHTML')>=0&&(t.indexOf('${')>=0||(t.indexOf("'+")>=0&&t.indexOf("+'")>=0))&&t.charAt(0)!=='/'&&t.charAt(0)!=='*'){
+      var allWrapped=true;
+      (t.match(/\$\{([^}]+)\}/g)||[]).forEach(function(m){var inner=m.slice(2,-1).trim();if(inner&&inner.indexOf('esc(')<0&&!/^[\d"'`]/.test(inner))allWrapped=false;});
+      (t.match(/\+([a-zA-Z_$][\w.$?()]*(?:\|\|[^+'"]+)?)\+/g)||[]).forEach(function(m){var inner=m.slice(1,-1).trim();if(inner&&inner.indexOf('esc(')<0&&inner.indexOf('(')<0)allWrapped=false;});
+      if(!allWrapped) issues.push({lv:'w',n:n,cat:'🔒 XSS Risk',msg:'innerHTML ใช้กับตัวแปร ยังไม่มี esc()',detail:'อาจเสี่ยง XSS ถ้า data มาจาก user',fixable:false,fix:'add_esc'});
+    }
+    if(!isHTML&&(t.indexOf('await getDocs(')>=0||t.indexOf('await addDoc(')>=0||t.indexOf('await updateDoc(')>=0||t.indexOf('await setDoc(')>=0||t.indexOf('await deleteDoc(')>=0)){
+      var prev=lines.slice(Math.max(0,i-8),i).join('\n');
+      if(prev.indexOf('try{')< 0&&prev.indexOf('try {')< 0) issues.push({lv:'w',n:n,cat:'⚠️ Logic',msg:'Firebase call ไม่มี try-catch',detail:'ถ้า network หลุดจะ crash',fixable:true,fix:'add_try'});
+    }
+    var indent=line.length-line.replace(/^ */,'').length;
+    if((t.indexOf('if(')===0||t.indexOf('if (')===0)&&indent>=20) issues.push({lv:'i',n:n,cat:'🧹 Clean Code',msg:'if ซ้อนกันลึกมาก',detail:'ลอง early return หรือแตกฟังก์ชัน',fixable:false});
+  }
+  if(!isHTML){var op=(code.match(/\{/g)||[]).length;var cl=(code.match(/\}/g)||[]).length;if(Math.abs(op-cl)>0) issues.push({lv:'e',n:0,cat:'🔧 Syntax',msg:'ปีกกาไม่สมดุล: { = '+op+' } = '+cl,detail:'ขาดหรือเกิน '+Math.abs(op-cl)+' อัน',fixable:false});}
+  // ถ้าไม่มี esc() เลย แต่มี innerHTML + ตัวแปร = fixable (เพิ่ม esc fn ให้)
+  if(code.indexOf('function esc(') < 0 && code.indexOf('.innerHTML') >= 0) {
+    var hasVarInner = issues.some(function(iss){return iss.cat==='🔒 XSS Risk';});
+    if(hasVarInner) issues.push({lv:'w',n:0,cat:'🔒 XSS Fix',msg:'ยังไม่มี esc() function ในไฟล์นี้',detail:'กด แก้อัตโนมัติ เพื่อเพิ่ม esc() helper',fixable:true,fix:'add_esc_fn'});
+  }
+  return issues;
+}
+
+function doScan(){
+  scanResults=[];
+  var totalE=0,totalW=0,totalI=0;
+  for(var k=0;k<scanSelected.length;k++){
+    var fname=scanSelected[k]; var content=scanCache[fname];
+    if(!content) continue;
+    var issues=analyzeFile(fname,content);
+    issues.forEach(function(iss){if(iss.lv==='e')totalE++;else if(iss.lv==='w')totalW++;else totalI++;});
+    scanResults.push({name:fname,issues:issues,url:repoFiles.find(function(f){return f.name===fname;})?.download_url});
+  }
+  var total=totalE+totalW;
+  var badge=document.getElementById('scanBadge');
+  if(total>0){badge.style.display='inline-flex';badge.textContent=total;badge.style.background=totalE>0?'var(--red)':'var(--orange)';}
+  else badge.style.display='none';
+  var fixableCount=0;
+  scanResults.forEach(function(r){r.issues.forEach(function(iss){if(iss.fixable)fixableCount++;});});
+  document.getElementById('autofixBtn').disabled=fixableCount===0||scanSelected.length===0;
+  renderScanResults(totalE,totalW,totalI);
+}
+
+function renderScanResults(totalE,totalW,totalI){
+  var wrap=document.getElementById('scanResultWrap');
+  if(totalE+totalW+totalI===0){wrap.innerHTML='<div style="background:#fff;border-radius:14px;padding:24px;text-align:center;box-shadow:var(--shadow-sm)"><div style="font-size:32px;margin-bottom:8px">✅</div><div style="font-size:16px;font-weight:800;color:var(--green)">ไม่พบปัญหา!</div></div>';return;}
+  var html='<div style="background:#fff;border-radius:14px;padding:14px;box-shadow:var(--shadow-sm);margin-bottom:12px;"><div class="scan-sum">'
+    +'<div class="scan-sum-box e"><div class="scan-sum-num">'+totalE+'</div><div class="scan-sum-lbl">Critical</div></div>'
+    +'<div class="scan-sum-box w"><div class="scan-sum-num">'+totalW+'</div><div class="scan-sum-lbl">Warning</div></div>'
+    +'<div class="scan-sum-box i"><div class="scan-sum-num">'+totalI+'</div><div class="scan-sum-lbl">Info</div></div>'
+    +'</div></div>';
+  scanResults.forEach(function(r,ri){
+    if(!r.issues.length) return;
+    var ec=r.issues.filter(function(x){return x.lv==='e';}).length;
+    html+='<div class="scan-file-block"><div class="scan-file-head" onclick="document.getElementById(\'si'+ri+'\').classList.toggle(\'open\')">'
+      +'<div class="scan-file-hname">'+r.name+'</div>'
+      +'<div class="scan-count '+(ec>0?'e':'w')+'">'+r.issues.length+' ปัญหา</div></div>'
+      +'<div class="scan-issue-list open" id="si'+ri+'">';
+    r.issues.forEach(function(iss){
+      var ico=iss.lv==='e'?'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>'
+        :iss.lv==='w'?'<path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>'
+        :'<path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>';
+      html+='<div class="scan-issue"><div class="iss-ico '+iss.lv+'"><svg viewBox="0 0 24 24">'+ico+'</svg></div>'
+        +'<div class="iss-body">'+(iss.n>0?'<div class="iss-loc">'+r.name+':'+iss.n+'  '+iss.cat+'</div>':'<div class="iss-loc">'+r.name+'  '+iss.cat+'</div>')
+        +'<div class="iss-msg">'+iss.msg+'</div>'+(iss.detail?'<div class="iss-detail">'+iss.detail+'</div>':'')
+        +(iss.fixable?'<div class="iss-fixable">✓ แก้ได้อัตโนมัติ</div>':'')
+        +'</div></div>';
+    });
+    html+='</div></div>';
+  });
+  wrap.innerHTML=html;
+}
+
+
+// ================================================================
+// PREPROCESSOR: แปลงโค้ดให้เข้าใจโครงสร้างก่อนตรวจ
+// ================================================================
+
+// สร้าง "clean line" โดย strip strings และ comments ออก
+// เพื่อป้องกัน false positive จากข้อความในสตริง/comment
+function cleanLine(line) {
+  var result = '';
+  var i = 0, len = line.length;
+  var inStr = false, strChar = '';
+  while(i < len) {
+    var ch = line[i];
+    if(!inStr) {
+      if(ch === '/' && line[i+1] === '/') break; // single-line comment → หยุด
+      if(ch === '"' || ch === "'" || ch === '`') {
+        inStr = true; strChar = ch;
+        result += '\u0000'; // placeholder
+        i++; continue;
+      }
+      result += ch;
+    } else {
+      if(ch === '\\') { i += 2; continue; } // escape sequence
+      if(ch === strChar) { inStr = false; }
+      result += '\u0000'; // mask string content
+    }
+    i++;
+  }
+  return result;
+}
+
+// ตรวจสอบว่า pattern ที่เจอนั้นอยู่ใน code จริงๆ หรืออยู่ใน string/comment
+function inCode(line, pattern) {
+  var cl = cleanLine(line);
+  return cl.indexOf(pattern) >= 0;
+}
+
+// วิเคราะห์ multiline: สร้าง context map ว่าบรรทัดไหนอยู่ใน block comment
+function buildCommentMap(lines) {
+  var inBlock = false;
+  var map = [];
+  for(var i=0; i<lines.length; i++) {
+    var l = lines[i];
+    if(!inBlock && l.indexOf('/*') >= 0) {
+      inBlock = true;
+      if(l.indexOf('*/') > l.indexOf('/*')) inBlock = false;
+    } else if(inBlock && l.indexOf('*/') >= 0) {
+      inBlock = false;
+    }
+    map.push(inBlock);
+  }
+  return map;
+}
+
+// ================================================================
+// KNOWLEDGE BASE: rules แต่ละอันรู้จัก detect + วิธีแก้
+// ================================================================
+var RULES = [
+
+  // ─── SECURITY ───────────────────────────────────────────────
+
+  {id:'token_gh', lv:'e', cat:'🔒 Security',
+   detect: function(cl, orig) {
+     return inCode(orig,'ghp_') && /ghp_[A-Za-z0-9]{20,}/.test(orig);
+   },
+   msg:'พบ GitHub Token ฝังในโค้ด!',
+   detail:'ลบออก ใช้ localStorage.getItem แทน',
+   fixable:false, fix:null},
+
+  {id:'xss_innerHTML', lv:'w', cat:'🔒 XSS Risk',
+   detect: function(cl, orig) {
+     if(!inCode(orig,'.innerHTML')) return false; // ต้องอยู่ใน code จริง
+     if(cl.indexOf('esc(') >= 0) return false;    // มี esc() แล้ว
+     // มี template var ${...} หรือ string concat ใน assignment
+     var hasAssign = /\.innerHTML\s*[\+]?=/.test(cl);
+     if(!hasAssign) return false;
+     // มีตัวแปรใน template literal หรือ concat?
+     var hasTpl = /\$\{[^}]+\}/.test(orig);
+     var hasConcat = orig.indexOf("'+") >= 0 || orig.indexOf("+'") >= 0;
+     return hasTpl || hasConcat;
+   },
+   msg:'innerHTML ใช้กับตัวแปร ไม่มี esc()',
+   detail:'อาจโดนฝังสคริปต์ถ้า data มาจาก user',
+   fixable:true,
+   fix: function(orig) {
+     // wrap ${expr} ที่ยังไม่มี esc()
+     var r = orig.replace(/\$\{([^}]+)\}/g, function(m, inner) {
+       inner = inner.trim();
+       if(!inner || inner.indexOf('esc(') >= 0) return m;
+       if(/^[\d"'`\-]/.test(inner)) return m;     // ข้าม literal
+       if(/^[\d\s+\-*/=!&|?:,<>]+$/.test(inner)) return m; // ข้าม operators
+       if(/^\w+\s*\(/.test(inner)) return m;       // ข้าม function call
+       return '${esc('+inner+')}';
+     });
+     // wrap '+var+' concat
+     r = r.replace(/([^(+])\+([a-zA-Z_$][a-zA-Z0-9_$.]*)\+(['"])/g,
+       function(m,b,v,a){ return (v.indexOf('esc(')>=0)?m:b+'+esc('+v+')+'+a; });
+     return r;
+   }},
+
+  // ─── LOGIC ──────────────────────────────────────────────────
+
+  {id:'firebase_no_await', lv:'e', cat:'🔧 Logic',
+   detect: function(cl, orig) {
+     if(cl.indexOf('await') >= 0) return false;
+     var FB=['getDocs(','addDoc(','updateDoc(','setDoc(','deleteDoc(','getDoc('];
+     return FB.some(function(f){ return inCode(orig,f); });
+   },
+   msg:'Firebase call ไม่มี await',
+   detail:'ต้องใช้ await ไม่งั้นได้ Promise แทนข้อมูล',
+   fixable:true,
+   fix: function(orig) {
+     var FB=['getDocs(','addDoc(','updateDoc(','setDoc(','deleteDoc(','getDoc('];
+     FB.forEach(function(f){
+       if(orig.indexOf(f)>=0 && orig.indexOf('await')<0)
+         orig = orig.replace(f,'await '+f);
+     });
+     return orig;
+   }},
+
+  {id:'firebase_no_try', lv:'w', cat:'⚠️ Logic',
+   detect: function(cl, orig, prevClean) {
+     var FB=['await getDocs(','await addDoc(','await updateDoc(',
+             'await setDoc(','await deleteDoc(','await getDoc('];
+     var hasFB = FB.some(function(f){ return orig.indexOf(f)>=0; });
+     if(!hasFB) return false;
+     var prev = prevClean.slice(-10).join(' ');
+     return prev.indexOf('try{') < 0 && prev.indexOf('try {') < 0;
+   },
+   msg:'Firebase call ไม่มี try-catch',
+   detail:'ถ้า network หลุดจะ crash ไม่แสดง error',
+   fixable:true, fix:null}, // handle แบบ block ใน applyFixes
+
+  {id:'assign_in_if', lv:'e', cat:'🔧 Logic',
+   detect: function(cl, orig) {
+     if(!/^\s*if\s*\(/.test(cl)) return false;
+     // นับวงเล็บเพื่อหา condition จริงๆ (ไม่ตรวจ body)
+     var startIdx = cl.indexOf('(');
+     if(startIdx < 0) return false;
+     var depth = 0, endIdx = -1;
+     for(var ci = startIdx; ci < cl.length; ci++) {
+       if(cl[ci] === '(') depth++;
+       else if(cl[ci] === ')') { depth--; if(depth === 0) { endIdx = ci; break; } }
+     }
+     if(endIdx < 0) return false;
+     var cond = cl.substring(startIdx+1, endIdx);
+     // เอา ===, !==, ==, !=, <=, >=, => ออกก่อน
+     var stripped = cond.replace(/===|!==|==|!=|<=|>=|=>/g,'__');
+     return /[^!<>=+\-*/\s]=[^=]/.test(stripped);
+   },
+   msg:'ใช้ = (assign) แทน === (compare) ใน if',
+   detail:'JavaScript จะ assign ค่า แทนที่จะเปรียบเทียบ',
+   fixable:true,
+   fix: function(orig) {
+     // หา condition โดยนับวงเล็บ แล้วแก้เฉพาะในนั้น
+     var startIdx = orig.indexOf('(');
+     if(startIdx < 0) return orig;
+     var depth = 0, endIdx = -1;
+     for(var ci = startIdx; ci < orig.length; ci++) {
+       if(orig[ci] === '(') depth++;
+       else if(orig[ci] === ')') { depth--; if(depth === 0) { endIdx = ci; break; } }
+     }
+     if(endIdx < 0) return orig;
+     var before = orig.substring(0, startIdx+1);
+     var cond   = orig.substring(startIdx+1, endIdx);
+     var after  = orig.substring(endIdx);
+     var fixed  = cond.replace(/([^=!<>+\-*/\s])=([^=>])/g, function(m,b,a){ return b+'==='+a; });
+     return before + fixed + after;
+   }},
+
+  {id:'missing_await_async', lv:'w', cat:'⚠️ Logic',
+   detect: function(cl, orig) {
+     // เรียก async function โดยไม่มี await (ดูจากชื่อ function ที่ลงท้าย Async)
+     if(cl.indexOf('await') >= 0) return false;
+     return /\b\w+Async\s*\(/.test(cl) || /\bfetch\s*\(/.test(cl);
+   },
+   msg:'เรียก async function โดยไม่มี await',
+   detail:'ควรใส่ await เพื่อรอผลลัพธ์',
+   fixable:true,
+   fix: function(orig) {
+     return orig.replace(/(fetch\s*\()/g,'await $1');
+   }},
+
+  // ─── CLEAN CODE ─────────────────────────────────────────────
+
+  {id:'console_log', lv:'i', cat:'🧹 Clean Code',
+   detect: function(cl, orig) {
+     return inCode(orig,'console.log(');
+   },
+   msg:'มี console.log ค้างในโค้ด',
+   detail:'ควรลบก่อน deploy',
+   fixable:true,
+   fix: function(orig) {
+     var indent = orig.match(/^(\s*)/)[1];
+     return indent+'// [removed] '+orig.trim();
+   }},
+
+  {id:'deep_nesting', lv:'i', cat:'🧹 Clean Code',
+   detect: function(cl, orig) {
+     var indent = orig.length - orig.replace(/^ */,'').length;
+     return indent >= 24 && /^\s*if\s*\(/.test(orig);
+   },
+   msg:'if ซ้อนกันลึกเกิน 6 ชั้น',
+   detail:'ลอง early return หรือแตกเป็นฟังก์ชันย่อย',
+   fixable:false, fix:null}
+];
+
+// ================================================================
+// ANALYZE FILE — ใช้ preprocessor + rules
+// ================================================================
+function analyzeFile(fname, code) {
+  var issues = [];
+  var lines = code.split('\n');
+  var isHTML = /\.html$/i.test(fname);
+  var isJS   = /\.js$/i.test(fname);
+
+  // สร้าง comment map (multiline)
+  var commentMap = buildCommentMap(lines);
+  var cleanLines = lines.map(function(l){ return cleanLine(l); });
+
+  for(var i=0; i<lines.length; i++) {
+    if(commentMap[i]) continue; // ข้ามบรรทัดที่อยู่ใน /* */
+    var orig = lines[i];
+    var cl = cleanLines[i];
+    var prevCl = cleanLines.slice(Math.max(0,i-10),i);
+
+    RULES.forEach(function(rule){
+      try {
+        if(rule.detect(cl, orig, prevCl)) {
+          issues.push({lv:rule.lv, n:i+1, cat:rule.cat,
+            msg:rule.msg, detail:rule.detail,
+            fixable:rule.fixable, ruleId:rule.id});
+        }
+      } catch(e){}
+    });
+  }
+
+  // ── File-level checks ──
+  // ปีกกาไม่สมดุล - ใช้ multi-line string tracker
+  if(!isHTML) {
+    var op=0, cl2=0;
+    var inML=false, mlChar=''; // multi-line string tracker
+    for(var bi=0; bi<code.length; bi++) {
+      var bch=code[bi];
+      if(!inML) {
+        if(bch==='/' && code[bi+1]==='/') { while(bi<code.length && code[bi]!=='\n') bi++; continue; }
+        if(bch==='/' && code[bi+1]==='*') { while(bi<code.length-1 && !(code[bi]==='*' && code[bi+1]==='/')) bi++; bi+=2; continue; }
+        if(bch==='"'||bch==="'"||bch==='`') { inML=true; mlChar=bch; continue; }
+        if(bch==='{') op++;
+        else if(bch==='}') cl2++;
+      } else {
+        if(bch==='\\') { bi++; continue; } // escape
+        if(bch===mlChar) inML=false;
+        // ในกรณี template literal มี ${} → ข้ามไปก่อน (ไม่นับ)
+      }
+    }
+    var diff=Math.abs(op-cl2);
+    if(diff>0)
+      issues.push({lv:'e',n:0,cat:'🔧 Syntax',
+        msg:'ปีกกาไม่สมดุล: {='+op+' }='+cl2,
+        detail:'ขาดหรือเกิน '+diff+' อัน',fixable:false,ruleId:'brace'});
+  }
+  // ขาด esc() function
+  if(code.indexOf('function esc(')<0 && code.indexOf('.innerHTML')>=0) {
+    var hasXSS = issues.some(function(x){ return x.ruleId==='xss_innerHTML'; });
+    if(hasXSS) issues.push({lv:'w',n:0,cat:'🔒 XSS Fix',
+      msg:'ยังไม่มี esc() function ในไฟล์',
+      detail:'กด แก้อัตโนมัติ เพื่อเพิ่ม',fixable:true,ruleId:'missing_esc_fn'});
+  }
+  return issues;
+}
+
+// ================================================================
+// APPLY FIXES — แก้ครั้งเดียวครบ + verify ผล
+// ================================================================
+function applyFixes(fname, code) {
+  var fixed = code;
+  var fixLog = [];
+  var isHTML = /\.html$/i.test(fname);
+  var isJS   = /\.js$/i.test(fname);
+  var snapshot = code; // เก็บไว้ rollback
+
+  // FIX A: เพิ่ม esc() function ถ้ายังไม่มี
+  if(fixed.indexOf('function esc(')<0 && fixed.indexOf('.innerHTML')>=0) {
+    var fn = 'function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\\"/g,"&quot;");}';
+    var ct = '<'+'/'+'script>';
+    if(isHTML && fixed.indexOf(ct)>=0) {
+      fixed = fixed.replace(ct, fn+'\n'+ct);
+    } else if(isJS) { fixed = fn+'\n'+fixed; }
+    fixLog.push('เพิ่ม esc() function');
+  }
+
+  // FIX B: รัน line-level rules ที่มี fix function
+  var lines = fixed.split('\n');
+  var commentMap = buildCommentMap(lines);
+  var changed = false;
+  for(var i=0; i<lines.length; i++) {
+    if(commentMap[i]) continue;
+    var orig = lines[i];
+    var cl = cleanLine(orig);
+    var prevCl = lines.slice(Math.max(0,i-10),i).map(function(l){ return cleanLine(l); });
+    RULES.forEach(function(rule){
+      if(!rule.fix || rule.ruleId==='firebase_no_try') return;
+      try {
+        if(rule.detect(cl, orig, prevCl)) {
+          var newLine = rule.fix(orig);
+          if(newLine !== orig) {
+            lines[i] = newLine;
+            orig = newLine;
+            fixLog.push(rule.msg+' (บรรทัด '+(i+1)+')');
+            changed = true;
+          }
+        }
+      } catch(e){}
+    });
+  }
+  if(changed) fixed = lines.join('\n');
+
+  // FIX C: Firebase try-catch (block-level)
+  var arr = fixed.split('\n');
+  var out = []; var j=0;
+  var FB = ['await getDocs(','await addDoc(','await updateDoc(',
+            'await setDoc(','await deleteDoc(','await getDoc('];
+  while(j<arr.length) {
+    var ln=arr[j], lt=ln.trim();
+    var hasFB = FB.some(function(f){ return ln.indexOf(f)>=0; });
+    if(hasFB) {
+      var look = out.slice(Math.max(0,out.length-10)).join(' ');
+      if(look.indexOf('try{')<0 && look.indexOf('try {')<0) {
+        var ind=ln.match(/^(\s*)/)[1];
+        var end=j;
+        for(var k=j;k<Math.min(j+5,arr.length);k++){
+          end=k; if(arr[k].trim().endsWith(';')) break;
+        }
+        out.push(ind+'try {');
+        for(var k2=j;k2<=end;k2++) out.push(arr[k2]);
+        out.push(ind+'} catch(e){ if(typeof showToast==="function")showToast("เกิดข้อผิดพลาด","error"); console.error(e); }');
+        fixLog.push('เพิ่ม try-catch (บรรทัด '+(j+1)+')');
+        j=end+1; continue;
+      }
+    }
+    out.push(ln); j++;
+  }
+  if(fixLog.some(function(l){return l.indexOf('try-catch')>=0;})) fixed=out.join('\n');
+
+  // FIX D: Verify — ตรวจ brace balance หลังแก้
+  if(!isHTML) {
+    var codeOnly = fixed.split('\n').map(function(l){ return cleanLine(l); }).join('\n');
+    var op=(codeOnly.match(/\{/g)||[]).length;
+    var cl=(codeOnly.match(/\}/g)||[]).length;
+    if(Math.abs(op-cl) > Math.abs((snapshot.match(/\{/g)||[]).length-(snapshot.match(/\}/g)||[]).length)) {
+      // แก้แล้วพัง → rollback
+      console.warn('Fix caused brace mismatch, rolling back '+fname);
+      fixed = snapshot;
+      fixLog.push('[ROLLBACK] การแก้ทำให้ syntax พัง ย้อนกลับอัตโนมัติ');
+    }
+  }
+
+  return {code:fixed, fixCount:fixLog.length, log:fixLog};
+}
+
+var _fixRound = 0;
+var _MAX_ROUNDS = 5; // ป้องกันวนไม่จบ
+
+async function _runFixLoop() {
+  _fixRound++;
+  if(_fixRound > _MAX_ROUNDS) {
+    document.getElementById('fixSheetSub').textContent = 'ครบ '+_MAX_ROUNDS+' รอบแล้ว ปัญหาที่เหลือต้องแก้มือ';
+    document.getElementById('fixDoneBtn').style.display='block';
+    _fixRound = 0;
+    return;
+  }
+  var allCodeFiles = repoFiles.filter(function(f){
+    return f.type==='file' && /\.(html|js|css)$/.test(f.name);
+  });
+  document.getElementById('fixProgressFill').style.width='0%';
+  document.getElementById('fixProgressText').textContent='0 / '+allCodeFiles.length+' ไฟล์';
+  document.getElementById('fixSheetSub').textContent='รอบที่ '+_fixRound+'/'+_MAX_ROUNDS+' กำลังแก้ไข...';
+  document.getElementById('fixSteps').innerHTML = allCodeFiles.map(function(f,i){
+    return '<div class="fix-step" id="fstep'+i+'"><div class="fix-step-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>'
+      +'<div class="fix-step-name">'+f.name+'</div>'
+      +'<div class="fix-step-status">รอ...</div></div>';
+  }).join('');
+  var successFiles = [];
+  var manualFixList = [];
+  for(var i=0; i<allCodeFiles.length; i++){
+    var r = allCodeFiles[i];
+    var stepEl = document.getElementById('fstep'+i);
+    stepEl.className='fix-step running';
+    stepEl.querySelector('.fix-step-icon').innerHTML='<svg class="spin" viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>';
+    stepEl.querySelector('.fix-step-status').textContent='กำลังแก้...';
+    document.getElementById('fixSheetSub').textContent='กำลังแก้: '+r.name;
+    try {
+      var res = await fetch(r.download_url);
+      var code = await res.text();
+      var result = applyFixes(r.name, code);
+      var contentChanged = result.code !== code;
+      if(result.fixCount > 0 && contentChanged) {
+        var shaRes = await fetch('https://api.github.com/repos/'+cfg.user+'/'+cfg.repo+'/contents/'+encodeURIComponent(r.name),{headers:{'Authorization':'token '+cfg.token}});
+        var shaData = await shaRes.json();
+        var encoded = btoa(unescape(encodeURIComponent(result.code)));
+        var pushRes = await fetch('https://api.github.com/repos/'+cfg.user+'/'+cfg.repo+'/contents/'+encodeURIComponent(r.name),{
+          method:'PUT',headers:{'Authorization':'token '+cfg.token,'Content-Type':'application/json'},
+          body:JSON.stringify({message:'fix: '+result.log.join(', '),content:encoded,sha:shaData.sha,branch:cfg.branch||'main'})
+        });
+        if(pushRes.ok){
+          stepEl.className='fix-step done';
+          stepEl.querySelector('.fix-step-icon').innerHTML='<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>';
+          stepEl.querySelector('.fix-step-status').textContent='แก้แล้ว '+result.fixCount+' จุด ✓';
+          successFiles.push(r.name);
+        } else { throw new Error('push failed'); }
+      } else if(result.fixCount > 0 && !contentChanged) {
+        stepEl.className='fix-step done';
+        stepEl.querySelector('.fix-step-icon').innerHTML='<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>';
+        stepEl.querySelector('.fix-step-status').textContent='⚠️ ต้องแก้มือ';
+        manualFixList.push({name:r.name,log:result.log});
+      } else {
+        stepEl.className='fix-step done';
+        stepEl.querySelector('.fix-step-icon').innerHTML='<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>';
+        stepEl.querySelector('.fix-step-status').textContent='ผ่านแล้ว ✓';
+      }
+    } catch(e) {
+      stepEl.className='fix-step error';
+      stepEl.querySelector('.fix-step-status').textContent='ผิดพลาด';
+    }
+    document.getElementById('fixProgressFill').style.width=Math.round((i+1)/allCodeFiles.length*100)+'%';
+    document.getElementById('fixProgressText').textContent=(i+1)+' / '+allCodeFiles.length+' ไฟล์';
+  }
+async function startAutoFix() {
+  if(!cfg.token||!cfg.user||!cfg.repo){toast('กรุณาตั้งค่า GitHub Token ก่อน','error');switchTab('settings');return;}
+
+  // เปิด overlay ก่อน แล้วเรียก _runFixLoop
+  // แสดง overlay ทันที ก่อนเช็คอะไรทั้งนั้น
+  document.getElementById('fixOverlay').classList.add('show');
+  document.getElementById('fixDoneBtn').style.display='none';
+  document.getElementById('fixSheetSub').textContent='กำลังเตรียมระบบ...';
+  document.getElementById('fixProgressFill').style.width='0%';
+  document.getElementById('fixSteps').innerHTML='';
+
+  // ถ้า repoFiles ว่าง ให้โหลดก่อน
+  if(!repoFiles.length) {
+    document.getElementById('fixSheetSub').textContent='กำลังโหลดไฟล์จาก GitHub...';
+    await loadFiles();
+  }
+  var allCodeFiles = repoFiles.filter(function(f){
+    return f.type==='file' && /\.(html|js|css)$/.test(f.name);
+  });
+  if(!allCodeFiles.length){
+    document.getElementById('fixSheetSub').textContent='ไม่มีไฟล์ กรุณาตั้งค่า GitHub ก่อน';
+    document.getElementById('fixDoneBtn').style.display='block';
+    return;
+  }
+  await _runFixLoop();
+}
+// dummy ให้ compiler ไม่งง - โค้ดด้านล่างนี้ไม่ถูกใช้งาน
+async function _unusedDummy(){
+    var r = {name:'',download_url:''};
+    var stepEl = document.getElementById('fstep'+i);
+    // running
+    stepEl.className = 'fix-step running';
+    stepEl.querySelector('.fix-step-icon').innerHTML = '<svg class="spin" viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>';
+    stepEl.querySelector('.fix-step-status').textContent = 'กำลังแก้...';
+    document.getElementById('fixSheetSub').textContent = 'กำลังแก้ไข: ' + r.name;
+
+    try {
+      // โหลดโค้ดล่าสุด
+      var res = await fetch(r.download_url);
+      var code = await res.text();
+
+      // apply fixes
+      var result = applyFixes(r.name, code);
+
+      if(result.fixCount > 0) {
+        // push ขึ้น GitHub
+        var shaRes = await fetch('https://api.github.com/repos/'+cfg.user+'/'+cfg.repo+'/contents/'+encodeURIComponent(r.name||r.name),{headers:{'Authorization':'token '+cfg.token}});
+        var shaData = await shaRes.json();
+        var content = btoa(unescape(encodeURIComponent(result.code)));
+        var pushRes = await fetch('https://api.github.com/repos/'+cfg.user+'/'+cfg.repo+'/contents/'+encodeURIComponent(r.name),{
+          method:'PUT',
+          headers:{'Authorization':'token '+cfg.token,'Content-Type':'application/json'},
+          body:JSON.stringify({message:'fix: auto-fix security & logic issues in '+r.name,content:content,sha:shaData.sha,branch:cfg.branch||'main'})
+        });
+        if(pushRes.ok){
+          stepEl.className='fix-step done';
+          stepEl.querySelector('.fix-step-icon').innerHTML='<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>';
+          stepEl.querySelector('.fix-step-status').textContent='แก้แล้ว '+result.fixCount+' จุด';
+          successFiles.push(r.name);
+        } else {
+          throw new Error('Push failed');
+        }
+      } else {
+        // fixCount=0 → mark เป็น info ไม่ใช่ error
+        stepEl.className='fix-step done';
+        stepEl.querySelector('.fix-step-icon').innerHTML='<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>';
+        stepEl.querySelector('.fix-step-status').textContent='ผ่านแล้ว ไม่ต้องแก้';
+      }
+    } catch(e) {
+      stepEl.className='fix-step error';
+      stepEl.querySelector('.fix-step-icon').innerHTML='<svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>';
+      stepEl.querySelector('.fix-step-status').textContent='ผิดพลาด';
+    }
+
+    // update progress
+    var pct = Math.round((i+1)/fixableFiles.length*100);
+    document.getElementById('fixProgressFill').style.width=pct+'%';
+    document.getElementById('fixProgressText').textContent=(i+1)+' / '+allCodeFiles.length+' ไฟล์';
+  }
+
+  // บันทึก history
+  if(successFiles.length > 0) {
+    var h={msg:'auto-fix: แก้ไขอัตโนมัติ '+successFiles.length+' ไฟล์',files:successFiles,time:new Date().toISOString(),ok:true,failList:[]};
+    history2.unshift(h); localStorage.setItem('devHist',JSON.stringify(history2.slice(0,50)));
+  }
+
+  // รีสแกนครั้งเดียวเพื่อยืนยัน
+  document.getElementById('fixSheetSub').textContent='กำลังตรวจสอบผล...';
+  document.getElementById('fixProgressFill').style.width='100%';
+  scanCache = {};
+  await autoRunScan();
+
+  // จบ - แสดงผล
+  var remaining = scanResults.reduce(function(s,r){
+    return s + r.issues.filter(function(i){return i.lv==='e'||i.lv==='w';}).length;
+  },0);
+  if(successFiles.length > 0) {
+    // rescan ดูว่ายังมีปัญหาอีกไหม
+    document.getElementById('fixSheetSub').textContent='กำลังตรวจซ้ำ...';
+    document.getElementById('fixProgressFill').style.width='100%';
+    scanCache = {};
+    await autoRunScan();
+    var stillFixable = scanResults.some(function(r){
+      return r.issues.some(function(iss){ return iss.fixable; });
+    });
+    if(stillFixable) {
+      // ยังมีที่แก้ได้ → เคลียร์ steps แล้ววนต่อในหน้าเดิมเลย
+      document.getElementById('fixSteps').innerHTML = '';
+      document.getElementById('fixProgressFill').style.width='0%';
+      document.getElementById('fixProgressText').textContent='';
+      document.getElementById('fixSheetSub').textContent='พบปัญหาเพิ่ม กำลังแก้ต่อ...';
+      setTimeout(_runFixLoop, 400);
+    } else {
+      // ไม่มีอะไรเหลือแล้ว → จบ แสดงปุ่มปิด
+      var msg = 'เสร็จสิ้น! แก้อัตโนมัติครบทุกอย่างแล้ว ✓';
+      if(manualFixList.length > 0)
+        msg += '\nต้องแก้มือ: '+manualFixList.map(function(x){return x.name;}).join(', ');
+      document.getElementById('fixSheetSub').textContent = msg;
+      _fixRound=0;
+      document.getElementById('fixDoneBtn').style.display='block';
+      toast('แก้ไขเสร็จสมบูรณ์!','success');
+    }
+  } else {
+    // ไม่มีอะไรแก้ได้เลย → จบเลย
+    var msg2 = manualFixList.length > 0
+      ? 'ต้องแก้มือ: '+manualFixList.map(function(x){return x.name;}).join(', ')
+      : 'ไม่มีปัญหาที่แก้อัตโนมัติได้แล้ว ✓';
+    document.getElementById('fixSheetSub').textContent = msg2;
+    document.getElementById('fixDoneBtn').style.display='block';
+  }
+}
+
+function closeFixSheet() {
+  document.getElementById('fixOverlay').classList.remove('show');
+}
+
+// HISTORY
+function renderHistory(){
+  if(!history2.length){document.getElementById('histEl').innerHTML='<div class="empty"><svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18z"/></svg><p>ยังไม่มีประวัติ</p></div>';return;}
+  document.getElementById('histEl').innerHTML=history2.map(function(h){
+    var d=new Date(h.time);
+    var t=d.toLocaleDateString('th-TH',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+    return '<div class="hist-card"><div class="hist-top"><div class="hist-ico '+(h.ok?'ok':'fail')+'"><svg viewBox="0 0 24 24"><path d="'+(h.ok?'M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z':'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z')+'"/></svg></div><div class="hist-msg">'+h.msg+'</div><div class="hist-time">'+t+'</div></div><div class="hist-files">'+h.files.join(', ')+'</div></div>';
+  }).join('');
+}
+
+// SETTINGS
+function loadCfg(){
+  cfg=JSON.parse(localStorage.getItem('devCfg')||'{}');
+  if(cfg.token) document.getElementById('sToken').value=cfg.token;
+  if(cfg.user)  document.getElementById('sUser').value=cfg.user;
+  if(cfg.repo)  document.getElementById('sRepo').value=cfg.repo;
+  document.getElementById('sBranch').value=cfg.branch||'main';
+  if(cfg.geminiKey){
+    document.getElementById('sGemini').value=cfg.geminiKey;
+    var gs=document.getElementById('geminiStatus');
+    if(gs){gs.className='conn-row ok';document.getElementById('geminiStatusText').textContent='ตั้งค่าแล้ว';}
+  }
+  updateConn();
+}
+async function saveSettings(){
+  // เก็บ field ที่มีอยู่แล้ว (เช่น geminiKey) ไว้ด้วย
+  cfg = Object.assign(cfg||{},{
+    token: document.getElementById('sToken').value.trim(),
+    user:  document.getElementById('sUser').value.trim(),
+    repo:  document.getElementById('sRepo').value.trim(),
+    branch:document.getElementById('sBranch').value.trim()||'main'
+  });
+  localStorage.setItem('devCfg',JSON.stringify(cfg));
+  toast('กำลังทดสอบ...','info');
+  try{
+    var res=await fetch('https://api.github.com/repos/'+cfg.user+'/'+cfg.repo,{headers:{'Authorization':'token '+cfg.token}});
+    updateConn(res.ok); toast(res.ok?'เชื่อมต่อสำเร็จ!':'Token หรือ Repo ไม่ถูกต้อง',res.ok?'success':'error');
+  }catch(e){updateConn(false);toast('เชื่อมต่อไม่ได้','error');}
+}
+function updateConn(ok){
+  if(ok===undefined) ok=!!(cfg.token&&cfg.user&&cfg.repo);
+  var row=document.getElementById('connRow');
+  row.className='conn-row '+(ok?'ok':'fail');
+  row.querySelector('svg').innerHTML=ok?'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>':'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z"/>';
+  document.getElementById('connText').textContent=ok?'เชื่อมต่อกับ '+cfg.user+'/'+cfg.repo:'ยังไม่ได้เชื่อมต่อ';
+}
+function showDeploy(t,s){var b=document.getElementById('deployBar');b.classList.add('show');document.getElementById('dSpin').style.display='block';document.getElementById('dChk').style.display='none';document.getElementById('dTitle').textContent=t;document.getElementById('dSub').textContent=s;}
+function showDeployDone(t,s){document.getElementById('dSpin').style.display='none';document.getElementById('dChk').style.display='block';document.getElementById('dTitle').textContent=t;document.getElementById('dSub').textContent=s;setTimeout(hideDeploy,4000);}
+function hideDeploy(){document.getElementById('deployBar').classList.remove('show');}
+function toast(msg,type){
+  var icons={success:'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>',error:'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z"/>',info:'<path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>'};
+  var el=document.createElement('div');
+  el.className='toast '+(type||'info');
+  el.innerHTML='<svg viewBox="0 0 24 24">'+(icons[type]||icons.info)+'</svg><span>'+msg+'</span>';
+  document.getElementById('toastWrap').appendChild(el);
+  setTimeout(function(){el.style.animation='toastOut 0.2s ease-in forwards';setTimeout(function(){el.remove();},200);},3000);
+}
+// ===== GEMINI AI =====
+var chatHistory = [];
+var quotaUsed = parseInt(localStorage.getItem('geminiQuotaUsed')||'0');
+var quotaDate = localStorage.getItem('geminiQuotaDate')||'';
+var QUOTA_MAX = 500;
+
+function checkQuotaReset() {
+  var today = new Date().toDateString();
+  if(quotaDate !== today) { quotaUsed=0; quotaDate=today; localStorage.setItem('geminiQuotaUsed','0'); localStorage.setItem('geminiQuotaDate',today); }
+}
+
+function updateQuotaUI() {
+  checkQuotaReset();
+  var left = QUOTA_MAX - quotaUsed;
+  document.getElementById('quotaBadge').textContent = left+' / '+QUOTA_MAX;
+  document.getElementById('quotaBadge').style.background = left < 50 ? 'var(--orange-light)' : 'var(--primary-light)';
+  document.getElementById('quotaBadge').style.color = left < 50 ? 'var(--orange)' : 'var(--primary)';
+}
+
+function initAITab() {
+  checkQuotaReset();
+  updateQuotaUI();
+  var key = cfg.geminiKey||'';
+  if(!key) { setAIStatus('sleep','ตั้งค่า Gemini API Key ในแท็บ ตั้งค่า ก่อน'); return; }
+  var left = QUOTA_MAX - quotaUsed;
+  if(left <= 0) {
+    setAIStatus('sleep', sleepMsg());
+    showSleepBanner();
+  } else {
+    setAIStatus('ready', 'พร้อมใช้งาน · เหลือ '+left+' req วันนี้');
+  }
+}
+
+function sleepMsg() {
+  var now = new Date();
+  var reset = new Date(); reset.setDate(reset.getDate()+1); reset.setHours(0,0,0,0);
+  var diff = Math.round((reset-now)/60000);
+  var h = Math.floor(diff/60), m = diff%60;
+  return '🌙 AI นอนหลับ โควต้าหมดแล้ว reset ใน '+h+'ชม. '+m+'นาที';
+}
+
+function showSleepBanner() {
+  var el = document.getElementById('chatWelcome');
+  if(el) el.style.display='none';
+  var msgs = document.getElementById('chatMsgs');
+  if(!document.getElementById('sleepBanner')) {
+    var b = document.createElement('div');
+    b.className='sleep-banner'; b.id='sleepBanner';
+    b.innerHTML='<div class="sleep-banner-icon">🌙</div><div class="sleep-banner-title">AI นอนหลับแล้ว</div><div class="sleep-banner-sub">'+sleepMsg()+'</div>';
+    msgs.appendChild(b);
+  }
+}
+
+function setAIStatus(type, text) {
+  document.getElementById('aiDot').className = 'ai-status-dot '+type;
+  document.getElementById('aiStatusText').textContent = text;
+}
+
+function quickAsk(msg) {
+  document.getElementById('chatInput').value = msg;
+  sendChat();
+}
+
+async function sendChat() {
+  checkQuotaReset();
+  var left = QUOTA_MAX - quotaUsed;
+  if(left <= 0) { showSleepBanner(); setAIStatus('sleep', sleepMsg()); return; }
+  var input = document.getElementById('chatInput');
+  var msg = input.value.trim(); if(!msg) return;
+  input.value=''; input.style.height='auto';
+  document.getElementById('chatSendBtn').disabled=true;
+  var welcome = document.getElementById('chatWelcome');
+  if(welcome) welcome.style.display='none';
+  addBubble('user', msg);
+  var tid='tk'+Date.now(); addThinking(tid); scrollChat();
+  chatHistory.push({role:'user', parts:[{text:msg}]});
+  setAIStatus('busy','กำลังคิด...');
+  var key = cfg.geminiKey||'';
+  if(!key) { replaceThinking(tid,'กรุณาตั้งค่า Gemini API Key ในแท็บ ตั้งค่า ก่อนครับ'); setAIStatus('error','ไม่มี API Key'); document.getElementById('chatSendBtn').disabled=false; return; }
+  var sysPrompt = 'คุณคือ AI ผู้เชี่ยวชาญตรวจสอบโค้ดระบบ Nimit Delivery (Food Delivery App) ตอบเป็นภาษาไทย กระชับ ชัดเจน ระบุเลขบรรทัดเสมอ ห้ามแก้ UI ห้ามเปลี่ยน style ถ้าจะแก้โค้ดให้แสดงเฉพาะบรรทัดที่แก้เท่านั้น';
+  var msgs = [{role:'user',parts:[{text:sysPrompt+' '+msg}]}];
+  if(chatHistory.length > 1) msgs = chatHistory.slice(-10);
+  try {
+    var resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+key, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({contents: msgs, generationConfig:{maxOutputTokens:2048,temperature:0.3}})
+    });
+    if(resp.status===429) { quotaUsed=QUOTA_MAX; localStorage.setItem('geminiQuotaUsed',String(QUOTA_MAX)); updateQuotaUI(); showSleepBanner(); setAIStatus('sleep',sleepMsg()); replaceThinking(tid,'โควต้าหมดแล้ว '+sleepMsg()); document.getElementById('chatSendBtn').disabled=false; return; }
+    var data = await resp.json();
+    if(data.error) throw new Error(data.error.message);
+    var reply = data.candidates?.[0]?.content?.parts?.[0]?.text||'ไม่ได้รับคำตอบ';
+    chatHistory.push({role:'model',parts:[{text:reply}]});
+    quotaUsed++; localStorage.setItem('geminiQuotaUsed',String(quotaUsed));
+    replaceThinking(tid, reply);
+    updateQuotaUI();
+    var left2 = QUOTA_MAX - quotaUsed;
+    setAIStatus('ready','พร้อมใช้งาน · เหลือ '+left2+' req วันนี้');
+    if(left2 <= 50) setAIStatus('busy','⚠️ โควต้าเหลือน้อย '+left2+' req');
+  } catch(e) {
+    replaceThinking(tid,'เกิดข้อผิดพลาด: '+e.message);
+    setAIStatus('error','เกิดข้อผิดพลาด');
+  }
+  document.getElementById('chatSendBtn').disabled=false;
+  scrollChat();
+}
+
+function addBubble(role,text){var d=document.createElement('div');d.className='msg-wrap '+role;var b=document.createElement('div');b.className='bubble';b.textContent=text;d.appendChild(b);document.getElementById('chatMsgs').appendChild(d);}
+function addThinking(id){var d=document.createElement('div');d.className='msg-wrap ai';d.id='w'+id;d.innerHTML='<div class="typing-wrap"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div>';document.getElementById('chatMsgs').appendChild(d);}
+function replaceThinking(id,text){
+  var w=document.getElementById('w'+id); if(!w)return;
+  w.innerHTML='';
+  var b=document.createElement('div');b.className='bubble';b.textContent=text;w.appendChild(b);
+  var cb=document.createElement('button');cb.className='copy-msg-btn';cb.textContent='คัดลอก';
+  cb.onclick=function(){navigator.clipboard.writeText(text);toast('คัดลอกแล้ว','success');};
+  w.appendChild(cb);
+}
+function scrollChat(){var el=document.getElementById('chatMsgs');if(el)el.scrollTop=el.scrollHeight;}
+
+function saveGemini() {
+  cfg.geminiKey = document.getElementById('sGemini').value.trim();
+  localStorage.setItem('devCfg',JSON.stringify(cfg));
+  if(cfg.geminiKey) {
+    // reset quota ทุกครั้งที่บันทึก key ใหม่
+    quotaUsed = 0;
+    quotaDate = new Date().toDateString();
+    localStorage.setItem('geminiQuotaUsed','0');
+    localStorage.setItem('geminiQuotaDate', quotaDate);
+    var gs=document.getElementById('geminiStatus');
+    gs.className='conn-row ok';
+    gs.querySelector('svg').innerHTML='<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>';
+    document.getElementById('geminiStatusText').textContent='ตั้งค่าแล้ว พร้อมใช้งาน';
+    updateQuotaUI();
+    toast('บันทึก Gemini Key แล้ว · quota reset แล้ว 500/500','success');
+  }
+}
+
+function resetQuota() {
+  quotaUsed = 0;
+  quotaDate = new Date().toDateString();
+  localStorage.setItem('geminiQuotaUsed','0');
+  localStorage.setItem('geminiQuotaDate', quotaDate);
+  updateQuotaUI();
+  var sb = document.getElementById('sleepBanner');
+  if(sb) sb.remove();
+  var welcome = document.getElementById('chatWelcome');
+  if(welcome) welcome.style.display='';
+  setAIStatus('ready','พร้อมใช้งาน · เหลือ 500 req วันนี้');
+  toast('Reset quota แล้ว 500/500','success');
+}
+
+loadCfg();
+// auto-load files & scan ถ้ามี token แล้ว
+if(cfg.token && cfg.user && cfg.repo) {
+  loadFiles();
+}
+</script>
+</body>
+</html>
