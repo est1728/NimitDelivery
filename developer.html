@@ -389,7 +389,7 @@ body{background:var(--gray);min-height:100vh;}
     <div style="background:var(--primary-light);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--primary);margin-top:4px">
       🌙 เมื่อโควต้าหมด AI จะหยุดให้บริการอัตโนมัติและแจ้งเวลา reset (ตี 0)
     </div>
-    <button class="s-save" onclick="saveGemini()" style="margin-top:12px">บันทึก Gemini Key</button
+    <button class="s-save" onclick="saveGemini()" style="margin-top:12px">บันทึก Gemini Key</button><button onclick="resetQuota()" style="width:100%;height:44px;border:2px solid var(--primary);border-radius:12px;background:#fff;color:var(--primary);font-size:14px;font-weight:700;cursor:pointer;margin-top:8px">🔄 Reset Quota (ถ้า quota ค้าง)</button
   </div>
 </div>
 
@@ -1443,12 +1443,32 @@ function saveGemini() {
   cfg.geminiKey = document.getElementById('sGemini').value.trim();
   localStorage.setItem('devCfg',JSON.stringify(cfg));
   if(cfg.geminiKey) {
+    // reset quota ทุกครั้งที่บันทึก key ใหม่
+    quotaUsed = 0;
+    quotaDate = new Date().toDateString();
+    localStorage.setItem('geminiQuotaUsed','0');
+    localStorage.setItem('geminiQuotaDate', quotaDate);
     var gs=document.getElementById('geminiStatus');
     gs.className='conn-row ok';
     gs.querySelector('svg').innerHTML='<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>';
     document.getElementById('geminiStatusText').textContent='ตั้งค่าแล้ว พร้อมใช้งาน';
-    toast('บันทึก Gemini Key แล้ว','success');
+    updateQuotaUI();
+    toast('บันทึก Gemini Key แล้ว · quota reset แล้ว 500/500','success');
   }
+}
+
+function resetQuota() {
+  quotaUsed = 0;
+  quotaDate = new Date().toDateString();
+  localStorage.setItem('geminiQuotaUsed','0');
+  localStorage.setItem('geminiQuotaDate', quotaDate);
+  updateQuotaUI();
+  var sb = document.getElementById('sleepBanner');
+  if(sb) sb.remove();
+  var welcome = document.getElementById('chatWelcome');
+  if(welcome) welcome.style.display='';
+  setAIStatus('ready','พร้อมใช้งาน · เหลือ 500 req วันนี้');
+  toast('Reset quota แล้ว 500/500','success');
 }
 
 loadCfg();
