@@ -59,7 +59,7 @@ body{background:var(--gray);min-height:100vh;}
 .act-skip{background:#f1f5f9;} .act-skip svg{fill:var(--subtext);}
 .act-restore{background:var(--green-light);} .act-restore svg{fill:var(--green);}
 .act-del{background:var(--red-light);} .act-del svg{fill:var(--red);}
-.push-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #eaecf0;padding:10px 16px 22px;box-shadow:0 -4px 16px rgba(0,0,0,0.06);z-index:300;display:none;}
+.push-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #eaecf0;padding:10px 16px 22px;box-shadow:0 -4px 16px rgba(0,0,0,0.06);z-index:1000;display:none;}
 .push-sum{font-size:13px;color:var(--subtext);text-align:center;margin-bottom:8px;}
 .push-sum b{color:var(--primary);}
 .push-btn{width:100%;height:50px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(12,74,166,0.3);display:flex;align-items:center;justify-content:center;gap:10px;}
@@ -295,6 +295,10 @@ body{background:var(--gray);min-height:100vh;}
       <button onclick="clearFiles()" style="font-size:12px;color:var(--red);background:none;border:none;cursor:pointer;font-weight:700">ล้าง</button>
     </div>
     <div class="file-list-card" id="fileListEl"></div>
+    <button id="inlinePushBtn" onclick="openConfirm()" style="width:100%;height:52px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:15px;font-weight:800;cursor:pointer;margin-top:12px;box-shadow:0 4px 14px rgba(12,74,166,0.3);display:flex;align-items:center;justify-content:center;gap:10px">
+      <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:#fff"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+      Push to GitHub (<span id="pushCount2">0</span> ไฟล์)
+    </button>
   </div>
 </div>
 
@@ -490,6 +494,7 @@ function renderDeploy(){
   document.getElementById('fileCount').textContent=files.length;
   document.getElementById('pushBar').style.display=active.length?'block':'none';
   document.getElementById('pushCount').textContent=active.length;
+  var pc2=document.getElementById('pushCount2'); if(pc2) pc2.textContent=active.length;
   document.getElementById('fileListEl').innerHTML=files.map(function(f,i){
     var ic=iclass(f.name);
     return '<div class="file-row"><div class="fi-ic '+ic+'"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg></div>'
