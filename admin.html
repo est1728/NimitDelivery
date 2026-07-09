@@ -602,7 +602,7 @@ function renderDetail(o){
   const btn=$('nextBtn');
   if(done){btn.textContent='เสร็จสิ้น';btn.disabled=true;btn.className='bnxt';}
   else{
-    btn.textContent={pending:'รับงาน',accepted:'เริ่มงาน',picking:'ถึงร้านแล้ว',arrived:'ออกเดินทาง',delivering:'ส่งสำเร็จ'}[o.status]||'-';
+    btn.textContent={pending:'รับงาน',accepted:'เริ่มงาน',picking:'ถึงร้านแล้ว',arrived:'ขับไปหาลูกค้า',delivering:'ส่งสำเร็จ'}[o.status]||'-';
     btn.disabled=false;btn.className='bnxt'+(o.status==='delivering'?' gn':'');
   }
   $('callShopBtn').onclick=()=>{ if(o.shopPhone)location.href='tel:'+o.shopPhone; else toast('ไม่มีเบอร์ร้าน','in'); };
@@ -628,7 +628,7 @@ async function loadCusStats(orderDocId){
 async function nextSt(){
   if(!curDocId||!curOrder||curOrder.status==='done'||curOrder.status==='rejected')return;
   const next=SN[curOrder.status];if(!next)return;
-  const label={pending:'รับงาน',accepted:'เริ่มงาน',picking:'ถึงร้านแล้ว',arrived:'ออกเดินทาง',delivering:'ส่งสำเร็จ'}[curOrder.status]||next;
+  const label={pending:'รับงาน',accepted:'เริ่มงาน',picking:'ถึงร้านแล้ว',arrived:'ขับไปหาลูกค้า',delivering:'ส่งสำเร็จ'}[curOrder.status]||next;
   confirm2('เปลี่ยนสถานะ',''+label+' ยืนยันหรือไม่',label,next==='done'?'gn':'',async()=>{
     try{await updateDoc(doc(db,'orders',curDocId),{status:next,updatedAt:serverTimestamp()});if(next==='done')toast('ออเดอร์เสร็จสิ้น','ok');}
     catch(e){toast('เกิดข้อผิดพลาด','er');}
