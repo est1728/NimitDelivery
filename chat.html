@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>แชท</title>
+<style>
+:root{--p:#0c4aa6;--pd:#083570;--pl:#e8f0fe;--g:#f5f6f8;--t:#0f172a;--s:#64748b;--gn:#16a34a;--gnl:#dcfce7;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
+body{background:var(--g);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+.chat-bar{background:linear-gradient(135deg,var(--p),var(--pd));padding:12px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.cb-back{width:36px;height:36px;border:none;background:rgba(255,255,255,.18);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cb-back svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2.5;}
+.cb-info{flex:1;min-width:0;}
+.cb-title{font-size:15px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cb-sub{font-size:12px;color:rgba(255,255,255,.75);}
+.chat-msgs{flex:1;overflow-y:auto;padding:14px 14px 8px;display:flex;flex-direction:column;gap:8px;}
+.msg-row{display:flex;flex-direction:column;}
+.msg-row.me{align-items:flex-end;}
+.msg-row.them{align-items:flex-start;}
+.msg-sender{font-size:11px;color:var(--s);margin-bottom:3px;padding:0 4px;}
+.bubble{max-width:78%;padding:10px 13px;border-radius:18px;font-size:14px;line-height:1.5;word-break:break-word;}
+.msg-row.me .bubble{background:var(--p);color:#fff;border-radius:18px 18px 4px 18px;}
+.msg-row.them .bubble{background:#fff;color:var(--t);border-radius:18px 18px 18px 4px;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+.bubble.admin-bubble{background:#7c3aed;}
+.bubble img{max-width:200px;max-height:200px;border-radius:10px;display:block;cursor:pointer;}
+.audio-player{display:flex;align-items:center;gap:8px;padding:2px 0;}
+.audio-play{width:32px;height:32px;border:none;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.audio-play svg{width:14px;height:14px;fill:#fff;}
+.msg-row.them .audio-play{background:var(--p);}
+.audio-bar{flex:1;height:3px;background:rgba(255,255,255,.3);border-radius:2px;position:relative;cursor:pointer;min-width:80px;}
+.msg-row.them .audio-bar{background:#e2e8f0;}
+.audio-prog{height:100%;background:#fff;border-radius:2px;width:0%;transition:width .1s;}
+.msg-row.them .audio-prog{background:var(--p);}
+.audio-dur{font-size:11px;color:rgba(255,255,255,.8);min-width:32px;text-align:right;}
+.msg-row.them .audio-dur{color:var(--s);}
+.msg-time{font-size:10px;color:var(--s);margin-top:3px;padding:0 4px;}
+.date-divider{display:flex;align-items:center;gap:10px;padding:4px 0;}
+.date-divider::before,.date-divider::after{content:'';flex:1;height:1px;background:#e2e8f0;}
+.date-divider span{font-size:11px;color:var(--s);font-weight:600;white-space:nowrap;}
+.typing-row{display:flex;align-items:flex-start;gap:6px;padding:0 4px;}
+.typing-dots{background:#fff;border-radius:18px;padding:10px 14px;display:flex;gap:4px;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+.dot{width:6px;height:6px;background:#94a3b8;border-radius:50%;animation:dotPulse 1.2s infinite;}
+.dot:nth-child(2){animation-delay:.2s;}
+.dot:nth-child(3){animation-delay:.4s;}
+@keyframes dotPulse{0%,100%{transform:scale(.7);opacity:.5}50%{transform:scale(1);opacity:1}}
+
+/* INPUT AREA */
+.input-area{background:#fff;border-top:1px solid #f0f2f5;padding:8px 10px;flex-shrink:0;padding-bottom:max(8px,env(safe-area-inset-bottom));}
+.input-row{display:flex;align-items:flex-end;gap:6px;}
+.input-box{flex:1;min-height:42px;max-height:120px;background:var(--g);border:none;border-radius:22px;padding:11px 14px;font-size:15px;outline:none;resize:none;font-family:inherit;color:var(--t);overflow-y:auto;line-height:1.4;}
+.input-box::placeholder{color:#b0b8c1;}
+.icon-btn{width:40px;height:40px;border:none;border-radius:50%;background:var(--g);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.icon-btn svg{width:20px;height:20px;fill:var(--s);}
+.icon-btn.send{background:var(--p);}
+.icon-btn.send svg{fill:#fff;}
+.icon-btn.send:disabled{background:#e2e8f0;}
+.icon-btn.recording{background:#ef4444;animation:recPulse .8s infinite;}
+@keyframes recPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.extra-btns{display:flex;gap:4px;padding:0 4px 4px;}
+.xbtn{width:36px;height:36px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:50%;}
+.xbtn:active{background:var(--g);}
+.xbtn svg{width:20px;height:20px;fill:var(--s);}
+.gif-badge{font-size:11px;font-weight:800;color:var(--s);background:var(--g);border-radius:6px;padding:2px 5px;}
+
+/* IMAGE VIEWER */
+.img-view{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:500;display:none;align-items:center;justify-content:center;}
+.img-view.show{display:flex;}
+.img-view img{max-width:95vw;max-height:90vh;border-radius:12px;}
+.img-view-close{position:absolute;top:16px;right:16px;width:36px;height:36px;background:rgba(255,255,255,.2);border:none;border-radius:50%;cursor:pointer;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;}
+
+/* EMPTY */
+.chat-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--s);gap:8px;}
+.chat-empty svg{width:48px;height:48px;fill:#cbd5e1;}
+.chat-empty p{font-size:14px;font-weight:600;}
+.chat-empty span{font-size:13px;}
+</style>
+</head>
+<body>
+
+<div class="chat-bar">
+  <button class="cb-back" id="backBtn"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+  <div class="cb-info">
+    <div class="cb-title" id="chatTitle">แชท</div>
+    <div class="cb-sub" id="chatSub">กำลังโหลด...</div>
+  </div>
+</div>
+
+<div class="chat-msgs" id="msgs"></div>
+
+<div class="input-area">
+  <div class="extra-btns">
+    <button class="xbtn" id="cameraBtn" title="ถ่ายรูป"><svg viewBox="0 0 24 24"><path d="M12 15.2c-1.77 0-3.2-1.43-3.2-3.2S10.23 8.8 12 8.8s3.2 1.43 3.2 3.2-1.43 3.2-3.2 3.2zM20 4h-3.17L15 2H9L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z"/></svg></button>
+    <button class="xbtn" id="imageBtn" title="รูปภาพ"><svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg></button>
+    <button class="xbtn" id="gifBtn"><span class="gif-badge">GIF</span></button>
+  </div>
+  <div class="input-row">
+    <textarea class="input-box" id="msgInput" placeholder="พิมพ์ข้อความ..." rows="1"
+      oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';updSend()"></textarea>
+    <button class="icon-btn" id="micBtn" title="บันทึกเสียง"><svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5zm6.91 6c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.78V20c0 .55.45 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"/></svg></button>
+    <button class="icon-btn send" id="sendBtn" disabled onclick="sendMsg()"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+  </div>
+</div>
+
+<input type="file" id="cameraInput" accept="image/*" capture="camera" style="display:none">
+<input type="file" id="imageInput" accept="image/*" style="display:none">
+
+<div class="img-view" id="imgView">
+  <button class="img-view-close" onclick="document.getElementById('imgView').classList.remove('show')">✕</button>
+  <img id="imgViewSrc" src="">
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, addDoc, onSnapshot, updateDoc, serverTimestamp, getDoc, setDoc, increment, orderBy, query, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+const app = initializeApp({apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",authDomain:"nimit-delivery.firebaseapp.com",projectId:"nimit-delivery",storageBucket:"nimit-delivery.firebasestorage.app",messagingSenderId:"233476256130",appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"});
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+// URL params
+const params = new URLSearchParams(location.search);
+const orderId = params.get('orderId') || '';
+const role = params.get('role') || 'customer'; // customer | rider | admin
+const myName = role==='admin'?'แอดมิน':role==='rider'?'ไรเดอร์':'ลูกค้า';
+const roleLabel = {'customer':'ลูกค้า','rider':'ไรเดอร์','admin':'แอดมิน'};
+const backUrl = role==='admin'?'javascript:history.back()':role==='rider'?'rider.html':'track.html';
+
+// Init
+document.getElementById('backBtn').onclick=()=>history.back();
+document.getElementById('chatTitle').textContent='แชท #'+orderId;
+document.getElementById('chatSub').textContent=roleLabel[role]||role;
+
+// Load order info
+async function loadOrderInfo(){
+  try{
+    const snap = await getDoc(doc(db,'orders',orderId));
+    if(snap.exists()){
+      const o = snap.data();
+      document.getElementById('chatTitle').textContent='แชท '+o.orderId;
+      document.getElementById('chatSub').textContent=(o.shopName||'')+' · '+(o.customer?.name||o.customer?.phone||'');
+    }
+  }catch(e){}
+}
+loadOrderInfo();
+
+// Mark as read
+async function markRead(){
+  try{
+    const metaRef = doc(db,'chats',orderId);
+    const upd = {};
+    upd['unread_'+role] = 0;
+    if(role==='rider') upd['riderReadAt'] = serverTimestamp();
+    await setDoc(metaRef, upd, {merge:true});
+  }catch(e){}
+}
+markRead();
+
+// Listen messages
+let lastDate = '';
+const msgsEl = document.getElementById('msgs');
+
+onSnapshot(
+  query(collection(db,'chats',orderId,'messages'), orderBy('timestamp','asc'), limit(200)),
+  snap => {
+    msgsEl.innerHTML = '';
+    lastDate = '';
+    if(snap.empty){
+      msgsEl.innerHTML = '<div class="chat-empty"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg><p>ยังไม่มีข้อความ</p><span>เริ่มการสนทนา</span></div>';
+      return;
+    }
+    snap.forEach(d=>{
+      const msg = {id:d.id,...d.data()};
+      const ts = msg.timestamp?.toDate ? msg.timestamp.toDate() : new Date();
+      const dateStr = ts.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'});
+      if(dateStr !== lastDate){
+        lastDate = dateStr;
+        const div = document.createElement('div');
+        div.className = 'date-divider';
+        div.innerHTML = `<span>${dateStr}</span>`;
+        msgsEl.appendChild(div);
+      }
+      const isMe = msg.sender === role;
+      const row = document.createElement('div');
+      row.className = 'msg-row '+(isMe?'me':'them');
+      const timeStr = ts.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+      let content = '';
+      if(msg.type==='image'){
+        content = `<div class="bubble ${msg.sender==='admin'&&!isMe?'admin-bubble':''}"><img src="${msg.content}" onclick="viewImg('${msg.content}')" loading="lazy"></div>`;
+      } else if(msg.type==='audio'){
+        const aid = 'aud_'+msg.id;
+        content = `<div class="bubble ${msg.sender==='admin'&&!isMe?'admin-bubble':''}"><div class="audio-player"><button class="audio-play" onclick="toggleAudio('${aid}','${msg.content}')"><svg viewBox="0 0 24 24" id="ic_${aid}"><path d="M8 5v14l11-7z"/></svg></button><div class="audio-bar" id="bar_${aid}"><div class="audio-prog" id="prog_${aid}"></div></div><span class="audio-dur" id="dur_${aid}">0:00</span></div><audio id="${aid}" src="${msg.content}" preload="none" ontimeupdate="updProg('${aid}')" onended="resetAudio('${aid}')"></audio></div>`;
+      } else {
+        content = `<div class="bubble ${msg.sender==='admin'&&!isMe?'admin-bubble':''}">${escHtml(msg.content||'')}</div>`;
+      }
+      if(!isMe) row.innerHTML += `<div class="msg-sender">${msg.senderName||roleLabel[msg.sender]||''}</div>`;
+      row.innerHTML += content;
+      row.innerHTML += `<div class="msg-time">${timeStr}</div>`;
+      msgsEl.appendChild(row);
+    });
+    scrollBottom();
+    markRead();
+  }
+);
+
+function scrollBottom(){ msgsEl.scrollTop = msgsEl.scrollHeight; }
+function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+
+// Send text
+window.updSend=function(){
+  const v = document.getElementById('msgInput').value.trim();
+  document.getElementById('sendBtn').disabled = !v;
+};
+window.sendMsg=async function(){
+  const input = document.getElementById('msgInput');
+  const text = input.value.trim(); if(!text) return;
+  input.value=''; input.style.height='auto'; document.getElementById('sendBtn').disabled=true;
+  await sendMessage('text', text);
+};
+
+async function sendMessage(type, content){
+  try{
+    await addDoc(collection(db,'chats',orderId,'messages'),{
+      sender: role, senderName: myName, type, content,
+      timestamp: serverTimestamp(), readBy: [role]
+    });
+    // อัพเดต meta unread
+    const metaRef = doc(db,'chats',orderId);
+    const upd = {lastMessage: type==='text'?content:'['+type+']', lastTime: serverTimestamp()};
+    const roles = ['customer','rider','admin'];
+    roles.forEach(r=>{ if(r!==role) upd['unread_'+r] = increment(1); });
+    await setDoc(metaRef, upd, {merge:true});
+    scrollBottom();
+  }catch(e){ alert('ส่งไม่สำเร็จ'); }
+}
+
+// Image upload
+async function uploadAndSend(file){
+  try{
+    // Resize ก่อนอัพ
+    const canvas = document.createElement('canvas');
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = async()=>{
+      const maxW=800, maxH=800;
+      let w=img.width, h=img.height;
+      if(w>maxW){h=h*(maxW/w);w=maxW;}
+      if(h>maxH){w=w*(maxH/h);h=maxH;}
+      canvas.width=w; canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      canvas.toBlob(async blob=>{
+        const path = `chats/${orderId}/${Date.now()}_${file.name}`;
+        const storageRef = ref(storage, path);
+        await uploadBytes(storageRef, blob, {contentType:'image/jpeg'});
+        const dlUrl = await getDownloadURL(storageRef);
+        await sendMessage('image', dlUrl);
+        URL.revokeObjectURL(url);
+      }, 'image/jpeg', 0.85);
+    };
+    img.src = url;
+  }catch(e){ alert('อัพโหลดรูปไม่สำเร็จ'); }
+}
+
+document.getElementById('cameraBtn').onclick=()=>document.getElementById('cameraInput').click();
+document.getElementById('imageBtn').onclick=()=>document.getElementById('imageInput').click();
+document.getElementById('cameraInput').onchange=e=>{ if(e.target.files[0]) uploadAndSend(e.target.files[0]); };
+document.getElementById('imageInput').onchange=e=>{ if(e.target.files[0]) uploadAndSend(e.target.files[0]); };
+
+// GIF - แสดง input ชั่วคราว
+document.getElementById('gifBtn').onclick=()=>{
+  const url = prompt('วาง URL รูป GIF:');
+  if(url && url.trim()) sendMessage('image', url.trim());
+};
+
+// Voice recording
+let mediaRec=null, audioChunks=[], isRec=false, recTimer=null, recSecs=0;
+const micBtn = document.getElementById('micBtn');
+
+micBtn.addEventListener('pointerdown', async e=>{
+  e.preventDefault();
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    mediaRec = new MediaRecorder(stream);
+    audioChunks = []; isRec = true; recSecs = 0;
+    micBtn.classList.add('recording');
+    micBtn.innerHTML = `<svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>`;
+    recTimer = setInterval(()=>{ recSecs++; micBtn.title=recSecs+'s'; },1000);
+    mediaRec.ondataavailable = e=>audioChunks.push(e.data);
+    mediaRec.start();
+  }catch(e){ alert('ไม่สามารถเข้าถึงไมค์ได้'); }
+});
+
+async function stopRec(){
+  if(!isRec||!mediaRec) return;
+  isRec=false; clearInterval(recTimer);
+  micBtn.classList.remove('recording');
+  micBtn.innerHTML=`<svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5zm6.91 6c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.78V20c0 .55.45 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"/></svg>`;
+  micBtn.title='บันทึกเสียง';
+  mediaRec.onstop = async()=>{
+    if(recSecs < 1){ audioChunks=[]; return; }
+    const blob = new Blob(audioChunks,{type:'audio/webm'});
+    try{
+      const path=`chats/${orderId}/audio_${Date.now()}.webm`;
+      const sRef = ref(storage, path);
+      await uploadBytes(sRef, blob, {contentType:'audio/webm'});
+      const dlUrl = await getDownloadURL(sRef);
+      await sendMessage('audio', dlUrl);
+    }catch(e){ alert('อัพโหลดเสียงไม่สำเร็จ'); }
+    audioChunks=[];
+  };
+  mediaRec.stop();
+  mediaRec.stream.getTracks().forEach(t=>t.stop());
+}
+micBtn.addEventListener('pointerup', stopRec);
+micBtn.addEventListener('pointerleave', stopRec);
+
+// Audio player
+const audios = {};
+window.toggleAudio=function(id, src){
+  let a = document.getElementById(id);
+  if(!a){ a = new Audio(src); document.body.appendChild(a); }
+  const ic = document.getElementById('ic_'+id);
+  if(a.paused){
+    Object.values(audios).forEach(x=>{ if(!x.paused){x.pause();} });
+    a.play();
+    ic.innerHTML='<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+    audios[id]=a;
+  } else {
+    a.pause();
+    ic.innerHTML='<path d="M8 5v14l11-7z"/>';
+  }
+};
+window.updProg=function(id){
+  const a=document.getElementById(id);if(!a)return;
+  const p=document.getElementById('prog_'+id);
+  const d=document.getElementById('dur_'+id);
+  if(p&&a.duration) p.style.width=(a.currentTime/a.duration*100)+'%';
+  if(d){const s=Math.floor(a.currentTime);d.textContent=Math.floor(s/60)+':'+(s%60<10?'0':'')+(s%60);}
+};
+window.resetAudio=function(id){
+  const p=document.getElementById('prog_'+id);
+  const d=document.getElementById('dur_'+id);
+  const ic=document.getElementById('ic_'+id);
+  if(p)p.style.width='0%';if(d)d.textContent='0:00';
+  if(ic)ic.innerHTML='<path d="M8 5v14l11-7z"/>';
+};
+
+// Image viewer
+window.viewImg=function(src){
+  document.getElementById('imgViewSrc').src=src;
+  document.getElementById('imgView').classList.add('show');
+};
+
+// Enter to send
+document.getElementById('msgInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();window.sendMsg();}
+});
+</script>
+</body>
+</html>
