@@ -212,6 +212,19 @@ body{background:var(--gray);min-height:100vh;}
 .confirm-ok{flex:1;height:54px;border:none;background:none;font-size:15px;font-weight:800;cursor:pointer;}
 .confirm-ok.primary{color:var(--primary);}
 .confirm-ok.green{color:var(--green);}
+
+.cfm-ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;display:none;align-items:center;justify-content:center;padding:20px;}
+.cfm-ov.on{display:flex;}
+.cfm-box{background:#fff;border-radius:16px;width:100%;max-width:300px;overflow:hidden;animation:cfmPop .18s ease-out;}
+@keyframes cfmPop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.cfm-body{padding:22px 20px 18px;text-align:center;}
+.cfm-title{font-size:18px;font-weight:800;color:#0f172a;margin-bottom:6px;}
+.cfm-msg{font-size:13px;color:#64748b;line-height:1.5;}
+.cfm-btns{display:flex;border-top:1px solid #f1f5f9;}
+.cfm-btns button{flex:1;height:48px;border:none;background:#fff;font-size:15px;cursor:pointer;}
+.cfm-btn-cancel{color:#64748b;border-right:1px solid #f1f5f9;font-weight:600;}
+.cfm-btn-ok{color:#0c4aa6;font-weight:800;}
+.cfm-btn-cancel:active,.cfm-btn-ok:active{background:#f8fafc;}
 </style>
 </head>
 <body>
@@ -624,6 +637,7 @@ window.openDetail=function(docId,isFromHistory){
 }
 window.showMain=function(){
   document.getElementById("mainBottomNav").style.display='flex';
+  document.getElementById("statusBarWrap").style.display='none';
   showPage("mainPage");
 }
 
