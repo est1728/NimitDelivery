@@ -414,9 +414,10 @@ body{background:var(--gray);min-height:100vh;}
     <svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
     <span>รายได้</span>
   </button>
-  <button class="bnav-item" id="bnav-messages" onclick="switchMainTab('messages')">
+  <button class="bnav-item" id="bnav-messages" onclick="openMsgTab()" style="position:relative">
     <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
     <span>ข้อความ</span>
+    <div id="msgNavBdg" style="display:none;position:absolute;top:4px;right:calc(50% - 16px);background:#ef4444;color:#fff;font-size:9px;font-weight:800;min-width:15px;height:15px;border-radius:20px;align-items:center;justify-content:center;padding:0 3px;border:1.5px solid #fff;"></div>
   </button>
   <button class="bnav-item" id="bnav-more" onclick="openSidebar()">
     <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
@@ -631,6 +632,16 @@ window.openDetail=function(docId,isFromHistory){
   fromHistory=isFromHistory;
   currentOrderDocId=docId;
   document.getElementById("statusBarWrap").style.display=isFromHistory?'none':'block';
+  // chat unread listener
+  onSnapshot(doc(db,"chats",docId),snap=>{
+    if(!snap.exists())return;
+    const d=snap.data();
+    const unread=d.unread_rider||0;
+    const bdg=document.getElementById("riderChatBdg");
+    if(bdg){bdg.textContent=unread;bdg.style.display=unread>0?'flex':'none';}
+    // mark riderReadAt
+    if(!isFromHistory) import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js").then(({setDoc,serverTimestamp,doc:fDoc,getFirestore})=>{});
+  });
   document.getElementById("mainBottomNav").style.display='none';
   onSnapshot(doc(db,"orders",docId),s=>{ if(s.exists()){ currentOrder={docId,...s.data()}; renderDetail(currentOrder); } });
   showPage("detailPage");
@@ -710,6 +721,27 @@ window.confirmAction=async function(){
   closeConfirm();
   if(wasDone){ setTimeout(()=>showMain(),350); }
 }
+window.openMsgTab=function(){
+  if(currentOrderDocId){
+    location.href='chat.html?orderId='+currentOrderDocId+'&role=rider';
+  } else {
+    // ไปหน้าข้อความ - แสดงรายการ chat ออเดอร์ล่าสุด
+    showPage('historyPage');
+  }
+};
+window.openOrderChat=function(){
+  if(!currentOrderDocId) return;
+  location.href='chat.html?orderId='+currentOrderDocId+'&role=rider';
+};
+window.openChatList=function(){
+  // ไปหน้าประวัติแล้วเลือก tab แชท
+  showPage('historyPage');
+  // switch tab
+  setTimeout(()=>{
+    const tabs=document.querySelectorAll('.hist-tab');
+    tabs.forEach((t,i)=>{ if(t.dataset.tab==='chat') t.click(); });
+  },100);
+};
 window.closeConfirm=function(){ document.getElementById("confirmOverlay").classList.remove("on"); pendingNextStatus=null; }
 window.openSidebar=function(){ document.getElementById("sidebar").classList.add("open"); document.getElementById("sidebarOverlay").classList.add("show"); }
 window.closeSidebar=function(){ document.getElementById("sidebar").classList.remove("open"); document.getElementById("sidebarOverlay").classList.remove("show"); }
