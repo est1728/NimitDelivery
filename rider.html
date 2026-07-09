@@ -273,7 +273,7 @@ body{background:var(--gray);min-height:100vh;}
   </div>
 
   <div id="tabMessages" style="display:none;padding-bottom:80px">
-    <div class="empty-box" style="margin:20px 16px"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div><div class="empty-title">ยังไม่มีข้อความ</div></div>
+    <div id="chatListContent"><div class="empty-box" style="margin:20px 16px"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div><div class="empty-title">ยังไม่มีข้อความ</div></div></div>
   </div>
 </div>
 
@@ -336,6 +336,7 @@ body{background:var(--gray);min-height:100vh;}
           <div class="action-row">
             <button class="action-btn" id="callCusBtn"><svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>โทร</button>
             <button class="action-btn" id="navCusBtn"><svg viewBox="0 0 24 24"><path d="M21.71 11.29l-9-9a1 1 0 0 0-1.42 0l-9 9a1 1 0 0 0 0 1.42l9 9a1 1 0 0 0 1.42 0l9-9a1 1 0 0 0 0-1.42z"/></svg>นำทาง</button>
+            <button class="action-btn" id="chatCusBtn" style="background:var(--green-light);color:var(--green)" onclick="openOrderChat()"><svg viewBox="0 0 24 24" style="fill:var(--green)"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>แชท</button>
           </div>
         </div>
         <div class="hidden-note" id="customerHiddenNote" style="display:none">ข้อมูลลูกค้าถูกซ่อนหลังจบงาน</div>
@@ -357,14 +358,7 @@ body{background:var(--gray);min-height:100vh;}
   </div>
   <!-- STATUS BAR fixed ล่างสุดตลอด ไม่ขยับตามเนื้อหา -->
   <div class="status-action-bar" id="statusBarWrap">
-    <div style="display:flex;gap:8px;align-items:center">
-      <button onclick="openOrderChat()" style="width:52px;height:54px;border:none;border-radius:16px;background:var(--green-light);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex-shrink:0;position:relative">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--green)"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-        <span style="font-size:9px;font-weight:800;color:var(--green)">แชท</span>
-        <div id="riderChatBdg" style="display:none;position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:20px;align-items:center;justify-content:center;padding:0 3px;border:2px solid #fff;"></div>
-      </button>
-      <button class="next-status-btn" id="nextStatusBtn" onclick="requestNextStatus()" style="flex:1">รับงาน</button>
-    </div>
+    <button class="next-status-btn" id="nextStatusBtn" onclick="requestNextStatus()">รับงาน</button>
   </div>
 </div>
 
@@ -542,6 +536,7 @@ function renderOrders(orders){
 
 // TABS
 window.switchMainTab=function(tab){
+  if(tab==='messages') loadChatList();
   ['food','income','messages'].forEach(t=>{
     document.getElementById(`tab${t.charAt(0).toUpperCase()+t.slice(1)}`).style.display=t===tab?'block':'none';
     document.getElementById(`bnav-${t}`).classList.toggle('active',t===tab);
@@ -728,6 +723,36 @@ window.confirmAction=async function(){
   closeConfirm();
   if(wasDone){ setTimeout(()=>showMain(),350); }
 }
+window.loadChatList=async function(){
+  const el=document.getElementById('chatListContent');
+  if(!el)return;
+  el.innerHTML='<div style="text-align:center;padding:24px;color:var(--subtext)">กำลังโหลด...</div>';
+  try{
+    const {getDocs,collection,orderBy,query,limit}=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    // โหลดออเดอร์ที่ไรเดอร์นี้รับ
+    const snap=await getDocs(query(collection(db,"orders"),orderBy("createdAt","desc"),limit(50)));
+    const mine=[];
+    snap.forEach(d=>{
+      const o=d.data();
+      if(o.riderId===riderData.id||(o.riderName&&o.riderName===riderData.name))
+        mine.push({id:d.id,...o});
+    });
+    if(!mine.length){el.innerHTML='<div class="empty-box" style="margin:20px 16px"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div><div class="empty-title">ยังไม่มีข้อความ</div></div>';return;}
+    el.innerHTML=mine.map(o=>{
+      const t=o.createdAt?.toDate?o.createdAt.toDate().toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'-';
+      return `<div onclick="location.href='chat.html?orderId=${o.docId}&role=rider'" style="display:flex;align-items:center;gap:12px;padding:13px 16px;background:#fff;border-bottom:1px solid #f5f6f8;cursor:pointer">
+        <div style="width:44px;height:44px;background:var(--primary-light);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--primary)"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:800;color:var(--text)">${o.orderId||o.docId}</div>
+          <div style="font-size:12px;color:var(--subtext);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${o.shopName||''} · ${o.customer?.name||o.customer?.phone||''}</div>
+        </div>
+        <div style="font-size:11px;color:var(--subtext);text-align:right;flex-shrink:0">${t}</div>
+      </div>`;
+    }).join('');
+  }catch(e){el.innerHTML='<div style="text-align:center;padding:24px;color:var(--subtext)">โหลดไม่ได้</div>';}
+};
 window.openMsgTab=function(){
   if(currentOrderDocId){
     location.href='chat.html?orderId='+currentOrderDocId+'&role=rider';
