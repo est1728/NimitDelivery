@@ -357,7 +357,14 @@ body{background:var(--gray);min-height:100vh;}
   </div>
   <!-- STATUS BAR fixed ล่างสุดตลอด ไม่ขยับตามเนื้อหา -->
   <div class="status-action-bar" id="statusBarWrap">
-    <button class="next-status-btn" id="nextStatusBtn" onclick="requestNextStatus()">รับงาน</button>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button onclick="openOrderChat()" style="width:52px;height:54px;border:none;border-radius:16px;background:var(--green-light);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex-shrink:0;position:relative">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--green)"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+        <span style="font-size:9px;font-weight:800;color:var(--green)">แชท</span>
+        <div id="riderChatBdg" style="display:none;position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:20px;align-items:center;justify-content:center;padding:0 3px;border:2px solid #fff;"></div>
+      </button>
+      <button class="next-status-btn" id="nextStatusBtn" onclick="requestNextStatus()" style="flex:1">รับงาน</button>
+    </div>
   </div>
 </div>
 
