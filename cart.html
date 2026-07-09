@@ -395,7 +395,7 @@ window.switchTab=function(tab){
 }
 
 // CHECKOUT
-function genOrderId(){ const c="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"; let r="AMJ-"; for(let i=0;i<6;i++) r+=c[Math.floor(Math.random()*c.length)]; return r; }
+function genOrderId(){ return String(Math.floor(1000+Math.random()*9000)); }
 function genGroupId(){ return "GRP-"+Date.now().toString(36)+Math.random().toString(36).substring(2,6); }
 
 window.toggleShop=function(shopId){
@@ -494,6 +494,8 @@ async function init(){
   renderFood();
 }
 init();
+
+function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 </script>
 </body>
 </html>
