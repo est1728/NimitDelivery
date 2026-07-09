@@ -631,7 +631,7 @@ function renderDetail(o){
   $('callShopBtn').onclick=()=>{ if(o.shopPhone)location.href='tel:'+o.shopPhone; else toast('ไม่มีเบอร์ร้าน','in'); };
   $('navShopBtn').onclick=()=>{ if(o.shopLat&&o.shopLng)window.open('https://maps.google.com?q='+o.shopLat+','+o.shopLng,'_blank'); else toast('ไม่มีพิกัดร้าน','in'); };
   $('callCusBtn').onclick=()=>{ if(o.customer?.phone)location.href='tel:'+o.customer.phone; else toast('ไม่มีเบอร์ลูกค้า','in'); };
-  $('chatCusBtn').onclick=()=>{ if(o.customer?.phone)window.open('https://line.me/R/ti/p/~'+o.customer.phone,'_blank'); else toast('ไม่มีเบอร์','in'); };
+  $('chatCusBtn').onclick=()=>{ if(curDocId)location.href='chat.html?orderId='+curDocId+'&role=admin'; else toast('ไม่มีออเดอร์','in'); };
   $('navCusBtn').onclick=()=>{ if(o.customer?.lat&&o.customer?.lng)window.open('https://maps.google.com?q='+o.customer.lat+','+o.customer.lng,'_blank'); else if(o.customer?.address)window.open('https://maps.google.com?q='+encodeURIComponent(o.customer.address),'_blank'); else toast('ไม่มีพิกัดลูกค้า','in'); };
 }
 
