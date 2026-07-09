@@ -349,15 +349,15 @@ body{background:var(--gray);min-height:100vh;}
 </div>
 
 <!-- CONFIRM -->
-<div class="confirm-overlay" id="confirmOverlay">
-  <div class="confirm-box">
-    <div class="confirm-icon-wrap"><div class="confirm-icon-circle" id="confirmIconCircle"><svg id="confirmIcon" viewBox="0 0 24 24"></svg></div></div>
-    <div class="confirm-title" id="confirmTitle">ยืนยัน</div>
-    <div class="confirm-sub" id="confirmSub"></div>
-    <div class="confirm-order-badge"><div class="confirm-order-id" id="confirmOrderId">-</div><div class="confirm-order-shop" id="confirmOrderShop">-</div></div>
-    <div class="confirm-btns">
-      <button class="confirm-cancel" onclick="closeConfirm()">ยกเลิก</button>
-      <button class="confirm-ok primary" id="confirmOkBtn" onclick="confirmAction()">ยืนยัน</button>
+<div class="cfm-ov" id="confirmOverlay">
+  <div class="cfm-box">
+    <div class="cfm-body">
+      <div class="cfm-title" id="confirmTitle">ยืนยัน</div>
+      <div class="cfm-msg" id="confirmSub"></div>
+    </div>
+    <div class="cfm-btns">
+      <button class="cfm-btn-cancel" onclick="closeConfirm()">ยกเลิก</button>
+      <button class="cfm-btn-ok" id="confirmOkBtn" onclick="confirmAction()">ยืนยัน</button>
     </div>
   </div>
 </div>
@@ -684,14 +684,9 @@ window.requestNextStatus=function(){
     delivering:{title:"ส่งสำเร็จ",sub:"ยืนยันว่าส่งถึงลูกค้าเรียบร้อยแล้ว?",icon:statusIcons.done,cls:"icon-green",ok:"green"},
   }[status];
   if(!d) return;
-  document.getElementById("confirmIconCircle").className=`confirm-icon-circle ${d.cls}`;
-  document.getElementById("confirmIcon").innerHTML=d.icon;
   document.getElementById("confirmTitle").textContent=d.title;
-  document.getElementById("confirmSub").textContent=d.sub;
-  document.getElementById("confirmOrderId").textContent=currentOrder.orderId;
-  document.getElementById("confirmOrderShop").textContent=currentOrder.shopName||'-';
-  document.getElementById("confirmOkBtn").className=`confirm-ok ${d.ok}`;
-  document.getElementById("confirmOverlay").classList.add("show");
+  document.getElementById("confirmSub").textContent=currentOrder.orderId+' · '+(currentOrder.shopName||'');
+  document.getElementById("confirmOverlay").classList.add("on");
 }
 
 window.confirmAction=async function(){
@@ -701,7 +696,7 @@ window.confirmAction=async function(){
   closeConfirm();
   if(wasDone){ setTimeout(()=>showMain(),350); }
 }
-window.closeConfirm=function(){ document.getElementById("confirmOverlay").classList.remove("show"); pendingNextStatus=null; }
+window.closeConfirm=function(){ document.getElementById("confirmOverlay").classList.remove("on"); pendingNextStatus=null; }
 window.openSidebar=function(){ document.getElementById("sidebar").classList.add("open"); document.getElementById("sidebarOverlay").classList.add("show"); }
 window.closeSidebar=function(){ document.getElementById("sidebar").classList.remove("open"); document.getElementById("sidebarOverlay").classList.remove("show"); }
 window.toggleNotif=function(){
