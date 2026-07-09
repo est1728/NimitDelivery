@@ -276,7 +276,7 @@ window.confirmAddr=function(){
 }
 
 // PLACE ORDER
-function genOrderId(){ return String(Math.floor(1000+Math.random()*9000)); }
+function genOrderId(){ return "AMJ-"+String(Math.floor(1000+Math.random()*9000)); }
 function genGroupId(){ return "GRP-"+Date.now().toString(36)+Math.random().toString(36).substring(2,6); }
 
 window.placeOrder=async function(){
