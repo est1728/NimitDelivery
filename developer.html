@@ -527,10 +527,7 @@ function clsVw(){document.getElementById('vw').classList.remove('op');}
 // ===== AI =====
 var chatH=[], qUsed=0, qDate='', QMAX=500;
 
-function chkQ(){
-  var today=new Date().toDateString();
-  if(qDate!==today){qUsed=0;qDate=today;localStorage.setItem('gmQU','0');localStorage.setItem('gmQD',today);}
-}
+function chkQ(){var today=new Date().toDateString();if(qDate!==today){qUsed=0;qDate=today;localStorage.setItem('gmQU','0');localStorage.setItem('gmQD',today);if(typeof updQUI==='function')updQUI();}}
 function ldQ(){
   qUsed=parseInt(localStorage.getItem('gmQU')||'0')||0;
   qDate=localStorage.getItem('gmQD')||'';
@@ -581,7 +578,7 @@ async function sndChat(){
   var msgs=chatH.length>1?chatH.slice(-10):[{role:'user',parts:[{text:sys+' '+msg}]}];
   try{
     var resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+cfg.gmKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:msgs,generationConfig:{maxOutputTokens:2048,temperature:0.3}})});
-    if(resp.status===429){qUsed=QMAX;localStorage.setItem('gmQU',String(QMAX));updQUI();shwSlp();setAISt('sl',slpMsg());rpTk(tid,'โควต้าหมดแล้ว '+slpMsg());document.getElementById('csnd').disabled=false;return;}
+    if(resp.status===429){shwSlp();setAISt('sl',slpMsg());rpTk(tid,'โควต้าหมดแล้ว '+slpMsg());document.getElementById('csnd').disabled=false;return;}
     var data=await resp.json();
     if(data.error) throw new Error(data.error.message);
     var reply=data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]?data.candidates[0].content.parts[0].text:'ไม่ได้รับคำตอบ';
