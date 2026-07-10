@@ -63,6 +63,22 @@ body{background:var(--g);height:100dvh;display:flex;flex-direction:column;overfl
 .xbtn svg{width:20px;height:20px;fill:var(--s);}
 .gif-badge{font-size:11px;font-weight:800;color:var(--s);background:var(--g);border-radius:6px;padding:2px 5px;}
 
+/* PREVIEW BAR */
+.preview-bar{display:none;align-items:center;gap:10px;background:#f0f6ff;border-top:1px solid #dbeafe;padding:10px 14px;position:fixed;left:0;right:0;z-index:49;}
+.preview-bar.show{display:flex;}
+.preview-img-wrap{position:relative;flex-shrink:0;}
+.preview-img-wrap img{width:56px;height:56px;border-radius:10px;object-fit:cover;border:2px solid #bfdbfe;}
+.preview-audio-wrap{display:flex;align-items:center;gap:10px;flex:1;background:#fff;border-radius:12px;padding:8px 12px;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+.preview-play{width:34px;height:34px;border:none;border-radius:50%;background:var(--p);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.preview-play svg{width:14px;height:14px;fill:#fff;}
+.preview-audio-bar{flex:1;height:3px;background:#e2e8f0;border-radius:2px;cursor:pointer;}
+.preview-audio-prog{height:100%;background:var(--p);border-radius:2px;width:0%;}
+.preview-dur{font-size:12px;font-weight:700;color:var(--s);min-width:34px;text-align:right;}
+.preview-label{font-size:13px;font-weight:700;color:var(--p);}
+.preview-x{width:28px;height:28px;border:none;border-radius:50%;background:#e2e8f0;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:auto;}
+.preview-x svg{width:14px;height:14px;fill:var(--s);}
+.preview-send{height:38px;padding:0 18px;border:none;border-radius:20px;background:var(--p);color:#fff;font-size:14px;font-weight:700;cursor:pointer;flex-shrink:0;}
+
 /* IMAGE VIEWER */
 .img-view{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:500;display:none;align-items:center;justify-content:center;}
 .img-view.show{display:flex;}
@@ -87,6 +103,11 @@ body{background:var(--g);height:100dvh;display:flex;flex-direction:column;overfl
 </div>
 
 <div class="chat-msgs" id="msgs"></div>
+
+<!-- PREVIEW BAR -->
+<div class="preview-bar" id="previewBar">
+  <!-- จะ inject content ใน JS -->
+</div>
 
 <div class="input-area">
   <div class="extra-btns">
@@ -236,31 +257,122 @@ async function sendMessage(type, content){
 }
 
 // Image upload
-async function uploadAndSend(file){
+let pendingFile=null, pendingAudioBlob=null, pendingAudioUrl=null, previewAudio=null;
+
+function showImgPreview(file){
+  pendingFile=file;
+  const url=URL.createObjectURL(file);
+  const bar=document.getElementById('previewBar');
+  bar.innerHTML=`
+    <img src="${url}" style="width:56px;height:56px;border-radius:10px;object-fit:cover;border:2px solid #bfdbfe;flex-shrink:0">
+    <span class="preview-label">พร้อมส่งรูปภาพ</span>
+    <button class="preview-x" onclick="clearPreview()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+    <button class="preview-send" onclick="sendPending()">ส่ง</button>`;
+  bar.classList.add('show');
+  posPreviewBar();
+}
+
+function showAudioPreview(blob, durationSec){
+  pendingAudioBlob=blob;
+  pendingAudioUrl=URL.createObjectURL(blob);
+  if(previewAudio){previewAudio.pause();previewAudio=null;}
+  previewAudio=new Audio(pendingAudioUrl);
+  const dur=durationSec||0;
+  const fmt=s=>Math.floor(s/60)+':'+(Math.floor(s)%60<10?'0':'')+Math.floor(s)%60;
+  const bar=document.getElementById('previewBar');
+  bar.innerHTML=`
+    <div class="preview-audio-wrap">
+      <button class="preview-play" id="prevPlayBtn" onclick="togglePreviewAudio()"><svg viewBox="0 0 24 24" id="prevPlayIc"><path d="M8 5v14l11-7z"/></svg></button>
+      <div class="preview-audio-bar"><div class="preview-audio-prog" id="prevProg"></div></div>
+      <span class="preview-dur" id="prevDur">${fmt(dur)}</span>
+    </div>
+    <button class="preview-x" onclick="clearPreview()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+    <button class="preview-send" onclick="sendPending()">ส่ง</button>`;
+  bar.classList.add('show');
+  previewAudio.ontimeupdate=()=>{
+    const p=document.getElementById('prevProg');
+    const d2=document.getElementById('prevDur');
+    if(p&&previewAudio.duration)p.style.width=(previewAudio.currentTime/previewAudio.duration*100)+'%';
+    if(d2)d2.textContent=fmt(previewAudio.currentTime);
+  };
+  previewAudio.onended=()=>{
+    document.getElementById('prevPlayIc').innerHTML='<path d="M8 5v14l11-7z"/>';
+    const p=document.getElementById('prevProg');if(p)p.style.width='0%';
+  };
+  posPreviewBar();
+}
+
+window.togglePreviewAudio=function(){
+  if(!previewAudio)return;
+  const ic=document.getElementById('prevPlayIc');
+  if(previewAudio.paused){
+    previewAudio.play();
+    ic.innerHTML='<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+  }else{
+    previewAudio.pause();
+    ic.innerHTML='<path d="M8 5v14l11-7z"/>';
+  }
+};
+
+function posPreviewBar(){
+  const inputArea=document.querySelector('.input-area');
+  const bar=document.getElementById('previewBar');
+  if(!inputArea||!bar)return;
+  const h=inputArea.getBoundingClientRect().height;
+  bar.style.bottom=h+'px';
+}
+
+window.clearPreview=function(){
+  if(previewAudio){previewAudio.pause();previewAudio=null;}
+  if(pendingAudioUrl)URL.revokeObjectURL(pendingAudioUrl);
+  pendingFile=null;pendingAudioBlob=null;pendingAudioUrl=null;
+  const bar=document.getElementById('previewBar');
+  bar.classList.remove('show');bar.innerHTML='';
+  // reset file inputs
+  document.getElementById('cameraInput').value='';
+  document.getElementById('imageInput').value='';
+};
+
+window.sendPending=async function(){
+  if(pendingFile){
+    const file=pendingFile;clearPreview();
+    await uploadImageFile(file);
+  } else if(pendingAudioBlob){
+    const blob=pendingAudioBlob;clearPreview();
+    await uploadAudioBlob(blob);
+  }
+};
+
+async function uploadImageFile(file){
   try{
-    // Resize ก่อนอัพ
-    const canvas = document.createElement('canvas');
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = async()=>{
-      const maxW=800, maxH=800;
-      let w=img.width, h=img.height;
-      if(w>maxW){h=h*(maxW/w);w=maxW;}
-      if(h>maxH){w=w*(maxH/h);h=maxH;}
-      canvas.width=w; canvas.height=h;
+    const canvas=document.createElement('canvas'),img=new Image();
+    const url=URL.createObjectURL(file);
+    img.onload=async()=>{
+      let w=img.width,h=img.height;
+      if(w>800){h=h*800/w;w=800;}if(h>800){w=w*800/h;h=800;}
+      canvas.width=w;canvas.height=h;
       canvas.getContext('2d').drawImage(img,0,0,w,h);
       canvas.toBlob(async blob=>{
-        const path = `chats/${orderId}/${Date.now()}_${file.name}`;
-        const storageRef = ref(storage, path);
-        await uploadBytes(storageRef, blob, {contentType:'image/jpeg'});
-        const dlUrl = await getDownloadURL(storageRef);
-        await sendMessage('image', dlUrl);
+        const sRef=ref(storage,`chats/${orderId}/${Date.now()}.jpg`);
+        await uploadBytes(sRef,blob,{contentType:'image/jpeg'});
+        const dlUrl=await getDownloadURL(sRef);
+        await sendMessage('image',dlUrl);
         URL.revokeObjectURL(url);
-      }, 'image/jpeg', 0.85);
-    };
-    img.src = url;
-  }catch(e){ alert('อัพโหลดรูปไม่สำเร็จ'); }
+      },'image/jpeg',0.85);
+    };img.src=url;
+  }catch(e){alert('อัพโหลดรูปไม่สำเร็จ');}
 }
+
+async function uploadAudioBlob(blob){
+  try{
+    const sRef=ref(storage,`chats/${orderId}/audio_${Date.now()}.webm`);
+    await uploadBytes(sRef,blob,{contentType:'audio/webm'});
+    const dlUrl=await getDownloadURL(sRef);
+    await sendMessage('audio',dlUrl);
+  }catch(e){alert('อัพโหลดเสียงไม่สำเร็จ');}
+}
+
+async function uploadAndSend(file){ showImgPreview(file); }
 
 document.getElementById('cameraBtn').onclick=()=>document.getElementById('cameraInput').click();
 document.getElementById('imageBtn').onclick=()=>document.getElementById('imageInput').click();
@@ -300,13 +412,7 @@ async function stopRec(){
   mediaRec.onstop = async()=>{
     if(recSecs < 1){ audioChunks=[]; return; }
     const blob = new Blob(audioChunks,{type:'audio/webm'});
-    try{
-      const path=`chats/${orderId}/audio_${Date.now()}.webm`;
-      const sRef = ref(storage, path);
-      await uploadBytes(sRef, blob, {contentType:'audio/webm'});
-      const dlUrl = await getDownloadURL(sRef);
-      await sendMessage('audio', dlUrl);
-    }catch(e){ alert('อัพโหลดเสียงไม่สำเร็จ'); }
+    showAudioPreview(blob, recSecs);
     audioChunks=[];
   };
   mediaRec.stop();
