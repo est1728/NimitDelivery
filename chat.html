@@ -71,8 +71,8 @@ body{background:#e8ecf0;height:100dvh;display:flex;flex-direction:column;overflo
 .rec-panel{display:none;position:fixed;left:0;right:0;z-index:48;background:#f1f5f9;border-top:1px solid #e2e8f0;padding:16px 20px 20px;align-items:center;gap:14px;}
 .rec-panel.show{display:flex;}
 .rec-timer{font-size:22px;font-weight:800;color:var(--r);font-variant-numeric:tabular-nums;min-width:60px;}
-.rec-wave{flex:1;height:36px;background:linear-gradient(90deg,#fee2e2 0%,#fca5a5 50%,#fee2e2 100%);border-radius:8px;background-size:200% 100%;animation:wave 1.2s linear infinite;}
-@keyframes wave{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.rec-wave{flex:1;height:40px;border-radius:8px;overflow:hidden;}
+#waveCanvas{width:100%;height:40px;display:block;}
 .rec-stop{width:52px;height:52px;border:none;border-radius:50%;background:var(--r);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(220,38,38,.3);}
 .rec-stop svg{width:20px;height:20px;fill:#fff;}
 .rec-cancel{width:40px;height:40px;border:none;border-radius:50%;background:#e2e8f0;cursor:pointer;display:flex;align-items:center;justify-content:center;}
@@ -122,7 +122,7 @@ body{background:#e8ecf0;height:100dvh;display:flex;flex-direction:column;overflo
 <!-- RECORD PANEL -->
 <div class="rec-panel" id="recPanel">
   <span class="rec-timer" id="recTimer">0:00</span>
-  <div class="rec-wave"></div>
+  <div class="rec-wave"><canvas id="waveCanvas"></canvas></div>
   <button class="rec-cancel" onclick="cancelRec()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
   <button class="rec-stop" onclick="stopRec()"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg></button>
 </div>
@@ -397,32 +397,37 @@ window.sendPending=async function(){
 };
 
 async function uploadImageFile(file){
+  // resize → base64 → store in Firestore (ไม่ต้องพึ่ง Storage rules)
   try{
     const canvas=document.createElement('canvas'),img=new Image();
     const url=URL.createObjectURL(file);
-    img.onload=async()=>{
-      let w=img.width,h=img.height;
-      if(w>800){h=h*800/w;w=800;}if(h>800){w=w*800/h;h=800;}
-      canvas.width=w;canvas.height=h;
-      canvas.getContext('2d').drawImage(img,0,0,w,h);
-      canvas.toBlob(async blob=>{
-        const sRef=ref(storage,`chats/${orderId}/${Date.now()}.jpg`);
-        await uploadBytes(sRef,blob,{contentType:'image/jpeg'});
-        const dlUrl=await getDownloadURL(sRef);
-        await sendMessage('image',dlUrl);
-        URL.revokeObjectURL(url);
-      },'image/jpeg',0.85);
-    };img.src=url;
-  }catch(e){alert('อัพโหลดรูปไม่สำเร็จ');}
+    await new Promise((res,rej)=>{
+      img.onload=res;img.onerror=rej;img.src=url;
+    });
+    let w=img.width,h=img.height;
+    const max=600;
+    if(w>max){h=Math.round(h*max/w);w=max;}
+    if(h>max){w=Math.round(w*max/h);h=max;}
+    canvas.width=w;canvas.height=h;
+    canvas.getContext('2d').drawImage(img,0,0,w,h);
+    const b64=canvas.toDataURL('image/jpeg',0.7);
+    URL.revokeObjectURL(url);
+    if(b64.length>900000){alert('รูปใหญ่เกินไป กรุณาเลือกรูปขนาดเล็กกว่านี้');return;}
+    await sendMessage('image',b64);
+  }catch(e){console.error(e);alert('ส่งรูปไม่สำเร็จ: '+e.message);}
 }
 
 async function uploadAudioBlob(blob){
   try{
-    const sRef=ref(storage,`chats/${orderId}/audio_${Date.now()}.webm`);
-    await uploadBytes(sRef,blob,{contentType:'audio/webm'});
-    const dlUrl=await getDownloadURL(sRef);
-    await sendMessage('audio',dlUrl);
-  }catch(e){alert('อัพโหลดเสียงไม่สำเร็จ');}
+    const reader=new FileReader();
+    const b64=await new Promise((res,rej)=>{
+      reader.onload=()=>res(reader.result);
+      reader.onerror=rej;
+      reader.readAsDataURL(blob);
+    });
+    if(b64.length>900000){alert('ไฟล์เสียงใหญ่เกินไป');return;}
+    await sendMessage('audio',b64);
+  }catch(e){console.error(e);alert('ส่งเสียงไม่สำเร็จ: '+e.message);}
 }
 
 async function uploadAndSend(file){ showImgPreview(file); }
@@ -443,6 +448,8 @@ let mediaRec=null, audioChunks=[], isRec=false, recInterval=null, recSecs=0;
 
 document.getElementById('micBtn').addEventListener('click', startRec);
 
+let waveAnimId=null,audioCtx=null,analyser=null;
+
 async function startRec(){
   if(isRec)return;
   try{
@@ -451,16 +458,48 @@ async function startRec(){
     audioChunks=[];isRec=true;recSecs=0;
     mediaRec.ondataavailable=e=>audioChunks.push(e.data);
     mediaRec.start(100);
-    // แสดง rec panel
-    const panel=document.getElementById('recPanel');
-    panel.classList.add('show');
+    document.getElementById('recPanel').classList.add('show');
     posPreviewBar();
     recInterval=setInterval(()=>{
       recSecs++;
       const m=Math.floor(recSecs/60),s=recSecs%60;
       document.getElementById('recTimer').textContent=m+':'+(s<10?'0':'')+s;
     },1000);
+    // Web Audio waveform
+    try{
+      audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+      analyser=audioCtx.createAnalyser();
+      analyser.fftSize=128;
+      const src=audioCtx.createMediaStreamSource(stream);
+      src.connect(analyser);
+      drawWave();
+    }catch(e){}
   }catch(e){ alert('ไม่สามารถเข้าถึงไมค์ได้'); }
+}
+
+function drawWave(){
+  const canvas=document.getElementById('waveCanvas');
+  if(!canvas||!analyser)return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.offsetWidth||200,H=40;
+  canvas.width=W;canvas.height=H;
+  const data=new Uint8Array(analyser.frequencyBinCount);
+  function draw(){
+    if(!isRec){ctx.clearRect(0,0,W,H);return;}
+    waveAnimId=requestAnimationFrame(draw);
+    analyser.getByteFrequencyData(data);
+    ctx.fillStyle='#fee2e2';ctx.fillRect(0,0,W,H);
+    const bars=24,bw=Math.floor(W/bars)-2,gap=2;
+    for(let i=0;i<bars;i++){
+      const val=data[Math.floor(i*data.length/bars)]/255;
+      const bh=Math.max(4,val*H*0.9);
+      const x=i*(bw+gap)+(W-(bars*(bw+gap)))/2;
+      const y=(H-bh)/2;
+      ctx.fillStyle=`rgba(239,68,68,${0.4+val*0.6})`;
+      ctx.beginPath();ctx.roundRect(x,y,bw,bh,2);ctx.fill();
+    }
+  }
+  draw();
 }
 
 window.stopRec=async function(){
@@ -475,6 +514,8 @@ window.stopRec=async function(){
   };
   mediaRec.stop();mediaRec.stream.getTracks().forEach(t=>t.stop());
   mediaRec=null;
+  if(waveAnimId)cancelAnimationFrame(waveAnimId);
+  if(audioCtx)audioCtx.close();
 };
 
 window.cancelRec=function(){
