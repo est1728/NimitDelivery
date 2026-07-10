@@ -23,9 +23,9 @@ body{background:var(--gray);min-height:100vh;padding-bottom:28px;}
 .order-status-btn{height:34px;padding:0 10px;border-radius:20px;background:rgba(255,255,255,.18);border:none;cursor:pointer;display:none;align-items:center;gap:5px;font-size:12px;font-weight:700;color:#fff;}
 .order-status-dot{width:6px;height:6px;border-radius:50%;background:#4ade80;animation:pulse 1.5s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.cart-btn{position:relative;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.18);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.cart-btn svg{width:19px;height:19px;fill:#fff;}
-.cart-badge{position:absolute;top:-3px;right:-3px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:20px;display:none;align-items:center;justify-content:center;padding:0 3px;border:2px solid var(--primary-dark);}
+.cart-btn{position:relative;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.18);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cart-btn svg{width:20px;height:20px;fill:#fff;}
+.cart-badge{position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:20px;display:none;align-items:center;justify-content:center;padding:0 3px;border:2px solid var(--primary-dark);pointer-events:none;}
 .addr-chip{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border-radius:20px;padding:6px 12px;cursor:pointer;max-width:200px;}
 .addr-chip svg{width:13px;height:13px;fill:#fff;flex-shrink:0;}
 .addr-chip-txt{font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -123,7 +123,7 @@ body{background:var(--gray);min-height:100vh;padding-bottom:28px;}
         <div class="order-status-dot"></div>ดูออเดอร์
       </button>
       <button class="cart-btn" onclick="location.href='cart.html'">
-        <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63H19c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 23.25 5H5.21l-.94-2H1z"/></svg>
+        <svg viewBox="0 0 24 24" style="display:block"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg>
         <div class="cart-badge" id="cartBadge">0</div>
       </button>
     </div>
@@ -146,7 +146,7 @@ body{background:var(--gray);min-height:100vh;padding-bottom:28px;}
   <div class="ads-dots" id="adsDots"></div>
 </div>
 
-<div class="active-order" id="activeOrderCard" onclick="location.href='track.html'">
+<div class="active-order" id="activeOrderCard" style="margin-bottom:0" onclick="location.href='track.html'">
   <div class="ao-top">
     <div class="ao-id" id="aoId">-</div>
     <div class="ao-badge">กำลังดำเนินการ</div>
@@ -157,16 +157,6 @@ body{background:var(--gray);min-height:100vh;padding-bottom:28px;}
     <span class="ao-status" id="aoStatus">รอรับออเดอร์</span>
     <span class="ao-arrow">ดูรายละเอียด <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></span>
   </div>
-
-<!-- CATS -->
-<div class="cats" id="cats">
-  <button class="cat on" data-cat="all">🍽 ทั้งหมด</button>
-  <button class="cat" data-cat="rice">🍚 ข้าว</button>
-  <button class="cat" data-cat="noodle">🍜 ก๋วยเตี๋ยว</button>
-  <button class="cat" data-cat="drinks">🧋 เครื่องดื่ม</button>
-  <button class="cat" data-cat="dessert">🍨 ของหวาน</button>
-  <button class="cat" data-cat="snack">🍟 สแนค</button>
-</div>
 
 <!-- POPULAR -->
 <div id="popularSection" style="display:none">
@@ -191,8 +181,7 @@ const SS=["pending","accepted","picking","arrived","delivering","done"];
 let allShops=[],userLat=null,userLng=null;
 
 // CART
-function updCart(){const c=JSON.parse(localStorage.getItem("cart")||"{}");let q=0;Object.values(c).forEach(s=>(s.items||[]).forEach(i=>q+=i.qty));const b=document.getElementById("cartBadge");b.textContent=q;b.style.display=q?"flex":"none";}
-updCart();
+function updCart(){const cc=JSON.parse(localStorage.getItem('cart')||'{}');let q=0;Object.values(cc).forEach(s=>(s.items||[]).forEach(i=>q+=i.qty));const b=document.getElementById('cartBadge');if(b){b.textContent=q;b.style.display=q?'flex':'none';}}updCart();
 
 // ADDRESS
 // อ่านที่อยู่หลักจาก addresses (ระบบเดียวกับ checkout)
