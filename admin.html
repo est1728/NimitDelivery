@@ -508,22 +508,26 @@ function updPrev(){
 
 // ORDERS
 const adminChatUnreadMap={};
+const adminChatUnsubs={};
+
 function listenOrders(){
   onSnapshot(query(collection(db,'orders'),where('status','in',ACTIVE)),snap=>{
     orders=[];snap.forEach(d=>orders.push({docId:d.id,...d.data()}));
     orders.sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
     updDash();renderOrders();
-    // ฟัง unread ของแต่ละออเดอร์
+    // unsubscribe เก่า
+    const activeIds=new Set();snap.forEach(d=>activeIds.add(d.id));
+    Object.keys(adminChatUnsubs).forEach(id=>{
+      if(!activeIds.has(id)){adminChatUnsubs[id]();delete adminChatUnsubs[id];}
+    });
+    // subscribe ใหม่
     snap.forEach(d=>{
-      onSnapshot(doc(db,'chats',d.id),chatSnap=>{
+      if(adminChatUnsubs[d.id])return;
+      adminChatUnsubs[d.id]=onSnapshot(doc(db,'chats',d.id),chatSnap=>{
         const unread=chatSnap.exists()?(chatSnap.data().unread_admin||0):0;
         adminChatUnreadMap[d.id]=unread;
-        // อัพเดต badge บนการ์ด
         const bdg=document.getElementById('cu_'+d.id);
-        if(bdg){
-          bdg.textContent='💬 '+unread;
-          bdg.style.display=unread>0?'inline-flex':'none';
-        }
+        if(bdg){bdg.textContent='💬 '+unread;bdg.style.display=unread>0?'inline-flex':'none';}
       });
     });
   },err=>console.error(err));
