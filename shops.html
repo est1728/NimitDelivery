@@ -146,13 +146,6 @@ body{background:var(--gray);min-height:100vh;padding-bottom:28px;}
   <div class="ads-dots" id="adsDots"></div>
 </div>
 
-<!-- POPULAR -->
-<div id="popularSection" style="display:none">
-  <div class="section-head"><span class="section-title">ร้านยอดนิยม</span></div>
-  <div class="popular-scroll" id="popularScroll"></div>
-</div>
-
-<!-- ACTIVE ORDER (ระหว่าง popular กับ ร้านค้า) -->
 <div class="active-order" id="activeOrderCard" onclick="location.href='track.html'">
   <div class="ao-top">
     <div class="ao-id" id="aoId">-</div>
@@ -164,6 +157,24 @@ body{background:var(--gray);min-height:100vh;padding-bottom:28px;}
     <span class="ao-status" id="aoStatus">รอรับออเดอร์</span>
     <span class="ao-arrow">ดูรายละเอียด <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></span>
   </div>
+
+<!-- CATS -->
+<div class="cats" id="cats">
+  <button class="cat on" data-cat="all">🍽 ทั้งหมด</button>
+  <button class="cat" data-cat="rice">🍚 ข้าว</button>
+  <button class="cat" data-cat="noodle">🍜 ก๋วยเตี๋ยว</button>
+  <button class="cat" data-cat="drinks">🧋 เครื่องดื่ม</button>
+  <button class="cat" data-cat="dessert">🍨 ของหวาน</button>
+  <button class="cat" data-cat="snack">🍟 สแนค</button>
+</div>
+
+<!-- POPULAR -->
+<div id="popularSection" style="display:none">
+  <div class="section-head"><span class="section-title">ร้านยอดนิยม</span></div>
+  <div class="popular-scroll" id="popularScroll"></div>
+</div>
+
+<!-- ACTIVE ORDER (ระหว่าง popular กับ ร้านค้า) -->
 </div>
 
 <!-- SHOPS -->
