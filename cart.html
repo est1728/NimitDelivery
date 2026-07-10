@@ -143,17 +143,17 @@ body { background:var(--gray); min-height:100vh; padding-bottom:120px; }
 <body>
 
 <div class="topbar">
-  <button class="back-btn" onclick="history.back()">
+  <button class="back-btn" onclick="window.history.back()">
     <svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
   </button>
   <div class="topbar-title">รายการรถเข็น</div>
 </div>
 
 <div class="tabs-wrap">
-  <button class="tab-btn active" id="tab-food" onclick="switchTab('food')">
+  <button class="tab-btn active" id="tab-food" onclick="window.switchTab('food')">
     อาหาร <span class="tab-badge" id="food-badge">0</span>
   </button>
-  <button class="tab-btn" id="tab-history" onclick="switchTab('history')">
+  <button class="tab-btn" id="tab-history" onclick="window.switchTab('history')">
     ประวัติการสั่งซื้อ
   </button>
 </div>
@@ -185,7 +185,7 @@ body { background:var(--gray); min-height:100vh; padding-bottom:120px; }
     <div class="total-label">ยอดรวม</div>
     <div class="total-amount">฿<span id="total-amount">0</span></div>
   </div>
-  <button class="confirm-btn" id="confirm-btn" onclick="goCheckout()">สั่งซื้อที่เลือก (<span id="selected-count">0</span> ร้าน)</button>
+  <button class="confirm-btn" id="confirm-btn" onclick="window.goCheckout()">สั่งซื้อที่เลือก (<span id="selected-count">0</span> ร้าน)</button>
 </div>
 
 <!-- OPTION MODAL -->
@@ -200,12 +200,15 @@ body { background:var(--gray); min-height:100vh; padding-bottom:120px; }
       <textarea class="note-input-modal" id="modal-note" placeholder="เช่น ไม่ใส่ผัก, หวานน้อย"></textarea>
     </div>
     <div class="modal-footer">
-      <button class="modal-cancel-btn" onclick="closeModal()">ยกเลิก</button>
-      <button class="modal-add-btn" id="modal-add-btn" onclick="addToCartFromModal()">เพิ่ม ฿0</button>
+      <button class="modal-cancel-btn" onclick="window.closeModal()">ยกเลิก</button>
+      <button class="modal-add-btn" id="modal-add-btn" onclick="window.addToCartFromModal()">เพิ่ม ฿0</button>
     </div>
   </div>
 </div>
 
+<script>
+['switchTab','reorder','init'].forEach(fn=>{window[fn]=window[fn]||function(){const a=arguments;setTimeout(()=>{if(typeof window[fn]==='function')window[fn].apply(null,a);},300);};});
+</script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, addDoc, doc, getDoc, query, where, getDocs, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -289,8 +292,8 @@ function renderFood(){
     return `
     <div class="shop-group" style="opacity:${isSelected?1:0.55}">
       <div class="shop-group-header">
-        <div class="shop-checkbox ${isSelected?'checked':''}" onclick="toggleShop('${shopId}')"> ${isSelected?'<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>
-        <div class="shop-name-link" onclick="goToShop('${shopId}')">
+        <div class="shop-checkbox ${isSelected?'checked':''}" onclick="window.toggleShop('${shopId}')"> ${isSelected?'<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>
+        <div class="shop-name-link" onclick="window.goToShop('${shopId}')">
           ${grp.shopName}
           <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
         </div>
@@ -304,16 +307,16 @@ function renderFood(){
           <div class="menu-item-info">
             <div class="menu-item-name">${item.name}</div>
             ${(item.options&&item.options.length)?`
-              <div class="option-chip" onclick="openEditModal('${shopId}',${idx})">
+              <div class="option-chip" onclick="window.openEditModal('${shopId}',${idx})">
                 <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
                 ${item.options.map(o=>o.name).join(', ')}
               </div>`:``}
             <div class="price-qty-row">
               <div class="item-price">฿${item.price}</div>
               <div class="qty-ctrl">
-                <button class="qty-btn minus" onclick="changeQty('${shopId}',${idx},-1)">−</button>
+                <button class="qty-btn minus" onclick="window.changeQty('${shopId}',${idx},-1)">−</button>
                 <div class="qty-num">${item.qty}</div>
-                <button class="qty-btn plus" onclick="changeQty('${shopId}',${idx},1)">+</button>
+                <button class="qty-btn plus" onclick="window.changeQty('${shopId}',${idx},1)">+</button>
               </div>
             </div>
           </div>
@@ -362,7 +365,10 @@ function renderHistory(orders){
       <div class="history-items-text">${items}</div>
       <div class="history-bottom">
         <div class="history-total">฿${o.grandTotal||0} · ${time}</div>
-        ${o.status==="done"?`<button class="reorder-btn" onclick="event.stopPropagation();reorder('${o.docId}')">สั่งซ้ำ</button>`:""}
+        <div style="display:flex;gap:6px">
+          ${o.status==="done"&&!localStorage.getItem("reviewed_"+o.docId)?`<button class="reorder-btn" style="background:linear-gradient(135deg,#f59e0b,#d97706)" onclick="event.stopPropagation();localStorage.setItem('reviewed_${o.docId}','1');window.location.href='review.html?orderId=${o.docId}'">⭐ ให้คะแนน</button>`:""}
+          ${o.status==="done"?`<button class="reorder-btn" onclick="event.stopPropagation();window.reorder('${o.docId}')">สั่งซ้ำ</button>`:""}
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -443,7 +449,7 @@ window.openEditModal=function(shopId,idx){
       </div>
       ${g.options.map(opt=>{
         const sel=modalSelectedOptions[g.title]===opt.name;
-        return `<div class="option-item ${sel?"selected":""}" onclick="selectModalOption('${g.title}','${opt.name}',${opt.price||0})">
+        return `<div class="option-item ${sel?"selected":""}" onclick="window.selectModalOption('${g.title}','${opt.name}',${opt.price||0})">
           <div class="option-item-left">
             <div class="option-radio ${sel?"filled":""}"></div>
             <div class="option-name">${opt.name}</div>
