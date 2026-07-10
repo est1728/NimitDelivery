@@ -101,7 +101,7 @@ body{background:var(--gray);min-height:100vh;padding-bottom:120px;}
 <body>
 
 <div class="topbar">
-  <button class="back-btn" onclick="history.back()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+  <button class="back-btn" onclick="window.history.back()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
   <div class="topbar-title">สรุปการสั่งซื้อ</div>
 </div>
 
@@ -109,12 +109,12 @@ body{background:var(--gray);min-height:100vh;padding-bottom:120px;}
 <div class="section">
   <div class="section-title">
     <div class="section-title-text"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>ที่อยู่จัดส่ง</div>
-    <button class="change-btn" onclick="openAddrSheet()">เปลี่ยน</button>
+    <button class="change-btn" onclick="window.openAddrSheet()">เปลี่ยน</button>
   </div>
   <div id="addressBlock">
     <div class="no-address">
       <div class="no-address-text">ยังไม่มีที่อยู่จัดส่ง</div>
-      <button class="add-address-btn" onclick="window.location.href='address.html'">เพิ่มที่อยู่</button>
+      <button class="add-address-btn" onclick="sessionStorage.setItem('addrBack','checkout.html');window.location.href='address.html'">เพิ่มที่อยู่</button>
     </div>
   </div>
 </div>
@@ -147,18 +147,22 @@ body{background:var(--gray);min-height:100vh;padding-bottom:120px;}
 </div>
 
 <div class="bottom-bar">
-  <button class="order-btn" id="orderBtn" onclick="placeOrder()">ยืนยันสั่งซื้อ</button>
+  <button class="order-btn" id="orderBtn" onclick="window.placeOrder()">ยืนยันสั่งซื้อ</button>
 </div>
 
 <!-- ADDRESS SHEET -->
-<div class="sheet-overlay" id="sheetOverlay" onclick="closeAddrSheet()"></div>
+<div class="sheet-overlay" id="sheetOverlay" onclick="window.closeAddrSheet()"></div>
 <div class="addr-sheet" id="addrSheet">
   <div class="sheet-handle"></div>
-  <div class="sheet-head"><div class="sheet-title">เลือกที่อยู่จัดส่ง</div><button class="sheet-close" onclick="closeAddrSheet()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>
+  <div class="sheet-head"><div class="sheet-title">เลือกที่อยู่จัดส่ง</div><button class="sheet-close" onclick="window.closeAddrSheet()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>
   <div class="sheet-body" id="sheetBody"></div>
-  <button class="sheet-confirm-btn" onclick="confirmAddr()">ยืนยันที่อยู่นี้</button>
+  <button class="sheet-confirm-btn" onclick="window.confirmAddr()">ยืนยันที่อยู่นี้</button>
 </div>
 
+<script>
+['placeOrder','openAddrSheet','closeAddrSheet','selectTempAddr','confirmAddr','init']
+.forEach(fn=>{window[fn]=window[fn]||function(){const a=arguments;setTimeout(()=>{if(typeof window[fn]==='function')window[fn].apply(null,a);},300);};});
+</script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -260,7 +264,7 @@ window.closeAddrSheet=function(){
 }
 function renderSheetBody(){
   const el=document.getElementById("sheetBody");
-  el.innerHTML=addresses.map((a,i)=>'<div class="addr-option '+(i===tempAddrIdx?'selected':'')+'" onclick="selectTempAddr('+i+')">'
+  el.innerHTML=addresses.map((a,i)=>'<div class="addr-option '+(i===tempAddrIdx?'selected':'')+'" onclick="window.selectTempAddr('+i+')">'
     +'<div class="addr-opt-radio '+(i===tempAddrIdx?'checked':'')+'"></div>'
     +'<div><div class="addr-opt-name">'+a.name+' · '+a.phone+'</div><div class="addr-opt-text">'+a.address+'</div></div></div>'
   ).join('')
