@@ -119,13 +119,24 @@ window.nextPage = async function(){
   try{
     const snap = await getDoc(doc(db,"customers",phone));
     if(snap.exists()){
-      localStorage.setItem("customerData", JSON.stringify(snap.data()));
+      const data=snap.data();
+      localStorage.setItem("customerData", JSON.stringify(data));
+      // sync ชื่อลง addresses ถ้ามี
+      const addrs=JSON.parse(localStorage.getItem("addresses")||"[]");
+      if(!addrs.length && data.address){
+        localStorage.setItem("addresses",JSON.stringify([{name:data.name||'',phone:data.phone||phone,address:data.address,lat:data.lat||null,lng:data.lng||null}]));
+        localStorage.setItem("defaultAddress","0");
+      }
       window.location.href = "./shops.html";
     } else {
-      window.location.href = "./register.html";
+      // ลูกค้าใหม่ → ไป address.html เพื่อเพิ่มที่อยู่ครั้งแรก
+      sessionStorage.setItem("newCustomer","1");
+      sessionStorage.setItem("addrBack","shops.html");
+      window.location.href = "./address.html";
     }
   }catch(e){
-    window.location.href = "./register.html";
+    sessionStorage.setItem("addrBack","shops.html");
+    window.location.href = "./address.html";
   }
 }
 
