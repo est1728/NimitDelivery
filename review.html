@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ให้คะแนน - Nimit Delivery</title>
+<style>
+:root{--p:#0c4aa6;--pd:#083570;--pl:#e8f0fe;--g:#f5f6f8;--t:#0f172a;--s:#64748b;--gn:#16a34a;--y:#f59e0b;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
+body{background:var(--g);min-height:100vh;padding-bottom:40px;}
+.hd{background:linear-gradient(135deg,var(--p),var(--pd));padding:14px 16px;display:flex;align-items:center;gap:12px;}
+.back{width:38px;height:38px;border:none;background:rgba(255,255,255,.18);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.back svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2.5;}
+.hd-t{font-size:17px;font-weight:800;color:#fff;}
+.hero{background:linear-gradient(135deg,var(--p),var(--pd));padding:24px 20px 32px;text-align:center;color:#fff;}
+.hero-ico{font-size:48px;margin-bottom:10px;}
+.hero-t{font-size:20px;font-weight:800;margin-bottom:6px;}
+.hero-s{font-size:14px;opacity:.8;}
+.card{background:#fff;border-radius:20px;margin:16px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.06);}
+.card-hd{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #f5f6f8;}
+.card-ico{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.card-ico.shop{background:#fff3e0;}
+.card-ico.rider{background:var(--pl);}
+.card-name{font-size:15px;font-weight:800;color:var(--t);}
+.card-sub{font-size:12px;color:var(--s);}
+.stars{display:flex;gap:8px;justify-content:center;margin-bottom:18px;}
+.star{font-size:38px;cursor:pointer;transition:transform .15s;line-height:1;color:#e2e8f0;}
+.star.on{color:var(--y);}
+.star:active{transform:scale(.85);}
+.star-label{text-align:center;font-size:13px;font-weight:700;color:var(--s);margin-bottom:16px;min-height:18px;}
+.ta{width:100%;border:2px solid #f0f2f5;border-radius:14px;padding:12px 14px;font-size:14px;font-family:inherit;resize:none;height:88px;outline:none;color:var(--t);transition:border .2s;}
+.ta:focus{border-color:var(--p);}
+.ta::placeholder{color:#b0b8c1;}
+.skip{text-align:center;margin-top:10px;}
+.skip-btn{font-size:13px;color:var(--s);background:none;border:none;cursor:pointer;text-decoration:underline;padding:4px;}
+.submit-btn{display:block;width:calc(100% - 32px);margin:8px 16px 0;height:54px;border:none;border-radius:16px;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;font-size:17px;font-weight:800;cursor:pointer;box-shadow:0 6px 16px rgba(12,74,166,.25);}
+.submit-btn:active{opacity:.9;}
+.done-screen{display:none;text-align:center;padding:60px 20px;}
+.done-ico{font-size:64px;margin-bottom:16px;}
+.done-t{font-size:22px;font-weight:800;color:var(--t);margin-bottom:8px;}
+.done-s{font-size:14px;color:var(--s);margin-bottom:28px;}
+.done-btn{height:50px;padding:0 36px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;font-size:16px;font-weight:800;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div class="hd">
+  <button class="back" onclick="goBack()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+  <div class="hd-t">ให้คะแนนการสั่งซื้อ</div>
+</div>
+
+<div id="reviewScreen">
+  <div class="hero">
+    <div class="hero-ico">🎉</div>
+    <div class="hero-t">ออเดอร์เสร็จสิ้น!</div>
+    <div class="hero-s" id="heroSub">ช่วยให้คะแนนเพื่อปรับปรุงบริการ</div>
+  </div>
+
+  <!-- SHOP REVIEW -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-ico shop">🍱</div>
+      <div><div class="card-name" id="shopName">ร้านอาหาร</div><div class="card-sub">ให้คะแนนร้านค้า</div></div>
+    </div>
+    <div class="stars" id="shopStars">
+      <span class="star" data-s="shop" data-v="1">★</span>
+      <span class="star" data-s="shop" data-v="2">★</span>
+      <span class="star" data-s="shop" data-v="3">★</span>
+      <span class="star" data-s="shop" data-v="4">★</span>
+      <span class="star" data-s="shop" data-v="5">★</span>
+    </div>
+    <div class="star-label" id="shopStarLabel">แตะเพื่อให้คะแนน</div>
+    <textarea class="ta" id="shopComment" placeholder="ความคิดเห็นเกี่ยวกับร้าน อาหาร รสชาติ บรรจุภัณฑ์..."></textarea>
+  </div>
+
+  <!-- RIDER REVIEW -->
+  <div class="card" id="riderCard">
+    <div class="card-hd">
+      <div class="card-ico rider">🏍</div>
+      <div><div class="card-name" id="riderName">ไรเดอร์</div><div class="card-sub">ให้คะแนนไรเดอร์</div></div>
+    </div>
+    <div class="stars" id="riderStars">
+      <span class="star" data-s="rider" data-v="1">★</span>
+      <span class="star" data-s="rider" data-v="2">★</span>
+      <span class="star" data-s="rider" data-v="3">★</span>
+      <span class="star" data-s="rider" data-v="4">★</span>
+      <span class="star" data-s="rider" data-v="5">★</span>
+    </div>
+    <div class="star-label" id="riderStarLabel">แตะเพื่อให้คะแนน</div>
+    <textarea class="ta" id="riderComment" placeholder="ความคิดเห็นเกี่ยวกับไรเดอร์ ความรวดเร็ว ความสุภาพ..."></textarea>
+  </div>
+
+  <button class="submit-btn" id="submitBtn" onclick="submitReview()">ส่งรีวิว</button>
+  <div class="skip"><button class="skip-btn" onclick="goBack()">ข้ามไปก่อน</button></div>
+</div>
+
+<div class="done-screen" id="doneScreen">
+  <div class="done-ico">⭐</div>
+  <div class="done-t">ขอบคุณสำหรับรีวิว!</div>
+  <div class="done-s">รีวิวของคุณช่วยให้บริการดีขึ้น</div>
+  <button class="done-btn" onclick="goBack()">กลับหน้าหลัก</button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, updateDoc, setDoc, serverTimestamp, collection, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const db = getFirestore(initializeApp({apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",authDomain:"nimit-delivery.firebaseapp.com",projectId:"nimit-delivery",storageBucket:"nimit-delivery.firebasestorage.app",messagingSenderId:"233476256130",appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"}));
+
+const params = new URLSearchParams(location.search);
+const orderId = params.get('orderId') || '';
+let orderData = null;
+const ratings = {shop: 0, rider: 0};
+const starLabels = ['','แย่มาก','พอใช้','ดี','ดีมาก','ยอดเยี่ยม!'];
+
+// โหลดข้อมูลออเดอร์
+async function init(){
+  if(orderId){
+    try{
+      const snap = await getDoc(doc(db,'orders',orderId));
+      if(snap.exists()){
+        orderData = {docId:snap.id,...snap.data()};
+        document.getElementById('shopName').textContent = orderData.shopName||'ร้านอาหาร';
+        document.getElementById('heroSub').textContent = 'ขอบคุณที่ใช้บริการ '+( orderData.shopName||'')+'!';
+        if(orderData.riderName){
+          document.getElementById('riderName').textContent = orderData.riderName;
+        } else {
+          document.getElementById('riderName').textContent = 'ไรเดอร์';
+          document.getElementById('riderCard').style.opacity='0.5';
+          document.getElementById('riderCard').insertAdjacentHTML('beforeend','<div style="text-align:center;font-size:12px;color:var(--s);margin-top:8px">ยังไม่มีไรเดอร์รับงาน</div>');
+        }
+      }
+    }catch(e){}
+  }
+}
+init();
+
+// Star clicks
+document.querySelectorAll('.star').forEach(s=>{
+  s.addEventListener('click',()=>{
+    const section = s.dataset.s;
+    const val = parseInt(s.dataset.v);
+    ratings[section] = val;
+    // อัพเดต UI
+    document.querySelectorAll(`.star[data-s="${section}"]`).forEach(st=>{
+      st.classList.toggle('on', parseInt(st.dataset.v) <= val);
+    });
+    const labelEl = document.getElementById(section+'StarLabel');
+    if(labelEl) labelEl.textContent = starLabels[val]||'';
+  });
+});
+
+window.submitReview = async function(){
+  const btn = document.getElementById('submitBtn');
+  btn.disabled=true; btn.textContent='กำลังส่ง...';
+  try{
+    const review = {
+      orderId,
+      shopId: orderData?.shopId||'',
+      shopName: orderData?.shopName||'',
+      riderId: orderData?.riderId||'',
+      riderName: orderData?.riderName||'',
+      customerPhone: localStorage.getItem('customerPhone')||'',
+      shopRating: ratings.shop,
+      shopComment: document.getElementById('shopComment').value.trim(),
+      riderRating: ratings.rider,
+      riderComment: document.getElementById('riderComment').value.trim(),
+      createdAt: serverTimestamp()
+    };
+    // บันทึก review
+    await setDoc(doc(db,'reviews',orderId), review);
+    // อัพเดต rating เฉลี่ยของร้าน
+    if(ratings.shop>0 && orderData?.shopId){
+      try{
+        const shopSnap=await getDoc(doc(db,'shops',orderData.shopId));
+        if(shopSnap.exists()){
+          const d=shopSnap.data();
+          const cnt=(d.ratingCount||0)+1;
+          const avg=Math.round(((d.rating||0)*(cnt-1)+ratings.shop)/cnt*10)/10;
+          await updateDoc(doc(db,'shops',orderData.shopId),{rating:avg,ratingCount:cnt});
+        }
+      }catch(e){}
+    }
+    // อัพเดต rating เฉลี่ยของไรเดอร์
+    if(ratings.rider>0 && orderData?.riderId){
+      try{
+        const riderSnap=await getDoc(doc(db,'riders',orderData.riderId));
+        if(riderSnap.exists()){
+          const d=riderSnap.data();
+          const cnt=(d.ratingCount||0)+1;
+          const avg=Math.round(((d.rating||0)*(cnt-1)+ratings.rider)/cnt*10)/10;
+          await updateDoc(doc(db,'riders',orderData.riderId),{rating:avg,ratingCount:cnt});
+        }
+      }catch(e){}
+    }
+    // แสดง done screen
+    document.getElementById('reviewScreen').style.display='none';
+    document.getElementById('doneScreen').style.display='block';
+  }catch(e){
+    btn.disabled=false; btn.textContent='ส่งรีวิว';
+    alert('เกิดข้อผิดพลาด กรุณาลองใหม่');
+  }
+};
+
+window.goBack = function(){
+  location.href='shops.html';
+};
+</script>
+</body>
+</html>
