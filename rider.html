@@ -246,7 +246,7 @@ body{background:var(--gray);min-height:100vh;}
       <div class="rider-status-row"><div class="status-dot"></div><span class="rider-status-text">ออนไลน์</span></div>
       <div class="notif-status-text" id="notifStatusText">การแจ้งเตือน: เปิดอยู่</div>
     </div>
-    <div class="topbar-side"><button class="menu-btn" onclick="openSidebar()"><svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></button></div>
+    <div class="topbar-side"><button class="menu-btn" onclick="window.openSidebar()"><svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></button></div>
   </div>
 
   <div id="tabFood" style="padding-bottom:80px">
@@ -255,7 +255,7 @@ body{background:var(--gray);min-height:100vh;}
 
   <div id="tabIncome" style="display:none;padding-bottom:80px">
     <div class="income-wrap">
-      <div class="income-date-row" onclick="openDatePicker()">
+      <div class="income-date-row" onclick="window.openDatePicker()">
         <div><div class="income-date-label">เลือกวันที่</div><div class="income-date-value" id="incomeDateDisplay">-</div></div>
         <div class="income-date-icon"><svg viewBox="0 0 24 24"><path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg></div>
       </div>
@@ -279,11 +279,11 @@ body{background:var(--gray);min-height:100vh;}
 
 <!-- EXTRA PANELS -->
 <div class="extra-panel" id="panelWallet">
-  <div class="ep-topbar"><button class="ep-back" onclick="closeExtraPanel('panelWallet')"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button><div class="ep-title">กระเป๋าเงิน</div></div>
+  <div class="ep-topbar"><button class="ep-back" onclick="window.closeExtraPanel('panelWallet')"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button><div class="ep-title">กระเป๋าเงิน</div></div>
   <div class="wallet-card"><div class="wallet-label">ยอดเงินในกระเป๋า</div><div class="wallet-amount">฿<span id="walletBal">0</span></div><div class="wallet-note"><svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>แอดมินเติมเงินให้เท่านั้น</div></div>
 </div>
 <div class="extra-panel" id="panelShift">
-  <div class="ep-topbar"><button class="ep-back" onclick="closeExtraPanel('panelShift')"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button><div class="ep-title">กะงาน</div></div>
+  <div class="ep-topbar"><button class="ep-back" onclick="window.closeExtraPanel('panelShift')"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button><div class="ep-title">กะงาน</div></div>
   <div class="ep-card" style="margin-top:16px"><div class="ep-card-title">เวลาทำงาน</div>
     <div class="ep-row"><span class="ep-lbl">เวลาทำงาน</span><span class="ep-sep">:</span><span class="ep-val" id="shiftTime">ยังไม่กำหนด</span></div>
     <div class="ep-row"><span class="ep-lbl">สถานะกะ</span><span class="ep-sep">:</span><span class="ep-val" id="shiftStatus">เปิดใช้งาน</span></div>
@@ -291,7 +291,7 @@ body{background:var(--gray);min-height:100vh;}
   <div class="ep-note">ไรเดอร์ไม่สามารถแก้ไขกะงานได้ กรุณาติดต่อแอดมิน</div>
 </div>
 <div class="extra-panel" id="panelAccount">
-  <div class="ep-topbar"><button class="ep-back" onclick="closeExtraPanel('panelAccount')"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button><div class="ep-title">บัญชีของฉัน</div></div>
+  <div class="ep-topbar"><button class="ep-back" onclick="window.closeExtraPanel('panelAccount')"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button><div class="ep-title">บัญชีของฉัน</div></div>
   <div class="ep-card" style="margin-top:16px"><div class="ep-card-title">ข้อมูลส่วนตัว</div>
     <div class="ep-row"><span class="ep-lbl">ชื่อ</span><span class="ep-sep">:</span><span class="ep-val" id="accName">-</span></div>
     <div class="ep-row"><span class="ep-lbl">เบอร์โทร</span><span class="ep-sep">:</span><span class="ep-val" id="accPhone">-</span></div>
@@ -305,7 +305,7 @@ body{background:var(--gray);min-height:100vh;}
 <div id="detailPage" class="page">
   <div class="detail-page-wrap">
     <div class="detail-topbar">
-      <button class="back-btn" onclick="showMain()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+      <button class="back-btn" onclick="window.showMain()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
       <div class="detail-title" id="detailTitle">รายละเอียดออเดอร์</div>
     </div>
     <div class="detail-body">
@@ -336,7 +336,7 @@ body{background:var(--gray);min-height:100vh;}
           <div class="action-row">
             <button class="action-btn" id="callCusBtn"><svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>โทร</button>
             <button class="action-btn" id="navCusBtn"><svg viewBox="0 0 24 24"><path d="M21.71 11.29l-9-9a1 1 0 0 0-1.42 0l-9 9a1 1 0 0 0 0 1.42l9 9a1 1 0 0 0 1.42 0l9-9a1 1 0 0 0 0-1.42z"/></svg>นำทาง</button>
-            <button class="action-btn" id="chatCusBtn" style="background:var(--green-light);color:var(--green)" onclick="openOrderChat()"><svg viewBox="0 0 24 24" style="fill:var(--green)"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>แชท</button>
+            <button class="action-btn" id="chatCusBtn" style="background:var(--green-light);color:var(--green)" onclick="window.openOrderChat()"><svg viewBox="0 0 24 24" style="fill:var(--green)"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>แชท</button>
           </div>
         </div>
         <div class="hidden-note" id="customerHiddenNote" style="display:none">ข้อมูลลูกค้าถูกซ่อนหลังจบงาน</div>
@@ -358,7 +358,7 @@ body{background:var(--gray);min-height:100vh;}
   </div>
   <!-- STATUS BAR fixed ล่างสุดตลอด ไม่ขยับตามเนื้อหา -->
   <div class="status-action-bar" id="statusBarWrap">
-    <button class="next-status-btn" id="nextStatusBtn" onclick="requestNextStatus()">รับงาน</button>
+    <button class="next-status-btn" id="nextStatusBtn" onclick="window.requestNextStatus()">รับงาน</button>
   </div>
 </div>
 
@@ -370,14 +370,14 @@ body{background:var(--gray);min-height:100vh;}
       <div class="cfm-msg" id="confirmSub">ยืนยันหรือไม่</div>
     </div>
     <div class="cfm-btns">
-      <button class="cfm-btn-cancel" onclick="closeConfirm()">ยกเลิก</button>
-      <button class="cfm-btn-ok" id="confirmOkBtn" onclick="confirmAction()">ยืนยัน</button>
+      <button class="cfm-btn-cancel" onclick="window.closeConfirm()">ยกเลิก</button>
+      <button class="cfm-btn-ok" id="confirmOkBtn" onclick="window.confirmAction()">ยืนยัน</button>
     </div>
   </div>
 </div>
 
 <!-- SIDEBAR -->
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="window.closeSidebar()"></div>
 <div class="sidebar" id="sidebar">
   <div class="sidebar-header">
     <div class="sidebar-avatar"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
@@ -385,20 +385,20 @@ body{background:var(--gray);min-height:100vh;}
     <div class="sidebar-phone" id="sbPhone">-</div>
   </div>
   <div class="sidebar-body">
-    <button class="sidebar-item" onclick="toggleNotif()">
+    <button class="sidebar-item" onclick="window.toggleNotif()">
       <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
       <span>เปิดการแจ้งเตือน</span>
-      <button class="sidebar-toggle on" id="notifToggle" onclick="event.stopPropagation();toggleNotif()"></button>
+      <button class="sidebar-toggle on" id="notifToggle" onclick="window.event.stopPropagation();toggleNotif()"></button>
     </button>
-    <button class="sidebar-item" onclick="openExtraPanel('panelWallet');closeSidebar()">
+    <button class="sidebar-item" onclick="window.openExtraPanel('panelWallet');closeSidebar()">
       <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9z"/></svg>
       <span>กระเป๋าเงิน</span>
     </button>
-    <button class="sidebar-item" onclick="openExtraPanel('panelShift');closeSidebar()">
+    <button class="sidebar-item" onclick="window.openExtraPanel('panelShift');closeSidebar()">
       <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm.5 13H11V7h1.5v8z"/></svg>
       <span>กะงาน</span>
     </button>
-    <button class="sidebar-item" onclick="openExtraPanel('panelAccount');closeSidebar()">
+    <button class="sidebar-item" onclick="window.openExtraPanel('panelAccount');closeSidebar()">
       <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
       <span>บัญชีของฉัน</span>
     </button>
@@ -407,20 +407,20 @@ body{background:var(--gray);min-height:100vh;}
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav" id="mainBottomNav">
-  <button class="bnav-item active" id="bnav-food" onclick="switchMainTab('food')">
+  <button class="bnav-item active" id="bnav-food" onclick="window.switchMainTab('food')">
     <svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a2.996 2.996 0 0 0-5.5-1.65l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-2 .89-2 2v11c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2z"/></svg>
     <span>รายการ</span>
   </button>
-  <button class="bnav-item" id="bnav-income" onclick="switchMainTab('income')">
+  <button class="bnav-item" id="bnav-income" onclick="window.switchMainTab('income')">
     <svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
     <span>รายได้</span>
   </button>
-  <button class="bnav-item" id="bnav-messages" onclick="openMsgTab()" style="position:relative">
+  <button class="bnav-item" id="bnav-messages" onclick="window.openMsgTab()" style="position:relative">
     <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
     <span>ข้อความ</span>
     <div id="msgNavBdg" style="display:none;position:absolute;top:4px;right:calc(50% - 16px);background:#ef4444;color:#fff;font-size:9px;font-weight:800;min-width:15px;height:15px;border-radius:20px;align-items:center;justify-content:center;padding:0 3px;border:1.5px solid #fff;"></div>
   </button>
-  <button class="bnav-item" id="bnav-more" onclick="openSidebar()">
+  <button class="bnav-item" id="bnav-more" onclick="window.openSidebar()">
     <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
     <span>เพิ่มเติม</span>
   </button>
@@ -430,9 +430,9 @@ body{background:var(--gray);min-height:100vh;}
 <div class="date-picker-overlay" id="dpOverlay">
   <div class="date-picker-sheet">
     <div class="date-picker-header">
-      <button class="dp-cancel" onclick="closeDatePicker()">ยกเลิก</button>
+      <button class="dp-cancel" onclick="window.closeDatePicker()">ยกเลิก</button>
       <div class="dp-title">เลือกวันที่</div>
-      <button class="dp-confirm" onclick="confirmDatePicker()">เลือก</button>
+      <button class="dp-confirm" onclick="window.confirmDatePicker()">เลือก</button>
     </div>
     <div class="dp-columns" style="padding:0 16px">
       <div class="dp-select-bar"></div>
@@ -443,9 +443,21 @@ body{background:var(--gray);min-height:100vh;}
   </div>
 </div>
 
+<script>
+// Stubs — ถูก override โดย module เมื่อโหลดเสร็จ
+['switchMainTab','openMsgTab','openSidebar','closeSidebar','showMain',
+ 'openDetail','requestNextStatus','closeConfirm','confirmAction',
+ 'toggleNotif','openExtraPanel','closeExtraPanel','openDatePicker',
+ 'openOrderChat','loadChatList'
+].forEach(fn=>{ window[fn]=window[fn]||function(){
+  // รอ module โหลด แล้วเรียกใหม่
+  const args=arguments;
+  setTimeout(()=>{ if(typeof window[fn]==='function') window[fn].apply(null,args); },300);
+}; });
+</script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, query, where, onSnapshot, doc, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, query, where, onSnapshot, doc, getDocs, getDoc, updateDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -497,10 +509,40 @@ async function initRider(){
     updateDateDisplay();
     showPage("mainPage");
     listenOrders();
+    listenTotalUnread();
   }catch(e){ showPage("notFoundPage"); }
 }
 
 // ORDERS
+const chatUnreadMap={};
+const chatUnsubMap={};
+
+function listenTotalUnread(){
+  if(!riderData?.id)return;
+  // ฟัง active orders ของไรเดอร์
+  onSnapshot(
+    query(collection(db,"orders"),where("riderId","==",riderData.id),where("status","in",["pending","accepted","picking","arrived","delivering"])),
+    snap=>{
+      // unsubscribe orders ที่ไม่มีแล้ว
+      const activeIds=new Set();
+      snap.forEach(d=>activeIds.add(d.id));
+      Object.keys(chatUnsubMap).forEach(id=>{
+        if(!activeIds.has(id)){chatUnsubMap[id]();delete chatUnsubMap[id];delete chatUnreadMap[id];}
+      });
+      // subscribe orders ใหม่
+      snap.forEach(d=>{
+        if(chatUnsubMap[d.id])return; // มีแล้ว
+        chatUnsubMap[d.id]=onSnapshot(doc(db,"chats",d.id),chatSnap=>{
+          chatUnreadMap[d.id]=chatSnap.exists()?(chatSnap.data().unread_rider||0):0;
+          const sum=Object.values(chatUnreadMap).reduce((a,b)=>a+b,0);
+          const bdg=document.getElementById('msgNavBdg');
+          if(bdg){bdg.textContent=sum;bdg.style.display=sum>0?'flex':'none';}
+        });
+      });
+    }
+  );
+}
+
 function listenOrders(){
   const q=query(collection(db,"orders"),where("status","in",["pending","accepted","picking","arrived","delivering"]),where("riderId","==",riderData.id));
   onSnapshot(q,snap=>{
@@ -522,7 +564,7 @@ function renderOrders(orders){
     const dateStr=dateObj?dateObj.toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'}):'';
     if(dateStr&&dateStr!==lastDate){ html+=`<div class="date-divider">${dateStr}</div>`; lastDate=dateStr; }
     const time=dateObj?dateObj.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):'-';
-    html+=`<div class="order-card" onclick="openDetail('${o.docId}',false)">
+    html+=`<div class="order-card" onclick="window.openDetail('${o.docId}',false)">
       <div class="order-card-head"><div class="order-id-text">${o.orderId}</div><div class="order-time-text">${time}</div></div>
       <div class="order-card-body">
         <div class="order-meta"><svg viewBox="0 0 24 24"><path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/></svg>${o.shopName||'-'}</div>
@@ -622,7 +664,7 @@ window.loadIncome=async function(){
   el.innerHTML=display.map(o=>{
     const time=o.createdAt?.toDate?o.createdAt.toDate().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):'-';
     const isDone=o.status==='done';
-    return `<div class="history-card" onclick="openDetail('${o.docId}',true)">
+    return `<div class="history-card" onclick="window.openDetail('${o.docId}',true)">
       <div class="history-left"><div class="history-id">${o.orderId}</div><div class="history-time">${time}</div></div>
       <div class="history-right"><span class="history-earn ${isDone?'':'cancel'}">${isDone?'+฿'+(o.riderEarn||0):'ยกเลิก'}</span><div class="history-arrow"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div></div>
     </div>`;
@@ -630,22 +672,21 @@ window.loadIncome=async function(){
 }
 
 // DETAIL
+let chatUnreadUnsub=null;
 window.openDetail=function(docId,isFromHistory){
   fromHistory=isFromHistory;
   currentOrderDocId=docId;
   document.getElementById("statusBarWrap").style.display=isFromHistory?'none':'block';
-  // chat unread listener
-  onSnapshot(doc(db,"chats",docId),snap=>{
+  document.getElementById("mainBottomNav").style.display='none';
+  onSnapshot(doc(db,"orders",docId),s=>{ if(s.exists()){ currentOrder={docId,...s.data()}; renderDetail(currentOrder); } });
+  if(chatUnreadUnsub){chatUnreadUnsub();chatUnreadUnsub=null;}
+  chatUnreadUnsub=onSnapshot(doc(db,"chats",docId),snap=>{
     if(!snap.exists())return;
     const d=snap.data();
     const unread=d.unread_rider||0;
     const bdg=document.getElementById("riderChatBdg");
     if(bdg){bdg.textContent=unread;bdg.style.display=unread>0?'flex':'none';}
-    // mark riderReadAt
-    if(!isFromHistory) import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js").then(({setDoc,serverTimestamp,doc:fDoc,getFirestore})=>{});
   });
-  document.getElementById("mainBottomNav").style.display='none';
-  onSnapshot(doc(db,"orders",docId),s=>{ if(s.exists()){ currentOrder={docId,...s.data()}; renderDetail(currentOrder); } });
   showPage("detailPage");
 }
 window.showMain=function(){
@@ -726,54 +767,67 @@ window.confirmAction=async function(){
 window.loadChatList=async function(){
   const el=document.getElementById('chatListContent');
   if(!el)return;
-  el.innerHTML='<div style="text-align:center;padding:24px;color:var(--subtext)">กำลังโหลด...</div>';
+  el.innerHTML='<div style="text-align:center;padding:32px;color:var(--subtext);font-size:14px">กำลังโหลด...</div>';
   try{
-    const {getDocs,collection,orderBy,query,limit}=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-    // โหลดออเดอร์ที่ไรเดอร์นี้รับ
-    const snap=await getDocs(query(collection(db,"orders"),orderBy("createdAt","desc"),limit(50)));
+    if(!riderData?.id)return;
+    // ไม่ใช้ orderBy เพื่อเลี่ยง composite index
+    const snap=await getDocs(query(collection(db,"orders"),where("riderId","==",riderData.id)));
     const mine=[];
-    snap.forEach(d=>{
-      const o=d.data();
-      if(o.riderId===riderData.id||(o.riderName&&o.riderName===riderData.name))
-        mine.push({id:d.id,...o});
-    });
-    if(!mine.length){el.innerHTML='<div class="empty-box" style="margin:20px 16px"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div><div class="empty-title">ยังไม่มีข้อความ</div></div>';return;}
+    snap.forEach(d=>mine.push({docId:d.id,...d.data()}));
+    if(!mine.length){
+      el.innerHTML='<div class="empty-box" style="margin:32px 16px"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div><div class="empty-title">ยังไม่มีข้อความ</div></div>';
+      return;
+    }
+    // เรียงล่าสุดก่อน
+    mine.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    // โหลด chat meta ของแต่ละออเดอร์
+    const chatMetas={};
+    await Promise.all(mine.slice(0,30).map(async o=>{
+      try{
+        const ms=await getDoc(doc(db,"chats",o.docId));
+        if(ms.exists())chatMetas[o.docId]=ms.data();
+      }catch(e){}
+    }));
+    const SL2={pending:"รอรับ",accepted:"รับแล้ว",picking:"ไปร้าน",arrived:"ถึงร้าน",delivering:"กำลังส่ง",done:"เสร็จ",rejected:"ยกเลิก"};
     el.innerHTML=mine.map(o=>{
-      const t=o.createdAt?.toDate?o.createdAt.toDate().toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'-';
-      return `<div onclick="location.href='chat.html?orderId=${o.docId}&role=rider'" style="display:flex;align-items:center;gap:12px;padding:13px 16px;background:#fff;border-bottom:1px solid #f5f6f8;cursor:pointer">
-        <div style="width:44px;height:44px;background:var(--primary-light);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--primary)"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+      const meta=chatMetas[o.docId]||{};
+      const unread=meta.unread_rider||0;
+      const lastMsg=meta.lastMessage||'แตะเพื่อเปิดแชท';
+      const lastT=meta.lastTime?.toDate?meta.lastTime.toDate().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):
+                  o.createdAt?.toDate?o.createdAt.toDate().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):'-';
+      return `<div onclick="window.location.href='chat.html?orderId=${o.docId}&role=rider'"
+        style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:#fff;border-bottom:1px solid #f5f6f8;cursor:pointer;-webkit-tap-highlight-color:rgba(0,0,0,.05)">
+        <div style="position:relative;flex-shrink:0">
+          <div style="width:48px;height:48px;background:var(--primary-light);border-radius:50%;display:flex;align-items:center;justify-content:center">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="var(--primary)"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+          </div>
+          ${unread>0?`<div style="position:absolute;top:-2px;right:-2px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:20px;display:flex;align-items:center;justify-content:center;padding:0 3px;border:2px solid #fff">${unread}</div>`:''}
         </div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:14px;font-weight:800;color:var(--text)">${o.orderId||o.docId}</div>
-          <div style="font-size:12px;color:var(--subtext);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${o.shopName||''} · ${o.customer?.name||o.customer?.phone||''}</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+            <span style="font-size:14px;font-weight:800;color:var(--text)">${o.orderId||'-'}</span>
+            <span style="font-size:11px;color:var(--subtext)">${lastT}</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:12px;color:${unread>0?'var(--text)':'var(--subtext)'};font-weight:${unread>0?'700':'400'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px">${lastMsg}</span>
+            <span style="font-size:10px;color:var(--subtext);flex-shrink:0;margin-left:4px">${SL2[o.status]||''}</span>
+          </div>
         </div>
-        <div style="font-size:11px;color:var(--subtext);text-align:right;flex-shrink:0">${t}</div>
       </div>`;
     }).join('');
-  }catch(e){el.innerHTML='<div style="text-align:center;padding:24px;color:var(--subtext)">โหลดไม่ได้</div>';}
+  }catch(e){
+    console.error('loadChatList error:',e);
+    el.innerHTML='<div style="text-align:center;padding:32px;color:var(--subtext);font-size:14px">โหลดไม่ได้</div>';
+  }
 };
 window.openMsgTab=function(){
-  if(currentOrderDocId){
-    location.href='chat.html?orderId='+currentOrderDocId+'&role=rider';
-  } else {
-    // ไปหน้าข้อความ - แสดงรายการ chat ออเดอร์ล่าสุด
-    showPage('historyPage');
-  }
+  switchMainTab('messages');
 };
 window.openOrderChat=function(){
   if(!currentOrderDocId) return;
   location.href='chat.html?orderId='+currentOrderDocId+'&role=rider';
 };
-window.openChatList=function(){
-  // ไปหน้าประวัติแล้วเลือก tab แชท
-  showPage('historyPage');
-  // switch tab
-  setTimeout(()=>{
-    const tabs=document.querySelectorAll('.hist-tab');
-    tabs.forEach((t,i)=>{ if(t.dataset.tab==='chat') t.click(); });
-  },100);
-};
+
 window.closeConfirm=function(){ document.getElementById("confirmOverlay").classList.remove("on"); pendingNextStatus=null; }
 window.openSidebar=function(){ document.getElementById("sidebar").classList.add("open"); document.getElementById("sidebarOverlay").classList.add("show"); }
 window.closeSidebar=function(){ document.getElementById("sidebar").classList.remove("open"); document.getElementById("sidebarOverlay").classList.remove("show"); }
