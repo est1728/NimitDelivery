@@ -80,14 +80,18 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// โหลดเบอร์ที่จำไว้
+// ถ้าล็อกอินและมีที่อยู่แล้ว → ไป shops ทันที
 const saved = localStorage.getItem("customerPhone");
-if(saved){
+const hasAddr = JSON.parse(localStorage.getItem("addresses")||"[]").length > 0;
+if(saved && hasAddr){
+  window.location.replace("./shops.html");
+} else if(saved){
   document.getElementById("phone").value = saved;
   document.getElementById("nextBtn").disabled = false;
   const badge = document.getElementById("savedBadge");
-  badge.style.display = "flex";
-  document.getElementById("savedBadgeText").textContent = `เบอร์ที่จำไว้: ${saved}`;
+  if(badge){ badge.style.display = "flex"; }
+  const badgeText = document.getElementById("savedBadgeText");
+  if(badgeText) badgeText.textContent = `เบอร์ที่จำไว้: ${saved}`;
 }
 
 window.onPhoneInput = function(el){
