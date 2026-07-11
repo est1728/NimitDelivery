@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nimit Delivery</title>
+<style>
+:root {
+  --primary:#0c4aa6; --primary-dark:#083570; --primary-light:#e8f0fe;
+  --gray:#f5f6f8; --text:#0f172a; --subtext:#64748b;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Arial',sans-serif;}
+body{background:#fff;min-height:100vh;display:flex;flex-direction:column;}
+
+.topbar{padding:16px 20px;border-bottom:1px solid #f0f0f0;}
+.logo{font-size:20px;font-weight:800;color:var(--primary);}
+
+.hero{background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:36px 24px 48px;border-radius:0 0 32px 32px;}
+.hero h1{font-size:26px;font-weight:800;color:#fff;margin-bottom:6px;}
+.hero p{font-size:15px;color:rgba(255,255,255,0.85);}
+
+.container{padding:24px 20px;flex:1;}
+.label{font-size:13px;font-weight:700;color:var(--subtext);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;}
+
+.phone-input{width:100%;height:56px;border:2px solid #e0e0e0;border-radius:16px;padding:0 20px;font-size:18px;outline:none;transition:border 0.2s;background:#fff;}
+.phone-input:focus{border-color:var(--primary);}
+
+.saved-badge{display:none;align-items:center;gap:8px;background:var(--primary-light);border-radius:12px;padding:10px 14px;margin-top:10px;font-size:13px;color:var(--primary);font-weight:700;}
+.saved-badge svg{width:16px;height:16px;fill:var(--primary);flex-shrink:0;}
+.saved-badge-clear{margin-left:auto;font-size:12px;color:var(--subtext);cursor:pointer;font-weight:600;text-decoration:underline;}
+
+.error-msg{color:#e53935;font-size:13px;margin-top:6px;display:none;}
+
+.next-btn{width:100%;height:56px;border:none;border-radius:16px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:17px;font-weight:800;margin-top:20px;cursor:pointer;box-shadow:0 6px 16px rgba(12,74,166,0.3);}
+.next-btn:disabled{background:#c5cfe8;box-shadow:none;cursor:not-allowed;}
+
+.note{margin-top:24px;text-align:center;color:var(--subtext);font-size:13px;line-height:1.6;}
+</style>
+</head>
+<body>
+
+<div class="topbar"><div class="logo">Nimit Delivery</div></div>
+
+<div class="hero">
+  <h1>ยินดีต้อนรับ</h1>
+  <p>ใส่เบอร์โทรเพื่อเริ่มสั่งอาหาร</p>
+</div>
+
+<div class="container">
+  <div class="label">เบอร์โทรศัพท์</div>
+  <input id="phone" class="phone-input" type="tel" placeholder="08X-XXX-XXXX"
+    oninput="window.onPhoneInput(this)" autocomplete="tel">
+
+  <div id="savedBadge" class="saved-badge">
+    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+    <span id="savedBadgeText">จำเบอร์ไว้แล้ว</span>
+    <span class="saved-badge-clear" onclick="window.clearSaved()">เปลี่ยน</span>
+  </div>
+
+  <div id="error" class="error-msg">กรุณากรอกเบอร์โทรให้ถูกต้อง (6 หลักขึ้นไป)</div>
+
+  <button class="next-btn" id="nextBtn" onclick="window.nextPage()" disabled>ถัดไป</button>
+
+  <div class="note">ระบบจะจำเบอร์ของคุณสำหรับครั้งถัดไป<br>ไม่ต้องสมัครสมาชิก</div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const db = getFirestore(initializeApp({
+  apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
+  authDomain:"nimit-delivery.firebaseapp.com",
+  projectId:"nimit-delivery",
+  storageBucket:"nimit-delivery.firebasestorage.app",
+  messagingSenderId:"233476256130",
+  appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
+}));
+
+// ถ้ามีเบอร์จำไว้ → เติมให้ แต่ไม่ redirect อัตโนมัติ (ให้กดเองทุกครั้ง)
+const saved = localStorage.getItem("customerPhone");
+if(saved){
+  document.getElementById("phone").value = saved;
+  document.getElementById("nextBtn").disabled = false;
+  const badge = document.getElementById("savedBadge");
+  badge.style.display = "flex";
+  document.getElementById("savedBadgeText").textContent = "เบอร์ที่จำไว้: "+saved;
+}
+
+window.onPhoneInput = function(el){
+  const val = el.value.replace(/[^0-9A-Za-z_-]/g,'');
+  el.value = val;
+  document.getElementById("nextBtn").disabled = val.length < 6;
+  document.getElementById("error").style.display = "none";
+  document.getElementById("savedBadge").style.display = "none";
+}
+
+window.clearSaved = function(){
+  localStorage.removeItem("customerPhone");
+  localStorage.removeItem("customerData");
+  localStorage.removeItem("addresses");
+  document.getElementById("phone").value = "";
+  document.getElementById("nextBtn").disabled = true;
+  document.getElementById("savedBadge").style.display = "none";
+  document.getElementById("phone").focus();
+}
+
+window.nextPage = async function(){
+  const phone = document.getElementById("phone").value.replace(/[^0-9A-Za-z_-]/g,'');
+  if(phone.length < 6){ document.getElementById("error").style.display="block"; return; }
+
+  if(phone==="KJNFY63ESTC_C"){ location.href="./admin.html"; return; }
+  if(phone==="KJNFY63ESTC_CUI"){ location.href="./developer.html"; return; }
+
+  const btn=document.getElementById("nextBtn");
+  btn.disabled=true; btn.textContent="กำลังเข้า...";
+  localStorage.setItem("customerPhone", phone);
+
+  try{
+    const snap = await getDoc(doc(db,"customers",phone));
+    if(snap.exists()){
+      const d=snap.data();
+      localStorage.setItem("customerData", JSON.stringify(d));
+      // sync addresses ถ้ายังไม่มี
+      const existing=JSON.parse(localStorage.getItem("addresses")||"[]");
+      if(!existing.length && d.address){
+        localStorage.setItem("addresses",JSON.stringify([{name:d.name||"",phone,address:d.address,lat:d.lat||null,lng:d.lng||null}]));
+        localStorage.setItem("defaultAddress","0");
+      }
+      location.href="./shops.html";
+    } else {
+      sessionStorage.setItem("newCustomer","1");
+      sessionStorage.setItem("addrBack","shops.html");
+      location.href="./address.html";
+    }
+  }catch(e){
+    sessionStorage.setItem("addrBack","shops.html");
+    location.href="./address.html";
+  }
+}
+
+document.getElementById("phone").addEventListener("keydown",e=>{ if(e.key==="Enter") window.nextPage(); });
+</script>
+</body>
+</html>
