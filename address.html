@@ -78,6 +78,9 @@ body{background:var(--gray);min-height:100vh;padding-bottom:24px;}
 <div id="newCusBanner" style="display:none;background:linear-gradient(135deg,#0c4aa6,#083570);color:#fff;padding:12px 16px;font-size:14px;font-weight:700;text-align:center">
   👋 ยินดีต้อนรับ! เพิ่มที่อยู่จัดส่งเพื่อเริ่มสั่งอาหาร
 </div>
+<div id="startShoppingBar" style="display:none;padding:12px 16px;background:#f0fdf4;border-bottom:1px solid #bbf7d0;">
+  <button onclick="goToShops()" style="width:100%;height:50px;border:none;border-radius:14px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;font-size:16px;font-weight:800;cursor:pointer;">🛍 เริ่มสั่งอาหาร</button>
+</div>
 <div class="topbar">
   <button class="back-btn" onclick="smartBack()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
   <div class="topbar-title" id="addressPageTitle">ที่อยู่จัดส่ง</div>
@@ -151,6 +154,14 @@ function renderList(){
 }
 
 function setDefault(i){ defaultIdx=i; localStorage.setItem("defaultAddress",i); save(); renderList();
+// แสดง startShoppingBar ถ้ามีที่อยู่แล้วและมาจากหน้าใหม่
+function checkStartBar(){
+  const bar=document.getElementById('startShoppingBar');
+  if(!bar)return;
+  const isNew=sessionStorage.getItem('newCustomer')||sessionStorage.getItem('addrBack')==='shops.html';
+  bar.style.display=(addresses.length>0&&isNew)?'block':'none';
+}
+checkStartBar();
 if(sessionStorage.getItem("newCustomer")){
   document.getElementById("newCusBanner").style.display="block";
   sessionStorage.removeItem("newCustomer");
@@ -167,6 +178,13 @@ function deleteAddr(i){
   if(defaultIdx>=addresses.length) defaultIdx=Math.max(0,addresses.length-1);
   save(); renderList();
 }
+function goToShops(){
+  save();
+  const back = sessionStorage.getItem('addrBack')||'shops.html';
+  sessionStorage.removeItem('newCustomer');
+  sessionStorage.removeItem('addrBack');
+  location.href = back;
+}
 function save(){
   localStorage.setItem("addresses",JSON.stringify(addresses));
   localStorage.setItem("defaultAddress",String(defaultIdx));
@@ -177,6 +195,7 @@ function save(){
     const cdata={name:def.name||'',phone,address:def.address,lat:def.lat||null,lng:def.lng||null};
     localStorage.setItem("customerData",JSON.stringify(cdata));
   }
+  if(typeof checkStartBar==="function") checkStartBar();
 }
 
 function openForm(idx){
