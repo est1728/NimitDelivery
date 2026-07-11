@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nimit Delivery</title>
+<style>
+:root{--p:#0c4aa6;--pd:#083570;--pl:#e8f0fe;--g:#f5f6f8;--t:#0f172a;--s:#64748b;--gn:#16a34a;--gnl:#dcfce7;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
+body{background:var(--g);min-height:100vh;padding-bottom:28px;}
+
+.tb{background:linear-gradient(135deg,var(--p),var(--pd));padding:12px 16px 14px;}
+.tb-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.logo{font-size:20px;font-weight:900;color:#fff;}
+.tb-right{display:flex;align-items:center;gap:8px;}
+.addr-chip{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border-radius:20px;padding:6px 12px;cursor:pointer;max-width:160px;}
+.addr-chip svg{width:13px;height:13px;fill:#fff;flex-shrink:0;}
+.addr-txt{font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cart{position:relative;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.18);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.cart svg{width:20px;height:20px;fill:#fff;}
+.cart-bdg{position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:20px;display:none;align-items:center;justify-content:center;padding:0 3px;border:2px solid var(--pd);}
+.srch{position:relative;margin-top:2px;}
+.srch input{width:100%;height:44px;border:none;border-radius:22px;background:#fff;padding:0 16px 0 42px;font-size:15px;outline:none;color:var(--t);}
+.srch input::placeholder{color:#b0b8c1;}
+.srch-ico{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:16px;height:16px;fill:none;stroke:#94a3b8;stroke-width:2;stroke-linecap:round;pointer-events:none;}
+
+/* ADS */
+.ads{background:#fff;}
+.ads-outer{overflow:hidden;}
+.ads-track{display:flex;}
+.ad-slide{min-width:100%;flex-shrink:0;}
+.ad-img{width:100%;height:220px;display:block;object-fit:cover;}
+.ad-ph{width:100%;height:220px;background:linear-gradient(135deg,var(--p),var(--pd));display:flex;align-items:center;justify-content:center;}
+.ad-ph svg{width:40px;height:40px;fill:rgba(255,255,255,.4);}
+.ad-cap{position:relative;margin-top:-40px;padding:0 16px 14px;background:linear-gradient(transparent,rgba(0,0,0,.6));color:#fff;font-size:16px;font-weight:800;}
+.dots{display:flex;justify-content:center;gap:6px;padding:8px 0;background:#fff;}
+.dot{width:6px;height:6px;border-radius:3px;background:#e2e8f0;cursor:pointer;transition:all .3s;}
+.dot.on{background:var(--p);width:18px;}
+
+/* ACTIVE ORDER */
+.ao{margin:12px 16px 0;background:linear-gradient(135deg,var(--p),var(--pd));border-radius:18px;padding:14px 16px;cursor:pointer;display:none;box-shadow:0 4px 16px rgba(12,74,166,.25);}
+.ao-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
+.ao-id{font-size:14px;font-weight:800;color:#fff;}
+.ao-badge{font-size:10px;font-weight:700;background:rgba(255,255,255,.2);color:#fff;padding:3px 10px;border-radius:20px;}
+.ao-shop{font-size:12px;color:rgba(255,255,255,.85);margin-bottom:8px;}
+.ao-bar{display:flex;gap:4px;margin-bottom:10px;}
+.ao-seg{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.2);}
+.ao-seg.d{background:#4ade80;}
+.ao-seg.c{background:#fff;}
+.ao-bot{display:flex;align-items:center;justify-content:space-between;}
+.ao-st{font-size:13px;font-weight:700;color:rgba(255,255,255,.95);}
+.ao-arr{font-size:12px;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:2px;}
+.ao-arr svg{width:14px;height:14px;fill:rgba(255,255,255,.7);}
+
+/* SECTIONS */
+.sec{margin-top:20px;}
+.sec-hd{padding:0 16px 10px;display:flex;align-items:center;}
+.sec-t{font-size:17px;font-weight:800;color:var(--t);}
+.sec-t::before{content:"";display:inline-block;width:4px;height:18px;background:var(--p);border-radius:2px;margin-right:8px;vertical-align:middle;}
+
+/* POPULAR */
+.pop-row{display:flex;gap:12px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;}
+.pop-row::-webkit-scrollbar{display:none;}
+.pop-card{background:#fff;border-radius:16px;width:160px;flex-shrink:0;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.07);cursor:pointer;}
+.pop-card:active{opacity:.9;}
+.pop-img{width:100%;height:115px;background:linear-gradient(135deg,#dde8fa,#c2d4f5);}
+.pop-img img{width:100%;height:100%;object-fit:cover;display:block;}
+.pop-body{padding:9px 11px 11px;}
+.pop-name{font-size:13px;font-weight:800;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pop-meta{font-size:11px;color:var(--s);margin-top:3px;}
+
+/* SHOP CARDS */
+.shops-cont{padding:0 16px;}
+.sc{background:#fff;border-radius:20px;margin-bottom:12px;overflow:hidden;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.sc:active{opacity:.92;}
+.sc.closed{opacity:.5;pointer-events:none;}
+.sc-banner{width:100%;height:130px;position:relative;overflow:hidden;}
+.sc-banner img,.sc-ph{width:100%;height:100%;object-fit:cover;display:block;}
+.sc-ph{background:linear-gradient(135deg,#dde8fa,#c2d4f5);}
+.sc-open,.sc-close{position:absolute;top:10px;right:10px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:800;}
+.sc-open{background:var(--gnl);color:var(--gn);}
+.sc-close{background:#fee2e2;color:#dc2626;}
+.sc-body{padding:12px 14px 14px;}
+.sc-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.sc-ava{width:46px;height:46px;border-radius:12px;overflow:hidden;background:var(--pl);flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.1);}
+.sc-ava img{width:100%;height:100%;object-fit:cover;}
+.sc-ava svg{width:22px;height:22px;fill:var(--p);}
+.sc-info{flex:1;min-width:0;}
+.sc-name{font-size:15px;font-weight:800;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sc-desc{font-size:12px;color:var(--s);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
+.sc-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.mi{display:flex;align-items:center;gap:3px;font-size:12px;color:var(--s);}
+.mi svg{width:12px;height:12px;fill:var(--s);}
+.mi.star{color:#f59e0b;font-weight:700;}
+.mi.star svg{fill:#f59e0b;}
+.mi.fee{color:var(--gn);font-weight:700;}
+.mi.fee svg{fill:var(--gn);}
+.closed-lbl{font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;padding:16px 16px 8px;}
+.lt{text-align:center;padding:48px 20px;color:var(--s);font-size:14px;}
+</style>
+</head>
+<body>
+
+<div class="tb">
+  <div class="tb-row">
+    <div class="logo">Nimit Delivery</div>
+    <div class="tb-right">
+      <div class="addr-chip" onclick="sessionStorage.setItem('addrBack','shops.html');location.href='address.html'">
+        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>
+        <div class="addr-txt" id="addrTxt">ที่อยู่</div>
+      </div>
+      <button class="cart" onclick="location.href='cart.html'">
+        <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg>
+        <div class="cart-bdg" id="cartBdg">0</div>
+      </button>
+    </div>
+  </div>
+  <div class="srch">
+    <svg class="srch-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+    <input id="srchBox" placeholder="ค้นหาร้านอาหาร..." oninput="window.doSearch(this.value)">
+  </div>
+</div>
+
+<!-- ADS -->
+<div class="ads" id="adsEl" style="display:none">
+  <div class="ads-outer" id="adsOuter"><div class="ads-track" id="adsTrack"></div></div>
+  <div class="dots" id="adsDots"></div>
+</div>
+
+<!-- ACTIVE ORDER -->
+<div class="ao" id="aoEl" onclick="location.href='track.html'">
+  <div class="ao-top"><div class="ao-id" id="aoId">-</div><div class="ao-badge">กำลังดำเนินการ</div></div>
+  <div class="ao-shop" id="aoShop">-</div>
+  <div class="ao-bar" id="aoBar"></div>
+  <div class="ao-bot"><span class="ao-st" id="aoSt">-</span><span class="ao-arr">ดูรายละเอียด<svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></span></div>
+</div>
+
+<!-- POPULAR -->
+<div class="sec" id="popSec" style="display:none">
+  <div class="sec-hd"><span class="sec-t">ร้านยอดนิยม</span></div>
+  <div class="pop-row" id="popRow"></div>
+</div>
+
+<!-- ALL SHOPS -->
+<div class="sec">
+  <div class="sec-hd"><span class="sec-t" id="shopsHd">ร้านทั้งหมด</span></div>
+  <div id="shopsEl"><div class="lt">กำลังโหลด...</div></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const db = getFirestore(initializeApp({
+  apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
+  authDomain:"nimit-delivery.firebaseapp.com",
+  projectId:"nimit-delivery",
+  storageBucket:"nimit-delivery.firebasestorage.app",
+  messagingSenderId:"233476256130",
+  appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
+}));
+
+const SL={pending:"รอรับออเดอร์",accepted:"รับงานแล้ว",picking:"ไรเดอร์กำลังมา",arrived:"ถึงร้านแล้ว",delivering:"กำลังส่ง",done:"ส่งเสร็จแล้ว"};
+const SS=["pending","accepted","picking","arrived","delivering","done"];
+const esc=s=>String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+let allShops=[], curQ="";
+
+// ADDRESS
+const addrs=JSON.parse(localStorage.getItem("addresses")||"[]");
+const defAddr=addrs[parseInt(localStorage.getItem("defaultAddress")||"0")]||addrs[0];
+if(defAddr?.address){
+  const a=defAddr.address;
+  document.getElementById("addrTxt").textContent=a.length>18?a.slice(0,18)+"...":a;
+}
+
+// CART BADGE
+function updCart(){
+  const c=JSON.parse(localStorage.getItem("cart")||"{}");
+  let n=0; Object.values(c).forEach(s=>(s.items||[]).forEach(i=>n+=i.qty));
+  const b=document.getElementById("cartBdg");
+  b.textContent=n; b.style.display=n?"flex":"none";
+}
+updCart();
+
+// ACTIVE ORDER
+const ords=JSON.parse(localStorage.getItem("currentOrderDocs")||"[]");
+if(ords.length && ords[0]?.docId){
+  try{
+    onSnapshot(doc(db,"orders",ords[0].docId), snap=>{
+      if(!snap.exists()) return;
+      const o=snap.data();
+      if(o.status==="done"||o.status==="rejected"){
+        document.getElementById("aoEl").style.display="none"; return;
+      }
+      document.getElementById("aoEl").style.display="block";
+      document.getElementById("aoId").textContent=o.orderId||"";
+      document.getElementById("aoShop").textContent=o.shopName||"";
+      document.getElementById("aoSt").textContent=SL[o.status]||o.status;
+      const idx=SS.indexOf(o.status);
+      document.getElementById("aoBar").innerHTML=SS.slice(0,-1).map((_,i)=>
+        `<div class="ao-seg${i<idx?" d":i===idx?" c":""}"></div>`).join("");
+    });
+  }catch(e){}
+}
+
+// ADS
+let curAd=0, totalAds=0, adTimer=null;
+async function loadAds(){
+  try{
+    const snap=await getDocs(collection(db,"ads"));
+    const ads=[];
+    snap.forEach(d=>ads.push({id:d.id,...d.data()}));
+    if(!ads.length) return;
+    totalAds=ads.length;
+    document.getElementById("adsEl").style.display="block";
+    document.getElementById("adsTrack").innerHTML=ads.map((ad,i)=>{
+      const img=ad.imgUrl?`<img class="ad-img" src="${ad.imgUrl}">`:`<div class="ad-ph"><svg viewBox="0 0 24 24"><path d="M21 3H3v18h18V3zm-9 14l-3-3.72L7 17l-4-5h18z"/></svg></div>`;
+      const cap=ad.caption?`<div class="ad-cap">${esc(ad.caption)}</div>`:"";
+      const sn=(ad.shopName||"").replace(/'/g,"\\'");
+      return `<div class="ad-slide"><div onclick="window.pick('${ad.shopId||""}','${sn}')">${img}${cap}</div></div>`;
+    }).join("");
+    document.getElementById("adsDots").innerHTML=ads.map((_,i)=>
+      `<div class="dot${i===0?" on":""}" onclick="window.goAd(${i})"></div>`).join("");
+    // Touch swipe
+    const outer=document.getElementById("adsOuter");
+    const track=document.getElementById("adsTrack");
+    let tx=0,sx=0;
+    outer.addEventListener("touchstart",e=>{sx=e.touches[0].clientX;if(adTimer)clearInterval(adTimer);},{passive:true});
+    outer.addEventListener("touchmove",e=>{
+      const dx=e.touches[0].clientX-sx;
+      track.style.transition="none";
+      track.style.transform=`translateX(calc(-${curAd*100}% + ${dx}px))`;
+    },{passive:true});
+    outer.addEventListener("touchend",e=>{
+      const dx=sx-e.changedTouches[0].clientX;
+      if(dx>50&&curAd<totalAds-1)window.goAd(curAd+1);
+      else if(dx<-50&&curAd>0)window.goAd(curAd-1);
+      else window.goAd(curAd);
+      setTimeout(startAds,1000);
+    });
+    startAds();
+  }catch(e){}
+}
+window.goAd=function(i){
+  curAd=i;
+  const track=document.getElementById("adsTrack");
+  track.style.transition="transform .38s ease";
+  track.style.transform=`translateX(-${i*100}%)`;
+  document.querySelectorAll(".dot").forEach((d,j)=>d.classList.toggle("on",j===i));
+};
+function startAds(){ if(adTimer)clearInterval(adTimer); if(totalAds<2)return; adTimer=setInterval(()=>window.goAd((curAd+1)%totalAds),3500); }
+
+// SHOPS
+async function loadShops(){
+  try{
+    const snap=await getDocs(collection(db,"shops"));
+    allShops=[];
+    snap.forEach(d=>allShops.push({id:d.id,...d.data()}));
+    renderPop(); renderShops(allShops);
+  }catch(e){
+    console.error('loadShops:',e);
+    const isPermission=(e.message||'').toLowerCase().includes('permission');
+    document.getElementById("shopsEl").innerHTML=`<div class="lt" style="padding:32px 20px">
+      <div style="font-size:28px;margin-bottom:10px">⚠️</div>
+      <div style="font-weight:800;color:#0f172a;margin-bottom:6px">${isPermission?'Firestore Rules ไม่อนุญาต':'โหลดไม่ได้'}</div>
+      <div style="font-size:12px;color:#64748b;margin-bottom:14px">${e.message||'Unknown error'}</div>
+      <button onclick="window.loadShops()" style="height:40px;padding:0 20px;border:none;border-radius:10px;background:#0c4aa6;color:#fff;font-size:14px;font-weight:700;cursor:pointer">ลองใหม่</button>
+    </div>`;
+  }
+}
+
+function renderPop(){
+  const pop=allShops.filter(s=>s.isOpen&&(s.popular||(s.rating&&s.rating>=4.5))).slice(0,8);
+  if(!pop.length) return;
+  document.getElementById("popSec").style.display="block";
+  document.getElementById("popRow").innerHTML=pop.map(s=>{
+    const sn=s.name.replace(/'/g,"\\'");
+    const img=s.bannerUrl?`<img src="${s.bannerUrl}">`:`<div class="pop-img"></div>`;
+    return `<div class="pop-card" onclick="window.pick('${s.id}','${sn}')"><div class="pop-img">${img}</div><div class="pop-body"><div class="pop-name">${esc(s.name)}</div><div class="pop-meta">${s.deliveryTime||"20-30"} นาที</div></div></div>`;
+  }).join("");
+}
+
+function card(s){
+  const sn=s.name.replace(/'/g,"\\'").replace(/"/g,"&quot;");
+  const banner=s.bannerUrl?`<img src="${s.bannerUrl}">`:`<div class="sc-ph"></div>`;
+  const ava=s.avatarUrl?`<img src="${s.avatarUrl}">`:`<svg viewBox="0 0 24 24"><path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/></svg>`;
+  const star=s.rating?`<div class="mi star"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>${s.rating}</div>`:"";
+  const time=`<div class="mi"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>${s.deliveryTime||"20-30"} นาที</div>`;
+  const badge=s.isOpen?`<div class="sc-open">เปิด</div>`:`<div class="sc-close">ปิด</div>`;
+  const onclick=s.isOpen?`onclick="window.pick('${s.id}','${sn}')"` :"";
+  return `<div class="sc${s.isOpen?"":" closed"}" ${onclick}><div class="sc-banner">${banner}${badge}</div><div class="sc-body"><div class="sc-row"><div class="sc-ava">${ava}</div><div class="sc-info"><div class="sc-name">${esc(s.name)}</div>${s.desc?`<div class="sc-desc">${esc(s.desc)}</div>`:""}</div></div><div class="sc-meta">${time}${star}</div></div></div>`;
+}
+
+function renderShops(list){
+  const open=list.filter(s=>s.isOpen), closed=list.filter(s=>!s.isOpen);
+  const q=curQ;
+  document.getElementById("shopsHd").textContent=q?`ผลลัพธ์ ${list.length} ร้าน`:"ร้านทั้งหมด";
+  if(!list.length){document.getElementById("shopsEl").innerHTML='<div class="lt">ไม่พบร้านค้า</div>';return;}
+  document.getElementById("shopsEl").innerHTML=
+    `<div class="shops-cont">${open.map(card).join("")}</div>`
+    +(closed.length?`<div class="closed-lbl">ร้านที่ปิดอยู่</div><div class="shops-cont">${closed.map(card).join("")}</div>`:"");
+}
+
+window.doSearch=function(q){
+  curQ=q.toLowerCase();
+  const f=curQ?allShops.filter(s=>s.name.toLowerCase().includes(curQ)||(s.desc||"").toLowerCase().includes(curQ)):allShops;
+  renderShops(f);
+};
+
+window.pick=function(id,name){
+  if(!id) return;
+  localStorage.setItem("selectedShopId",id);
+  localStorage.setItem("selectedShopName",name);
+  location.href="menu.html";
+};
+
+window.loadShops=loadShops;
+loadAds();
+loadShops();
+</script>
+</body>
+</html>
