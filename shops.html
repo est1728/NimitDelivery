@@ -184,8 +184,8 @@ if(_defAddr){
 
 // ACTIVE ORDER
 const ords=JSON.parse(localStorage.getItem("currentOrderDocs")||"[]");
-if(ords.length){
-  onSnapshot(doc(db,"orders",ords[0].docId),snap=>{
+if(ords.length && ords[0]?.docId){
+  try{ onSnapshot(doc(db,"orders",ords[0].docId),snap=>{
     if(!snap.exists())return;
     const o=snap.data();
     const card=document.getElementById("activeOrderCard");
@@ -197,7 +197,7 @@ if(ords.length){
     document.getElementById("aoStatus").textContent=SL[o.status]||o.status;
     const idx=SS.indexOf(o.status);
     document.getElementById("aoProgress").innerHTML=SS.slice(0,-1).map((_,i)=>`<div class="ao-dot${i<idx?" done":i===idx?" cur":""}"></div>`).join("");
-  });
+  }); }catch(e){ console.error("order listener:",e); }
 }
 
 // ADS with touch swipe
@@ -268,13 +268,25 @@ async function loadAds(){
 // SHOPS
 function calcDist(a,b,c,d){const R=6371,da=(c-a)*Math.PI/180,db=(d-b)*Math.PI/180;const x=Math.sin(da/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(db/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
 async function loadShops(){
-  await new Promise(r=>{if(!navigator.geolocation)return r();navigator.geolocation.getCurrentPosition(p=>{userLat=p.coords.latitude;userLng=p.coords.longitude;r();},()=>r(),{timeout:5000});});
+  document.getElementById("shopsList").innerHTML='<div class="loading">กำลังโหลด...</div>';
   try{
     const snap=await getDocs(collection(db,"shops"));
     allShops=[];
-    snap.forEach(d=>{const s={id:d.id,...d.data()};if(userLat&&s.lat&&s.lng){s._dist=calcDist(userLat,userLng,s.lat,s.lng);s._fee=s._dist>1.5?9:0;}allShops.push(s);});
+    snap.forEach(d=>{
+      const s={id:d.id,...d.data()};
+      allShops.push(s);
+    });
+    // โหลดเสร็จก่อน แล้วค่อย request location
     renderPopular();renderShops(allShops);
-  }catch(e){document.getElementById("shopsList").innerHTML='<div class="loading">โหลดไม่ได้ กรุณาลองใหม่</div>';}
+    navigator.geolocation?.getCurrentPosition(p=>{
+      userLat=p.coords.latitude;userLng=p.coords.longitude;
+      allShops.forEach(s=>{if(s.lat&&s.lng){s._dist=calcDist(userLat,userLng,s.lat,s.lng);s._fee=s._dist>1.5?9:0;}});
+      renderShops(allShops);
+    },()=>{},{timeout:3000});
+  }catch(e){
+    console.error('loadShops:',e);
+    document.getElementById("shopsList").innerHTML='<div class="loading">โหลดไม่ได้ กรุณาลองใหม่</div>';
+  }
 }
 function renderPopular(){
   const pop=allShops.filter(s=>s.isOpen&&(s.popular||(s.rating&&s.rating>=4.5))).slice(0,8);
