@@ -250,48 +250,68 @@ window.goAd=function(i){
 };
 function startAds(){ if(adTimer)clearInterval(adTimer); if(totalAds<2)return; adTimer=setInterval(()=>window.goAd((curAd+1)%totalAds),3500); }
 
+let userLat=null, userLng=null;
+
+function calcDist(la1,lo1,la2,lo2){
+  const R=6371,dLat=(la2-la1)*Math.PI/180,dLon=(lo2-lo1)*Math.PI/180;
+  const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function renderPop(){
+  const pop=allShops.filter(s=>s.isOpen&&(s.popular||(s.rating&&s.rating>=4.5))).slice(0,8);
+  if(!pop.length) return;
+  document.getElementById("popSec").style.display="block";
+  document.getElementById("popRow").innerHTML=pop.map(s=>{
+    const sn=s.name.replace(/'/g,"\'");
+    const img=s.bannerUrl?`<img src="${s.bannerUrl}" style="width:100%;height:100%;object-fit:cover;display:block">`:'';
+    return `<div class="pop-card" onclick="window.pick('${s.id}','${sn}')"><div class="pop-img">${img}</div><div class="pop-body"><div class="pop-name">${esc(s.name)}</div><div class="pop-meta">${s.deliveryTime||'20-30'} นาที</div></div></div>`;
+  }).join("");
+}
+
+function card(s){
+  const sn=s.name.replace(/'/g,"\'").replace(/"/g,"&quot;");
+  const banner=s.bannerUrl?`<img src="${s.bannerUrl}" style="width:100%;height:100%;object-fit:cover;display:block">`:`<div class="sc-ph"></div>`;
+  const ava=s.avatarUrl?`<img src="${s.avatarUrl}">`:`<svg viewBox="0 0 24 24"><path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/></svg>`;
+  const star=s.rating?`<div class="mi star"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>${s.rating}</div>`:"";
+  const time=`<div class="mi"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>${s.deliveryTime||'20-30'} นาที</div>`;
+  const badge=s.isOpen?`<div class="sc-open">เปิด</div>`:`<div class="sc-close">ปิด</div>`;
+  const oc=s.isOpen?`onclick="window.pick('${s.id}','${sn}')"` :"";
+  return `<div class="sc${s.isOpen?"":" closed"}" ${oc}><div class="sc-banner">${banner}${badge}</div><div class="sc-body"><div class="sc-row"><div class="sc-ava">${ava}</div><div class="sc-info"><div class="sc-name">${esc(s.name)}</div>${s.desc?`<div class="sc-desc">${esc(s.desc)}</div>`:""}</div></div><div class="sc-meta">${time}${star}</div></div></div>`;
+}
+
+function renderShops(list){
+  const open=list.filter(s=>s.isOpen), closed=list.filter(s=>!s.isOpen);
+  document.getElementById("shopsHd").textContent=curQ?`ผลลัพธ์ ${list.length} ร้าน`:"ร้านทั้งหมด";
+  if(!list.length){document.getElementById("shopsEl").innerHTML='<div class="lt">ไม่พบร้านค้า</div>';return;}
+  document.getElementById("shopsEl").innerHTML=
+    `<div class="shops-cont">${open.map(card).join("")}</div>`
+    +(closed.length?`<div class="closed-lbl">ร้านที่ปิดอยู่</div><div class="shops-cont">${closed.map(card).join("")}</div>`:"");
+}
+
+
 // SHOPS
 async function loadShops(){
   document.getElementById("shopsEl").innerHTML='<div class="lt">กำลังโหลด...</div>';
   try{
-    // ใช้ Firestore REST API แทน SDK เพื่อเลี่ยง permission issue
-    const url='https://firestore.googleapis.com/v1/projects/nimit-delivery/databases/(default)/documents/shops?pageSize=50&key=AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4';
-    const res=await fetch(url);
-    if(!res.ok) throw new Error('HTTP '+res.status+' '+await res.text().then(t=>t.slice(0,100)));
-    const json=await res.json();
-    allShops=[];
-    (json.documents||[]).forEach(d=>{
-      const f=d.fields||{};
-      const str=k=>f[k]?.stringValue||'';
-      const bool=k=>f[k]?.booleanValue??null;
-      const num=k=>parseFloat(f[k]?.doubleValue||f[k]?.integerValue||0)||0;
-      allShops.push({
-        id:d.name.split('/').pop(),
-        name:str('name'),desc:str('desc'),
-        bannerUrl:str('bannerUrl'),avatarUrl:str('avatarUrl'),
-        isOpen:bool('isOpen')!==false,popular:bool('popular')||false,
-        rating:num('rating'),deliveryTime:str('deliveryTime')||'20-30',
-        lat:num('lat'),lng:num('lng'),
-      });
-    });
+    const snap = await getDocs(collection(db,"shops"));
+    allShops = [];
+    snap.forEach(d => allShops.push({id:d.id,...d.data()}));
     if(!allShops.length){
       document.getElementById("shopsEl").innerHTML='<div class="lt">ยังไม่มีร้านค้า</div>';
       return;
     }
-    renderPop(); renderShops(allShops);
+    renderPop();
+    renderShops(allShops);
     navigator.geolocation?.getCurrentPosition(p=>{
-      userLat=p.coords.latitude;userLng=p.coords.longitude;
-      allShops.forEach(s=>{if(s.lat&&s.lng){s._dist=calcDist(userLat,userLng,s.lat,s.lng);}});
+      userLat=p.coords.latitude; userLng=p.coords.longitude;
+      allShops.forEach(s=>{ if(s.lat&&s.lng) s._dist=calcDist(userLat,userLng,s.lat,s.lng); });
       renderShops(allShops);
     },()=>{},{timeout:3000});
   }catch(e){
     console.error('loadShops:',e);
-    document.getElementById("shopsEl").innerHTML=`<div class="lt" style="padding:28px 20px">
-      <div style="font-size:24px;margin-bottom:10px">⚠️</div>
-      <div style="font-weight:800;margin-bottom:6px">โหลดไม่ได้</div>
-      <div style="font-size:12px;color:#64748b;margin-bottom:14px">${e.message}</div>
-      <button onclick="window.loadShops()" style="height:40px;padding:0 20px;border:none;border-radius:10px;background:#0c4aa6;color:#fff;font-size:14px;font-weight:700;cursor:pointer">ลองใหม่</button>
-    </div>`;
+    document.getElementById("shopsEl").innerHTML=
+      `<div class="lt"><div style="font-size:24px;margin-bottom:8px">⚠️</div><div style="font-weight:800;margin-bottom:6px">โหลดไม่ได้</div><div style="font-size:12px;color:#64748b;margin-bottom:12px">${e.message}</div><button onclick="window.loadShops()" style="height:40px;padding:0 20px;border:none;border-radius:10px;background:#0c4aa6;color:#fff;font-size:14px;font-weight:700;cursor:pointer">ลองใหม่</button></div>`;
   }
 }
 
