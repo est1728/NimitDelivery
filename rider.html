@@ -820,6 +820,9 @@ window.loadChatList=async function(){
     el.innerHTML='<div style="text-align:center;padding:32px;color:var(--subtext);font-size:14px">โหลดไม่ได้</div>';
   }
 };
+window.viewMyReviews=function(){
+  if(riderData) location.href='reviews.html?type=rider&id='+riderData.id+'&name='+encodeURIComponent(riderData.name||'ไรเดอร์');
+};
 window.openMsgTab=function(){
   switchMainTab('messages');
 };
