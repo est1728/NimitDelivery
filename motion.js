@@ -65,6 +65,13 @@
   document.addEventListener('DOMContentLoaded', ()=>{
     document.body.classList.add('m-page');
   });
+  // Fix: when the browser restores this page from bfcache (back/forward button),
+  // DOMContentLoaded does NOT fire again, so a pending fade-out class would leave
+  // the page stuck invisible. Always reset visibility on pageshow.
+  window.addEventListener('pageshow', ()=>{
+    document.body.classList.remove('m-page-out');
+    document.body.classList.add('m-page');
+  });
 
   /* ---------- ripple (auto-delegated, no markup needed) ---------- */
   const RIPPLE_SELECTOR = 'button,[onclick],.sc,.pop-card,.cart,.addr-chip,.m-press';
