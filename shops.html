@@ -102,11 +102,11 @@ body{background:var(--g);min-height:100vh;padding-bottom:28px;}
   <div class="tb-row">
     <div class="logo">Nimit Delivery</div>
     <div class="tb-right">
-      <div class="addr-chip" onclick="sessionStorage.setItem('addrBack','shops.html');location.href='address.html'">
+      <div class="addr-chip" onclick="sessionStorage.setItem('addrBack','shops.html');window.Motion?window.Motion.navigate('address.html'):location.href='address.html'">
         <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>
         <div class="addr-txt" id="addrTxt">ที่อยู่</div>
       </div>
-      <button class="cart" onclick="location.href='cart.html'">
+      <button class="cart" onclick="window.Motion?window.Motion.navigate('cart.html'):location.href='cart.html'">
         <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg>
         <div class="cart-bdg" id="cartBdg">0</div>
       </button>
@@ -125,7 +125,7 @@ body{background:var(--g);min-height:100vh;padding-bottom:28px;}
 </div>
 
 <!-- ACTIVE ORDER -->
-<div class="ao" id="aoEl" onclick="location.href='track.html'">
+<div class="ao" id="aoEl" onclick="window.Motion?window.Motion.navigate('track.html'):location.href='track.html'">
   <div class="ao-top"><div class="ao-id" id="aoId">-</div><div class="ao-badge">กำลังดำเนินการ</div></div>
   <div class="ao-shop" id="aoShop">-</div>
   <div class="ao-bar" id="aoBar"></div>
@@ -141,7 +141,7 @@ body{background:var(--g);min-height:100vh;padding-bottom:28px;}
 <!-- ALL SHOPS -->
 <div class="sec">
   <div class="sec-hd"><span class="sec-t" id="shopsHd">ร้านทั้งหมด</span></div>
-  <div id="shopsEl"><div class="lt">กำลังโหลด...</div></div>
+  <div id="shopsEl"></div>
 </div>
 
 <script type="module">
@@ -269,6 +269,7 @@ function renderPop(){
     const img=s.bannerUrl?`<img src="${s.bannerUrl}" style="width:100%;height:100%;object-fit:cover;display:block">`:'';
     return `<div class="pop-card" onclick="window.pick('${s.id}','${sn}')"><div class="pop-img">${img}</div><div class="pop-body"><div class="pop-name">${esc(s.name)}</div><div class="pop-meta">${s.deliveryTime||'20-30'} นาที</div></div></div>`;
   }).join("");
+  window.Motion?.staggerIn(document.getElementById("popRow"), ".pop-card", 40);
 }
 
 function card(s){
@@ -304,12 +305,13 @@ function renderShops(list){
   document.getElementById("shopsEl").innerHTML=
     `<div class="shops-cont">${open.map(card).join("")}</div>`
     +(closed.length?`<div class="closed-lbl">ร้านที่ปิดอยู่</div><div class="shops-cont">${closed.map(card).join("")}</div>`:"");
+  window.Motion?.staggerIn(document.getElementById("shopsEl"), ".sc", 40);
 }
 
 
 // SHOPS
 async function loadShops(){
-  document.getElementById("shopsEl").innerHTML='<div class="lt">กำลังโหลด...</div>';
+  document.getElementById("shopsEl").innerHTML=`<div class="shops-cont" style="padding-top:2px">${window.Motion?Motion.skeletonCards(3):''}</div>`;
   try{
     const snap = await getDocs(collection(db,"shops"));
     allShops = [];
@@ -327,6 +329,7 @@ async function loadShops(){
     },()=>{},{timeout:3000});
   }catch(e){
     console.error('loadShops:',e);
+    window.Motion?.toast('โหลดร้านค้าไม่สำเร็จ','error');
     document.getElementById("shopsEl").innerHTML=
       `<div class="lt"><div style="font-size:24px;margin-bottom:8px">⚠️</div><div style="font-weight:800;margin-bottom:6px">โหลดไม่ได้</div><div style="font-size:12px;color:#64748b;margin-bottom:12px">${e.message}</div><button onclick="window.loadShops()" style="height:40px;padding:0 20px;border:none;border-radius:10px;background:#0c4aa6;color:#fff;font-size:14px;font-weight:700;cursor:pointer">ลองใหม่</button></div>`;
   }
@@ -342,7 +345,7 @@ window.pick=function(id,name){
   if(!id) return;
   localStorage.setItem("selectedShopId",id);
   localStorage.setItem("selectedShopName",name);
-  location.href="menu.html";
+  window.Motion?window.Motion.navigate("menu.html"):location.href="menu.html";
 };
 
 window.loadShops=loadShops;
