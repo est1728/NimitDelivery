@@ -272,7 +272,8 @@ function card(s){
   const ava=s.avatarUrl
     ?`<img src="${s.avatarUrl}" style="width:100%;height:100%;object-fit:cover">`
     :`<svg viewBox="0 0 24 24" style="width:30px;height:30px;fill:var(--p)"><path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/></svg>`;
-  const star=s.rating?`<div class="mi star"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>${s.rating}</div>`:"";
+  const ratingNum=(s.rating||0).toFixed(2);
+  const star=s.ratingCount>0?`<div class="mi star" onclick="event.stopPropagation();location.href='reviews.html?type=shop&id=${s.id}&name='+encodeURIComponent(s.name)" style="cursor:pointer"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>${ratingNum} (${s.ratingCount||0})</div>`:"";
   const time=`<div class="mi"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>${s.deliveryTime||'20-30'} นาที</div>`;
   const badge=s.isOpen?`<div class="sc-open">เปิด</div>`:`<div class="sc-close">ปิด</div>`;
   const oc=s.isOpen?`onclick="window.pick('${s.id}','${sn}')"` :"";
@@ -343,5 +344,6 @@ window.loadShops=loadShops;
 loadAds();
 loadShops();
 </script>
+<script src="motion.js"></script>
 </body>
 </html>
