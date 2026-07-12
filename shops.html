@@ -81,11 +81,8 @@ body{background:var(--g);min-height:100vh;padding-bottom:28px;}
 .sc-open{background:var(--gnl);color:var(--gn);}
 .sc-close{background:#fee2e2;color:#dc2626;}
 .sc-body{padding:12px 14px 14px;}
-.sc-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
-.sc-ava{width:46px;height:46px;border-radius:12px;overflow:hidden;background:var(--pl);flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.1);}
-.sc-ava img{width:100%;height:100%;object-fit:cover;}
-.sc-ava svg{width:22px;height:22px;fill:var(--p);}
-.sc-info{flex:1;min-width:0;}
+
+.sc-name{font-size:15px;font-weight:800;color:var(--t);}
 .sc-name{font-size:15px;font-weight:800;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .sc-desc{font-size:12px;color:var(--s);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
 .sc-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
@@ -272,12 +269,23 @@ function renderPop(){
 function card(s){
   const sn=s.name.replace(/'/g,"\'").replace(/"/g,"&quot;");
   const banner=s.bannerUrl?`<img src="${s.bannerUrl}" style="width:100%;height:100%;object-fit:cover;display:block">`:`<div class="sc-ph"></div>`;
-  const ava=s.avatarUrl?`<img src="${s.avatarUrl}">`:`<svg viewBox="0 0 24 24"><path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/></svg>`;
+  const ava=s.avatarUrl
+    ?`<img src="${s.avatarUrl}" style="width:100%;height:100%;object-fit:cover;display:block">`
+    :`<svg viewBox="0 0 24 24" style="width:36px;height:36px;fill:var(--p)"><path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/></svg>`;
   const star=s.rating?`<div class="mi star"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>${s.rating}</div>`:"";
   const time=`<div class="mi"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>${s.deliveryTime||'20-30'} นาที</div>`;
   const badge=s.isOpen?`<div class="sc-open">เปิด</div>`:`<div class="sc-close">ปิด</div>`;
   const oc=s.isOpen?`onclick="window.pick('${s.id}','${sn}')"` :"";
-  return `<div class="sc${s.isOpen?"":" closed"}" ${oc}><div class="sc-banner">${banner}${badge}</div><div class="sc-body"><div class="sc-row"><div class="sc-ava">${ava}</div><div class="sc-info"><div class="sc-name">${esc(s.name)}</div>${s.desc?`<div class="sc-desc">${esc(s.desc)}</div>`:""}</div></div><div class="sc-meta">${time}${star}</div></div></div>`;
+  return `<div class="sc${s.isOpen?"":" closed"}" ${oc}>
+    <div class="sc-banner">${banner}${badge}
+      <div style="position:absolute;bottom:-30px;left:14px;width:60px;height:60px;border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.15);border:2px solid #fff;display:flex;align-items:center;justify-content:center;">${ava}</div>
+    </div>
+    <div class="sc-body" style="padding-top:38px">
+      <div class="sc-name">${esc(s.name)}</div>
+      ${s.desc?`<div class="sc-desc">${esc(s.desc)}</div>`:""}
+      <div class="sc-meta" style="margin-top:6px">${time}${star}</div>
+    </div>
+  </div>`;
 }
 
 function renderShops(list){
