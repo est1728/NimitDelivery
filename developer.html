@@ -313,7 +313,7 @@ body{background:var(--g);min-height:100vh;}
   <div class="card">
     <div class="stitle">Gemini AI</div>
     <div class="conn fail" id="gmConn"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z"/></svg><span id="gmTxt">ยังไม่ได้ตั้งค่า</span></div>
-    <div style="margin-bottom:12px"><div class="lbl">Gemini API Key</div><input class="inp" id="sGmKey" type="password" placeholder="AIzaSy..."><div class="hint">aistudio.google.com/app/apikey → Create API Key (ฟรี 500 req/วัน)</div></div>
+    <div style="margin-bottom:12px"><div class="lbl">Gemini API Key</div><input class="inp" id="sGmKey" type="password" placeholder="AIzaSy..."><div class="hint">aistudio.google.com/app/apikey → Create API Key (ฟรี)</div></div><div style="margin-top:8px"><button onclick="resetQuota()" style="height:34px;padding:0 14px;border:none;border-radius:8px;background:#fee2e2;color:#dc2626;font-size:13px;font-weight:700;cursor:pointer">🔄 Reset โควต้า</button></div>
     <div style="background:var(--pl);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--p);margin-bottom:4px">🌙 เมื่อโควต้าหมด AI หยุดอัตโนมัติ reset ตี 0 ทุกคืน</div>
     <button class="savbtn" onclick="savGM()">บันทึก Gemini Key</button>
     <button onclick="rstQ()" style="width:100%;height:44px;border:2px solid var(--p);border-radius:12px;background:#fff;color:var(--p);font-size:14px;font-weight:700;cursor:pointer;margin-top:8px">🔄 Reset Quota (ถ้า quota ค้าง)</button>
@@ -527,6 +527,18 @@ function clsVw(){document.getElementById('vw').classList.remove('op');}
 // ===== AI =====
 var chatH=[], qUsed=0, qDate='', QMAX=500;
 
+function resetQuota(){
+  localStorage.setItem('gmQU','0');
+  localStorage.setItem('gmQD',new Date().toDateString());
+  qUsed=0; qDate=new Date().toDateString();
+  updQUI();
+  var slp=document.getElementById('slpBn');
+  if(slp)slp.remove();
+  var wlc=document.getElementById('wlc');
+  if(wlc)wlc.style.display='flex';
+  setAISt('r','พร้อมใช้งาน · เหลือ 500 req วันนี้');
+  toast('Reset โควต้าแล้ว','ok');
+}
 function chkQ(){var today=new Date().toDateString();if(qDate!==today){qUsed=0;qDate=today;localStorage.setItem('gmQU','0');localStorage.setItem('gmQD',today);if(typeof updQUI==='function')updQUI();}}
 function ldQ(){
   qUsed=parseInt(localStorage.getItem('gmQU')||'0')||0;
@@ -577,8 +589,19 @@ async function sndChat(){
   var sys='คุณคือ AI ผู้เชี่ยวชาญตรวจสอบโค้ด Nimit Delivery (Food Delivery App) ตอบภาษาไทย กระชับ ระบุเลขบรรทัด ห้ามแก้ UI ห้ามเปลี่ยน style แสดงเฉพาะโค้ดที่แก้';
   var msgs=chatH.length>1?chatH.slice(-10):[{role:'user',parts:[{text:sys+' '+msg}]}];
   try{
-    var resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+cfg.gmKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:msgs,generationConfig:{maxOutputTokens:2048,temperature:0.3}})});
-    if(resp.status===429){shwSlp();setAISt('sl',slpMsg());rpTk(tid,'โควต้าหมดแล้ว '+slpMsg());document.getElementById('csnd').disabled=false;return;}
+    // ลอง 3 ครั้งถ้าโดน rate limit
+    var resp, retries=0;
+    while(retries<3){
+      resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key='+cfg.gmKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:msgs,generationConfig:{maxOutputTokens:2048,temperature:0.7}})});
+      if(resp.status===429){
+        retries++;
+        if(retries>=3){rpTk(tid,'⚠️ Rate limit - รอ 1 นาทีแล้วลองใหม่');setAISt('er','Rate limit');document.getElementById('csnd').disabled=false;return;}
+        rpTk(tid,'⏳ รอสักครู่... ('+retries+'/3)');
+        await new Promise(r=>setTimeout(r,5000*retries));
+        continue;
+      }
+      break;
+    }
     var data=await resp.json();
     if(data.error) throw new Error(data.error.message);
     var reply=data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]?data.candidates[0].content.parts[0].text:'ไม่ได้รับคำตอบ';
