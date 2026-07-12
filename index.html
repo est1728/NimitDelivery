@@ -116,14 +116,20 @@ window.nextPage = async function(){
   btn.disabled=true; btn.textContent="กำลังเข้า...";
   localStorage.setItem("customerPhone", phone);
 
+  // ถ้ามีที่อยู่ใน localStorage อยู่แล้ว → ไป shops เลย
+  const localAddrs = JSON.parse(localStorage.getItem("addresses")||"[]");
+  if(localAddrs.length > 0){
+    location.href="./shops.html";
+    return;
+  }
+
+  // ไม่มีใน localStorage → เช็ค Firestore
   try{
     const snap = await getDoc(doc(db,"customers",phone));
     if(snap.exists()){
       const d=snap.data();
       localStorage.setItem("customerData", JSON.stringify(d));
-      // sync addresses ถ้ายังไม่มี
-      const existing=JSON.parse(localStorage.getItem("addresses")||"[]");
-      if(!existing.length && d.address){
+      if(d.address){
         localStorage.setItem("addresses",JSON.stringify([{name:d.name||"",phone,address:d.address,lat:d.lat||null,lng:d.lng||null}]));
         localStorage.setItem("defaultAddress","0");
       }
@@ -134,6 +140,8 @@ window.nextPage = async function(){
       location.href="./address.html";
     }
   }catch(e){
+    // Firestore error → ถ้าไม่มีที่อยู่เลย ไป address.html
+    sessionStorage.setItem("newCustomer","1");
     sessionStorage.setItem("addrBack","shops.html");
     location.href="./address.html";
   }
