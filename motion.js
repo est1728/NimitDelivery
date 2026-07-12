@@ -22,6 +22,12 @@
   button:active,[onclick]:active,.sc:active,.pop-card:active,.cart:active,.addr-chip:active,.m-press:active{
     transform:scale(.96);
   }
+  /* Swipeable/draggable carousels manage their own transform via JS —
+     never let the press-scale rule fight with a drag transform. */
+  .ads-outer [onclick],.ads-outer [onclick]:active,
+  .no-motion,.no-motion:active{
+    transition:none !important;transform:none !important;
+  }
 
   .m-ripple-wrap{position:relative;overflow:hidden;}
   .m-ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.55);
@@ -78,6 +84,7 @@
   document.addEventListener('pointerdown', e=>{
     const el = e.target.closest(RIPPLE_SELECTOR);
     if(!el || el.classList.contains('closed')) return;
+    if(el.closest('.ads-outer') || el.closest('.no-motion')) return;
     const cs = getComputedStyle(el);
     if(cs.position === 'static') el.style.position = 'relative';
     el.classList.add('m-ripple-wrap');
