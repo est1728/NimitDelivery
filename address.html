@@ -3,267 +3,286 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ที่อยู่จัดส่ง</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<title>ที่อยู่จัดส่ง - Nimit Delivery</title>
 <style>
-:root{
-  --primary:#0c4aa6;--primary-dark:#083570;--primary-light:#e8f0fe;
-  --gray:#f5f6f8;--text:#0f172a;--subtext:#64748b;
-  --green:#16a34a;--green-light:#dcfce7;
-  --red:#dc2626;--red-light:#fee2e2;
-  --shadow-sm:0 1px 3px rgba(15,23,42,0.05);
-  --shadow-md:0 4px 14px rgba(15,23,42,0.07);
-}
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Arial',sans-serif;-webkit-tap-highlight-color:transparent;}
-body{background:var(--gray);min-height:100vh;padding-bottom:24px;}
-@keyframes popIn{from{transform:scale(0.92);opacity:0}to{transform:scale(1);opacity:1}}
+:root{--p:#0c4aa6;--pd:#083570;--pl:#e8f0fe;--g:#f5f6f8;--t:#0f172a;--s:#64748b;--gn:#16a34a;--gnl:#dcfce7;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
+body{background:var(--g);min-height:100vh;}
 
-.topbar{background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:14px 16px;color:#fff;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;}
-.back-btn{width:38px;height:38px;border:none;border-radius:12px;background:rgba(255,255,255,0.18);cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.back-btn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2.5;}
-.topbar-title{font-size:17px;font-weight:800;flex:1;}
-.add-btn-top{height:34px;padding:0 14px;border:none;border-radius:20px;background:rgba(255,255,255,0.18);color:#fff;font-size:13px;font-weight:700;cursor:pointer;}
+/* TOPBAR */
+.tb{background:linear-gradient(135deg,var(--p),var(--pd));padding:14px 16px;display:flex;align-items:center;gap:12px;}
+.tb-back{width:38px;height:38px;border:none;background:rgba(255,255,255,.18);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.tb-back svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2.5;}
+.tb-title{font-size:17px;font-weight:800;color:#fff;flex:1;}
 
-.empty-state{text-align:center;padding:80px 24px;}
-.empty-icon{width:72px;height:72px;border-radius:50%;background:#fff;box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
-.empty-icon svg{width:32px;height:32px;fill:#cbd5e1;}
-.empty-title{font-size:16px;font-weight:800;color:var(--text);margin-bottom:6px;}
-.empty-sub{font-size:13px;color:var(--subtext);margin-bottom:20px;}
-.empty-add-btn{height:48px;padding:0 32px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:15px;font-weight:700;cursor:pointer;}
+/* VIEWS */
+.view{display:none;}
+.view.on{display:block;}
 
-.addr-list{padding:14px 16px;}
-.addr-card{background:#fff;border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow-sm);display:flex;align-items:flex-start;gap:14px;position:relative;}
-.addr-card.default{border:2px solid var(--primary);}
-.addr-card-icon{width:44px;height:44px;border-radius:14px;background:var(--primary-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.addr-card-icon svg{width:22px;height:22px;fill:var(--primary);}
-.addr-card-body{flex:1;min-width:0;}
-.addr-card-top{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
-.addr-card-name{font-size:15px;font-weight:800;color:var(--text);}
-.default-badge{font-size:11px;font-weight:700;background:var(--primary);color:#fff;padding:2px 8px;border-radius:20px;}
-.addr-card-phone{font-size:13px;color:var(--subtext);margin-bottom:4px;}
-.addr-card-text{font-size:13px;color:var(--text);line-height:1.5;}
-.addr-card-actions{display:flex;gap:8px;margin-top:10px;}
-.addr-action-btn{height:32px;padding:0 14px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;}
-.btn-edit{background:var(--primary-light);color:var(--primary);}
-.btn-default{background:var(--green-light);color:var(--green);}
-.btn-del{background:var(--red-light);color:var(--red);}
+/* === VIEW 1: FORM === */
+.form-wrap{padding:16px;}
+.fcard{background:#fff;border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.flabel{font-size:12px;font-weight:800;color:var(--s);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;}
+.finput{width:100%;height:50px;border:2px solid #eef0f4;border-radius:13px;padding:0 14px;font-size:15px;outline:none;color:var(--t);transition:border .2s;}
+.finput:focus{border-color:var(--p);}
+.frow{margin-bottom:14px;}
+.frow:last-child{margin-bottom:0;}
+.map-box{height:200px;border-radius:13px;overflow:hidden;border:2px solid #eef0f4;margin-bottom:8px;}
+.map-hint{font-size:12px;color:var(--s);text-align:center;}
+.save-btn{width:100%;height:54px;border:none;border-radius:16px;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;font-size:16px;font-weight:800;cursor:pointer;margin-top:4px;box-shadow:0 4px 14px rgba(12,74,166,.25);}
 
-/* FORM SHEET */
-.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:400;display:none;}
-.sheet-overlay.show{display:block;}
-.form-sheet{position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:22px 22px 0 0;z-index:401;max-height:95vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform 0.3s ease;}
-.form-sheet.show{transform:translateY(0);}
-.sheet-handle{width:36px;height:4px;background:#e2e8f0;border-radius:2px;margin:12px auto 0;flex-shrink:0;}
-.sheet-head{padding:12px 20px 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:1px solid #f0f2f5;}
-.sheet-title{font-size:16px;font-weight:800;color:var(--text);}
-.sheet-close{width:30px;height:30px;border:none;border-radius:50%;background:var(--gray);cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.sheet-close svg{width:14px;height:14px;fill:var(--subtext);}
-.form-body{flex:1;overflow-y:auto;padding:16px 20px;}
-.form-field{margin-bottom:16px;}
-.form-label{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;}
-.form-input{width:100%;height:50px;border:2px solid #e8eaf0;border-radius:14px;padding:0 16px;font-size:15px;outline:none;background:#fafbfc;}
-.form-input:focus{border-color:var(--primary);}
-.map-wrap{border-radius:14px;overflow:hidden;border:2px solid #e8eaf0;position:relative;margin-bottom:8px;}
-#formMap{height:220px;}
-.gps-btn{position:absolute;top:10px;right:10px;z-index:999;width:42px;height:42px;border-radius:50%;background:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.2);}
-.gps-btn svg{width:20px;height:20px;fill:var(--primary);}
-.coords-hint{font-size:12px;color:var(--subtext);margin-bottom:16px;}
-.coords-hint.has-pin{color:var(--green);font-weight:700;}
-.sheet-footer{padding:12px 20px 28px;flex-shrink:0;border-top:1px solid #f0f2f5;}
-.save-btn{width:100%;height:52px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(12,74,166,0.3);}
+/* === VIEW 2: LIST === */
+.list-wrap{padding:12px 16px 100px;}
+.addr-card{background:#fff;border-radius:16px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;gap:12px;cursor:pointer;}
+.addr-card:active{opacity:.9;}
+.addr-card.selected{border:2px solid var(--p);}
+.addr-ico{width:42px;height:42px;border-radius:50%;background:var(--pl);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.addr-ico svg{width:20px;height:20px;fill:var(--p);}
+.addr-ico.def{background:var(--p);}
+.addr-ico.def svg{fill:#fff;}
+.addr-info{flex:1;min-width:0;}
+.addr-name{font-size:14px;font-weight:800;color:var(--t);margin-bottom:2px;}
+.addr-text{font-size:12px;color:var(--s);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.addr-actions{display:flex;gap:6px;flex-shrink:0;}
+.addr-btn{width:30px;height:30px;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.addr-btn.edit{background:var(--pl);}
+.addr-btn.edit svg{fill:var(--p);width:14px;height:14px;}
+.addr-btn.del{background:#fee2e2;}
+.addr-btn.del svg{fill:#dc2626;width:14px;height:14px;}
+.add-card{background:#fff;border:2px dashed #c7d7f0;border-radius:16px;padding:16px;margin-bottom:10px;display:flex;align-items:center;gap:12px;cursor:pointer;}
+.add-card svg{width:22px;height:22px;fill:var(--p);}
+.add-card span{font-size:14px;font-weight:700;color:var(--p);}
+.next-fab{position:fixed;bottom:20px;left:16px;right:16px;height:56px;border:none;border-radius:16px;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;font-size:17px;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(12,74,166,.35);display:none;}
+.empty-box{text-align:center;padding:48px 20px;color:var(--s);}
+.empty-box svg{width:48px;height:48px;fill:#cbd5e1;display:block;margin:0 auto 12px;}
+.empty-box p{font-size:15px;font-weight:700;color:var(--t);margin-bottom:6px;}
 </style>
 </head>
 <body>
 
-<div id="newCusBanner" style="display:none;background:linear-gradient(135deg,#0c4aa6,#083570);color:#fff;padding:12px 16px;font-size:14px;font-weight:700;text-align:center">
-  👋 ยินดีต้อนรับ! เพิ่มที่อยู่จัดส่งเพื่อเริ่มสั่งอาหาร
-</div>
-<div id="startShoppingBar" style="display:none;padding:12px 16px;background:#f0fdf4;border-bottom:1px solid #bbf7d0;">
-  <button onclick="goToShops()" style="width:100%;height:50px;border:none;border-radius:14px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;font-size:16px;font-weight:800;cursor:pointer;">🛍 เริ่มสั่งอาหาร</button>
-</div>
-<div class="topbar">
-  <button class="back-btn" onclick="smartBack()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
-  <div class="topbar-title" id="addressPageTitle">ที่อยู่จัดส่ง</div>
-  <button class="add-btn-top" onclick="openForm()">+ เพิ่ม</button>
-</div>
-
-<div id="content"></div>
-
-<!-- FORM SHEET -->
-<div class="sheet-overlay" id="sheetOverlay" onclick="closeForm()"></div>
-<div class="form-sheet" id="formSheet">
-  <div class="sheet-handle"></div>
-  <div class="sheet-head">
-    <div class="sheet-title" id="formTitle">เพิ่มที่อยู่ใหม่</div>
-    <button class="sheet-close" onclick="closeForm()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+<!-- VIEW 1: FORM (กรอกข้อมูล) -->
+<div class="view on" id="viewForm">
+  <div class="tb">
+    <button class="tb-back" id="formBackBtn"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+    <div class="tb-title" id="formTitle">เพิ่มที่อยู่จัดส่ง</div>
   </div>
-  <div class="form-body">
-    <div class="form-field"><div class="form-label">ชื่อผู้รับ</div><input class="form-input" id="f-name" placeholder="เช่น บ้าน, ที่ทำงาน, คุณนิด"></div>
-    <div class="form-field"><div class="form-label">เบอร์โทร</div><input class="form-input" id="f-phone" type="tel" placeholder="08X-XXX-XXXX"></div>
-    <div class="form-field">
-      <div class="form-label">รายละเอียดที่อยู่</div>
-      <input class="form-input" id="f-address" placeholder="บ้านเลขที่ ซอย ถนน จุดสังเกต">
-    </div>
-    <div class="form-field">
-      <div class="form-label">ปักหมุดตำแหน่ง (แตะแผนที่หรือใช้ GPS)</div>
-      <div class="map-wrap">
-        <div id="formMap"></div>
-        <button class="gps-btn" onclick="getGPS()"><svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06z"/></svg></button>
+  <div class="form-wrap">
+    <div class="fcard">
+      <div class="frow">
+        <div class="flabel">ชื่อ-นามสกุล</div>
+        <input class="finput" id="fName" placeholder="ชื่อ-นามสกุลผู้รับ">
       </div>
-      <div class="coords-hint" id="coordsHint">แตะแผนที่เพื่อปักหมุดที่อยู่</div>
+      <div class="frow">
+        <div class="flabel">เบอร์โทร</div>
+        <input class="finput" id="fPhone" type="tel" placeholder="08X-XXX-XXXX">
+      </div>
+      <div class="frow">
+        <div class="flabel">ที่อยู่จัดส่ง</div>
+        <input class="finput" id="fAddr" placeholder="บ้านเลขที่ ซอย ถนน แขวง เขต">
+      </div>
+      <div class="frow">
+        <div class="flabel">หมายเหตุ (ไม่บังคับ)</div>
+        <input class="finput" id="fNote" placeholder="เช่น ตึก A ชั้น 3 ห้อง 305">
+      </div>
+    </div>
+    <div class="fcard">
+      <div class="flabel">ปักหมุดตำแหน่ง</div>
+      <div class="map-box" id="mapBox"></div>
+      <div class="map-hint">กดค้างแผนที่เพื่อย้ายหมุด หรือกด "ใช้ตำแหน่งปัจจุบัน"</div>
+      <button onclick="useMyLocation()" style="width:100%;height:42px;margin-top:10px;border:2px solid var(--p);border-radius:12px;background:#fff;color:var(--p);font-size:14px;font-weight:700;cursor:pointer">📍 ใช้ตำแหน่งปัจจุบัน</button>
+    </div>
+    <button class="save-btn" onclick="saveAddr()">บันทึกที่อยู่</button>
+  </div>
+</div>
+
+<!-- VIEW 2: LIST (รายการที่อยู่) -->
+<div class="view" id="viewList">
+  <div class="tb">
+    <button class="tb-back" id="listBackBtn"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+    <div class="tb-title">ที่อยู่จัดส่ง</div>
+  </div>
+  <div class="list-wrap">
+    <div id="addrList"></div>
+    <div class="add-card" onclick="openForm()">
+      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      <span>เพิ่มที่อยู่ใหม่</span>
     </div>
   </div>
-  <div class="sheet-footer"><button class="save-btn" onclick="saveAddress()">บันทึกที่อยู่</button></div>
+  <button class="next-fab" id="nextFab" onclick="goNext()">เริ่มสั่งอาหาร →</button>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
-function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
-</script>
-<script>
-let addresses = JSON.parse(localStorage.getItem("addresses")||"[]");
-const fromRegister = !localStorage.getItem("addressSeen");
+var addresses = JSON.parse(localStorage.getItem('addresses')||'[]');
+var defaultIdx = parseInt(localStorage.getItem('defaultAddress')||'0');
+var editIdx = -1;
+var map, marker;
+var curLat = 13.7563, curLng = 100.5018; // default Bangkok
 
-function smartBack(){
-  if(fromRegister) window.location.href="shops.html";
-  else history.back();
+var isFirstTime = sessionStorage.getItem('newCustomer') === '1';
+var backDest = sessionStorage.getItem('addrBack') || 'shops.html';
+
+// ========== INIT ==========
+function init(){
+  if(isFirstTime || addresses.length === 0){
+    // ลูกค้าใหม่ → เปิดฟอร์มก่อน
+    showForm(-1);
+    document.getElementById('formBackBtn').style.display = 'none';
+  } else {
+    // มีที่อยู่แล้ว → เปิดหน้า list
+    showList();
+  }
 }
-let defaultIdx = parseInt(localStorage.getItem("defaultAddress")||"0");
-let editIdx = -1;
-let formMap = null, formMarker = null, pinLat = null, pinLng = null;
 
+// ========== VIEWS ==========
+function showForm(idx){
+  editIdx = idx;
+  document.getElementById('viewForm').classList.add('on');
+  document.getElementById('viewList').classList.remove('on');
+  document.getElementById('formTitle').textContent = idx >= 0 ? 'แก้ไขที่อยู่' : 'เพิ่มที่อยู่จัดส่ง';
+  if(idx >= 0){
+    var a = addresses[idx];
+    document.getElementById('fName').value = a.name||'';
+    document.getElementById('fPhone').value = a.phone||'';
+    document.getElementById('fAddr').value = a.address||'';
+    document.getElementById('fNote').value = a.note||'';
+    if(a.lat) curLat=a.lat;
+    if(a.lng) curLng=a.lng;
+  } else {
+    document.getElementById('fName').value = '';
+    document.getElementById('fPhone').value = localStorage.getItem('customerPhone')||'';
+    document.getElementById('fAddr').value = '';
+    document.getElementById('fNote').value = '';
+  }
+  setTimeout(initMap, 100);
+}
+
+function showList(){
+  document.getElementById('viewForm').classList.remove('on');
+  document.getElementById('viewList').classList.add('on');
+  renderList();
+  // แสดงปุ่ม ถัดไป ถ้ามีที่อยู่
+  document.getElementById('nextFab').style.display = addresses.length > 0 ? 'block' : 'none';
+}
+
+// ========== LIST ==========
 function renderList(){
-  const el = document.getElementById("content");
+  var el = document.getElementById('addrList');
   if(!addresses.length){
-    el.innerHTML = '<div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg></div><div class="empty-title">ยังไม่มีที่อยู่</div><div class="empty-sub">เพิ่มที่อยู่จัดส่งเพื่อความสะดวก</div><button class="empty-add-btn" onclick="openForm()">เพิ่มที่อยู่แรก</button></div>';
+    el.innerHTML='<div class="empty-box"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg><p>ยังไม่มีที่อยู่</p><span>กด + เพื่อเพิ่มที่อยู่แรก</span></div>';
     return;
   }
-  el.innerHTML = '<div class="addr-list">'+addresses.map((a,i)=>'<div class="addr-card '+(i===defaultIdx?'default':'')+'">'
-    +'<div class="addr-card-icon"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg></div>'
-    +'<div class="addr-card-body">'
-    +'<div class="addr-card-top"><div class="addr-card-name">'+a.name+'</div>'+(i===defaultIdx?'<div class="default-badge">ที่อยู่หลัก</div>':'')+'</div>'
-    +'<div class="addr-card-phone">'+a.phone+'</div>'
-    +'<div class="addr-card-text">'+a.address+'</div>'
-    +(a.lat?'<div style="font-size:12px;color:var(--green);margin-top:4px">ปักหมุดแล้ว</div>':'')
-    +'<div class="addr-card-actions">'
-    +'<button class="addr-action-btn btn-edit" onclick="openForm('+i+')">แก้ไข</button>'
-    +(i!==defaultIdx?'<button class="addr-action-btn btn-default" onclick="setDefault('+i+')">ตั้งเป็นหลัก</button>':'')
-    +'<button class="addr-action-btn btn-del" onclick="deleteAddr('+i+')">ลบ</button>'
-    +'</div></div></div>'
-  ).join('')+'</div>';
+  el.innerHTML = addresses.map(function(a,i){
+    var isDef = i === defaultIdx;
+    return '<div class="addr-card'+(isDef?' selected':'')+'" onclick="setDefault('+i+')">'
+      +'<div class="addr-ico'+(isDef?' def':'')+'"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg></div>'
+      +'<div class="addr-info"><div class="addr-name">'+(a.name||'ไม่มีชื่อ')+(isDef?' ⭐':'')+'</div><div class="addr-text">'+(a.address||'-')+'</div></div>'
+      +'<div class="addr-actions">'
+      +'<button class="addr-btn edit" onclick="event.stopPropagation();editAddr('+i+')"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>'
+      +'<button class="addr-btn del" onclick="event.stopPropagation();delAddr('+i+')"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>'
+      +'</div></div>';
+  }).join('');
 }
 
-function setDefault(i){ defaultIdx=i; localStorage.setItem("defaultAddress",i); save(); renderList();
-// แสดง startShoppingBar ถ้ามีที่อยู่แล้วและมาจากหน้าใหม่
-function checkStartBar(){
-  const bar=document.getElementById('startShoppingBar');
-  if(!bar)return;
-  const isNew=sessionStorage.getItem('newCustomer')||sessionStorage.getItem('addrBack')==='shops.html';
-  bar.style.display=(addresses.length>0&&isNew)?'block':'none';
+function setDefault(i){
+  defaultIdx = i;
+  localStorage.setItem('defaultAddress', String(i));
+  syncCustomerData();
+  renderList();
 }
-checkStartBar();
-if(sessionStorage.getItem("newCustomer")){
-  document.getElementById("newCusBanner").style.display="block";
-  sessionStorage.removeItem("newCustomer");
-} }
-function selectAndBack(i){
-  setDefault(i);
-  save();
-  const back=sessionStorage.getItem("addrBack")||"shops.html";
-  location.href=back;
-}
-function deleteAddr(i){
-  if(!confirm("ลบที่อยู่นี้?")) return;
+
+function editAddr(i){ showForm(i); }
+
+function delAddr(i){
+  if(!confirm('ลบที่อยู่นี้?')) return;
   addresses.splice(i,1);
-  if(defaultIdx>=addresses.length) defaultIdx=Math.max(0,addresses.length-1);
-  save(); renderList();
-}
-function goToShops(){
+  if(defaultIdx >= addresses.length) defaultIdx = Math.max(0, addresses.length-1);
   save();
-  const back = sessionStorage.getItem('addrBack')||'shops.html';
+  renderList();
+  document.getElementById('nextFab').style.display = addresses.length > 0 ? 'block' : 'none';
+}
+
+function openForm(){ showForm(-1); }
+
+function goNext(){
   sessionStorage.removeItem('newCustomer');
-  sessionStorage.removeItem('addrBack');
-  location.href = back;
-}
-function save(){
-  localStorage.setItem("addresses",JSON.stringify(addresses));
-  localStorage.setItem("defaultAddress",String(defaultIdx));
-  // sync customerData ลง localStorage (Firestore จะบันทึกตอน checkout)
-  const phone=localStorage.getItem("customerPhone");
-  const def=addresses[defaultIdx]||addresses[0];
-  if(def&&phone){
-    const cdata={name:def.name||'',phone,address:def.address,lat:def.lat||null,lng:def.lng||null};
-    localStorage.setItem("customerData",JSON.stringify(cdata));
-  }
-  if(typeof checkStartBar==="function") checkStartBar();
+  location.href = backDest;
 }
 
-function openForm(idx){
-  editIdx = idx!==undefined ? idx : -1;
-  document.getElementById("formTitle").textContent = editIdx>=0?"แก้ไขที่อยู่":"เพิ่มที่อยู่ใหม่";
-  pinLat=null; pinLng=null;
-  if(editIdx>=0){
-    const a=addresses[editIdx];
-    document.getElementById("f-name").value=a.name||"";
-    document.getElementById("f-phone").value=a.phone||"";
-    document.getElementById("f-address").value=a.address||"";
-    if(a.lat){ pinLat=a.lat; pinLng=a.lng; document.getElementById("coordsHint").textContent="ปักหมุดแล้ว: "+a.lat.toFixed(5)+", "+a.lng.toFixed(5); document.getElementById("coordsHint").className="coords-hint has-pin"; }
-    else { document.getElementById("coordsHint").textContent="แตะแผนที่เพื่อปักหมุดที่อยู่"; document.getElementById("coordsHint").className="coords-hint"; }
+// ========== FORM ==========
+function saveAddr(){
+  var name = document.getElementById('fName').value.trim();
+  var phone = document.getElementById('fPhone').value.trim();
+  var addr = document.getElementById('fAddr').value.trim();
+  var note = document.getElementById('fNote').value.trim();
+  if(!name||!addr){ alert('กรุณากรอกชื่อและที่อยู่'); return; }
+  var obj = {name:name, phone:phone, address:addr, note:note, lat:curLat, lng:curLng};
+  if(editIdx >= 0){
+    addresses[editIdx] = obj;
   } else {
-    ["f-name","f-phone","f-address"].forEach(id=>document.getElementById(id).value="");
-    document.getElementById("coordsHint").textContent="แตะแผนที่เพื่อปักหมุดที่อยู่";
-    document.getElementById("coordsHint").className="coords-hint";
+    addresses.push(obj);
+    defaultIdx = addresses.length - 1;
   }
-  document.getElementById("sheetOverlay").classList.add("show");
-  document.getElementById("formSheet").classList.add("show");
-  setTimeout(initMap,300);
+  save();
+  showList();
 }
 
-function closeForm(){
-  document.getElementById("sheetOverlay").classList.remove("show");
-  document.getElementById("formSheet").classList.remove("show");
-}
-
+// ========== MAP ==========
 function initMap(){
-  if(formMap){ formMap.invalidateSize(); if(pinLat) formMap.setView([pinLat,pinLng],16); return; }
-  const lat=pinLat||13.7563, lng=pinLng||100.5018;
-  formMap=L.map("formMap").setView([lat,lng],pinLat?16:13);
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(formMap);
-  if(pinLat) placePin(pinLat,pinLng);
-  formMap.on("click",e=>placePin(e.latlng.lat,e.latlng.lng));
+  if(map){ map.remove(); map=null; }
+  map = L.map('mapBox').setView([curLat, curLng], 15);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  marker = L.marker([curLat, curLng], {draggable:true}).addTo(map);
+  marker.on('dragend', function(e){
+    curLat = e.target.getLatLng().lat;
+    curLng = e.target.getLatLng().lng;
+  });
+  map.on('contextmenu', function(e){
+    curLat = e.latlng.lat; curLng = e.latlng.lng;
+    marker.setLatLng(e.latlng);
+  });
 }
 
-function placePin(lat,lng){
-  if(formMarker) formMap.removeLayer(formMarker);
-  formMarker=L.marker([lat,lng]).addTo(formMap);
-  formMap.setView([lat,lng],16);
-  pinLat=lat; pinLng=lng;
-  document.getElementById("coordsHint").textContent="ปักหมุดแล้ว: "+lat.toFixed(5)+", "+lng.toFixed(5);
-  document.getElementById("coordsHint").className="coords-hint has-pin";
+function useMyLocation(){
+  navigator.geolocation.getCurrentPosition(function(p){
+    curLat = p.coords.latitude; curLng = p.coords.longitude;
+    map.setView([curLat,curLng],16);
+    marker.setLatLng([curLat,curLng]);
+  }, function(){ alert('ไม่สามารถเข้าถึง GPS ได้'); });
 }
 
-function getGPS(){
-  if(!navigator.geolocation) return;
-  navigator.geolocation.getCurrentPosition(pos=>placePin(pos.coords.latitude,pos.coords.longitude),()=>alert("ไม่สามารถเข้าถึง GPS ได้"));
+// ========== STORAGE ==========
+function save(){
+  localStorage.setItem('addresses', JSON.stringify(addresses));
+  localStorage.setItem('defaultAddress', String(defaultIdx));
+  syncCustomerData();
 }
 
-function saveAddress(){
-  const name=document.getElementById("f-name").value.trim();
-  const phone=document.getElementById("f-phone").value.trim();
-  const address=document.getElementById("f-address").value.trim();
-  if(!name||!address){ alert("กรุณากรอกชื่อและที่อยู่"); return; }
-  const obj={name,phone,address,lat:pinLat||null,lng:pinLng||null};
-  if(editIdx>=0) addresses[editIdx]=obj;
-  else addresses.push(obj);
-  save(); closeForm(); renderList();
-  // ถ้ามาจาก register และเพิ่งเพิ่มที่อยู่ครั้งแรก → ไป shops.html
-  if(fromRegister && addresses.length===1){
-    localStorage.setItem("addressSeen","1");
-    setTimeout(()=>{ window.location.href="shops.html"; }, 800);
+function syncCustomerData(){
+  var def = addresses[defaultIdx]||addresses[0];
+  var phone = localStorage.getItem('customerPhone')||'';
+  if(def&&phone){
+    localStorage.setItem('customerData', JSON.stringify({
+      name:def.name||'', phone:phone, address:def.address,
+      lat:def.lat||null, lng:def.lng||null
+    }));
   }
 }
 
-renderList();
+// BACK buttons
+document.getElementById('formBackBtn').onclick = function(){
+  if(addresses.length > 0){
+    showList();
+  } else {
+    history.back();
+  }
+};
+document.getElementById('listBackBtn').onclick = function(){
+  location.href = backDest;
+};
+
+init();
 </script>
 </body>
 </html>
