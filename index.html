@@ -148,6 +148,15 @@ window.nextPage = async function(){
 }
 
 document.getElementById("phone").addEventListener("keydown",e=>{ if(e.key==="Enter") window.nextPage(); });
+
+// รีเซ็ตปุ่มเมื่อกลับมาหน้านี้ด้วย back navigation (bfcache)
+window.addEventListener("pageshow", function(e){
+  const btn = document.getElementById("nextBtn");
+  const phone = document.getElementById("phone").value.trim();
+  btn.disabled = phone.length < 6;
+  btn.textContent = "ถัดไป";
+});
 </script>
+<script src="motion.js"></script>
 </body>
 </html>
