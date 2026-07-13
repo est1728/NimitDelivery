@@ -117,11 +117,13 @@ async function loadReviews(){
     const field = type==='shop'?'shopId':'riderId';
     const ratingField = type==='shop'?'shopRating':'riderRating';
     const commentField = type==='shop'?'shopComment':'riderComment';
-    const snap = await getDocs(query(collection(db,'reviews'), where(field,'==',id)));
+    // query ทั้ง collection ถ้าไม่มี id (fallback)
+    const q = id ? query(collection(db,'reviews'), where(field,'==',id)) : query(collection(db,'reviews'));
+    const snap = await getDocs(q);
     allReviews = [];
     snap.forEach(d=>{
       const r = d.data();
-      const rating = r[ratingField]||0;
+      const rating = Number(r[ratingField])||0;
       const comment = r[commentField]||'';
       if(rating > 0){
         allReviews.push({
@@ -135,7 +137,12 @@ async function loadReviews(){
     renderSummary();
     renderList();
   }catch(e){
-    document.getElementById('sumEl').innerHTML=`<div class="lt">โหลดไม่ได้: ${e.message}</div>`;
+    const isPermission=(e.message||'').toLowerCase().includes('permission');
+    document.getElementById('sumEl').innerHTML=`<div class="lt" style="padding:28px 16px">
+      <div style="font-size:28px;margin-bottom:8px">⚠️</div>
+      <div style="font-weight:800;color:#0f172a;margin-bottom:6px">${isPermission?'ไม่มีสิทธิ์อ่านข้อมูล':'โหลดไม่ได้'}</div>
+      <div style="font-size:13px;color:#64748b">${e.message}</div>
+    </div>`;
   }
 }
 
@@ -194,7 +201,7 @@ function renderList(){
       <div class="rev-empty">
         <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
         <div style="font-size:15px;font-weight:700;color:var(--t);margin-bottom:6px">ยังไม่มีรีวิว</div>
-        <div style="font-size:13px">รอรีวิวจากลูกค้า</div>
+        <div style="font-size:13px;color:var(--s)">รอลูกค้าให้คะแนนหลังรับสินค้า</div>
       </div>`;
     return;
   }
