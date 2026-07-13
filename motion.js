@@ -10,7 +10,7 @@
 
   /* ---------- inject shared CSS once ---------- */
   const css = `
-  html,body{touch-action:pan-y;}
+  html,body{touch-action:pan-y;overflow-x:hidden;}
   .m-page{opacity:0;animation:mFadeInPage .28s ease forwards;}
   @keyframes mFadeInPage{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
   .m-page-out{animation:mFadeOutPage .16s ease forwards;}
@@ -69,10 +69,9 @@
   document.head.appendChild(styleEl);
 
   /* ---------- page enter transition ---------- */
-  // Block pinch zoom — ยัง pan/scroll ได้ปกติ
+  // Block pinch zoom (iOS Safari gesture events)
   document.addEventListener('gesturestart',function(e){e.preventDefault();},{passive:false});
   document.addEventListener('gesturechange',function(e){e.preventDefault();},{passive:false});
-  document.addEventListener('touchmove',function(e){if(e.touches.length>1)e.preventDefault();},{passive:false});
 
   document.addEventListener('DOMContentLoaded', ()=>{
     document.body.classList.add('m-page');
