@@ -27,7 +27,7 @@ body{background:var(--g);min-height:100vh;padding-bottom:28px;}
 
 /* ADS */
 .ads{background:#fff;}
-.ads-outer{overflow:hidden;}
+.ads-outer{overflow:hidden;touch-action:pan-x;}
 .ads-track{display:flex;}
 .ad-slide{min-width:100%;flex-shrink:0;}
 .ad-img{width:100%;height:220px;display:block;object-fit:cover;}
@@ -60,7 +60,7 @@ body{background:var(--g);min-height:100vh;padding-bottom:28px;}
 .sec-t::before{content:"";display:inline-block;width:4px;height:18px;background:var(--p);border-radius:2px;margin-right:8px;vertical-align:middle;}
 
 /* POPULAR */
-.pop-row{display:flex;gap:12px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;}
+.pop-row{display:flex;gap:12px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;touch-action:pan-x;}
 .pop-row::-webkit-scrollbar{display:none;}
 .pop-card{background:#fff;border-radius:16px;width:160px;flex-shrink:0;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.07);cursor:pointer;}
 .pop-card:active{opacity:.9;}
