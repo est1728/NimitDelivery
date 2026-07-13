@@ -72,8 +72,8 @@ body{background:var(--g);min-height:100vh;padding-bottom:32px;}
 
 <!-- TABS (ถ้าเป็น order ที่มีทั้งร้านและไรเดอร์) -->
 <div class="tabs" id="tabsEl" style="display:none">
-  <button class="tab-btn on" id="tab-shop" onclick="switchTab('shop')">ร้านค้า</button>
-  <button class="tab-btn" id="tab-rider" onclick="switchTab('rider')">ไรเดอร์</button>
+  <button class="tab-btn on" id="tab-shop" onclick="window.switchTab('shop')">ร้านค้า</button>
+  <button class="tab-btn" id="tab-rider" onclick="window.switchTab('rider')">ไรเดอร์</button>
 </div>
 
 <!-- SUMMARY -->
@@ -86,6 +86,9 @@ body{background:var(--g);min-height:100vh;padding-bottom:32px;}
 </div>
 <div id="listEl"></div>
 
+<script>
+['switchTab'].forEach(fn=>{window[fn]=window[fn]||function(){};});
+</script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
