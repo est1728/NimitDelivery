@@ -10,7 +10,7 @@
 
   /* ---------- inject shared CSS once ---------- */
   const css = `
-  html,body{touch-action:pan-y;overflow-x:hidden;}
+  html{touch-action:pan-y;}body{touch-action:pan-y;overflow-x:hidden;}
   .m-page{opacity:0;animation:mFadeInPage .28s ease forwards;}
   @keyframes mFadeInPage{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
   .m-page-out{animation:mFadeOutPage .16s ease forwards;}
