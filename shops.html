@@ -262,7 +262,13 @@ function calcDist(la1,lo1,la2,lo2){
 }
 
 function renderPop(){
-  const pop=allShops.filter(s=>s.isOpen&&(s.popular||(s.rating&&s.rating>=4.5))).slice(0,8);
+  // เรียงจากดาวสูงสุด → ratingCount มากสุด → popular flag
+  const pop=[...allShops.filter(s=>s.isOpen&&(s.rating>0||s.popular))]
+    .sort((a,b)=>{
+      const ra=parseFloat(a.rating)||0, rb=parseFloat(b.rating)||0;
+      if(rb!==ra) return rb-ra; // ดาวมากกว่ามาก่อน
+      return (b.ratingCount||b.orderCount||0)-(a.ratingCount||a.orderCount||0); // คนรีวิวมากมาก่อน
+    }).slice(0,8);
   if(!pop.length) return;
   document.getElementById("popSec").style.display="block";
   document.getElementById("popRow").innerHTML=pop.map(s=>{
