@@ -85,6 +85,18 @@ body{background:var(--g);min-height:100vh;padding-bottom:90px;}
 .srch{width:100%;height:42px;border:2px solid #e8eef5;border-radius:11px;padding:0 14px;font-size:14px;outline:none;margin-bottom:8px;}
 .srch:focus{border-color:var(--p);}
 .lt{text-align:center;padding:24px;color:var(--s);font-size:14px;}
+
+/* OPTION SHEET */
+.opt-group{margin-bottom:14px;}
+.opt-group-title{font-size:13px;font-weight:800;color:var(--t);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.opt-required{font-size:10px;background:#fee2e2;color:#dc2626;padding:2px 6px;border-radius:20px;font-weight:700;}
+.opt-list{display:flex;flex-direction:column;gap:6px;}
+.opt-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:2px solid #e8eef5;border-radius:12px;cursor:pointer;background:#fff;}
+.opt-item.sel{border-color:var(--p);background:var(--pl);}
+.opt-item-nm{font-size:14px;font-weight:600;color:var(--t);}
+.opt-item-pr{font-size:13px;color:var(--p);font-weight:700;}
+.opt-menu-nm{font-size:16px;font-weight:800;color:var(--t);margin-bottom:4px;}
+.opt-menu-pr{font-size:14px;color:var(--p);font-weight:700;margin-bottom:14px;}
 </style>
 </head>
 <body>
@@ -167,6 +179,19 @@ body{background:var(--g);min-height:100vh;padding-bottom:90px;}
   </div>
 </div>
 
+<!-- OPTION SHEET -->
+<div class="mask" id="optMask">
+  <div class="sheet">
+    <div class="sh-hd"><div class="sh-t" id="optTitle">ตัวเลือก</div><button class="sh-x" onclick="window.closeMask('optMask')">✕</button></div>
+    <div class="sh-body">
+      <div class="opt-menu-nm" id="optMenuName"></div>
+      <div class="opt-menu-pr" id="optMenuPrice"></div>
+      <div id="optGroups"></div>
+    </div>
+    <div class="sh-foot"><button class="sh-ok" onclick="window.addToCart()">+ เพิ่มลงออเดอร์</button></div>
+  </div>
+</div>
+
 <!-- CUS SHEET -->
 <div class="mask" id="cusMask">
   <div class="sheet">
@@ -241,9 +266,17 @@ window.openMenuSheet=function(){
   getDocs(collection(db,'shops',selShop.id,'menus')).then(snap=>{
     var menus=[];snap.forEach(d=>{var m=d.data();if(m.available!==false)menus.push({id:d.id,...m});});
     if(!menus.length){body.innerHTML='<div class="lt">ร้านนี้ยังไม่มีเมนู</div>';return;}
+    window._menus = {}; // เก็บ menu data ไว้ reference ใน openOptions
     body.innerHTML=menus.map(m=>{
       var dp=Math.ceil((m.price||0)*(1+settings.gpPercent/100));
-      var qty=selItems[m.id]?selItems[m.id].qty:0;
+      var groups=m.optionGroups||[];
+      var hasOpts=groups.length>0;
+      window._menus[m.id]={id:m.id,name:m.name,base:m.price||0,disp:dp,groups};
+      var qty=Object.keys(selItems).filter(k=>k===m.id||k.startsWith(m.id+'_')).reduce((s,k)=>s+(selItems[k]?.qty||0),0);
+      if(hasOpts){
+        return `<div class="m-row"><div class="m-inf"><div class="m-nm">${esc(m.name)}</div><div class="m-pr">฿${dp} · ${groups.length} กลุ่มตัวเลือก</div></div>`
+          +`<div class="q-wrap"><button class="q-btn" style="width:auto;padding:0 12px;border-radius:20px;font-size:13px" onclick="window.openOptions('${m.id}')">เลือก</button></div></div>`;
+      }
       return `<div class="m-row"><div class="m-inf"><div class="m-nm">${esc(m.name)}</div><div class="m-pr">฿${dp}</div></div>`
         +`<div class="q-wrap"><button class="q-btn" onclick="window.changeQty('${m.id}','${escQ(m.name)}',${m.price||0},${dp},-1)">−</button>`
         +`<div class="q-n" id="q_${m.id}">${qty}</div>`
@@ -251,6 +284,72 @@ window.openMenuSheet=function(){
     }).join('');
   }).catch(e=>{body.innerHTML='<div class="lt">'+e.message+'</div>';});
 };
+// ========== OPTION PICKER ==========
+var curMenuOpt = null; // {id, name, base, disp, groups}
+var selOptions = {}; // {groupIdx: optionIdx}
+
+window.openOptions = function(id){
+  var m = window._menus && window._menus[id];
+  if(!m){ alert('ไม่พบข้อมูลเมนู'); return; }
+  var {name, base, disp, groups} = m;
+  curMenuOpt = {id, name, base, disp, groups};
+  selOptions = {};
+  // pre-select ตัวแรกของแต่ละกลุ่ม
+  groups.forEach((g,gi)=>{ if(g.options&&g.options.length) selOptions[gi]=0; });
+  document.getElementById('optTitle').textContent = name;
+  document.getElementById('optMenuName').textContent = name;
+  document.getElementById('optMenuPrice').textContent = '฿'+disp;
+  document.getElementById('optGroups').innerHTML = groups.map((g,gi)=>`
+    <div class="opt-group">
+      <div class="opt-group-title">${esc(g.title||'ตัวเลือก')} ${g.required?'<span class="opt-required">จำเป็น</span>':''}</div>
+      <div class="opt-list">
+        ${(g.options||[]).map((o,oi)=>`<div class="opt-item${selOptions[gi]===oi?' sel':''}" id="opt_${gi}_${oi}" onclick="window.selOpt(${gi},${oi})">
+          <span class="opt-item-nm">${esc(o.name||'-')}</span>
+          <span class="opt-item-pr">${o.price>0?'+฿'+o.price:''}</span>
+        </div>`).join('')}
+      </div>
+    </div>`).join('');
+  document.getElementById('optMask').classList.add('show');
+};
+
+window.selOpt = function(gi, oi){
+  selOptions[gi] = oi;
+  // อัพ UI
+  var groups = curMenuOpt.groups;
+  (groups[gi].options||[]).forEach((_,idx)=>{
+    var el = document.getElementById('opt_'+gi+'_'+idx);
+    if(el) el.classList.toggle('sel', idx===oi);
+  });
+};
+
+window.addToCart = function(){
+  if(!curMenuOpt) return;
+  var {id,name,base,disp,groups} = curMenuOpt;
+  // ตรวจว่ากลุ่มบังคับเลือกครบไหม
+  for(var gi=0;gi<groups.length;gi++){
+    if(groups[gi].required && selOptions[gi]==null){
+      alert('กรุณาเลือก: '+groups[gi].title);return;
+    }
+  }
+  var optExtra = 0;
+  var optNames = [];
+  groups.forEach((g,gi)=>{
+    var oi = selOptions[gi];
+    if(oi!=null && g.options&&g.options[oi]){
+      optExtra += g.options[oi].price||0;
+      if(g.options[oi].name) optNames.push(g.options[oi].name);
+    }
+  });
+  var finalDisp = disp + optExtra;
+  var finalBase = base + optExtra;
+  var fullName = name + (optNames.length?' ('+optNames.join(', ')+')':'');
+  if(!selItems[id+'_'+optNames.join('_')]) selItems[id+'_'+optNames.join('_')]={name:fullName,basePrice:finalBase,price:finalDisp,qty:0};
+  selItems[id+'_'+optNames.join('_')].qty += 1;
+  window.closeMask('optMask');
+  window.closeMask('shopMask');
+  window.confirmMenu();
+};
+
 window.changeQty=function(id,name,base,disp,delta){
   if(!selItems[id])selItems[id]={name,basePrice:base,price:disp,qty:0};
   selItems[id].qty=Math.max(0,selItems[id].qty+delta);
