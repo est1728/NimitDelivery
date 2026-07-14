@@ -279,6 +279,7 @@ const db = getFirestore(app);
 var orderId='AMJ-'+String(Math.floor(1000+Math.random()*9000));
 var selShop=null,selItems={},selCus=null,allShops=[],allCus=[];
 var settings={gpPercent:38,riderPercent:16,walletPercent:10,deliveryFee:9};
+var popupMenu=null,popupSelections={};
 
 document.getElementById('oidBadge').textContent=orderId;
 document.getElementById('showId').textContent=orderId;
