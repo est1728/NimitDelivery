@@ -232,7 +232,7 @@ body{background:var(--gray);min-height:100vh;}
 .new-job-hd-txt{font-size:13px;font-weight:800;color:#fff;letter-spacing:1px;}
 .new-job-ping{width:8px;height:8px;border-radius:50%;background:#4ade80;animation:ping .9s cubic-bezier(0,0,.2,1) infinite;}
 @keyframes ping{0%{transform:scale(1);opacity:1}75%,100%{transform:scale(2);opacity:0}}
-.new-job-card{border-left:4px solid var(--primary);margin:10px 14px;background:#f8faff;border-radius:12px;overflow:hidden;cursor:pointer;}
+.new-job-card{margin:10px 14px;background:#fff;border-radius:12px;overflow:hidden;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.06);}
 .new-job-card:active{opacity:.9;}
 .new-job-body{padding:12px 14px;}
 .new-job-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
@@ -599,6 +599,7 @@ async function initRider(){
     document.getElementById("accId").textContent=riderData.idCard||"-";
     updateDateDisplay();
     showPage("mainPage");
+    reqNotifPerm();
     listenOrders();
     listenTotalUnread();
     listenPending();
@@ -611,6 +612,17 @@ const chatUnreadMap={};
 const chatUnsubMap={};
 
 
+// OS Notification
+async function reqNotifPerm(){
+  if('Notification' in window&&Notification.permission==='default'){
+    await Notification.requestPermission();
+  }
+}
+function showOSNotif(title,body){
+  if('Notification' in window&&Notification.permission==='granted'){
+    new Notification(title,{body,tag:'nimit-rider',renotify:true});
+  }
+}
 // ============ SOUND ============
 function playNotifSound(type){
   try{
@@ -666,6 +678,7 @@ function listenPending(){
           const o=snap.docs.find(d=>d.id===id)?.data();
           playNotifSound('new');
           window.showNotif('🔔','งานใหม่มาแล้ว!',(o?.orderId||id)+' · '+(o?.shopName||''),  'new');
+          showOSNotif('🔔 งานใหม่มาแล้ว!',(o?.orderId||id)+' · '+(o?.shopName||'')+' · ฿'+(o?.grandTotal||0));
         }
       });
       knownPending=newIds;
@@ -770,6 +783,7 @@ function listenMyAssignments(){
           if(myAssignedOrders.size>1){ // ไม่แจ้งครั้งแรก
             playNotifSound('assigned');
             window.showNotif('📦','ถูกมอบหมายงาน!','ออเดอร์ '+(o.orderId||d.id),'assigned');
+          showOSNotif('📦 ถูกมอบหมายงาน!','ออเดอร์ '+(o.orderId||d.id));
           }
         }
       });
@@ -1080,5 +1094,7 @@ initRider();
 
 function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 </script>
+<script>window._fcmRole="rider";</script>
+<script src="fcm.js"></script>
 </body>
 </html>
