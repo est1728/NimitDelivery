@@ -210,6 +210,14 @@ body{background:var(--g);min-height:100vh;}
 .tst.er{background:var(--r);}
 .tst.in{background:var(--p);}
 .lt{text-align:center;padding:40px;color:var(--s);font-size:14px;}
+
+.notif-banner{position:fixed;top:0;left:0;right:0;z-index:999;background:linear-gradient(135deg,#0c4aa6,#083570);color:#fff;padding:14px 16px;transform:translateY(-100%);transition:transform .35s cubic-bezier(.34,1.56,.64,1);box-shadow:0 4px 20px rgba(0,0,0,.3);}
+.notif-banner.show{transform:translateY(0);}
+.notif-banner-inner{display:flex;align-items:center;gap:12px;}
+.notif-ico{font-size:22px;flex-shrink:0;}
+.notif-title{font-size:14px;font-weight:800;}
+.notif-sub{font-size:12px;opacity:.85;margin-top:2px;}
+.notif-close{width:28px;height:28px;border:none;background:rgba(255,255,255,.2);border-radius:50%;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -301,7 +309,10 @@ body{background:var(--g);min-height:100vh;}
     <div class="dr"><span class="drl">การจ่ายเงิน</span><span class="drv" id="dtPay">-</span></div>
     <div class="dr"><span class="drl">เวลา</span><span class="drv" id="dtTime">-</span></div>
     <div class="dr"><span class="drl">สถานะ</span><span class="drv" id="dtStatus">-</span></div>
-    <div class="dr" id="dtRiderRow"><span class="drl">ไรเดอร์</span><span class="drv" id="dtRider">ยังไม่มี</span></div>
+    <div class="dr" id="dtRiderRow">
+      <span class="drl">ไรเดอร์</span>
+      <span class="drv" id="dtRider">ยังไม่มี</span>
+    </div>
   <div class="dr"><span class="drl">อ่านออเดอร์</span><span class="drv" id="dtRiderRead" style="color:var(--s)">ยังไม่อ่าน</span></div>
   </div>
 
@@ -356,6 +367,7 @@ body{background:var(--g);min-height:100vh;}
     <button class="bprev" id="prevBtn" title="ย้อนสถานะ"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
     <button class="bnxt" id="nextBtn">รับงาน</button>
     <button class="basgn" id="assignBtn"><svg viewBox="0 0 24 24"><path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/></svg>โยนงาน</button>
+    <button id="unassignBtn" style="height:48px;padding:0 14px;flex-shrink:0;border:none;border-radius:14px;background:#fee2e2;color:#dc2626;cursor:pointer;font-size:12px;font-weight:800;display:flex;align-items:center;gap:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="#dc2626"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>ถอดงาน</button>
   </div>
 </div>
 
@@ -510,10 +522,22 @@ function updPrev(){
 const adminChatUnreadMap={};
 const adminChatUnsubs={};
 
+let knownOrders=new Set();
 function listenOrders(){
   onSnapshot(query(collection(db,'orders'),where('status','in',ACTIVE)),snap=>{
     orders=[];snap.forEach(d=>orders.push({docId:d.id,...d.data()}));
     orders.sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
+    // แจ้งเตือน order ใหม่
+    snap.forEach(d=>{
+      if(!knownOrders.has(d.id)){
+        const o=d.data();
+        if(knownOrders.size>0){ // ไม่แจ้งครั้งแรกที่โหลด
+          playNotifSound('new');
+          showNotif('🔔','งานใหม่มาแล้ว!',(o.orderId||d.id)+' · '+(o.shopName||''),'linear-gradient(135deg,#0c4aa6,#083570)');
+        }
+        knownOrders.add(d.id);
+      }
+    });
     updDash();renderOrders();
     // unsubscribe เก่า
     const activeIds=new Set();snap.forEach(d=>activeIds.add(d.id));
@@ -888,6 +912,13 @@ document.addEventListener('click', e => {
   else if(id==='saveRiderBtn')saveRider();
   else if(id==='doTopupBtn')doTopup();
   else if(id==='chatBtn'){if(curDocId)location.href='chat.html?orderId='+curDocId+'&role=admin';}
+  else if(id==='unassignBtn'){ 
+    if(!curDocId)return;
+    if(!confirm('ถอดไรเดอร์ออกจากงานนี้?'))return;
+    updateDoc(doc(db,'orders',curDocId),{riderId:'',riderName:'',riderPhone:'',status:'pending'})
+      .then(()=>showNotif('✅','ถอดงานแล้ว','ออเดอร์กลับสู่สถานะรอรับ','linear-gradient(135deg,#16a34a,#15803d)'))
+      .catch(e=>alert(e.message));
+  }
   else if(id==='cfmOk'){if(cfmCallback){cfmCallback();closeCfm();}else closeCfm();}
   else if(id==='cfmCancel')closeCfm();
 });
