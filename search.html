@@ -122,15 +122,20 @@ let allShops = [], allMenus = [], searchTimer = null;
 
 // โหลดข้อมูล
 async function loadData(){
+  // โหลด shops
   try{
-    const [shopSnap, menuSnap] = await Promise.all([
-      getDocs(collection(db,'shops')),
-      getDocs(collection(db,'menus'))
-    ]);
-    shopSnap.forEach(d => allShops.push({id:d.id,...d.data()}));
-    menuSnap.forEach(d => allMenus.push({id:d.id,...d.data()}));
-  }catch(e){}
+    const snap = await getDocs(collection(db,'shops'));
+    snap.forEach(d => allShops.push({id:d.id,...d.data()}));
+  }catch(e){ console.warn('shops load fail:',e.message); }
+  // โหลด menus
+  try{
+    const snap = await getDocs(collection(db,'menus'));
+    snap.forEach(d => allMenus.push({id:d.id,...d.data()}));
+    console.log('menus loaded:', allMenus.length);
+  }catch(e){ console.warn('menus load fail:',e.message); }
+  dataReady = true;
 }
+let dataReady = false;
 
 // HISTORY (localStorage)
 function getHistory(){ return JSON.parse(localStorage.getItem('searchHistory')||'[]'); }
@@ -247,6 +252,9 @@ function doSearch(q){
     }).join('');
   }
 
+  if(!dataReady){
+    html += '<div class="lt" style="padding:16px;font-size:13px">⏳ กำลังโหลดเมนู...</div>';
+  }
   if(menuRes.length){
     html += `<div class="divider">เมนู (${menuRes.length})</div>`;
     html += menuRes.slice(0,10).map(m=>{
@@ -307,7 +315,11 @@ document.getElementById('srch').addEventListener('input', e=>{
 document.getElementById('srch').focus();
 renderHistory();
 loadPopular();
-loadData();
+loadData().then(()=>{
+  // ถ้าพิมพ์ไปก่อน data โหลด — search ใหม่อีกรอบ
+  const q = document.getElementById('srch').value.trim();
+  if(q) doSearch(q);
+});
 </script>
 </body>
 </html>
