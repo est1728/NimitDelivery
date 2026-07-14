@@ -80,6 +80,7 @@ body{background:var(--g);min-height:100vh;}
   <div class="hd-row">
     <button class="back" onclick="history.back()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
     <div class="hd-t">ลูกค้า</div>
+    <button onclick="openAddCus()" style="height:34px;padding:0 14px;border:none;border-radius:20px;background:rgba(255,255,255,.2);color:#fff;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap">+ เพิ่ม</button>
     <div class="cus-count"><span class="live-dot"></span><span id="cusCount">0</span> คน</div>
   </div>
   <div class="search-wrap">
@@ -95,6 +96,31 @@ body{background:var(--g);min-height:100vh;}
 </div>
 
 <div class="list" id="cusList"><div class="lt">กำลังโหลด...</div></div>
+
+<!-- ADD CUSTOMER MODAL -->
+<div class="modal-mask" id="addCusMask">
+  <div class="modal" style="padding-bottom:20px">
+    <div class="modal-hd">
+      <div class="modal-title">เพิ่มลูกค้าใหม่</div>
+      <button class="modal-close" onclick="closeAddCus()">✕</button>
+    </div>
+    <div style="padding:16px">
+      <div style="margin-bottom:12px">
+        <div style="font-size:12px;font-weight:700;color:var(--s);margin-bottom:6px">ชื่อ-นามสกุล</div>
+        <input id="acName" style="width:100%;height:46px;border:2px solid #e8eef5;border-radius:12px;padding:0 14px;font-size:15px;outline:none" placeholder="ชื่อ-นามสกุล">
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-size:12px;font-weight:700;color:var(--s);margin-bottom:6px">เบอร์โทร <span style="color:#dc2626">*</span></div>
+        <input id="acPhone" type="tel" style="width:100%;height:46px;border:2px solid #e8eef5;border-radius:12px;padding:0 14px;font-size:15px;outline:none" placeholder="08X-XXX-XXXX (ใช้เป็น ID)">
+      </div>
+      <div style="margin-bottom:16px">
+        <div style="font-size:12px;font-weight:700;color:var(--s);margin-bottom:6px">ที่อยู่จัดส่ง</div>
+        <input id="acAddr" style="width:100%;height:46px;border:2px solid #e8eef5;border-radius:12px;padding:0 14px;font-size:15px;outline:none" placeholder="บ้านเลขที่ ซอย ถนน">
+      </div>
+      <button onclick="saveNewCus()" style="width:100%;height:50px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;font-size:16px;font-weight:800;cursor:pointer">บันทึกลูกค้า</button>
+    </div>
+  </div>
+</div>
 
 <!-- DETAIL MODAL -->
 <div class="modal-mask" id="detailModal">
@@ -125,7 +151,7 @@ body{background:var(--g);min-height:100vh;}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const db = getFirestore(initializeApp({
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -196,6 +222,32 @@ window.openDetail=function(phone){
   document.getElementById('detailModal').classList.add('show');
 };
 
+window.openAddCus=function(){
+  document.getElementById('acName').value='';
+  document.getElementById('acPhone').value='';
+  document.getElementById('acAddr').value='';
+  document.getElementById('addCusMask').classList.add('show');
+  setTimeout(()=>document.getElementById('acPhone').focus(),200);
+};
+window.closeAddCus=function(){
+  document.getElementById('addCusMask').classList.remove('show');
+};
+window.saveNewCus=async function(){
+  const phone=document.getElementById('acPhone').value.trim().replace(/[^0-9]/g,'');
+  const name=document.getElementById('acName').value.trim();
+  const addr=document.getElementById('acAddr').value.trim();
+  if(!phone||phone.length<8){alert('กรุณากรอกเบอร์โทรให้ถูกต้อง');document.getElementById('acPhone').focus();return;}
+  try{
+    await setDoc(doc(db,'customers',phone),{
+      name:name||'',address:addr||'',
+      createdAt:new Date().toISOString(),
+      updatedAt:new Date().toISOString(),
+      createdBy:'admin'
+    },{merge:true});
+    window.closeAddCus();
+    alert('เพิ่มลูกค้า '+phone+' แล้ว');
+  }catch(e){alert('เกิดข้อผิดพลาด: '+e.message);}
+};
 window.closeModal=function(){
   document.getElementById('detailModal').classList.remove('show');
 };
