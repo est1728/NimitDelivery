@@ -221,6 +221,12 @@ body{background:var(--g);min-height:100vh;}
 </style>
 </head>
 <body>
+<div id="notifBanner" style="position:fixed;top:0;left:0;right:0;z-index:999;color:#fff;padding:14px 16px;transform:translateY(-100%);transition:transform .35s cubic-bezier(.34,1.56,.64,1);box-shadow:0 4px 20px rgba(0,0,0,.3);display:flex;align-items:center;gap:10px;">
+  <span id="notifIco" style="font-size:20px">🔔</span>
+  <div style="flex:1"><div id="notifTitle" style="font-size:14px;font-weight:800;color:#fff"></div><div id="notifSub" style="font-size:12px;opacity:.85;color:#fff;margin-top:2px"></div></div>
+  <button onclick="document.getElementById('notifBanner').classList.remove('show')" style="width:28px;height:28px;border:none;background:rgba(255,255,255,.2);border-radius:50%;color:#fff;cursor:pointer">✕</button>
+</div>
+<style>#notifBanner.show{transform:translateY(0)!important;}</style>
 <div class="tw" id="tw"></div>
 
 <!-- ORDERS -->
@@ -588,21 +594,24 @@ function listenOrders(){
     if($('ordersEl').innerHTML.includes('กำลังโหลด'))
       $('ordersEl').innerHTML='<div class="lt">โหลดไม่ได้ — ตรวจสอบ Firestore Rules<br><button onclick="listenOrders()" style="margin-top:8px;height:36px;padding:0 16px;border:none;border-radius:8px;background:var(--p);color:#fff;cursor:pointer;font-size:13px">ลองใหม่</button></div>';
   },5000);
-  onSnapshot(query(collection(db,'orders'),where('status','in',ACTIVE)),snap=>{clearTimeout(t);
-    orders=[];snap.forEach(d=>orders.push({docId:d.id,...d.data()}));
-    orders.sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
-    // แจ้งเตือน order ใหม่
-    snap.forEach(d=>{
-      if(!knownOrders.has(d.id)){
-        const o=d.data();
-        if(knownOrders.size>0){ // ไม่แจ้งครั้งแรกที่โหลด
-          playNotifSound('new');
-          showNotif('🔔','งานใหม่มาแล้ว!',(o.orderId||d.id)+' · '+(o.shopName||''),'linear-gradient(135deg,#0c4aa6,#083570)');
-          showOSNotif('🔔 งานใหม่มาแล้ว!',(o.orderId||d.id)+' · '+(o.shopName||'')+' · ฿'+(o.grandTotal||0));
+  onSnapshot(query(collection(db,'orders'),where('status','in',ACTIVE)),snap=>{
+    clearTimeout(t);
+    try{
+      orders=[];
+      snap.forEach(d=>orders.push({docId:d.id,...d.data()}));
+      orders.sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
+      snap.forEach(d=>{
+        if(!knownOrders.has(d.id)){
+          const o=d.data();
+          if(knownOrders.size>0){
+            try{playNotifSound('new');}catch(e){}
+            try{showNotif('🔔','งานใหม่มาแล้ว!',(o.orderId||d.id)+' · '+(o.shopName||''),'linear-gradient(135deg,#0c4aa6,#083570)');}catch(e){}
+            try{showOSNotif('🔔 งานใหม่มาแล้ว!',(o.orderId||d.id)+' · '+(o.shopName||'')+' · ฿'+(o.grandTotal||0));}catch(e){}
+          }
+          knownOrders.add(d.id);
         }
-        knownOrders.add(d.id);
-      }
-    });
+      });
+    }catch(e){console.warn(e);}
     updDash();renderOrders();
     // unsubscribe เก่า
     const activeIds=new Set();snap.forEach(d=>activeIds.add(d.id));
