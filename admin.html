@@ -543,7 +543,12 @@ const adminChatUnsubs={};
 
 let knownOrders=new Set();
 function listenOrders(){
-  onSnapshot(query(collection(db,'orders'),where('status','in',ACTIVE)),snap=>{
+  // timeout 5 วิ
+  const t=setTimeout(()=>{
+    if($('ordersEl').innerHTML.includes('กำลังโหลด'))
+      $('ordersEl').innerHTML='<div class="lt">โหลดไม่ได้ — ตรวจสอบ Firestore Rules<br><button onclick="listenOrders()" style="margin-top:8px;height:36px;padding:0 16px;border:none;border-radius:8px;background:var(--p);color:#fff;cursor:pointer;font-size:13px">ลองใหม่</button></div>';
+  },5000);
+  onSnapshot(query(collection(db,'orders'),where('status','in',ACTIVE)),snap=>{clearTimeout(t);
     orders=[];snap.forEach(d=>orders.push({docId:d.id,...d.data()}));
     orders.sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
     // แจ้งเตือน order ใหม่
@@ -551,9 +556,9 @@ function listenOrders(){
       if(!knownOrders.has(d.id)){
         const o=d.data();
         if(knownOrders.size>0){ // ไม่แจ้งครั้งแรกที่โหลด
-          playNotifSound('new');
-          showNotif('🔔','งานใหม่มาแล้ว!',(o.orderId||d.id)+' · '+(o.shopName||''),'linear-gradient(135deg,#0c4aa6,#083570)');
-          showOSNotif('🔔 งานใหม่มาแล้ว!',(o.orderId||d.id)+' · '+(o.shopName||'')+' · ฿'+(o.grandTotal||0));
+          window.playNotifSound('new');
+          window.showNotif('🔔','งานใหม่มาแล้ว!',(o.orderId||d.id)+' · '+(o.shopName||''),'linear-gradient(135deg,#0c4aa6,#083570)');
+          window.showOSNotif('🔔 งานใหม่มาแล้ว!',(o.orderId||d.id)+' · '+(o.shopName||'')+' · ฿'+(o.grandTotal||0));
         }
         knownOrders.add(d.id);
       }
@@ -689,11 +694,11 @@ function renderDetail(o){
     btn.textContent={pending:'รับงาน',accepted:'เริ่มงาน',picking:'ถึงร้านแล้ว',arrived:'ขับไปหาลูกค้า',delivering:'ส่งสำเร็จ'}[o.status]||'-';
     btn.disabled=false;btn.className='bnxt'+(o.status==='delivering'?' gn':'');
   }
-  $('callShopBtn').onclick=()=>{ if(o.shopPhone)location.href='tel:'+o.shopPhone; else toast('ไม่มีเบอร์ร้าน','in'); };
-  $('navShopBtn').onclick=()=>{ if(o.shopLat&&o.shopLng)window.open('https://maps.google.com?q='+o.shopLat+','+o.shopLng,'_blank'); else toast('ไม่มีพิกัดร้าน','in'); };
-  $('callCusBtn').onclick=()=>{ if(o.customer?.phone)location.href='tel:'+o.customer.phone; else toast('ไม่มีเบอร์ลูกค้า','in'); };
-  $('chatCusBtn').onclick=()=>{ if(curDocId)location.href='chat.html?orderId='+curDocId+'&role=admin'; else toast('ไม่มีออเดอร์','in'); };
-  $('navCusBtn').onclick=()=>{ if(o.customer?.lat&&o.customer?.lng)window.open('https://maps.google.com?q='+o.customer.lat+','+o.customer.lng,'_blank'); else if(o.customer?.address)window.open('https://maps.google.com?q='+encodeURIComponent(o.customer.address),'_blank'); else toast('ไม่มีพิกัดลูกค้า','in'); };
+  $('callShopBtn').onclick=()=>{ if(o.shopPhone)location.href='tel:'+o.shopPhone; else window.toast('ไม่มีเบอร์ร้าน','in'); };
+  $('navShopBtn').onclick=()=>{ if(o.shopLat&&o.shopLng)window.open('https://maps.google.com?q='+o.shopLat+','+o.shopLng,'_blank'); else window.toast('ไม่มีพิกัดร้าน','in'); };
+  $('callCusBtn').onclick=()=>{ if(o.customer?.phone)location.href='tel:'+o.customer.phone; else window.toast('ไม่มีเบอร์ลูกค้า','in'); };
+  $('chatCusBtn').onclick=()=>{ if(curDocId)location.href='chat.html?orderId='+curDocId+'&role=admin'; else window.toast('ไม่มีออเดอร์','in'); };
+  $('navCusBtn').onclick=()=>{ if(o.customer?.lat&&o.customer?.lng)window.open('https://maps.google.com?q='+o.customer.lat+','+o.customer.lng,'_blank'); else if(o.customer?.address)window.open('https://maps.google.com?q='+encodeURIComponent(o.customer.address),'_blank'); else window.toast('ไม่มีพิกัดลูกค้า','in'); };
 }
 
 // CUSTOMER STATS
@@ -714,8 +719,8 @@ async function nextSt(){
   const next=SN[curOrder.status];if(!next)return;
   const label={pending:'รับงาน',accepted:'เริ่มงาน',picking:'ถึงร้านแล้ว',arrived:'ขับไปหาลูกค้า',delivering:'ส่งสำเร็จ'}[curOrder.status]||next;
   confirm2('เปลี่ยนสถานะ',''+label+' ยืนยันหรือไม่',label,next==='done'?'gn':'',async()=>{
-    try{await updateDoc(doc(db,'orders',curDocId),{status:next,updatedAt:serverTimestamp()});if(next==='done')toast('ออเดอร์เสร็จสิ้น','ok');}
-    catch(e){toast('เกิดข้อผิดพลาด','er');}
+    try{await updateDoc(doc(db,'orders',curDocId),{status:next,updatedAt:serverTimestamp()});if(next==='done')window.toast('ออเดอร์เสร็จสิ้น','ok');}
+    catch(e){window.toast('เกิดข้อผิดพลาด','er');}
   });
 }
 async function prevSt(){
@@ -723,7 +728,7 @@ async function prevSt(){
   const prev=SP[curOrder.status];if(!prev)return;
   confirm2('ย้อนกลับสถานะ','ย้อนกลับเป็น "'+SL[prev]+'" ยืนยันหรือไม่','ย้อนกลับ','r',async()=>{
     try{await updateDoc(doc(db,'orders',curDocId),{status:prev,updatedAt:serverTimestamp()});}
-    catch(e){toast('เกิดข้อผิดพลาด','er');}
+    catch(e){window.toast('เกิดข้อผิดพลาด','er');}
   });
 }
 
@@ -738,14 +743,14 @@ async function openAssign(){
     const unassignRow=`<div class="ro" data-rid="__unassign__" style="border-left:3px solid #dc2626"><div class="rav" style="background:#fee2e2"><svg viewBox="0 0 24 24" style="fill:#dc2626"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></div><div><div style="font-size:14px;font-weight:800;color:#dc2626">ถอดงาน</div><div style="font-size:12px;color:var(--s)">ถอดไรเดอร์ออกจากออเดอร์นี้</div></div></div>`;
     $('srl').innerHTML=unassignRow+riders.map(r=>`<div class="ro" data-rid="${r.id}"><div class="rav"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div><div><div style="font-size:14px;font-weight:800">${esc(r.name)}</div><div style="font-size:12px;color:var(--s)">${esc(r.phone||'')}${r.plate?' · '+r.plate:''} · กระเป๋า ฿${r.wallet||0}</div></div></div>`).join('');
     $('sov').classList.add('show');$('ash').classList.add('show');
-  }catch(e){toast('โหลดไรเดอร์ไม่ได้','er');}
+  }catch(e){window.toast('โหลดไรเดอร์ไม่ได้','er');}
 }
 function closeAssign(){$('sov').classList.remove('show');$('ash').classList.remove('show');selRider=null;}
 async function confirmAssign(){
-  if(!selRider){toast('กรุณาเลือกไรเดอร์หรือเลือกถอดงาน','er');return;}
+  if(!selRider){window.toast('กรุณาเลือกไรเดอร์หรือเลือกถอดงาน','er');return;}
   if(selRider==='__unassign__'){
     confirm2('ถอดงาน','ถอดไรเดอร์ออกจากออเดอร์นี้?','ถอด','er',async()=>{
-      try{await updateDoc(doc(db,'orders',asgDocId),{riderId:'',riderName:'',riderPhone:'',status:'pending',updatedAt:serverTimestamp()});closeAssign();toast('ถอดไรเดอร์แล้ว','ok');}catch(e){toast('ไม่สำเร็จ','er');}
+      try{await updateDoc(doc(db,'orders',asgDocId),{riderId:'',riderName:'',riderPhone:'',status:'pending',updatedAt:serverTimestamp()});closeAssign();window.toast('ถอดไรเดอร์แล้ว','ok');}catch(e){window.toast('ไม่สำเร็จ','er');}
     });return;
   }
   const r=riders.find(x=>x.id===selRider);if(!r)return;
@@ -757,11 +762,11 @@ async function confirmAssign(){
     const asgOrder=orders.find(o=>o.docId===asgDocId)||curOrder;
     await updateDoc(doc(db,'orders',asgDocId),{riderId:r.id,riderName:r.name,riderPhone:r.phone||'',status:keepStatus,updatedAt:serverTimestamp()});
     closeAssign();
-    toast('โยนงานให้ '+r.name+' แล้ว','ok');
+    window.toast('โยนงานให้ '+r.name+' แล้ว','ok');
     sendPush(['rider'],'📦 ถูกมอบหมายงาน!','ออเดอร์ '+(asgOrder?.orderId||asgDocId),{url:'/rider.html'});
     sendPush(['customer'],'📦 ไรเดอร์รับงานแล้ว','ออเดอร์ '+(asgOrder?.orderId||asgDocId)+' · '+r.name,{url:'/track.html'});
   }catch(e){
-    toast('โยนงานไม่สำเร็จ','er');
+    window.toast('โยนงานไม่สำเร็จ','er');
   }
   btn.disabled=false; btn.textContent='ยืนยัน';
 }
@@ -770,28 +775,28 @@ async function confirmAssign(){
 window.openCancelOrder=function(){
   if(!curDocId)return;
   const o=orders.find(x=>x.docId===curDocId)||curOrder;
-  if(o&&['done','rejected'].includes(o.status)){toast('ออเดอร์นี้เสร็จสิ้นแล้ว','er');return;}
+  if(o&&['done','rejected'].includes(o.status)){window.toast('ออเดอร์นี้เสร็จสิ้นแล้ว','er');return;}
   document.getElementById('cancelNote').value='';
   document.getElementById('cancelOv').classList.add('show');
 }
 window.closeCancelOrder=function(){document.getElementById('cancelOv').classList.remove('show');}
 window.confirmCancelOrder=async function(){
   const note=document.getElementById('cancelNote').value.trim();
-  if(!note){document.getElementById('cancelNote').style.borderColor='#dc2626';document.getElementById('cancelNote').focus();toast('กรุณาใส่เหตุผล','er');return;}
+  if(!note){document.getElementById('cancelNote').style.borderColor='#dc2626';document.getElementById('cancelNote').focus();window.toast('กรุณาใส่เหตุผล','er');return;}
   document.getElementById('cancelNote').style.borderColor='#e2e8f0';
   try{
     await updateDoc(doc(db,'orders',curDocId),{status:'rejected',cancelNote:note,updatedAt:serverTimestamp()});
     closeCancelOrder();
-    toast('ยกเลิกออเดอร์แล้ว','ok');
-    showNotif('❌','ยกเลิกออเดอร์แล้ว',note,'linear-gradient(135deg,#dc2626,#b91c1c)');
-  }catch(e){toast('ไม่สำเร็จ: '+e.message,'er');}
+    window.toast('ยกเลิกออเดอร์แล้ว','ok');
+    window.showNotif('❌','ยกเลิกออเดอร์แล้ว',note,'linear-gradient(135deg,#dc2626,#b91c1c)');
+  }catch(e){window.toast('ไม่สำเร็จ: '+e.message,'er');}
 }
 
 // EDIT ORDER
 function openEditOrder(){if(!curOrder)return;$('editDel').value=curOrder.deliveryFee||0;$('editNote').value=curOrder.adminNote||'';$('editOrderMov').classList.add('show');}
 async function saveEdit(){
-  try{await updateDoc(doc(db,'orders',curDocId),{deliveryFee:parseFloat($('editDel').value)||0,adminNote:$('editNote').value,updatedAt:serverTimestamp()});closeMov('editOrderMov');toast('บันทึกสำเร็จ','ok');}
-  catch(e){toast('บันทึกไม่สำเร็จ','er');}
+  try{await updateDoc(doc(db,'orders',curDocId),{deliveryFee:parseFloat($('editDel').value)||0,adminNote:$('editNote').value,updatedAt:serverTimestamp()});closeMov('editOrderMov');window.toast('บันทึกสำเร็จ','ok');}
+  catch(e){window.toast('บันทึกไม่สำเร็จ','er');}
 }
 
 // EDIT CUSTOMER INFO
@@ -809,8 +814,8 @@ async function saveCus(){
     await updateDoc(doc(db,'orders',curDocId),{'customer.name':name,'customer.phone':phone,'customer.address':addr,updatedAt:serverTimestamp()});
     // บันทึกในคอลเลกชัน customers ด้วย (เก็บประวัติ)
     if(phone) await setDoc(doc(db,'customers',phone),{name,phone,address:addr,updatedAt:serverTimestamp()},{merge:true});
-    closeMov('editCusMov');toast('บันทึกข้อมูลลูกค้าสำเร็จ','ok');
-  }catch(e){toast('บันทึกไม่สำเร็จ','er');}
+    closeMov('editCusMov');window.toast('บันทึกข้อมูลลูกค้าสำเร็จ','ok');
+  }catch(e){window.toast('บันทึกไม่สำเร็จ','er');}
 }
 
 // EDIT SHOP INFO IN ORDER
@@ -822,8 +827,8 @@ function openEditShopInfo(){
   $('editShopInfoMov').classList.add('show');
 }
 async function saveShopInfo(){
-  try{await updateDoc(doc(db,'orders',curDocId),{shopName:$('siName').value.trim(),shopPhone:$('siPhone').value.trim(),shopAddress:$('siAddr').value.trim(),updatedAt:serverTimestamp()});closeMov('editShopInfoMov');toast('บันทึกสำเร็จ','ok');}
-  catch(e){toast('บันทึกไม่สำเร็จ','er');}
+  try{await updateDoc(doc(db,'orders',curDocId),{shopName:$('siName').value.trim(),shopPhone:$('siPhone').value.trim(),shopAddress:$('siAddr').value.trim(),updatedAt:serverTimestamp()});closeMov('editShopInfoMov');window.toast('บันทึกสำเร็จ','ok');}
+  catch(e){window.toast('บันทึกไม่สำเร็จ','er');}
 }
 
 // HISTORY
@@ -845,13 +850,13 @@ async function loadHistory(){
         </div>
       </div></div>`;
     }).join('');
-  }catch(e){toast('โหลดประวัติไม่ได้','er');}
+  }catch(e){window.toast('โหลดประวัติไม่ได้','er');}
 }
 function openRecall(docId,orderId,shopName){recallDocId=docId;$('recallInfo').textContent='#'+orderId+' · '+shopName;$('recallNote').value='';$('recallMov').classList.add('show');}
 async function doRecall(){
-  const note=$('recallNote').value.trim();if(!note){toast('กรุณาใส่หมายเหตุ','er');return;}
-  try{await updateDoc(doc(db,'orders',recallDocId),{status:'pending',riderId:null,riderName:null,riderPhone:null,adminNote:note,recalledAt:serverTimestamp(),updatedAt:serverTimestamp()});closeMov('recallMov');toast('เรียกกลับสำเร็จ','ok');swPg('ordersPage');}
-  catch(e){toast('เรียกกลับไม่สำเร็จ','er');}
+  const note=$('recallNote').value.trim();if(!note){window.toast('กรุณาใส่หมายเหตุ','er');return;}
+  try{await updateDoc(doc(db,'orders',recallDocId),{status:'pending',riderId:null,riderName:null,riderPhone:null,adminNote:note,recalledAt:serverTimestamp(),updatedAt:serverTimestamp()});closeMov('recallMov');window.toast('เรียกกลับสำเร็จ','ok');swPg('ordersPage');}
+  catch(e){window.toast('เรียกกลับไม่สำเร็จ','er');}
 }
 
 // SHOPS
@@ -869,14 +874,14 @@ async function loadShops(){
       <button class="ib ibd" data-del-shop="${s.id}"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
       </div></div><div class="lkr"><span class="lkt">${link}</span><button class="lkb" data-copy="${link}">คัดลอก</button></div></div>`;
     }).join('')+'</div>';
-  }catch(e){toast('โหลดร้านค้าไม่ได้','er');}
+  }catch(e){window.toast('โหลดร้านค้าไม่ได้','er');}
 }
 function openAddShop(){editShopId=null;$('shopMovT').textContent='เพิ่มร้านค้า';['sName','sSlug','sDesc','sPh'].forEach(id=>$(id).value='');$('shopMov').classList.add('show');}
 async function saveShop(){
-  const name=$('sName').value.trim();if(!name){toast('กรุณากรอกชื่อร้าน','er');return;}
+  const name=$('sName').value.trim();if(!name){window.toast('กรุณากรอกชื่อร้าน','er');return;}
   const data={name,slug:$('sSlug').value.trim(),desc:$('sDesc').value.trim(),phone:$('sPh').value.trim(),isOpen:true,updatedAt:serverTimestamp()};
-  try{editShopId?await updateDoc(doc(db,'shops',editShopId),data):await addDoc(collection(db,'shops'),{...data,createdAt:serverTimestamp()});closeMov('shopMov');loadShops();toast('บันทึกสำเร็จ','ok');}
-  catch(e){toast('บันทึกไม่สำเร็จ','er');}
+  try{editShopId?await updateDoc(doc(db,'shops',editShopId),data):await addDoc(collection(db,'shops'),{...data,createdAt:serverTimestamp()});closeMov('shopMov');loadShops();window.toast('บันทึกสำเร็จ','ok');}
+  catch(e){window.toast('บันทึกไม่สำเร็จ','er');}
 }
 
 // RIDERS
@@ -898,33 +903,33 @@ async function loadRiders(){
       <button class="ib ibd" data-del-rider="${r.id}"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
       </div></div><div class="lkr"><span class="lkt">${link}</span><button class="lkb" data-copy="${link}">คัดลอก</button></div></div>`;
     }).join('')+'</div>';
-  }catch(e){toast('โหลดไรเดอร์ไม่ได้','er');}
+  }catch(e){window.toast('โหลดไรเดอร์ไม่ได้','er');}
 }
 function openAddRider(){editRiderId=null;$('riderMovT').textContent='เพิ่มไรเดอร์';['rName','rPh','rPlate','rSlug','rShift'].forEach(id=>$(id).value='');$('riderMov').classList.add('show');}
 function editRiderOpen(id){const r=riders.find(x=>x.id===id);if(!r)return;editRiderId=id;$('riderMovT').textContent='แก้ไขไรเดอร์';$('rName').value=r.name||'';$('rPh').value=r.phone||'';$('rPlate').value=r.plate||'';$('rSlug').value=r.slug||'';$('rShift').value=r.shift||'';$('riderMov').classList.add('show');}
 async function saveRider(){
-  const name=$('rName').value.trim();if(!name){toast('กรุณากรอกชื่อ','er');return;}
+  const name=$('rName').value.trim();if(!name){window.toast('กรุณากรอกชื่อ','er');return;}
   const data={name,phone:$('rPh').value.trim(),plate:$('rPlate').value.trim(),slug:$('rSlug').value.trim(),shift:$('rShift').value.trim(),updatedAt:serverTimestamp()};
-  try{editRiderId?await updateDoc(doc(db,'riders',editRiderId),data):await addDoc(collection(db,'riders'),{...data,wallet:0,createdAt:serverTimestamp()});closeMov('riderMov');loadRiders();toast('บันทึกสำเร็จ','ok');}
-  catch(e){toast('บันทึกไม่สำเร็จ','er');}
+  try{editRiderId?await updateDoc(doc(db,'riders',editRiderId),data):await addDoc(collection(db,'riders'),{...data,wallet:0,createdAt:serverTimestamp()});closeMov('riderMov');loadRiders();window.toast('บันทึกสำเร็จ','ok');}
+  catch(e){window.toast('บันทึกไม่สำเร็จ','er');}
 }
 
 // TOPUP
 function openTopup(id,name,wallet){topupRiderId=id;$('topupName').textContent=name;$('topupBal').textContent='ยอดปัจจุบัน: ฿'+wallet;$('topupAmt').value='';$('topupMov').classList.add('show');}
 async function doTopup(){
-  const amt=parseFloat($('topupAmt').value)||0;if(amt<=0){toast('กรุณากรอกจำนวนเงิน','er');return;}
-  try{const snap=await getDoc(doc(db,'riders',topupRiderId));const cur=snap.data()?.wallet||0;await updateDoc(doc(db,'riders',topupRiderId),{wallet:cur+amt,updatedAt:serverTimestamp()});closeMov('topupMov');loadRiders();toast('เติมเงิน ฿'+amt+' สำเร็จ','ok');}
-  catch(e){toast('เติมเงินไม่สำเร็จ','er');}
+  const amt=parseFloat($('topupAmt').value)||0;if(amt<=0){window.toast('กรุณากรอกจำนวนเงิน','er');return;}
+  try{const snap=await getDoc(doc(db,'riders',topupRiderId));const cur=snap.data()?.wallet||0;await updateDoc(doc(db,'riders',topupRiderId),{wallet:cur+amt,updatedAt:serverTimestamp()});closeMov('topupMov');loadRiders();window.toast('เติมเงิน ฿'+amt+' สำเร็จ','ok');}
+  catch(e){window.toast('เติมเงินไม่สำเร็จ','er');}
 }
 
 // PRICING
 async function loadPricing(){
-  try{const snap=await getDoc(doc(db,'settings','pricing'));if(snap.exists()){const d=snap.data();$('gpPercent').value=d.gpPercent||34;$('gpSubPercent').value=d.gpSubPercent||0;$('walletPct').value=d.walletPercent||30;$('riderPct').value=d.riderPercent||70;$('freeDist').value=d.freeDistance||1.5;$('delFee').value=d.deliveryFee||9;}updPrev();}
+  try{const snap=await getDoc(doc(db,'settings','pricing'));if(snap.exists()){const d=snap.data();$('gpPercent').value=d.gpPercent||34;$('gpSubPercent').value=d.gpSubPercent||0;$('walletPct').value=d.walletPercent||30;$('riderPct').value=d.riderPercent||70;$('freeDist').value=d.freeDistance||1.5;$('delFee').value=d.deliveryFee||9;}window.updPrev();}
   catch(e){}
 }
 async function savePricing(){
-  try{await setDoc(doc(db,'settings','pricing'),{gpPercent:parseFloat($('gpPercent').value)||34,gpSubPercent:parseFloat($('gpSubPercent').value)||0,walletPercent:parseFloat($('walletPct').value)||30,riderPercent:parseFloat($('riderPct').value)||70,freeDistance:parseFloat($('freeDist').value)||1.5,deliveryFee:parseFloat($('delFee').value)||9,updatedAt:serverTimestamp()},{merge:true});toast('บันทึกการตั้งค่าสำเร็จ','ok');}
-  catch(e){toast('บันทึกไม่สำเร็จ','er');}
+  try{await setDoc(doc(db,'settings','pricing'),{gpPercent:parseFloat($('gpPercent').value)||34,gpSubPercent:parseFloat($('gpSubPercent').value)||0,walletPercent:parseFloat($('walletPct').value)||30,riderPercent:parseFloat($('riderPct').value)||70,freeDistance:parseFloat($('freeDist').value)||1.5,deliveryFee:parseFloat($('delFee').value)||9,updatedAt:serverTimestamp()},{merge:true});window.toast('บันทึกการตั้งค่าสำเร็จ','ok');}
+  catch(e){window.toast('บันทึกไม่สำเร็จ','er');}
 }
 
 // ===== EVENT LISTENERS =====
@@ -938,24 +943,24 @@ document.addEventListener('click', e => {
     t.classList.add('on');renderOrders();return;
   }
   if (t.dataset.close) { closeMov(t.dataset.close); return; }
-  if (t.dataset.copy) { navigator.clipboard.writeText(t.dataset.copy).then(()=>toast('คัดลอกแล้ว','ok')); return; }
+  if (t.dataset.copy) { navigator.clipboard.writeText(t.dataset.copy).then(()=>window.toast('คัดลอกแล้ว','ok')); return; }
   if (t.dataset.ext) { window.open(t.dataset.ext,'_blank'); return; }
   if (t.dataset.goto) { location.href=t.dataset.goto; return; }
   if (t.dataset.docid) { openDetail(t.dataset.docid); return; }
   if (t.dataset.rid) { selRider=t.dataset.rid;document.querySelectorAll('.ro').forEach(r=>r.classList.remove('sel'));t.classList.add('sel');return; }
-  if (t.dataset.delShop) { if(confirm('ลบร้านนี้?'))deleteDoc(doc(db,'shops',t.dataset.delShop)).then(()=>loadShops()).catch(()=>toast('ลบไม่สำเร็จ','er'));return; }
-  if (t.dataset.delRider) { if(confirm('ลบไรเดอร์?'))deleteDoc(doc(db,'riders',t.dataset.delRider)).then(()=>loadRiders()).catch(()=>toast('ลบไม่สำเร็จ','er'));return; }
-  if (t.dataset.topup) { openTopup(t.dataset.topup,t.dataset.tname,t.dataset.twal);return; }
+  if (t.dataset.delShop) { if(confirm('ลบร้านนี้?'))deleteDoc(doc(db,'shops',t.dataset.delShop)).then(()=>loadShops()).catch(()=>window.toast('ลบไม่สำเร็จ','er'));return; }
+  if (t.dataset.delRider) { if(confirm('ลบไรเดอร์?'))deleteDoc(doc(db,'riders',t.dataset.delRider)).then(()=>loadRiders()).catch(()=>window.toast('ลบไม่สำเร็จ','er'));return; }
+  if (t.dataset.topup) { window.openTopup(t.dataset.topup,t.dataset.tname,t.dataset.twal);return; }
   if (t.dataset.editRider) { editRiderOpen(t.dataset.editRider);return; }
   if (t.dataset.recall) { openRecall(t.dataset.recall,t.dataset.oid,t.dataset.sname);return; }
   const id=t.id;
   if (id==='tglBtn'){statsOpen=!statsOpen;$('statsGrid').classList.toggle('open',statsOpen);t.textContent=statsOpen?'▲ ซ่อนสถิติ':'▼ ดูสถิติ';}
   else if(id==='addShopBtn')openAddShop();
-  else if(id==='addRiderBtn')openAddRider();
+  else if(id==='addRiderBtn')window.openAddRider();
   else if(id==='savePricingBtn')savePricing();
   else if(id==='backBtn')closeDetail();
   else if(id==='editOrderBtn')openEditOrder();
-  else if(id==='editCusBtn')openEditCus();
+  else if(id==='editCusBtn')window.openEditCus();
   else if(id==='editShopInfoBtn')openEditShopInfo();
   else if(id==='nextBtn')nextSt();
   else if(id==='prevBtn')prevSt();
@@ -965,16 +970,16 @@ document.addEventListener('click', e => {
   else if(id==='saveEditBtn')saveEdit();
   else if(id==='saveCusBtn')saveCus();
   else if(id==='saveShopInfoBtn')saveShopInfo();
-  else if(id==='doRecallBtn')doRecall();
+  else if(id==='doRecallBtn')window.doRecall();
   else if(id==='saveShopBtn')saveShop();
   else if(id==='saveRiderBtn')saveRider();
-  else if(id==='doTopupBtn')doTopup();
+  else if(id==='doTopupBtn')window.doTopup();
   else if(id==='chatBtn'){if(curDocId)location.href='chat.html?orderId='+curDocId+'&role=admin';}
   else if(id==='unassignInSheet'){
     if(!asgDocId&&!curDocId)return;
     const tid=asgDocId||curDocId;
     confirm2('ถอดไรเดอร์','ถอดไรเดอร์ออกจากงานนี้?','ถอด','er',async()=>{
-      try{await updateDoc(doc(db,'orders',tid),{riderId:'',riderName:'',riderPhone:'',status:'pending',updatedAt:serverTimestamp()});closeAssign();toast('ถอดไรเดอร์แล้ว','ok');showNotif('✅','ถอดงานแล้ว','ออเดอร์กลับสู่รอรับ','linear-gradient(135deg,#16a34a,#15803d)');}catch(e){toast('ไม่สำเร็จ','er');}
+      try{await updateDoc(doc(db,'orders',tid),{riderId:'',riderName:'',riderPhone:'',status:'pending',updatedAt:serverTimestamp()});closeAssign();window.toast('ถอดไรเดอร์แล้ว','ok');window.showNotif('✅','ถอดงานแล้ว','ออเดอร์กลับสู่รอรับ','linear-gradient(135deg,#16a34a,#15803d)');}catch(e){window.toast('ไม่สำเร็จ','er');}
     });
   }
   else if(id==='cfmOk'){if(cfmCallback){cfmCallback();closeCfm();}else closeCfm();}
@@ -983,7 +988,7 @@ document.addEventListener('click', e => {
 
 ['gpPercent','walletPct','riderPct'].forEach(id=>$(id)?.addEventListener('input',updPrev));
 
-updPrev();
+window.updPrev();
 listenOrders();
 </script>
 <script>window._fcmRole="admin";</script>
