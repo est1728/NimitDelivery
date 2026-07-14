@@ -186,6 +186,28 @@ window.setSearch = function(q){
   doSearch(q);
 };
 
+// Fuzzy match — จับตัวอักษรผิดได้
+function fuzzyMatch(text, query){
+  if(!text||!query) return false;
+  const t = text.toLowerCase(), q = query.toLowerCase();
+  // ตรงเป๊ะ
+  if(t.includes(q)) return {match:true, score:100};
+  // ตัวอักษรน้อยหรือหายไป 1-2 ตัว (Levenshtein distance)
+  if(Math.abs(t.length-q.length) > 4) return false;
+  // เช็ค bigram overlap (คู่ตัวอักษร)
+  function bigrams(s){ const b=new Set(); for(let i=0;i<s.length-1;i++) b.add(s[i]+s[i+1]); return b; }
+  const tb=bigrams(t), qb=bigrams(q);
+  let common=0; qb.forEach(b=>{if(tb.has(b)) common++;});
+  const score = qb.size>0 ? common/qb.size : 0;
+  if(score>=0.5) return {match:true, score:Math.round(score*100)};
+  // เช็ค subsequence — ตัวอักษรเรียงไม่ครบ
+  let ti=0,qi=0,matched=0;
+  while(ti<t.length&&qi<q.length){if(t[ti]===q[qi]){matched++;qi++;} ti++;}
+  const subScore = matched/q.length;
+  if(subScore>=0.75) return {match:true, score:Math.round(subScore*80)};
+  return false;
+}
+
 function doSearch(q){
   q = q.trim();
   const clearBtn = document.getElementById('clearBtn');
@@ -201,9 +223,9 @@ function doSearch(q){
   const ql = q.toLowerCase();
 
   // กรองร้าน
-  const shopRes = allShops.filter(s=>(s.name||'').toLowerCase().includes(ql)||(s.desc||'').toLowerCase().includes(ql));
+  const shopRes = allShops.filter(s=>fuzzyMatch(s.name||'',ql)||fuzzyMatch(s.desc||'',ql)||fuzzyMatch((s.name||'')+(s.desc||''),ql));
   // กรองเมนู + หา shopName
-  const menuRes = allMenus.filter(m=>(m.name||'').toLowerCase().includes(ql)||(m.desc||'').toLowerCase().includes(ql));
+  const menuRes = allMenus.filter(m=>fuzzyMatch(m.name||'',ql)||fuzzyMatch(m.desc||'',ql));
 
   const list = document.getElementById('resultList');
   let html = '';
