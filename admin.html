@@ -574,7 +574,10 @@ function listenOrders(){
         if(bdg){bdg.textContent='💬 '+unread;bdg.style.display=unread>0?'inline-flex':'none';}
       });
     });
-  },err=>console.error(err));
+  },err=>{
+    console.error('listenOrders:',err);
+    $('ordersEl').innerHTML='<div class="lt">โหลดออเดอร์ไม่ได้: '+err.message+'<br><button onclick="listenOrders()" style="margin-top:8px;height:36px;padding:0 16px;border:none;border-radius:8px;background:var(--p);color:#fff;cursor:pointer;font-size:13px">ลองใหม่</button></div>';
+  });
 }
 function updDash(){
   const now=new Date().toDateString();
