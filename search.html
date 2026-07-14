@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>ค้นหา - Nimit Delivery</title>
+<style>
+:root{--p:#0c4aa6;--pd:#083570;--pl:#e8f0fe;--g:#f5f6f8;--t:#0f172a;--s:#64748b;--gn:#16a34a;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
+body{background:#fff;min-height:100vh;}
+
+/* HEADER */
+.hd{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;position:sticky;top:0;z-index:10;border-bottom:1px solid #f0f2f5;}
+.back{width:38px;height:38px;flex-shrink:0;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:50%;}
+.back:active{background:var(--g);}
+.back svg{width:20px;height:20px;fill:none;stroke:var(--t);stroke-width:2.5;}
+.srch-wrap{flex:1;position:relative;}
+.srch-ico{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:16px;height:16px;fill:none;stroke:#94a3b8;stroke-width:2;stroke-linecap:round;pointer-events:none;}
+.srch-input{width:100%;height:44px;border:none;border-radius:22px;background:var(--g);padding:0 40px 0 42px;font-size:15px;outline:none;color:var(--t);}
+.srch-input::placeholder{color:#b0b8c1;}
+.clear-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:20px;height:20px;border:none;background:#b0b8c1;border-radius:50%;cursor:pointer;color:#fff;font-size:12px;display:none;align-items:center;justify-content:center;line-height:1;}
+.clear-btn.show{display:flex;}
+
+/* SECTIONS */
+.sec{padding:14px 16px 4px;}
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.sec-t{font-size:13px;font-weight:800;color:var(--s);text-transform:uppercase;letter-spacing:.4px;}
+.sec-clear{font-size:12px;color:var(--p);cursor:pointer;font-weight:700;}
+
+/* CHIPS (ประวัติ / ยอดนิยม) */
+.chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 12px;}
+.chip{display:flex;align-items:center;gap:6px;height:34px;padding:0 14px;border:none;border-radius:20px;background:var(--g);font-size:14px;color:var(--t);cursor:pointer;font-weight:600;}
+.chip:active{opacity:.8;}
+.chip svg{width:14px;height:14px;fill:var(--s);}
+.chip.history svg{fill:var(--s);}
+.chip.popular svg{fill:var(--p);}
+.chip.popular{background:var(--pl);color:var(--p);}
+
+/* RESULTS */
+.results{padding:0 0 80px;}
+.divider{font-size:12px;font-weight:800;color:var(--s);padding:10px 16px 6px;background:#fff;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid #f5f6f8;}
+
+/* SHOP ROW */
+.shop-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #f5f6f8;cursor:pointer;}
+.shop-row:active{background:var(--g);}
+.shop-ava{width:48px;height:48px;border-radius:14px;background:var(--pl);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.shop-ava img{width:100%;height:100%;object-fit:cover;}
+.shop-ava svg{width:22px;height:22px;fill:var(--p);}
+.shop-info{flex:1;min-width:0;}
+.shop-name{font-size:15px;font-weight:800;color:var(--t);}
+.shop-meta{font-size:12px;color:var(--s);margin-top:2px;}
+.shop-badge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:20px;background:var(--gnl);color:var(--gn);flex-shrink:0;}
+
+/* MENU ROW */
+.menu-row{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid #f5f6f8;cursor:pointer;}
+.menu-row:active{background:var(--g);}
+.menu-ico{width:44px;height:44px;border-radius:12px;background:#fff3e0;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.menu-ico img{width:100%;height:100%;object-fit:cover;}
+.menu-info{flex:1;min-width:0;}
+.menu-name{font-size:14px;font-weight:700;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.menu-shop{font-size:12px;color:var(--s);margin-top:2px;}
+.menu-price{font-size:14px;font-weight:800;color:var(--p);flex-shrink:0;}
+
+/* HIGHLIGHT */
+.hl{background:#fff9c4;border-radius:3px;padding:0 1px;}
+
+/* EMPTY */
+.empty{text-align:center;padding:52px 20px;color:var(--s);}
+.empty svg{width:48px;height:48px;fill:#cbd5e1;display:block;margin:0 auto 12px;}
+.empty p{font-size:15px;font-weight:700;color:var(--t);margin-bottom:6px;}
+</style>
+</head>
+<body>
+
+<div class="hd">
+  <button class="back" onclick="history.back()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+  <div class="srch-wrap">
+    <svg class="srch-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+    <input class="srch-input" id="srch" placeholder="ค้นหาร้านหรือเมนู..." autocomplete="off">
+    <button class="clear-btn" id="clearBtn" onclick="clearSearch()">✕</button>
+  </div>
+</div>
+
+<!-- HOME STATE (ก่อนพิมพ์) -->
+<div id="homeState">
+  <div id="historySec" style="display:none">
+    <div class="sec"><div class="sec-hd"><span class="sec-t">🕐 ค้นหาล่าสุด</span><span class="sec-clear" onclick="clearHistory()">ล้างทั้งหมด</span></div></div>
+    <div class="chips" id="historyChips"></div>
+  </div>
+  <div id="popularSec" style="display:none">
+    <div class="sec"><div class="sec-hd"><span class="sec-t">🔥 ค้นหายอดนิยม</span></div></div>
+    <div class="chips" id="popularChips"></div>
+  </div>
+</div>
+
+<!-- RESULT STATE -->
+<div id="resultState" style="display:none">
+  <div class="results" id="resultList"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs, doc, setDoc, getDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const db = getFirestore(initializeApp({
+  apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
+  authDomain:"nimit-delivery.firebaseapp.com",
+  projectId:"nimit-delivery",
+  storageBucket:"nimit-delivery.firebasestorage.app",
+  messagingSenderId:"233476256130",
+  appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
+}));
+
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function hl(text, q) {
+  if(!q) return esc(text);
+  const re = new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')', 'gi');
+  return esc(text).replace(re, '<span class="hl">$1</span>');
+}
+
+let allShops = [], allMenus = [], searchTimer = null;
+
+// โหลดข้อมูล
+async function loadData(){
+  try{
+    const [shopSnap, menuSnap] = await Promise.all([
+      getDocs(collection(db,'shops')),
+      getDocs(collection(db,'menus'))
+    ]);
+    shopSnap.forEach(d => allShops.push({id:d.id,...d.data()}));
+    menuSnap.forEach(d => allMenus.push({id:d.id,...d.data()}));
+  }catch(e){}
+}
+
+// HISTORY (localStorage)
+function getHistory(){ return JSON.parse(localStorage.getItem('searchHistory')||'[]'); }
+function addHistory(q){
+  let h = getHistory().filter(x=>x!==q);
+  h.unshift(q);
+  localStorage.setItem('searchHistory', JSON.stringify(h.slice(0,10)));
+}
+window.clearHistory = function(){
+  localStorage.removeItem('searchHistory');
+  document.getElementById('historySec').style.display='none';
+};
+
+function renderHistory(){
+  const h = getHistory();
+  if(!h.length){ document.getElementById('historySec').style.display='none'; return; }
+  document.getElementById('historySec').style.display='block';
+  document.getElementById('historyChips').innerHTML = h.map(q=>`
+    <button class="chip history" onclick="setSearch('${esc(q)}')">
+      <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18z"/></svg>
+      ${esc(q)}
+    </button>`).join('');
+}
+
+// POPULAR SEARCHES (Firestore searchLogs)
+async function loadPopular(){
+  try{
+    const snap = await getDocs(collection(db,'searchLogs'));
+    const items = [];
+    snap.forEach(d=>items.push({q:d.id,count:d.data().count||0}));
+    items.sort((a,b)=>b.count-a.count);
+    const top = items.slice(0,8);
+    if(!top.length){ document.getElementById('popularSec').style.display='none'; return; }
+    document.getElementById('popularSec').style.display='block';
+    document.getElementById('popularChips').innerHTML = top.map(i=>`
+      <button class="chip popular" onclick="setSearch('${esc(i.q)}')">
+        <svg viewBox="0 0 24 24"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L9.8 8.9z"/></svg>
+        ${esc(i.q)}
+      </button>`).join('');
+  }catch(e){}
+}
+
+async function logSearch(q){
+  if(!q||q.length<2) return;
+  try{
+    await setDoc(doc(db,'searchLogs',q),{count:increment(1),updatedAt:serverTimestamp()},{merge:true});
+  }catch(e){}
+}
+
+// SEARCH
+window.setSearch = function(q){
+  document.getElementById('srch').value=q;
+  doSearch(q);
+};
+
+function doSearch(q){
+  q = q.trim();
+  const clearBtn = document.getElementById('clearBtn');
+  clearBtn.classList.toggle('show', q.length>0);
+  if(!q){
+    document.getElementById('homeState').style.display='block';
+    document.getElementById('resultState').style.display='none';
+    renderHistory();
+    return;
+  }
+  document.getElementById('homeState').style.display='none';
+  document.getElementById('resultState').style.display='block';
+  const ql = q.toLowerCase();
+
+  // กรองร้าน
+  const shopRes = allShops.filter(s=>(s.name||'').toLowerCase().includes(ql)||(s.desc||'').toLowerCase().includes(ql));
+  // กรองเมนู + หา shopName
+  const menuRes = allMenus.filter(m=>(m.name||'').toLowerCase().includes(ql)||(m.desc||'').toLowerCase().includes(ql));
+
+  const list = document.getElementById('resultList');
+  let html = '';
+
+  if(shopRes.length){
+    html += `<div class="divider">ร้านค้า (${shopRes.length})</div>`;
+    html += shopRes.slice(0,5).map(s=>{
+      const shop = allShops.find(x=>x.id===s.id)||s;
+      const ava = s.avatarUrl?`<img src="${s.avatarUrl}">`:'<svg viewBox="0 0 24 24"><path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/></svg>';
+      const rating = (parseFloat(s.rating)||0).toFixed(2);
+      return `<div class="shop-row" onclick="pickShop('${s.id}','${esc(s.name).replace(/'/g,"\\'")}','${esc(q)}')">
+        <div class="shop-ava">${ava}</div>
+        <div class="shop-info">
+          <div class="shop-name">${hl(s.name||'',ql)}</div>
+          <div class="shop-meta">⭐${rating} · ${s.deliveryTime||'20-30'} นาที</div>
+        </div>
+        ${s.isOpen?'<span class="shop-badge">เปิด</span>':''}
+      </div>`;
+    }).join('');
+  }
+
+  if(menuRes.length){
+    html += `<div class="divider">เมนู (${menuRes.length})</div>`;
+    html += menuRes.slice(0,10).map(m=>{
+      const shop = allShops.find(s=>s.id===m.shopId);
+      const ico = m.imageUrl?`<img src="${m.imageUrl}">`:'🍽';
+      const price = Math.ceil((m.price||0)*1.38);
+      return `<div class="menu-row" onclick="pickMenu('${m.shopId||''}','${esc(shop?.name||'').replace(/'/g,"\\'")}','${esc(q)}')">
+        <div class="menu-ico">${ico}</div>
+        <div class="menu-info">
+          <div class="menu-name">${hl(m.name||'',ql)}</div>
+          <div class="menu-shop">📍 ${esc(shop?.name||'ไม่ทราบร้าน')}</div>
+        </div>
+        <div class="menu-price">฿${price}</div>
+      </div>`;
+    }).join('');
+  }
+
+  if(!shopRes.length && !menuRes.length){
+    html = `<div class="empty"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <p>ไม่พบ "${esc(q)}"</p>
+      <span>ลองค้นหาด้วยคำอื่น</span>
+    </div>`;
+  }
+  list.innerHTML = html;
+}
+
+window.pickShop = function(id, name, q){
+  addHistory(q||name);
+  logSearch(q||name);
+  localStorage.setItem('selectedShopId', id);
+  localStorage.setItem('selectedShopName', name);
+  location.href = 'menu.html';
+};
+
+window.pickMenu = function(shopId, shopName, q){
+  addHistory(q);
+  logSearch(q);
+  localStorage.setItem('selectedShopId', shopId);
+  localStorage.setItem('selectedShopName', shopName);
+  location.href = 'menu.html';
+};
+
+window.clearSearch = function(){
+  document.getElementById('srch').value='';
+  document.getElementById('clearBtn').classList.remove('show');
+  document.getElementById('homeState').style.display='block';
+  document.getElementById('resultState').style.display='none';
+  renderHistory();
+};
+
+// INPUT
+document.getElementById('srch').addEventListener('input', e=>{
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(()=>doSearch(e.target.value), 250);
+});
+
+// INIT
+document.getElementById('srch').focus();
+renderHistory();
+loadPopular();
+loadData();
+</script>
+</body>
+</html>
