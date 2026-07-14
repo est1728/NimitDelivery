@@ -482,17 +482,45 @@ function calcRev(){
   window._rev={total:td+del,base:tb,wallet,rider,delivery:del};
 }
 function checkCreate(){document.getElementById('createBtn').disabled=!(selShop&&Object.keys(selItems).length&&selCus);}
-window.createOrder=function(){
+window.createOrder=async function(){
   var btn=document.getElementById('createBtn');btn.disabled=true;btn.textContent='กำลังสร้าง...';
   var rev=window._rev||{total:0,base:0,wallet:0,rider:0,delivery:0};
-  setDoc(doc(db,'orders',orderId),{
-    orderId,shopId:selShop.id,shopName:selShop.name,
-    customer:{name:selCus.name||'',phone:selCus.phone,address:selCus.address||'',lat:selCus.lat||null,lng:selCus.lng||null},
-    items:Object.values(selItems).map(it=>({name:it.name,price:it.price,qty:it.qty})),
-    grandTotal:rev.total,deliveryFee:rev.delivery,riderEarn:rev.rider,walletCut:rev.wallet,
-    status:'pending',createdBy:'admin',createdAt:serverTimestamp()
-  }).then(()=>location.href='admin.html?newOrder='+orderId)
-  .catch(e=>{btn.disabled=false;btn.textContent='สร้างออเดอร์';alert('เกิดข้อผิดพลาด: '+e.message);});
+  // clean items — เอาแค่ name, price, qty, options ที่จำเป็น
+  var cleanItems=Object.values(selItems).map(function(it){
+    var item={name:String(it.name||''),price:Number(it.price)||0,qty:Number(it.qty)||1};
+    if(it.subOptions&&it.subOptions.length) item.options=it.subOptions.filter(Boolean);
+    if(it.note) item.note=String(it.note);
+    return item;
+  });
+  var orderData={
+    orderId:orderId,
+    shopId:selShop.id, shopName:selShop.name,
+    customer:{
+      name:String(selCus.name||''),
+      phone:String(selCus.phone||''),
+      address:String(selCus.address||''),
+      lat:selCus.lat!=null?Number(selCus.lat):null,
+      lng:selCus.lng!=null?Number(selCus.lng):null
+    },
+    items:cleanItems,
+    grandTotal:Number(rev.total)||0,
+    deliveryFee:Number(rev.delivery)||0,
+    riderEarn:Number(rev.rider)||0,
+    walletCut:Number(rev.wallet)||0,
+    status:'pending',
+    createdBy:'admin',
+    createdAt:serverTimestamp()
+  };
+  // ลบ null values ที่ Firestore ไม่ชอบ
+  if(orderData.customer.lat===null) delete orderData.customer.lat;
+  if(orderData.customer.lng===null) delete orderData.customer.lng;
+  try{
+    await setDoc(doc(db,'orders',orderId),orderData);
+    location.href='admin.html?newOrder='+orderId;
+  }catch(e){
+    btn.disabled=false;btn.textContent='สร้างออเดอร์';
+    alert('เกิดข้อผิดพลาด: '+e.message);
+  }
 };
 window.closeMask=function(id){document.getElementById(id).classList.remove('show');};
 window.closePopup=function(){
