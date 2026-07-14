@@ -3,346 +3,395 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>สร้างออเดอร์ - Admin</title>
+<title>สร้างออเดอร์</title>
 <style>
-:root{--p:#0c4aa6;--pd:#083570;--pl:#e8f0fe;--g:#f5f6f8;--t:#0f172a;--s:#64748b;--gn:#16a34a;--gnl:#dcfce7;}
+:root{--p:#0c4aa6;--pd:#083570;--pl:#e8f0fe;--g:#f5f6f8;--t:#0f172a;--s:#64748b;--gn:#16a34a;--gnl:#dcfce7;--y:#f59e0b;}
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
 body{background:var(--g);min-height:100vh;padding-bottom:90px;}
-.detail-page-wrap{min-height:100vh;}
-.detail-topbar{background:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.06);}
-.back-btn{width:38px;height:38px;border:none;background:var(--g);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.back-btn svg{width:18px;height:18px;fill:none;stroke:var(--t);stroke-width:2.5;}
-.detail-title{font-size:16px;font-weight:800;color:var(--t);flex:1;}
-.detail-body{padding:12px 16px;}
-.detail-section{background:#fff;border-radius:18px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.05);margin-bottom:12px;}
-.detail-section-title{font-size:12px;font-weight:800;color:var(--p);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--g);display:flex;align-items:center;justify-content:space-between;}
-.irow{display:flex;align-items:flex-start;padding:6px 0;font-size:14px;border-bottom:1px solid #f8f9fa;}
-.irow:last-child{border:none;}
-.irow-lbl{color:var(--s);width:80px;flex-shrink:0;}
-.irow-sep{color:var(--s);margin:0 8px;}
-.irow-val{flex:1;font-weight:600;color:var(--t);}
-.items-head{display:flex;font-size:11px;font-weight:800;color:var(--s);padding:6px 0;border-bottom:2px solid var(--g);text-transform:uppercase;}
-.items-head span:first-child{flex:1;}
-.items-head span:nth-child(2){width:50px;text-align:center;}
-.items-head span:last-child{width:60px;text-align:right;}
-.item-line{display:flex;align-items:center;padding:7px 0;border-bottom:1px solid #f5f6f8;font-size:14px;}
-.item-line span:first-child{flex:1;color:var(--t);}
-.item-line span:nth-child(2){width:50px;text-align:center;color:var(--s);}
-.item-line span:last-child{width:60px;text-align:right;font-weight:700;color:var(--p);}
-.total-row{display:flex;justify-content:space-between;padding:8px 0 2px;font-size:15px;font-weight:800;color:var(--t);}
-.earn-box{background:#fff;border-radius:18px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.05);margin-bottom:12px;}
-.earn-box-title{font-size:12px;font-weight:800;color:var(--p);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--g);}
-.earn-row{display:flex;justify-content:space-between;padding:7px 0;font-size:14px;border-bottom:1px solid #f8f9fa;color:var(--t);}
-.earn-row:last-child{border:none;}
-.earn-row.main{font-weight:800;color:var(--gn);font-size:15px;}
-.status-action-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;padding:10px 16px 24px;border-radius:20px 20px 0 0;box-shadow:0 -4px 16px rgba(0,0,0,.08);}
-.create-bar-btn{width:100%;height:54px;border:none;border-radius:16px;background:linear-gradient(135deg,var(--gn),#15803d);color:#fff;font-size:17px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(22,163,74,.3);}
-.create-bar-btn:disabled{background:#c5cfe8;box-shadow:none;cursor:not-allowed;}
-.plus-tap{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#f0f6ff;border:2px dashed #bcd0f0;border-radius:14px;cursor:pointer;margin-bottom:4px;}
-.plus-tap:active{opacity:.8;}
-.plus-tap.filled{background:var(--gnl);border:2px solid var(--gn);}
-.plus-tap svg{width:22px;height:22px;flex-shrink:0;}
-.pt-txt{font-size:14px;font-weight:700;flex:1;}
-.plus-tap:not(.filled) svg{fill:var(--p);}
-.plus-tap:not(.filled) .pt-txt{color:var(--p);}
-.plus-tap.filled svg{fill:var(--gn);}
-.plus-tap.filled .pt-txt{color:var(--gn);}
-.pt-arr{font-size:18px;color:var(--s);}
-.sh-mask{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:800;display:none;align-items:flex-end;}
-.sh-mask.show{display:flex;}
-.sh-box{background:#fff;border-radius:24px 24px 0 0;width:100%;max-height:85vh;display:flex;flex-direction:column;animation:slideUp .3s ease;}
-@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.sh-hd{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f0f2f5;flex-shrink:0;}
-.sh-title{font-size:16px;font-weight:800;color:var(--t);}
-.sh-close{width:32px;height:32px;border:none;background:var(--g);border-radius:50%;cursor:pointer;font-size:18px;color:var(--s);display:flex;align-items:center;justify-content:center;}
-.sh-body{overflow-y:auto;flex:1;padding:8px 16px 8px;}
-.sh-foot{padding:12px 16px 24px;border-top:1px solid #f0f2f5;flex-shrink:0;}
-.sh-confirm{width:100%;height:50px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;font-size:16px;font-weight:800;cursor:pointer;}
-.sh-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #f5f6f8;cursor:pointer;}
-.sh-row:active{opacity:.8;}
-.sh-ava{width:42px;height:42px;border-radius:12px;background:var(--pl);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;}
-.sh-ava img{width:100%;height:100%;object-fit:cover;}
-.sh-ava svg{width:18px;height:18px;fill:var(--p);}
-.sh-lbl{flex:1;font-size:14px;font-weight:700;color:var(--t);}
-.mu-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f5f6f8;}
-.mu-info{flex:1;}
-.mu-name{font-size:14px;font-weight:700;color:var(--t);}
-.mu-price{font-size:13px;color:var(--p);font-weight:700;margin-top:2px;}
-.qty-wrap{display:flex;align-items:center;gap:8px;}
-.qty-b{width:30px;height:30px;border:none;border-radius:50%;background:var(--pl);cursor:pointer;font-size:18px;font-weight:700;color:var(--p);display:flex;align-items:center;justify-content:center;}
-.qty-n{font-size:15px;font-weight:800;color:var(--t);min-width:22px;text-align:center;}
-.cu-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #f5f6f8;cursor:pointer;}
-.cu-row:active{opacity:.8;}
-.cu-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--pd));display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;font-weight:800;color:#fff;}
-.cu-inf{flex:1;}
-.cu-nm{font-size:14px;font-weight:700;color:var(--t);}
-.cu-ph{font-size:12px;color:var(--s);}
-.srch-in{width:100%;height:42px;border:2px solid #e8eef5;border-radius:11px;padding:0 14px;font-size:14px;outline:none;margin-bottom:8px;}
-.srch-in:focus{border-color:var(--p);}
+
+/* TOPBAR */
+.topbar{background:linear-gradient(135deg,var(--p),var(--pd));padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;}
+.back-btn{width:38px;height:38px;border:none;background:rgba(255,255,255,.18);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.back-btn svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2.5;}
+.page-title{font-size:17px;font-weight:800;color:#fff;flex:1;}
+.order-id-badge{font-size:12px;color:rgba(255,255,255,.9);background:rgba(255,255,255,.2);padding:4px 12px;border-radius:20px;font-weight:700;}
+
+/* SECTIONS */
+.wrap{padding:12px;}
+.section{background:#fff;border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+.section-title{font-size:11px;font-weight:800;color:var(--p);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--g);display:flex;align-items:center;justify-content:space-between;}
+.row{display:flex;align-items:flex-start;padding:7px 0;font-size:14px;border-bottom:1px solid #f8f9fa;}
+.row:last-child{border:none;}
+.row-lbl{color:var(--s);width:80px;flex-shrink:0;font-size:13px;}
+.row-sep{color:var(--s);margin:0 6px;}
+.row-val{flex:1;font-weight:600;color:var(--t);}
+
+/* PLUS BOX */
+.plus-box{width:100%;display:flex;align-items:center;gap:12px;padding:14px;border:2px dashed #c5d5f0;border-radius:14px;background:#f8faff;cursor:pointer;text-align:left;margin-bottom:2px;}
+.plus-box.done{border-style:solid;border-color:var(--gn);background:var(--gnl);}
+.plus-box svg{width:24px;height:24px;flex-shrink:0;}
+.plus-box:not(.done) svg{fill:var(--p);}
+.plus-box.done svg{fill:var(--gn);}
+.plus-box-txt{flex:1;font-size:14px;font-weight:700;}
+.plus-box:not(.done) .plus-box-txt{color:var(--p);}
+.plus-box.done .plus-box-txt{color:var(--gn);}
+.plus-box-arrow{font-size:20px;color:var(--s);}
+
+/* ITEMS */
+.items-hd{display:flex;font-size:11px;font-weight:800;color:var(--s);padding:6px 0;border-bottom:2px solid var(--g);}
+.items-hd span:first-child{flex:1;}
+.items-hd span:nth-child(2){width:44px;text-align:center;}
+.items-hd span:last-child{width:64px;text-align:right;}
+.item-row{display:flex;align-items:center;padding:7px 0;font-size:14px;border-bottom:1px solid #f5f6f8;}
+.item-row span:first-child{flex:1;color:var(--t);}
+.item-row span:nth-child(2){width:44px;text-align:center;color:var(--s);}
+.item-row span:last-child{width:64px;text-align:right;font-weight:700;color:var(--p);}
+.total-row{display:flex;justify-content:space-between;padding:8px 0 0;font-size:15px;font-weight:800;}
+
+/* REVENUE */
+.rev-row{display:flex;justify-content:space-between;padding:7px 0;font-size:14px;border-bottom:1px solid #f8f9fa;}
+.rev-row:last-child{border:none;}
+.rev-row.big{font-weight:800;color:var(--gn);font-size:15px;}
+
+/* ACTION BAR */
+.action-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;padding:10px 16px 28px;border-radius:20px 20px 0 0;box-shadow:0 -4px 16px rgba(0,0,0,.08);}
+.create-btn{width:100%;height:54px;border:none;border-radius:16px;background:linear-gradient(135deg,var(--gn),#15803d);color:#fff;font-size:17px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(22,163,74,.3);}
+.create-btn:disabled{background:#c5cfe8;box-shadow:none;cursor:not-allowed;}
+
+/* SHEET */
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;align-items:flex-end;}
+.mask.show{display:flex;}
+.sheet{background:#fff;border-radius:24px 24px 0 0;width:100%;max-height:85vh;display:flex;flex-direction:column;}
+.sheet-hd{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f0f2f5;flex-shrink:0;}
+.sheet-t{font-size:16px;font-weight:800;color:var(--t);}
+.sheet-x{width:32px;height:32px;border:none;background:var(--g);border-radius:50%;cursor:pointer;font-size:18px;color:var(--s);}
+.sheet-body{overflow-y:auto;flex:1;padding:8px 16px 12px;}
+.sheet-foot{padding:10px 16px 24px;border-top:1px solid #f0f2f5;flex-shrink:0;}
+.sheet-ok{width:100%;height:50px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;font-size:16px;font-weight:800;cursor:pointer;}
+
+/* SHOP ROW */
+.s-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f5f6f8;cursor:pointer;background:none;border-left:none;border-right:none;border-top:none;width:100%;text-align:left;}
+.s-row:active{opacity:.8;}
+.s-ava{width:44px;height:44px;border-radius:12px;background:var(--pl);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;}
+.s-ava img{width:100%;height:100%;object-fit:cover;}
+.s-ava svg{width:20px;height:20px;fill:var(--p);}
+.s-name{flex:1;font-size:14px;font-weight:700;color:var(--t);}
+
+/* MENU ROW */
+.m-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f5f6f8;}
+.m-info{flex:1;}
+.m-name{font-size:14px;font-weight:700;color:var(--t);}
+.m-price{font-size:13px;color:var(--p);font-weight:700;margin-top:2px;}
+.qty-wrap{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.qty-btn{width:32px;height:32px;border:none;border-radius:50%;background:var(--pl);cursor:pointer;font-size:20px;font-weight:700;color:var(--p);display:flex;align-items:center;justify-content:center;line-height:1;}
+.qty-num{font-size:15px;font-weight:800;color:var(--t);min-width:24px;text-align:center;}
+
+/* CUS ROW */
+.c-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f5f6f8;cursor:pointer;background:none;border-left:none;border-right:none;border-top:none;width:100%;text-align:left;}
+.c-row:active{opacity:.8;}
+.c-av{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--pd));display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;font-weight:800;color:#fff;}
+.c-info{flex:1;}
+.c-name{font-size:14px;font-weight:700;color:var(--t);}
+.c-phone{font-size:12px;color:var(--s);}
+.search-in{width:100%;height:42px;border:2px solid #e8eef5;border-radius:11px;padding:0 14px;font-size:14px;outline:none;margin-bottom:8px;}
+.search-in:focus{border-color:var(--p);}
 .lt{text-align:center;padding:28px;color:var(--s);font-size:14px;}
 </style>
 </head>
 <body>
 
-</head>
-<body>
-
-<div class="detail-page-wrap" style="padding-bottom:110px">
-  <!-- TOPBAR -->
-  <div class="detail-topbar">
-    <button class="back-btn" onclick="history.back()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
-    <div class="detail-title">สร้างออเดอร์</div>
-    <div style="font-size:12px;color:var(--primary);font-weight:800;background:var(--primary-light);padding:3px 10px;border-radius:20px" id="orderIdBadge">AMJ----</div>
-  </div>
-  <div class="detail-body">
-
-    <!-- รายละเอียด -->
-    <div class="detail-section">
-      <div class="detail-section-title">รายละเอียด</div>
-      <div class="irow"><span class="irow-lbl">รหัส</span><span class="irow-sep">:</span><span class="irow-val" id="showId">-</span></div>
-      <div class="irow"><span class="irow-lbl">สถานะ</span><span class="irow-sep">:</span><span class="irow-val" style="color:var(--warning,#f59e0b)">รอสร้าง</span></div>
-      <div class="irow"><span class="irow-lbl">สร้างโดย</span><span class="irow-sep">:</span><span class="irow-val">แอดมิน</span></div>
-    </div>
-
-    <!-- ข้อมูลร้านค้า -->
-    <div class="detail-section">
-      <div class="detail-section-title">ข้อมูลร้านค้า</div>
-      <div class="plus-tap" id="shopTap" onclick="window.openShopSheet()">
-        <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-        <span class="pt-txt" id="shopTapTxt">กดเพื่อเลือกร้านค้า</span>
-        <span class="pt-arr">›</span>
-      </div>
-      <div id="shopInfo" style="display:none">
-        <div class="irow"><span class="irow-lbl">ชื่อ</span><span class="irow-sep">:</span><span class="irow-val" id="iShopName">-</span></div>
-      </div>
-    </div>
-
-    <!-- เมนู -->
-    <div class="detail-section" id="menuSec" style="display:none">
-      <div class="detail-section-title" style="display:flex;align-items:center;justify-content:space-between">
-        สรุปคำสั่งซื้อ
-        <button onclick="window.openMenuSheet()" style="font-size:11px;background:var(--primary-light);color:var(--primary);border:none;border-radius:20px;padding:3px 10px;cursor:pointer;font-weight:700">+ แก้ไขเมนู</button>
-      </div>
-      <div class="items-head"><span>สินค้า</span><span>จำนวน</span><span>ราคา</span></div>
-      <div id="menuItems"></div>
-      <div class="total-row"><span>รวม</span><span id="menuTotal">฿0</span></div>
-    </div>
-
-    <!-- ข้อมูลลูกค้า -->
-    <div class="detail-section">
-      <div class="detail-section-title">ข้อมูลลูกค้า</div>
-      <div class="plus-tap" id="cusTap" onclick="window.openCusSheet()">
-        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-        <span class="pt-txt" id="cusTapTxt">กดเพื่อเลือกลูกค้า</span>
-        <span class="pt-arr">›</span>
-      </div>
-      <div id="cusInfo" style="display:none">
-        <div class="irow"><span class="irow-lbl">ชื่อ</span><span class="irow-sep">:</span><span class="irow-val" id="iCusName">-</span></div>
-        <div class="irow"><span class="irow-lbl">โทร</span><span class="irow-sep">:</span><span class="irow-val" id="iCusPhone">-</span></div>
-        <div class="irow"><span class="irow-lbl">ที่จัดส่ง</span><span class="irow-sep">:</span><span class="irow-val" id="iCusAddr">-</span></div>
-        <div class="irow" style="cursor:pointer" onclick="window.openCusSheet()"><span class="irow-lbl" style="color:var(--primary)">เปลี่ยน</span><span class="irow-sep">:</span><span class="irow-val" style="color:var(--primary)">กดเพื่อเลือกใหม่</span></div>
-      </div>
-    </div>
-
-    <!-- สรุปราคา -->
-    <div class="earn-box" id="earnBox" style="display:none">
-      <div class="earn-box-title">สรุปราคา</div>
-      <div class="earn-row"><span>เรียกเก็บลูกค้า</span><span id="eTotal">฿0</span></div>
-      <div class="earn-row"><span>จ่ายร้าน (ต้นทุน)</span><span id="eBase">฿0</span></div>
-      <div class="earn-row"><span>หักจากกระเป๋า</span><span id="eWallet">฿0</span></div>
-      <div class="earn-row"><span>ค่าส่ง</span><span id="eDel">฿0</span></div>
-      <div class="earn-row main"><span>รายได้ไรเดอร์</span><span id="eEarn">฿0</span></div>
-    </div>
-
-  </div>
+<div class="topbar">
+  <button class="back-btn" onclick="history.back()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+  <div class="page-title">สร้างออเดอร์</div>
+  <div class="order-id-badge" id="orderIdBadge">AMJ----</div>
 </div>
 
-<!-- ACTION BAR -->
-<div class="status-action-bar" style="display:flex">
-  <button class="create-bar-btn" id="createBtn" disabled onclick="window.createOrder()">สร้างออเดอร์</button>
+<div class="wrap">
+
+  <!-- รายละเอียด -->
+  <div class="section">
+    <div class="section-title">รายละเอียด</div>
+    <div class="row"><span class="row-lbl">รหัส</span><span class="row-sep">:</span><span class="row-val" id="showId">-</span></div>
+    <div class="row"><span class="row-lbl">สถานะ</span><span class="row-sep">:</span><span class="row-val" style="color:var(--y)">รอสร้าง</span></div>
+    <div class="row"><span class="row-lbl">สร้างโดย</span><span class="row-sep">:</span><span class="row-val">แอดมิน</span></div>
+  </div>
+
+  <!-- ร้านค้า -->
+  <div class="section">
+    <div class="section-title">ข้อมูลร้านค้า</div>
+    <button class="plus-box" id="shopBox" onclick="openShopSheet()">
+      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      <span class="plus-box-txt" id="shopBoxTxt">กดเพื่อเลือกร้านค้า</span>
+      <span class="plus-box-arrow">›</span>
+    </button>
+    <div id="shopRows" style="display:none">
+      <div class="row"><span class="row-lbl">ชื่อ</span><span class="row-sep">:</span><span class="row-val" id="rShopName">-</span></div>
+    </div>
+  </div>
+
+  <!-- เมนู -->
+  <div class="section" id="menuSec" style="display:none">
+    <div class="section-title">สรุปคำสั่งซื้อ
+      <button onclick="openMenuSheet()" style="font-size:11px;background:var(--pl);color:var(--p);border:none;border-radius:20px;padding:3px 10px;cursor:pointer;font-weight:700">+ แก้ไข</button>
+    </div>
+    <div class="items-hd"><span>สินค้า</span><span>จำนวน</span><span>ราคา</span></div>
+    <div id="menuItems"></div>
+    <div class="total-row"><span>รวม</span><span id="menuTotal" style="color:var(--p)">฿0</span></div>
+  </div>
+
+  <!-- ลูกค้า -->
+  <div class="section">
+    <div class="section-title">ข้อมูลลูกค้า</div>
+    <button class="plus-box" id="cusBox" onclick="openCusSheet()">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      <span class="plus-box-txt" id="cusBoxTxt">กดเพื่อเลือกลูกค้า</span>
+      <span class="plus-box-arrow">›</span>
+    </button>
+    <div id="cusRows" style="display:none">
+      <div class="row"><span class="row-lbl">ชื่อ</span><span class="row-sep">:</span><span class="row-val" id="rCusName">-</span></div>
+      <div class="row"><span class="row-lbl">โทร</span><span class="row-sep">:</span><span class="row-val" id="rCusPhone">-</span></div>
+      <div class="row"><span class="row-lbl">ที่อยู่</span><span class="row-sep">:</span><span class="row-val" id="rCusAddr">-</span></div>
+      <div class="row" style="cursor:pointer" onclick="openCusSheet()"><span class="row-lbl" style="color:var(--p)">เปลี่ยน</span><span class="row-sep">:</span><span class="row-val" style="color:var(--p)">กดเพื่อเลือกใหม่</span></div>
+    </div>
+  </div>
+
+  <!-- สรุปราคา -->
+  <div class="section" id="revSec" style="display:none">
+    <div class="section-title">สรุปราคา</div>
+    <div class="rev-row"><span>เรียกเก็บลูกค้า</span><span id="rTotal">฿0</span></div>
+    <div class="rev-row"><span>จ่ายร้าน (ต้นทุน)</span><span id="rBase">฿0</span></div>
+    <div class="rev-row"><span>หักจากกระเป๋า</span><span id="rWallet">฿0</span></div>
+    <div class="rev-row"><span>ค่าส่ง</span><span id="rDel">฿0</span></div>
+    <div class="rev-row big"><span>รายได้ไรเดอร์</span><span id="rEarn">฿0</span></div>
+  </div>
+
+</div>
+
+<div class="action-bar">
+  <button class="create-btn" id="createBtn" disabled onclick="createOrder()">สร้างออเดอร์</button>
 </div>
 
 <!-- SHOP SHEET -->
-<div class="sh-mask" id="shopSheet">
-  <div class="sh-box">
-    <div class="sh-hd"><div class="sh-title" id="shTitle">เลือกร้านค้า</div><button class="sh-close" onclick="window.closeSheet('shopSheet')">✕</button></div>
-    <div class="sh-body" id="shBody"></div>
-    <div class="sh-foot" id="shFoot" style="display:none"><button class="sh-confirm" onclick="window.confirmMenu()">ยืนยันเมนู</button></div>
+<div class="mask" id="shopMask">
+  <div class="sheet">
+    <div class="sheet-hd"><div class="sheet-t" id="sheetT">เลือกร้านค้า</div><button class="sheet-x" onclick="closeMask('shopMask')">✕</button></div>
+    <div class="sheet-body" id="sheetBody"></div>
+    <div class="sheet-foot" id="sheetFoot" style="display:none"><button class="sheet-ok" onclick="confirmMenu()">ยืนยันเมนู</button></div>
   </div>
 </div>
 
 <!-- CUS SHEET -->
-<div class="sh-mask" id="cusSheet">
-  <div class="sh-box">
-    <div class="sh-hd"><div class="sh-title">เลือกลูกค้า</div><button class="sh-close" onclick="window.closeSheet('cusSheet')">✕</button></div>
-    <div class="sh-body">
-      <input class="srch-in" id="cusSearch" placeholder="ค้นหาชื่อหรือเบอร์..." oninput="filterCus(this.value)">
-      <div id="cusList"><div class="lt">กำลังโหลด...</div></div>
+<div class="mask" id="cusMask">
+  <div class="sheet">
+    <div class="sheet-hd"><div class="sheet-t">เลือกลูกค้า</div><button class="sheet-x" onclick="closeMask('cusMask')">✕</button></div>
+    <div class="sheet-body">
+      <input class="search-in" id="cusSearch" placeholder="ค้นหาชื่อหรือเบอร์..." oninput="filterCus(this.value)">
+      <div id="cusList"></div>
     </div>
   </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
-['openShopSheet','openMenuSheet','openCusSheet','confirmMenu','clearSearch','pickShop',
- 'pickMenu','setSearch','clearHistory','filterCus','closeSheet','createOrder','changeQty'
-].forEach(fn=>{window[fn]=window[fn]||function(){const a=arguments;setTimeout(()=>{if(typeof window[fn]==='function')window[fn].apply(null,a);},400);};});
-</script>
+firebase.initializeApp({
+  apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
+  authDomain:"nimit-delivery.firebaseapp.com",
+  projectId:"nimit-delivery",
+  storageBucket:"nimit-delivery.firebasestorage.app",
+  messagingSenderId:"233476256130",
+  appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
+});
+var db = firebase.firestore();
 
-<script>
-['openShopSheet','openMenuSheet','openCusSheet','confirmMenu','clearSearch','pickShop',
- 'pickMenu','setSearch','clearHistory','filterCus','closeSheet','createOrder','changeQty'
-].forEach(fn=>{window[fn]=window[fn]||function(){const a=arguments;setTimeout(()=>{if(typeof window[fn]==='function')window[fn].apply(null,a);},400);};});
-</script>
-<script type="module">
+var orderId = 'AMJ-' + String(Math.floor(1000+Math.random()*9000));
+var selShop = null, selItems = {}, selCus = null;
+var allShops = [], allCus = [];
+var settings = {gpPercent:38, riderPercent:16, walletPercent:10, deliveryFee:9};
+var sheetMode = 'shop';
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-const db=getFirestore(initializeApp({apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",authDomain:"nimit-delivery.firebaseapp.com",projectId:"nimit-delivery",storageBucket:"nimit-delivery.firebasestorage.app",messagingSenderId:"233476256130",appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"}));
-const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-function genId(){return 'AMJ-'+String(Math.floor(1000+Math.random()*9000));}
+document.getElementById('orderIdBadge').textContent = orderId;
+document.getElementById('showId').textContent = orderId;
 
-let orderId=genId(),selShop=null,selItems={},selCus=null,allShops=[],allCus=[],sheetMode='shop';
-let settings={gpPercent:38,riderPercent:16,walletPercent:10,deliveryFee:9};
-document.getElementById('orderIdBadge').textContent=orderId;
-  document.getElementById('showId').textContent=orderId;
-document.getElementById('showOrderId').textContent=orderId;
+// โหลด settings
+db.collection('settings').doc('pricing').get().then(function(d){ if(d.exists) Object.assign(settings,d.data()); }).catch(function(){});
 
-getDocs(collection(db,'settings')).then(s=>s.forEach(d=>{if(d.id==='pricing')Object.assign(settings,d.data());})).catch(()=>{});
+// ========== SHOP SHEET ==========
+function openShopSheet(){
+  sheetMode = 'shop';
+  document.getElementById('sheetT').textContent = 'เลือกร้านค้า';
+  document.getElementById('sheetFoot').style.display = 'none';
+  document.getElementById('shopMask').classList.add('show');
+  var body = document.getElementById('sheetBody');
+  body.innerHTML = '<div class="lt">กำลังโหลด...</div>';
+  if(allShops.length){ renderShopList(); return; }
+  db.collection('shops').get().then(function(snap){
+    allShops = [];
+    snap.forEach(function(d){ allShops.push(Object.assign({id:d.id},d.data())); });
+    renderShopList();
+  }).catch(function(e){ body.innerHTML='<div class="lt">โหลดไม่ได้: '+e.message+'</div>'; });
+}
 
-// ===== SHOP =====
-window.openShopSheet=async function(){
-  sheetMode='shop';
-  document.getElementById('shTitle').textContent='เลือกร้านค้า';
-  document.getElementById('shFoot').style.display='none';
-  document.getElementById('shopSheet').classList.add('show');
-  const body=document.getElementById('shBody');
-  body.innerHTML='<div class="lt">กำลังโหลด...</div>';
-  if(!allShops.length){
-    const snap=await getDocs(collection(db,'shops')).catch(()=>null);
-    if(snap) snap.forEach(d=>allShops.push({id:d.id,...d.data()}));
-  }
-  const open=allShops.filter(s=>s.isOpen);
-  body.innerHTML=open.map(s=>`<div class="shop-row" onclick="window.pickShop('${s.id}')">
-    <div class="shop-ava">${s.avatarUrl?`<img src="${s.avatarUrl}">`:'<svg viewBox="0 0 24 24"><path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/></svg>'}</div>
-    <span style="flex:1;font-size:14px;font-weight:700">${esc(s.name)}</span>
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="#94a3b8"><path d="M9 18l6-6-6-6"/></svg>
-  </div>`).join('');
-};
-
-window.pickShop=async function(shopId){
-  const shop=allShops.find(s=>s.id===shopId);if(!shop)return;
-  if(selShop?.id!==shopId)selItems={};
-  selShop={id:shopId,name:shop.name,avatarUrl:shop.avatarUrl||''};
-  sheetMode='menu';
-  document.getElementById('shTitle').textContent=shop.name;
-  document.getElementById('shFoot').style.display='block';
-  const body=document.getElementById('shBody');
-  body.innerHTML='<div class="lt">กำลังโหลดเมนู...</div>';
-  const snap=await getDocs(collection(db,'menus')).catch(()=>null);
-  const menus=[];
-  if(snap) snap.forEach(d=>{const m=d.data();if(m.shopId===shopId&&m.available!==false)menus.push({id:d.id,...m});});
-  if(!menus.length){body.innerHTML='<div class="lt">ยังไม่มีเมนู</div>';return;}
-  body.innerHTML=menus.map(m=>{
-    const dp=Math.ceil((m.price||0)*(1+settings.gpPercent/100));
-    const qty=selItems[m.id]?.qty||0;
-    return `<div class="menu-row"><div class="menu-info"><div class="menu-name">${esc(m.name)}</div><div class="menu-price">฿${dp}</div></div>
-    <div class="qty-ctrl"><button class="qty-btn" onclick="window.changeQty('${m.id}','${esc(m.name).replace(/'/g,"\'")}',${m.price||0},${dp},-1)">−</button><div class="qty-num" id="q_${m.id}">${qty}</div><button class="qty-btn" onclick="window.changeQty('${m.id}','${esc(m.name).replace(/'/g,"\'")}',${m.price||0},${dp},1)">+</button></div></div>`;
+function renderShopList(){
+  var body = document.getElementById('sheetBody');
+  var open = allShops.filter(function(s){ return s.isOpen; });
+  if(!open.length){ body.innerHTML='<div class="lt">ไม่มีร้านเปิด</div>'; return; }
+  body.innerHTML = open.map(function(s){
+    var ava = s.avatarUrl ? '<img src="'+s.avatarUrl+'">' : '<svg viewBox="0 0 24 24"><path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/></svg>';
+    return '<button class="s-row" onclick="pickShop(\''+s.id+'\')"><div class="s-ava">'+ava+'</div><span class="s-name">'+esc(s.name)+'</span><span style="color:#94a3b8">›</span></button>';
   }).join('');
-};
+}
 
-window.changeQty=function(id,name,base,disp,delta){
-  if(!selItems[id])selItems[id]={name,basePrice:base,price:disp,qty:0};
-  selItems[id].qty=Math.max(0,selItems[id].qty+delta);
-  if(selItems[id].qty===0)delete selItems[id];
-  const el=document.getElementById('q_'+id);if(el)el.textContent=selItems[id]?.qty||0;
-};
+function pickShop(shopId){
+  var shop = allShops.find(function(s){ return s.id===shopId; });
+  if(!shop) return;
+  if(selShop && selShop.id !== shopId) selItems = {};
+  selShop = {id:shopId, name:shop.name, avatarUrl:shop.avatarUrl||''};
+  openMenuSheet();
+}
 
-window.confirmMenu=function(){
-  closeSheet('shopSheet');
-  // อัพเดต UI ร้าน
-  document.getElementById('shopTap').classList.add('filled');
-  document.getElementById('shopTapTxt').textContent='✓ '+selShop.name;
-  document.getElementById('shopInfo').style.display='block';
-  document.getElementById('iShopName').textContent=selShop.name;
-  const cnt=Object.values(selItems).reduce((s,i)=>s+i.qty,0);
-  ;
-  // แสดง items table
-  const menuEl=document.getElementById('menuItems');
-  if(menuEl) menuEl.innerHTML=Object.entries(selItems).map(([id,it])=>`<div class="item-line"><span>${esc(it.name)}</span><span>${it.qty}</span><span>฿${it.price*it.qty}</span></div>`).join('');
-  const totalEl=document.getElementById('menuTotal');
-  if(totalEl){const t=Object.values(selItems).reduce((s,i)=>s+i.price*i.qty,0);totalEl.textContent='฿'+t;}
-  document.getElementById('menuSec').style.display=Object.keys(selItems).length?'block':'none';
-  calcPrice();checkCreate();
-};
+function openMenuSheet(){
+  sheetMode = 'menu';
+  document.getElementById('sheetT').textContent = selShop ? selShop.name : 'เมนู';
+  document.getElementById('sheetFoot').style.display = 'block';
+  var body = document.getElementById('sheetBody');
+  body.innerHTML = '<div class="lt">กำลังโหลดเมนู...</div>';
+  db.collection('menus').where('shopId','==',selShop.id).get().then(function(snap){
+    var menus = [];
+    snap.forEach(function(d){ var m=d.data(); if(m.available!==false) menus.push(Object.assign({id:d.id},m)); });
+    if(!menus.length){ body.innerHTML='<div class="lt">ยังไม่มีเมนู</div>'; return; }
+    body.innerHTML = menus.map(function(m){
+      var dp = Math.ceil((m.price||0)*(1+settings.gpPercent/100));
+      var qty = selItems[m.id] ? selItems[m.id].qty : 0;
+      return '<div class="m-row"><div class="m-info"><div class="m-name">'+esc(m.name)+'</div><div class="m-price">฿'+dp+'</div></div>'
+        +'<div class="qty-wrap"><button class="qty-btn" onclick="changeQty(\''+m.id+'\',\''+esc(m.name).replace(/'/g,"\\'")+"',"+(m.price||0)+','+dp+',-1)">−</button>'
+        +'<div class="qty-num" id="q_'+m.id+'">'+qty+'</div>'
+        +'<button class="qty-btn" onclick="changeQty(\''+m.id+'\',\''+esc(m.name).replace(/'/g,"\\'")+"',"+(m.price||0)+','+dp+',1)">+</button></div></div>';
+    }).join('');
+  }).catch(function(e){ body.innerHTML='<div class="lt">โหลดไม่ได้: '+e.message+'</div>'; });
+}
 
-// ===== CUSTOMER =====
-window.openCusSheet=async function(){
-  document.getElementById('cusSheet').classList.add('show');
-  if(!allCus.length){
-    const snap=await getDocs(collection(db,'customers')).catch(()=>null);
-    if(snap) snap.forEach(d=>allCus.push({phone:d.id,...d.data()}));
+function changeQty(id,name,base,disp,delta){
+  if(!selItems[id]) selItems[id]={name:name,basePrice:base,price:disp,qty:0};
+  selItems[id].qty = Math.max(0, selItems[id].qty+delta);
+  if(selItems[id].qty===0) delete selItems[id];
+  var el = document.getElementById('q_'+id);
+  if(el) el.textContent = selItems[id] ? selItems[id].qty : 0;
+}
+
+function confirmMenu(){
+  closeMask('shopMask');
+  // อัพเดต shop box
+  document.getElementById('shopBox').classList.add('done');
+  document.getElementById('shopBoxTxt').textContent = '✓ '+selShop.name;
+  document.getElementById('shopRows').style.display = 'block';
+  document.getElementById('rShopName').textContent = selShop.name;
+  // อัพเดต menu section
+  var items = Object.values(selItems);
+  if(items.length){
+    document.getElementById('menuSec').style.display = 'block';
+    document.getElementById('menuItems').innerHTML = items.map(function(it){
+      return '<div class="item-row"><span>'+esc(it.name)+'</span><span>×'+it.qty+'</span><span>฿'+(it.price*it.qty)+'</span></div>';
+    }).join('');
+    var total = items.reduce(function(s,i){return s+i.price*i.qty;},0);
+    document.getElementById('menuTotal').textContent = '฿'+total;
+    calcRev();
+  } else {
+    document.getElementById('menuSec').style.display = 'none';
+    document.getElementById('revSec').style.display = 'none';
   }
-  renderCus(allCus);
-};
-function renderCus(list){
-  document.getElementById('cusList').innerHTML=list.length?list.map(c=>`<div class="cus-row" onclick="window.pickCus('${c.phone}')">
-    <div class="cus-ava">${(c.name||c.phone||'?').slice(0,1).toUpperCase()}</div>
-    <div class="cus-info"><div class="cus-name">${esc(c.name||'-')}</div><div class="cus-phone">${c.phone}</div></div>
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="#94a3b8"><path d="M9 18l6-6-6-6"/></svg>
-  </div>`).join(''):'<div class="lt">ไม่พบลูกค้า</div>';
-}
-window.filterCus=function(q){const f=q.toLowerCase();renderCus(f?allCus.filter(c=>(c.name||'').toLowerCase().includes(f)||(c.phone||'').includes(f)):allCus);};
-window.pickCus=function(phone){
-  selCus=allCus.find(c=>c.phone===phone);if(!selCus)return;
-  closeSheet('cusSheet');
-  document.getElementById('cusTap').classList.add('filled');
-  document.getElementById('cusTapTxt').textContent='✓ '+(selCus.name||selCus.phone);
-  document.getElementById('cusInfo').style.display='block';
-  document.getElementById('iCusName').textContent=selCus.name||'-';
-  document.getElementById('iCusPhone').textContent=selCus.phone;
-  document.getElementById('iCusAddr').textContent=selCus.address||'-';
   checkCreate();
-};
-
-// ===== PRICE =====
-function calcPrice(){
-  const items=Object.values(selItems);if(!items.length){document.getElementById('earnBox').style.display='none';return;}
-  const totalDisp=items.reduce((s,i)=>s+i.price*i.qty,0);
-  const totalBase=items.reduce((s,i)=>s+i.basePrice*i.qty,0);
-  const del=settings.deliveryFee||0;
-  const diff=totalDisp-totalBase;
-  const wallet=Math.round(diff*settings.walletPercent/100);
-  const rider=Math.round(diff*settings.riderPercent/100);
-  document.getElementById('eTotal').textContent='฿'+(totalDisp+del);
-  document.getElementById('eBase').textContent='฿'+totalBase;
-  document.getElementById('eWallet').textContent='฿'+wallet;
-  document.getElementById('eDel').textContent='฿'+del;
-  document.getElementById('eEarn').textContent='฿'+rider;
-  document.getElementById('earnBox').style.display='block';
-  window._price={total:totalDisp+del,base:totalBase,wallet,rider,delivery:del};
 }
 
-// ===== CREATE =====
-function checkCreate(){document.getElementById('createBtn').disabled=!(selShop&&Object.keys(selItems).length&&selCus);}
-window.createOrder=async function(){
-  const btn=document.getElementById('createBtn');
-  btn.disabled=true;btn.textContent='กำลังสร้าง...';
-  const p=window._price||{};
-  try{
-    await setDoc(doc(db,'orders',orderId),{
-      orderId,shopId:selShop.id,shopName:selShop.name,
-      customer:{name:selCus.name||'',phone:selCus.phone,address:selCus.address||'',lat:selCus.lat||null,lng:selCus.lng||null},
-      items:Object.entries(selItems).map(([id,it])=>({id,name:it.name,price:it.price,qty:it.qty})),
-      grandTotal:p.total||0,deliveryFee:p.delivery||0,
-      riderEarn:p.rider||0,walletCut:p.wallet||0,
-      status:'pending',createdBy:'admin',createdAt:serverTimestamp()
-    });
-    location.href='admin.html?newOrder='+orderId;
-  }catch(e){btn.disabled=false;btn.textContent='สร้างออเดอร์';alert('เกิดข้อผิดพลาด: '+e.message);}
-};
-window.closeSheet=function(id){document.getElementById(id).classList.remove('show');};window.openMenuSheet=function(){if(selShop)window.pickShop(selShop.id);else window.openShopSheet();};
+// ========== CUSTOMER SHEET ==========
+function openCusSheet(){
+  document.getElementById('cusMask').classList.add('show');
+  document.getElementById('cusList').innerHTML = '<div class="lt">กำลังโหลด...</div>';
+  if(allCus.length){ renderCusList(allCus); return; }
+  db.collection('customers').get().then(function(snap){
+    allCus = [];
+    snap.forEach(function(d){ allCus.push(Object.assign({phone:d.id},d.data())); });
+    renderCusList(allCus);
+  }).catch(function(e){ document.getElementById('cusList').innerHTML='<div class="lt">โหลดไม่ได้: '+e.message+'</div>'; });
+}
 
+function renderCusList(list){
+  if(!list.length){ document.getElementById('cusList').innerHTML='<div class="lt">ไม่พบลูกค้า</div>'; return; }
+  document.getElementById('cusList').innerHTML = list.map(function(c){
+    var init = (c.name||c.phone||'?').slice(0,1).toUpperCase();
+    return '<button class="c-row" onclick="pickCus(\''+c.phone+'\')">'
+      +'<div class="c-av">'+init+'</div>'
+      +'<div class="c-info"><div class="c-name">'+esc(c.name||'-')+'</div><div class="c-phone">'+c.phone+'</div></div>'
+      +'<span style="color:#94a3b8">›</span></button>';
+  }).join('');
+}
 
+function filterCus(q){
+  var f = q.toLowerCase();
+  renderCusList(f ? allCus.filter(function(c){ return (c.name||'').toLowerCase().includes(f)||(c.phone||'').includes(f); }) : allCus);
+}
+
+function pickCus(phone){
+  selCus = allCus.find(function(c){ return c.phone===phone; });
+  if(!selCus) return;
+  closeMask('cusMask');
+  document.getElementById('cusBox').classList.add('done');
+  document.getElementById('cusBoxTxt').textContent = '✓ '+(selCus.name||selCus.phone);
+  document.getElementById('cusRows').style.display = 'block';
+  document.getElementById('rCusName').textContent = selCus.name||'-';
+  document.getElementById('rCusPhone').textContent = selCus.phone;
+  document.getElementById('rCusAddr').textContent = selCus.address||'-';
+  checkCreate();
+}
+
+// ========== REVENUE ==========
+function calcRev(){
+  var items = Object.values(selItems);
+  if(!items.length){ document.getElementById('revSec').style.display='none'; return; }
+  var totalDisp = items.reduce(function(s,i){return s+i.price*i.qty;},0);
+  var totalBase = items.reduce(function(s,i){return s+i.basePrice*i.qty;},0);
+  var del = settings.deliveryFee||0;
+  var diff = totalDisp-totalBase;
+  var wallet = Math.round(diff*settings.walletPercent/100);
+  var rider = Math.round(diff*settings.riderPercent/100);
+  document.getElementById('rTotal').textContent = '฿'+(totalDisp+del);
+  document.getElementById('rBase').textContent = '฿'+totalBase;
+  document.getElementById('rWallet').textContent = '฿'+wallet;
+  document.getElementById('rDel').textContent = '฿'+del;
+  document.getElementById('rEarn').textContent = '฿'+rider;
+  document.getElementById('revSec').style.display = 'block';
+  window._rev = {total:totalDisp+del,base:totalBase,wallet:wallet,rider:rider,delivery:del};
+}
+
+// ========== CREATE ==========
+function checkCreate(){
+  document.getElementById('createBtn').disabled = !(selShop && Object.keys(selItems).length && selCus);
+}
+
+function createOrder(){
+  var btn = document.getElementById('createBtn');
+  btn.disabled = true; btn.textContent = 'กำลังสร้าง...';
+  var rev = window._rev || {total:0,base:0,wallet:0,rider:0,delivery:0};
+  db.collection('orders').doc(orderId).set({
+    orderId: orderId,
+    shopId: selShop.id, shopName: selShop.name,
+    customer: {name:selCus.name||'',phone:selCus.phone,address:selCus.address||'',lat:selCus.lat||null,lng:selCus.lng||null},
+    items: Object.values(selItems).map(function(it){return {name:it.name,price:it.price,qty:it.qty};}),
+    grandTotal: rev.total, deliveryFee: rev.delivery,
+    riderEarn: rev.rider, walletCut: rev.wallet,
+    status: 'pending', createdBy: 'admin',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(){
+    location.href = 'admin.html?newOrder='+orderId;
+  }).catch(function(e){
+    btn.disabled=false; btn.textContent='สร้างออเดอร์';
+    alert('เกิดข้อผิดพลาด: '+e.message);
+  });
+}
+
+// ========== UTILS ==========
+function closeMask(id){ document.getElementById(id).classList.remove('show'); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 </script>
 </body>
 </html>
