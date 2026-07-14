@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>สร้างออเดอร์</title>
 <style>
+
 :root{--p:#0c4aa6;--pd:#083570;--pl:#e8f0fe;--g:#f5f6f8;--t:#0f172a;--s:#64748b;--gn:#16a34a;--gnl:#dcfce7;--y:#f59e0b;}
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
 body{background:var(--g);min-height:100vh;padding-bottom:90px;}
@@ -97,6 +98,61 @@ body{background:var(--g);min-height:100vh;padding-bottom:90px;}
 .opt-item-pr{font-size:13px;color:var(--p);font-weight:700;}
 .opt-menu-nm{font-size:16px;font-weight:800;color:var(--t);margin-bottom:4px;}
 .opt-menu-pr{font-size:14px;color:var(--p);font-weight:700;margin-bottom:14px;}
+
+/* --- POPUP FROM MENU.HTML --- */
+.og-title-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.og-title{font-size:15px;font-weight:800;color:var(--text);}
+.og-required-badge{font-size:10px;font-weight:700;background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:20px;}
+.og-optional-badge{font-size:10px;font-weight:700;background:var(--primary-light);color:var(--primary);padding:2px 8px;border-radius:20px;}
+.og-select-hint{font-size:12px;color:var(--subtext);margin-left:auto;}
+.option-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:2px solid #f0f2f5;margin-bottom:6px;cursor:pointer;transition:all 0.15s;}
+.option-item.selected{border-color:var(--primary);background:var(--primary-light);}
+.option-item.selected-multi{border-color:var(--primary);background:var(--primary-light);}
+.opt-radio{width:18px;height:18px;border-radius:50%;border:2px solid #cbd5e1;flex-shrink:0;transition:all 0.15s;}
+.opt-radio.checked{border-color:var(--primary);background:var(--primary);box-shadow:inset 0 0 0 3px #fff;}
+.opt-checkbox{width:18px;height:18px;border-radius:5px;border:2px solid #cbd5e1;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+.opt-checkbox.checked{border-color:var(--primary);background:var(--primary);}
+.opt-checkbox.checked svg{stroke:#fff;}
+.opt-checkbox svg{width:11px;height:11px;stroke:transparent;stroke-width:3;fill:none;}
+.opt-name-text{flex:1;font-size:14px;font-weight:600;color:var(--text);}
+.opt-price-text{font-size:13px;font-weight:700;color:var(--primary);}
+.popup-note{margin-top:4px;}
+.popup-note-label{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.popup-note-input{width:100%;border:2px solid #e8eaf0;border-radius:12px;padding:10px 14px;font-size:14px;outline:none;resize:none;height:66px;font-family:inherit;}
+.popup-note-input:focus{border-color:var(--primary);}
+.popup-footer{flex-shrink:0;padding:14px 20px 30px;border-top:1px solid #f0f2f5;display:flex;gap:10px;}
+.popup-cancel-btn{flex:1;height:52px;border:2px solid #e2e8f0;border-radius:14px;background:#fff;color:var(--text);font-size:15px;font-weight:700;cursor:pointer;}
+.popup-add-btn{flex:2;height:52px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(12,74,166,0.3);}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.error-shake{animation:shake 0.4s ease;}
+
+/* CART BAR */
+.cart-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;box-shadow:0 -2px 14px rgba(0,0,0,0.08);padding:12px 16px 26px;display:none;}
+.cart-bar-inner{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));border-radius:16px;padding:14px 18px;cursor:pointer;}
+.cart-bar-icon svg{width:22px;height:22px;fill:#fff;}
+.cart-bar-info{flex:1;}
+.cart-bar-qty{font-size:12px;color:rgba(255,255,255,0.8);font-weight:700;}
+.cart-bar-total{font-size:17px;font-weight:800;color:#fff;}
+.cart-bar-arrow svg{width:20px;height:20px;fill:#fff;}
+
+.loading{text-align:center;padding:60px 20px;color:var(--subtext);font-size:14px;}
+.closed-banner{background:#fee2e2;border-radius:14px;padding:12px 16px;margin-bottom:14px;font-size:14px;font-weight:700;color:#dc2626;text-align:center;}
+
+
+
+.popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:500;display:none;align-items:flex-end;backdrop-filter:blur(2px);}
+.popup-overlay.show{display:flex;}
+.popup-box{background:#fff;width:100%;border-radius:24px 24px 0 0;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;}
+.popup-header{padding:16px 20px 0;flex-shrink:0;}
+.popup-name{font-size:18px;font-weight:800;color:var(--t);}
+.popup-price{font-size:15px;font-weight:700;color:var(--p);margin-top:4px;}
+.popup-body{flex:1;overflow-y:auto;padding:16px 20px;}
+.popup-footer{flex-shrink:0;padding:14px 20px 30px;border-top:1px solid #f0f2f5;display:flex;gap:10px;}
+.popup-cancel-btn{flex:1;height:52px;border:2px solid #e2e8f0;border-radius:14px;background:#fff;color:var(--t);font-size:15px;font-weight:700;cursor:pointer;}
+.popup-add-btn{flex:2;height:52px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;font-size:15px;font-weight:800;cursor:pointer;}
+.popup-note-label{font-size:13px;font-weight:700;color:var(--t);margin-bottom:6px;}
+.popup-note-input{width:100%;border:2px solid #e8eaf0;border-radius:12px;padding:10px 14px;font-size:14px;outline:none;resize:none;height:66px;font-family:inherit;}
+.popup-note-input:focus{border-color:var(--p);}
 </style>
 </head>
 <body>
@@ -179,16 +235,18 @@ body{background:var(--g);min-height:100vh;padding-bottom:90px;}
   </div>
 </div>
 
-<!-- OPTION SHEET -->
-<div class="mask" id="optMask">
-  <div class="sheet">
-    <div class="sh-hd"><div class="sh-t" id="optTitle">ตัวเลือก</div><button class="sh-x" onclick="window.closeMask('optMask')">✕</button></div>
-    <div class="sh-body">
-      <div class="opt-menu-nm" id="optMenuName"></div>
-      <div class="opt-menu-pr" id="optMenuPrice"></div>
-      <div id="optGroups"></div>
+<div class="popup-overlay" id="optionPopup">
+  <div class="popup-box">
+
+    <div class="popup-header">
+      <div class="popup-name" id="popupName"></div>
+      <div class="popup-price" id="popupPrice"></div>
     </div>
-    <div class="sh-foot"><button class="sh-ok" onclick="window.addToCart()">+ เพิ่มลงออเดอร์</button></div>
+    <div class="popup-body" id="popupBody"></div>
+    <div class="popup-footer">
+      <button class="popup-cancel-btn" onclick="window.closePopup()">ยกเลิก</button>
+      <button class="popup-add-btn" id="popupAddBtn" onclick="window.addToOrderFromPopup()">เพิ่มลงตะกร้า ฿<span id="popupTotal">0</span></button>
+    </div>
   </div>
 </div>
 
@@ -275,7 +333,7 @@ window.openMenuSheet=function(){
       var qty=Object.keys(selItems).filter(k=>k===m.id||k.startsWith(m.id+'_')).reduce((s,k)=>s+(selItems[k]?.qty||0),0);
       if(hasOpts){
         return `<div class="m-row"><div class="m-inf"><div class="m-nm">${esc(m.name)}</div><div class="m-pr">฿${dp} · ${groups.length} กลุ่มตัวเลือก</div></div>`
-          +`<div class="q-wrap"><button class="q-btn" style="width:auto;padding:0 12px;border-radius:20px;font-size:13px" onclick="window.openOptions('${m.id}')">เลือก</button></div></div>`;
+          +`<div class="q-wrap"><button class="q-btn" style="width:auto;padding:0 12px;border-radius:20px;font-size:13px" onclick="window.openMenuPopup('${m.id}')">เลือก</button></div></div>`;
       }
       return `<div class="m-row"><div class="m-inf"><div class="m-nm">${esc(m.name)}</div><div class="m-pr">฿${dp}</div></div>`
         +`<div class="q-wrap"><button class="q-btn" onclick="window.changeQty('${m.id}','${escQ(m.name)}',${m.price||0},${dp},-1)">−</button>`
@@ -284,71 +342,82 @@ window.openMenuSheet=function(){
     }).join('');
   }).catch(e=>{body.innerHTML='<div class="lt">'+e.message+'</div>';});
 };
-// ========== OPTION PICKER ==========
-var curMenuOpt = null; // {id, name, base, disp, groups}
-var selOptions = {}; // {groupIdx: optionIdx}
+// POPUP
+window.openMenuPopup=function(menuId){
+  const m=window._menus&&window._menus[menuId]; if(!m) return;
+  popupMenu=m; popupSelections={};
 
-window.openOptions = function(id){
-  var m = window._menus && window._menus[id];
-  if(!m){ alert('ไม่พบข้อมูลเมนู'); return; }
-  var {name, base, disp, groups} = m;
-  curMenuOpt = {id, name, base, disp, groups};
-  selOptions = {};
-  // pre-select ตัวแรกของแต่ละกลุ่ม
-  groups.forEach((g,gi)=>{ if(g.options&&g.options.length) selOptions[gi]=0; });
-  document.getElementById('optTitle').textContent = name;
-  document.getElementById('optMenuName').textContent = name;
-  document.getElementById('optMenuPrice').textContent = '฿'+disp;
-  document.getElementById('optGroups').innerHTML = groups.map((g,gi)=>`
-    <div class="opt-group">
-      <div class="opt-group-title">${esc(g.title||'ตัวเลือก')} ${g.required?'<span class="opt-required">จำเป็น</span>':''}</div>
-      <div class="opt-list">
-        ${(g.options||[]).map((o,oi)=>`<div class="opt-item${selOptions[gi]===oi?' sel':''}" id="opt_${gi}_${oi}" onclick="window.selOpt(${gi},${oi})">
-          <span class="opt-item-nm">${esc(o.name||'-')}</span>
-          <span class="opt-item-pr">${o.price>0?'+฿'+o.price:''}</span>
-        </div>`).join('')}
-      </div>
-    </div>`).join('');
-  document.getElementById('optMask').classList.add('show');
-};
+  document.getElementById("popupName").textContent=m.name;
+  document.getElementById("popupPrice").textContent=`฿${Math.ceil((m.price||0)*(1+settings.gpPercent/100))}`;
+  renderPopupBody(); updatePopupTotal();
+  document.getElementById("optionPopup").classList.add("show");
+  document.getElementById("optionPopup").querySelector('.popup-box').scrollTop=0;
+}
 
-window.selOpt = function(gi, oi){
-  selOptions[gi] = oi;
-  // อัพ UI
-  var groups = curMenuOpt.groups;
-  (groups[gi].options||[]).forEach((_,idx)=>{
-    var el = document.getElementById('opt_'+gi+'_'+idx);
-    if(el) el.classList.toggle('sel', idx===oi);
-  });
-};
-
-window.addToCart = function(){
-  if(!curMenuOpt) return;
-  var {id,name,base,disp,groups} = curMenuOpt;
-  // ตรวจว่ากลุ่มบังคับเลือกครบไหม
-  for(var gi=0;gi<groups.length;gi++){
-    if(groups[gi].required && selOptions[gi]==null){
-      alert('กรุณาเลือก: '+groups[gi].title);return;
-    }
-  }
-  var optExtra = 0;
-  var optNames = [];
+function renderPopupBody(){
+  const m=popupMenu; const groups=m.optionGroups||[];
+  let html='';
   groups.forEach((g,gi)=>{
-    var oi = selOptions[gi];
-    if(oi!=null && g.options&&g.options[oi]){
-      optExtra += g.options[oi].price||0;
-      if(g.options[oi].name) optNames.push(g.options[oi].name);
-    }
+    html+=`<div class="option-group-section" id="og-${gi}">
+      <div class="og-title-row"><div class="og-title">${g.title}</div>
+      ${g.required?`<div class="og-required-badge">บังคับ</div>`:`<div class="og-optional-badge">ไม่บังคับ</div>`}
+      <div class="og-select-hint">${g.required?'เลือก 1':'เลือกได้หลายอย่าง'}</div></div>`;
+    (g.options||[]).forEach(o=>{
+      const sel=g.required?popupSelections[gi]===o.name:(popupSelections[gi] instanceof Set&&popupSelections[gi].has(o.name));
+      if(g.required){
+        html+=`<div class="option-item ${sel?'selected':''}" onclick="selectOption(${gi},'${o.name.replace(/'/g,"\\'")}',${o.price||0},true)">
+          <div class="opt-radio ${sel?'checked':''}"></div>
+          <div class="opt-name-text">${o.name}</div>
+          ${o.price?`<div class="opt-price-text">+฿${o.price}</div>`:''}</div>`;
+      } else {
+        html+=`<div class="option-item ${sel?'selected-multi':''}" onclick="selectOption(${gi},'${o.name.replace(/'/g,"\\'")}',${o.price||0},false)">
+          <div class="opt-checkbox ${sel?'checked':''}"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="opt-name-text">${o.name}</div>
+          ${o.price?`<div class="opt-price-text">+฿${o.price}</div>`:''}</div>`;
+      }
+    });
+    html+=`</div>`;
   });
-  var finalDisp = disp + optExtra;
-  var finalBase = base + optExtra;
-  var fullName = name + (optNames.length?' ('+optNames.join(', ')+')':'');
-  if(!selItems[id+'_'+optNames.join('_')]) selItems[id+'_'+optNames.join('_')]={name:fullName,basePrice:finalBase,price:finalDisp,qty:0};
-  selItems[id+'_'+optNames.join('_')].qty += 1;
-  window.closeMask('optMask');
-  window.closeMask('shopMask');
+  html+=`<div class="popup-note"><div class="popup-note-label">คำแนะนำเพิ่มเติม</div><textarea class="popup-note-input" id="popupNote" placeholder="เช่น ไม่ใส่ผัก, หวานน้อย"></textarea></div>`;
+  document.getElementById("popupBody").innerHTML=html;
+}
+
+window.selectOption=function(gi,optName,optPrice,isSingle){
+  if(isSingle){ popupSelections[gi]=popupSelections[gi]===optName?null:optName; }
+  else{ if(!(popupSelections[gi] instanceof Set)) popupSelections[gi]=new Set(); if(popupSelections[gi].has(optName)) popupSelections[gi].delete(optName); else popupSelections[gi].add(optName); }
+  renderPopupBody(); updatePopupTotal();
+}
+
+window.updatePopupTotal=function(){
+  const m=popupMenu; if(!m) return;
+  const base=Math.ceil((m.price||0)*(1+settings.gpPercent/100)); let extra=0;
+  (m.optionGroups||[]).forEach((g,gi)=>{
+    if(g.required&&popupSelections[gi]){ const opt=g.options.find(o=>o.name===popupSelections[gi]); extra+=opt?.price||0; }
+    else if(!g.required&&popupSelections[gi] instanceof Set){ popupSelections[gi].forEach(name=>{ const opt=g.options.find(o=>o.name===name); extra+=opt?.price||0; }); }
+  });
+  document.getElementById("popupTotal").textContent=base+extra;
+}
+
+window.addToOrderFromPopup=function(){
+  const m=popupMenu; if(!m) return;
+  let missing=false;
+  (m.optionGroups||[]).forEach((g,gi)=>{ if(g.required&&!popupSelections[gi]){ missing=true; const el=document.getElementById(`og-${gi}`); if(el){el.classList.remove('error-shake');void el.offsetWidth;el.classList.add('error-shake');} } });
+  if(missing) return;
+  const selectedOptions=[];
+  (m.optionGroups||[]).forEach((g,gi)=>{
+    if(g.required&&popupSelections[gi]){ const opt=g.options.find(o=>o.name===popupSelections[gi]); selectedOptions.push({groupTitle:g.title,name:popupSelections[gi],price:opt?.price||0}); }
+    else if(!g.required&&popupSelections[gi] instanceof Set){ popupSelections[gi].forEach(name=>{ const opt=g.options.find(o=>o.name===name); selectedOptions.push({groupTitle:g.title,name,price:opt?.price||0}); }); }
+  });
+  const base=Math.ceil((m.price||0)*(1+settings.gpPercent/100));
+  const extra=selectedOptions.reduce((s,o)=>s+o.price,0);
+  const note=document.getElementById("popupNote")?.value||'';
+  const optLabel=selectedOptions.length?' ('+selectedOptions.map(o=>o.name).join(', ')+')':'';
+  const key=m.id+'_'+selectedOptions.map(o=>o.name).join('_')+'_'+Date.now();
+  selItems[key]={name:m.name+optLabel,basePrice:m.price,price:base+extra,qty:1,note,options:selectedOptions};
+  closePopup();
   window.confirmMenu();
-};
+}
+
 
 window.changeQty=function(id,name,base,disp,delta){
   if(!selItems[id])selItems[id]={name,basePrice:base,price:disp,qty:0};
