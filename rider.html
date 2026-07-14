@@ -662,7 +662,9 @@ window.showNotif=function(ico,title,sub,type){
 window.hideNotif=function(){ document.getElementById('notifBanner')?.classList.remove('show'); };
 
 // ============ PENDING ORDERS (งานใหม่) ============
-let pendingUnsub=null, knownPending=new Set(), pendingOrders={};
+let pendingUnsub=null, pendingOrders={};
+// โหลด knownPending จาก sessionStorage — ไม่แจ้งซ้ำตอน refresh
+let knownPending=new Set(JSON.parse(sessionStorage.getItem('kp')||'[]'));
 
 function listenPending(){
   if(!riderData)return;
