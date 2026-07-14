@@ -472,6 +472,46 @@ body{background:var(--g);min-height:100vh;}
 </div>
 
 <script type="module">
+// ===== NOTIFICATION FUNCTIONS =====
+function playNotifSound(type){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const notes=type==='new'?[523,659,784]:type==='assigned'?[784,659,523]:[523,392,330];
+    notes.forEach((freq,i)=>{
+      const osc=ctx.createOscillator(),gain=ctx.createGain();
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.type='sine';osc.frequency.value=freq;
+      const t=ctx.currentTime+i;
+      gain.gain.setValueAtTime(0,t);
+      gain.gain.linearRampToValueAtTime(0.25,t+0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001,t+0.9);
+      osc.start(t);osc.stop(t+1.1);
+    });
+  }catch(e){}
+}
+let _notifTimer=null;
+function showNotif(ico,title,sub,color){
+  let b=document.getElementById('notifBanner');
+  if(!b)return;
+  document.getElementById('notifIco').textContent=ico;
+  document.getElementById('notifTitle').textContent=title;
+  document.getElementById('notifSub').textContent=sub||'';
+  b.style.background=color||'linear-gradient(135deg,#0c4aa6,#083570)';
+  b.classList.add('show');
+  clearTimeout(_notifTimer);
+  _notifTimer=setTimeout(()=>b.classList.remove('show'),4500);
+  if(navigator.vibrate)navigator.vibrate([100,50,100]);
+}
+function showOSNotif(title,body){
+  if('Notification' in window&&Notification.permission==='granted'){
+    new Notification(title,{body,tag:'nimit-admin',renotify:true});
+  }
+}
+async function reqNotifPerm(){
+  if('Notification' in window&&Notification.permission==='default')
+    await Notification.requestPermission();
+}
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, query, where, onSnapshot, doc, getDocs, updateDoc, setDoc, addDoc, deleteDoc, getDoc, serverTimestamp, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -556,9 +596,9 @@ function listenOrders(){
       if(!knownOrders.has(d.id)){
         const o=d.data();
         if(knownOrders.size>0){ // ไม่แจ้งครั้งแรกที่โหลด
-          window.playNotifSound('new');
-          window.showNotif('🔔','งานใหม่มาแล้ว!',(o.orderId||d.id)+' · '+(o.shopName||''),'linear-gradient(135deg,#0c4aa6,#083570)');
-          window.showOSNotif('🔔 งานใหม่มาแล้ว!',(o.orderId||d.id)+' · '+(o.shopName||'')+' · ฿'+(o.grandTotal||0));
+          playNotifSound('new');
+          showNotif('🔔','งานใหม่มาแล้ว!',(o.orderId||d.id)+' · '+(o.shopName||''),'linear-gradient(135deg,#0c4aa6,#083570)');
+          showOSNotif('🔔 งานใหม่มาแล้ว!',(o.orderId||d.id)+' · '+(o.shopName||'')+' · ฿'+(o.grandTotal||0));
         }
         knownOrders.add(d.id);
       }
@@ -788,7 +828,7 @@ window.confirmCancelOrder=async function(){
     await updateDoc(doc(db,'orders',curDocId),{status:'rejected',cancelNote:note,updatedAt:serverTimestamp()});
     closeCancelOrder();
     window.toast('ยกเลิกออเดอร์แล้ว','ok');
-    window.showNotif('❌','ยกเลิกออเดอร์แล้ว',note,'linear-gradient(135deg,#dc2626,#b91c1c)');
+    showNotif('❌','ยกเลิกออเดอร์แล้ว',note,'linear-gradient(135deg,#dc2626,#b91c1c)');
   }catch(e){window.toast('ไม่สำเร็จ: '+e.message,'er');}
 }
 
@@ -979,7 +1019,7 @@ document.addEventListener('click', e => {
     if(!asgDocId&&!curDocId)return;
     const tid=asgDocId||curDocId;
     confirm2('ถอดไรเดอร์','ถอดไรเดอร์ออกจากงานนี้?','ถอด','er',async()=>{
-      try{await updateDoc(doc(db,'orders',tid),{riderId:'',riderName:'',riderPhone:'',status:'pending',updatedAt:serverTimestamp()});closeAssign();window.toast('ถอดไรเดอร์แล้ว','ok');window.showNotif('✅','ถอดงานแล้ว','ออเดอร์กลับสู่รอรับ','linear-gradient(135deg,#16a34a,#15803d)');}catch(e){window.toast('ไม่สำเร็จ','er');}
+      try{await updateDoc(doc(db,'orders',tid),{riderId:'',riderName:'',riderPhone:'',status:'pending',updatedAt:serverTimestamp()});closeAssign();window.toast('ถอดไรเดอร์แล้ว','ok');showNotif('✅','ถอดงานแล้ว','ออเดอร์กลับสู่รอรับ','linear-gradient(135deg,#16a34a,#15803d)');}catch(e){window.toast('ไม่สำเร็จ','er');}
     });
   }
   else if(id==='cfmOk'){if(cfmCallback){cfmCallback();closeCfm();}else closeCfm();}
