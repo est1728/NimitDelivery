@@ -324,27 +324,28 @@ window.openMenuSheet=function(){
   getDocs(collection(db,'shops',selShop.id,'menus')).then(snap=>{
     var menus=[];snap.forEach(d=>{var m=d.data();if(m.available!==false)menus.push({id:d.id,...m});});
     if(!menus.length){body.innerHTML='<div class="lt">ร้านนี้ยังไม่มีเมนู</div>';return;}
-    window._menus = {}; // เก็บ menu data ไว้ reference ใน openOptions
+    window._menus = {};
     body.innerHTML=menus.map(m=>{
       var dp=Math.ceil((m.price||0)*(1+settings.gpPercent/100));
-      var groups=m.optionGroups||[];
-      var hasOpts=groups.length>0;
-      window._menus[m.id]={id:m.id,name:m.name,base:m.price||0,disp:dp,groups};
+      window._menus[m.id]={id:m.id,name:m.name,price:m.price||0,gp:m.gp||0,optionGroups:m.optionGroups||[]};
       var qty=Object.keys(selItems).filter(k=>k===m.id||k.startsWith(m.id+'_')).reduce((s,k)=>s+(selItems[k]?.qty||0),0);
-      if(hasOpts){
-        return `<div class="m-row"><div class="m-inf"><div class="m-nm">${esc(m.name)}</div><div class="m-pr">฿${dp} · ${groups.length} กลุ่มตัวเลือก</div></div>`
-          +`<div class="q-wrap"><button class="q-btn" style="width:auto;padding:0 12px;border-radius:20px;font-size:13px" onclick="window.openMenuPopup('${m.id}')">เลือก</button></div></div>`;
-      }
-      return `<div class="m-row"><div class="m-inf"><div class="m-nm">${esc(m.name)}</div><div class="m-pr">฿${dp}</div></div>`
-        +`<div class="q-wrap"><button class="q-btn" onclick="window.changeQty('${m.id}','${escQ(m.name)}',${m.price||0},${dp},-1)">−</button>`
-        +`<div class="q-n" id="q_${m.id}">${qty}</div>`
-        +`<button class="q-btn" onclick="window.changeQty('${m.id}','${escQ(m.name)}',${m.price||0},${dp},1)">+</button></div></div>`;
+      return `<div class="m-row">
+        <div class="m-inf" onclick="window.openMenuPopup('${m.id}')" style="cursor:pointer;flex:1">
+          <div class="m-nm">${esc(m.name)}</div>
+          <div class="m-pr">฿${dp}</div>
+        </div>
+        <div class="q-wrap">
+          <button class="q-btn" onclick="window.changeQty('${m.id}','${escQ(m.name)}',${m.price||0},${dp},-1)">−</button>
+          <div class="q-n" id="q_${m.id}">${qty}</div>
+          <button class="q-btn" onclick="window.openMenuPopup('${m.id}')">+</button>
+        </div>
+      </div>`;
     }).join('');
   }).catch(e=>{body.innerHTML='<div class="lt">'+e.message+'</div>';});
 };
 // POPUP
 window.openMenuPopup=function(menuId){
-  const m=window._menus&&window._menus[menuId]; if(!m) return;
+  const m=window._menus&&window._menus[menuId]; if(!m){alert('โหลดเมนูไม่ได้ กดใหม่');return;}
   popupMenu=m; popupSelections={};
 
   document.getElementById("popupName").textContent=m.name;
