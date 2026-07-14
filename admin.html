@@ -218,6 +218,8 @@ body{background:var(--g);min-height:100vh;}
 .notif-title{font-size:14px;font-weight:800;}
 .notif-sub{font-size:12px;opacity:.85;margin-top:2px;}
 .notif-close{width:28px;height:28px;border:none;background:rgba(255,255,255,.2);border-radius:50%;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.item-opts{font-size:12px;color:var(--s);padding-top:2px;}
+.item-opts div{line-height:1.6;}
 </style>
 </head>
 <body>
@@ -587,7 +589,7 @@ function updPrev(){
 const adminChatUnreadMap={};
 const adminChatUnsubs={};
 
-let knownOrders=new Set();
+let knownOrders=new Set(JSON.parse(sessionStorage.getItem('ka')||'[]'));
 function listenOrders(){
   loadOrders();
   setInterval(loadOrders, 15000); // refresh ทุก 15 วิ
@@ -607,6 +609,7 @@ window.loadOrders=async function loadOrders(){
           try{showNotif('🔔','งานใหม่!',(o.orderId||d.id)+' · '+(o.shopName||''),'linear-gradient(135deg,#0c4aa6,#083570)');}catch(e){}
         }
         knownOrders.add(d.id);
+        sessionStorage.setItem('ka',JSON.stringify([...knownOrders]));
       }
     });
     updDash();renderOrders();
@@ -721,7 +724,7 @@ function renderDetail(o){
   $('dtCusAddr').textContent=o.customer?.address||'-';
   // items table
   $('dtItems').innerHTML=(o.items||[]).map(i=>{
-    const opts=i.options?.length?'<div class="item-opts">'+i.options.map(op=>'• '+esc(op.name)+(op.price?'  +฿'+op.price:'')).join(' / ')+'</div>':'';
+    const opts=i.options?.length?'<div class="item-opts">'+i.options.map(op=>'<div>- '+esc(op.name)+(op.price?' (+฿'+op.price+')':'')+'</div>').join('')+'</div>':'';
     return `<tr><td><div>${esc(i.name)}</div>${opts}</td><td>${i.qty}</td><td>฿${i.price||i.basePrice||0}</td><td>฿${(i.price||i.basePrice||0)*i.qty}</td></tr>`;
   }).join('');
   $('pTotal').textContent='฿'+(o.grandTotal||0);
@@ -832,6 +835,8 @@ window.confirmCancelOrder=async function(){
     closeCancelOrder();
     window.toast('ยกเลิกออเดอร์แล้ว','ok');
     showNotif('❌','ยกเลิกออเดอร์แล้ว',note,'linear-gradient(135deg,#dc2626,#b91c1c)');
+    setTimeout(()=>{$('detailPage').classList.remove('on');$('ordersPage').classList.add('on');},600);
+    setTimeout(()=>swPg('ordersPage'),800);
   }catch(e){window.toast('ไม่สำเร็จ: '+e.message,'er');}
 }
 
