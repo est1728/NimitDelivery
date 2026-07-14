@@ -126,13 +126,16 @@ async function loadData(){
   try{
     const snap = await getDocs(collection(db,'shops'));
     snap.forEach(d => allShops.push({id:d.id,...d.data()}));
-  }catch(e){ console.warn('shops load fail:',e.message); }
-  // โหลด menus
+  }catch(e){ console.warn('shops:',e.message); }
+  // โหลดเมนูจาก subcollection ของแต่ละร้าน
   try{
-    const snap = await getDocs(collection(db,'menus'));
-    snap.forEach(d => allMenus.push({id:d.id,...d.data()}));
-    console.log('menus loaded:', allMenus.length);
-  }catch(e){ console.warn('menus load fail:',e.message); }
+    await Promise.all(allShops.map(async s=>{
+      try{
+        const snap = await getDocs(collection(db,'shops',s.id,'menus'));
+        snap.forEach(d=>allMenus.push({id:d.id,shopId:s.id,...d.data()}));
+      }catch(e){}
+    }));
+  }catch(e){}
   dataReady = true;
 }
 let dataReady = false;
