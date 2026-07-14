@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>ลูกค้า - Admin</title>
+<style>
+:root{--p:#0c4aa6;--pd:#083570;--pl:#e8f0fe;--g:#f5f6f8;--t:#0f172a;--s:#64748b;--gn:#16a34a;--gnl:#dcfce7;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
+body{background:var(--g);min-height:100vh;}
+.hd{background:linear-gradient(135deg,var(--p),var(--pd));padding:14px 16px;}
+.hd-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.back{width:38px;height:38px;border:none;background:rgba(255,255,255,.18);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.back svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2.5;}
+.hd-t{font-size:17px;font-weight:800;color:#fff;flex:1;}
+.cus-count{font-size:12px;color:rgba(255,255,255,.75);}
+.search-wrap{position:relative;}
+.search-ico{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;fill:none;stroke:#94a3b8;stroke-width:2;}
+.search-box{width:100%;height:44px;border:none;border-radius:22px;background:#fff;padding:0 16px 0 40px;font-size:15px;outline:none;}
+.search-box::placeholder{color:#b0b8c1;}
+
+/* STATS */
+.stats{display:flex;gap:10px;padding:12px 16px;overflow-x:auto;scrollbar-width:none;}
+.stats::-webkit-scrollbar{display:none;}
+.stat-card{background:#fff;border-radius:14px;padding:12px 16px;flex-shrink:0;min-width:100px;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+.stat-num{font-size:22px;font-weight:900;color:var(--p);}
+.stat-lbl{font-size:11px;color:var(--s);margin-top:2px;}
+
+/* CUSTOMER CARDS */
+.list{padding:0 16px 80px;}
+.cus-card{background:#fff;border-radius:16px;margin-bottom:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.05);cursor:pointer;}
+.cus-card:active{opacity:.95;}
+.cus-top{display:flex;align-items:center;gap:12px;padding:14px 16px;}
+.cus-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--pd));display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;font-weight:800;color:#fff;}
+.cus-main{flex:1;min-width:0;}
+.cus-name{font-size:15px;font-weight:800;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cus-phone{font-size:12px;color:var(--s);margin-top:2px;}
+.cus-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;flex-shrink:0;}
+.badge-new{background:#fef3c7;color:#d97706;}
+.badge-reg{background:var(--gnl);color:var(--gn);}
+.cus-addr{padding:0 16px 12px;font-size:12px;color:var(--s);display:flex;align-items:flex-start;gap:6px;}
+.cus-addr svg{width:12px;height:12px;fill:var(--s);flex-shrink:0;margin-top:1px;}
+.cus-addr span{line-height:1.5;}
+.cus-footer{padding:10px 16px;background:#f8faff;border-top:1px solid #eef2f8;display:flex;gap:8px;}
+.cus-action{flex:1;height:36px;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;}
+.btn-order{background:var(--p);color:#fff;}
+.btn-chat{background:var(--pl);color:var(--p);}
+
+/* DETAIL MODAL */
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;align-items:flex-end;}
+.modal-mask.show{display:flex;}
+.modal{background:#fff;border-radius:24px 24px 0 0;width:100%;max-height:85vh;overflow-y:auto;}
+.modal-hd{padding:16px 16px 0;display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-size:16px;font-weight:800;color:var(--t);}
+.modal-close{width:32px;height:32px;border:none;background:var(--g);border-radius:50%;cursor:pointer;font-size:18px;color:var(--s);}
+.modal-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--pd));display:flex;align-items:center;justify-content:center;margin:16px auto 12px;font-size:28px;font-weight:900;color:#fff;}
+.modal-name{text-align:center;font-size:20px;font-weight:800;color:var(--t);}
+.modal-phone{text-align:center;font-size:14px;color:var(--s);margin-top:4px;}
+.detail-rows{padding:14px 16px;}
+.detail-row{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #f5f6f8;}
+.detail-row:last-child{border:none;}
+.detail-ico{width:36px;height:36px;border-radius:10px;background:var(--pl);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.detail-ico svg{width:16px;height:16px;fill:var(--p);}
+.detail-label{font-size:12px;color:var(--s);}
+.detail-val{font-size:14px;font-weight:700;color:var(--t);margin-top:2px;}
+.modal-btns{padding:12px 16px 28px;display:flex;gap:10px;}
+.modal-btn{flex:1;height:48px;border:none;border-radius:14px;font-size:14px;font-weight:800;cursor:pointer;}
+.btn-primary{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;}
+.btn-secondary{background:var(--pl);color:var(--p);}
+
+/* LIVE BADGE */
+.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ade80;margin-right:5px;animation:livePing .9s infinite;}
+@keyframes livePing{0%,100%{opacity:1}50%{opacity:.3}}
+.lt{text-align:center;padding:40px;color:var(--s);}
+</style>
+</head>
+<body>
+
+<div class="hd">
+  <div class="hd-row">
+    <button class="back" onclick="history.back()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+    <div class="hd-t">ลูกค้า</div>
+    <div class="cus-count"><span class="live-dot"></span><span id="cusCount">0</span> คน</div>
+  </div>
+  <div class="search-wrap">
+    <svg class="search-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+    <input class="search-box" placeholder="ค้นหาชื่อหรือเบอร์..." oninput="filterCus(this.value)">
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-lbl">ลูกค้าทั้งหมด</div></div>
+  <div class="stat-card"><div class="stat-num" id="statNew">0</div><div class="stat-lbl">ลูกค้าใหม่วันนี้</div></div>
+  <div class="stat-card"><div class="stat-num" id="statAddr">0</div><div class="stat-lbl">มีที่อยู่</div></div>
+</div>
+
+<div class="list" id="cusList"><div class="lt">กำลังโหลด...</div></div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-mask" id="detailModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title">ข้อมูลลูกค้า</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-avatar" id="mdAvatar">?</div>
+    <div class="modal-name" id="mdName">-</div>
+    <div class="modal-phone" id="mdPhone">-</div>
+    <div class="detail-rows">
+      <div class="detail-row">
+        <div class="detail-ico"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg></div>
+        <div><div class="detail-label">ที่อยู่จัดส่ง</div><div class="detail-val" id="mdAddr">-</div></div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-ico"><svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg></div>
+        <div><div class="detail-label">สมัครเมื่อ</div><div class="detail-val" id="mdDate">-</div></div>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn btn-secondary" onclick="closeModal()">ปิด</button>
+      <button class="modal-btn btn-primary" onclick="createOrderForCus()">+ สร้างออเดอร์</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const db = getFirestore(initializeApp({
+  apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
+  authDomain:"nimit-delivery.firebaseapp.com",
+  projectId:"nimit-delivery",
+  storageBucket:"nimit-delivery.firebasestorage.app",
+  messagingSenderId:"233476256130",
+  appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
+}));
+
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+let allCus=[], curQ='', selCus=null;
+const today=new Date().toDateString();
+
+// REAL-TIME listener
+onSnapshot(collection(db,'customers'), snap=>{
+  allCus=[];
+  snap.forEach(d=>allCus.push({phone:d.id,...d.data()}));
+  allCus.sort((a,b)=>(b.updatedAt||b.createdAt||'').localeCompare(a.updatedAt||a.createdAt||''));
+  updateStats();
+  renderList(curQ?allCus.filter(c=>(c.name||'').toLowerCase().includes(curQ)||(c.phone||'').includes(curQ)):allCus);
+});
+
+function updateStats(){
+  document.getElementById('cusCount').textContent=allCus.length;
+  document.getElementById('statTotal').textContent=allCus.length;
+  const newToday=allCus.filter(c=>c.createdAt&&new Date(c.createdAt?.seconds*1000||c.createdAt).toDateString()===today).length;
+  document.getElementById('statNew').textContent=newToday;
+  document.getElementById('statAddr').textContent=allCus.filter(c=>c.address).length;
+}
+
+function renderList(list){
+  const el=document.getElementById('cusList');
+  if(!list.length){ el.innerHTML='<div class="lt">ไม่พบลูกค้า</div>'; return; }
+  el.innerHTML=list.map(c=>{
+    const initial=(c.name||c.phone||'?').slice(0,1).toUpperCase();
+    const isNew=c.createdAt&&new Date(c.createdAt?.seconds*1000||c.createdAt).toDateString()===today;
+    return `<div class="cus-card" onclick="openDetail('${c.phone}')">
+      <div class="cus-top">
+        <div class="cus-avatar">${initial}</div>
+        <div class="cus-main">
+          <div class="cus-name">${esc(c.name||'-')}</div>
+          <div class="cus-phone">${c.phone}</div>
+        </div>
+        <div class="cus-badge ${isNew?'badge-new':'badge-reg'}">${isNew?'ใหม่':'ลงทะเบียน'}</div>
+      </div>
+      ${c.address?`<div class="cus-addr"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg><span>${esc(c.address)}</span></div>`:''}
+    </div>`;
+  }).join('');
+}
+
+window.filterCus=function(q){
+  curQ=q.toLowerCase();
+  renderList(curQ?allCus.filter(c=>(c.name||'').toLowerCase().includes(curQ)||(c.phone||'').includes(curQ)):allCus);
+};
+
+window.openDetail=function(phone){
+  selCus=allCus.find(c=>c.phone===phone);
+  if(!selCus) return;
+  const initial=(selCus.name||selCus.phone||'?').slice(0,1).toUpperCase();
+  document.getElementById('mdAvatar').textContent=initial;
+  document.getElementById('mdName').textContent=selCus.name||'-';
+  document.getElementById('mdPhone').textContent=selCus.phone;
+  document.getElementById('mdAddr').textContent=selCus.address||'ยังไม่มีที่อยู่';
+  const ts=selCus.updatedAt||selCus.createdAt;
+  const date=ts?new Date(ts.seconds?ts.seconds*1000:ts).toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'}):'-';
+  document.getElementById('mdDate').textContent=date;
+  document.getElementById('detailModal').classList.add('show');
+};
+
+window.closeModal=function(){
+  document.getElementById('detailModal').classList.remove('show');
+};
+
+window.createOrderForCus=function(){
+  if(!selCus) return;
+  sessionStorage.setItem('preselCus',JSON.stringify(selCus));
+  location.href='order-create.html';
+};
+</script>
+</body>
+</html>
