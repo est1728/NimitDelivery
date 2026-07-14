@@ -589,36 +589,30 @@ const adminChatUnsubs={};
 
 let knownOrders=new Set();
 function listenOrders(){
-  // timeout 5 วิ
-  const t=setTimeout(()=>{
-    if($('ordersEl').innerHTML.includes('กำลังโหลด'))
-      $('ordersEl').innerHTML='<div class="lt">โหลดไม่ได้ — ตรวจสอบ Firestore Rules<br><button onclick="listenOrders()" style="margin-top:8px;height:36px;padding:0 16px;border:none;border-radius:8px;background:var(--p);color:#fff;cursor:pointer;font-size:13px">ลองใหม่</button></div>';
-  },5000);
-  onSnapshot(query(collection(db,'orders'),where('status','in',ACTIVE)),snap=>{
-    clearTimeout(t);
-    try{
-      orders=[];
-      snap.forEach(d=>orders.push({docId:d.id,...d.data()}));
-      orders.sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
-      snap.forEach(d=>{
-        if(!knownOrders.has(d.id)){
-          const o=d.data();
-          if(knownOrders.size>0){
-            try{playNotifSound('new');}catch(e){}
-            try{showNotif('🔔','งานใหม่มาแล้ว!',(o.orderId||d.id)+' · '+(o.shopName||''),'linear-gradient(135deg,#0c4aa6,#083570)');}catch(e){}
-            try{showOSNotif('🔔 งานใหม่มาแล้ว!',(o.orderId||d.id)+' · '+(o.shopName||'')+' · ฿'+(o.grandTotal||0));}catch(e){}
-          }
-          knownOrders.add(d.id);
+  loadOrders();
+  setInterval(loadOrders, 15000); // refresh ทุก 15 วิ
+}
+window.loadOrders=async function loadOrders(){
+  try{
+    const snap=await getDocs(query(collection(db,'orders'),where('status','in',ACTIVE)));
+    orders=[];
+    snap.forEach(d=>orders.push({docId:d.id,...d.data()}));
+    orders.sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
+    // แจ้งเตือน order ใหม่
+    snap.forEach(d=>{
+      if(!knownOrders.has(d.id)){
+        const o=d.data();
+        if(knownOrders.size>0){
+          try{playNotifSound('new');}catch(e){}
+          try{showNotif('🔔','งานใหม่!',(o.orderId||d.id)+' · '+(o.shopName||''),'linear-gradient(135deg,#0c4aa6,#083570)');}catch(e){}
         }
-      });
-    }catch(e){console.warn(e);}
-    updDash();renderOrders();
-    // unsubscribe เก่า
-    const activeIds=new Set();snap.forEach(d=>activeIds.add(d.id));
-    Object.keys(adminChatUnsubs).forEach(id=>{
-      if(!activeIds.has(id)){adminChatUnsubs[id]();delete adminChatUnsubs[id];}
+        knownOrders.add(d.id);
+      }
     });
-    // subscribe ใหม่
+    updDash();renderOrders();
+    // unsubscribe chat listeners ที่ไม่ใช้
+    const activeIds=new Set();snap.forEach(d=>activeIds.add(d.id));
+    Object.keys(adminChatUnsubs).forEach(id=>{if(!activeIds.has(id)){adminChatUnsubs[id]();delete adminChatUnsubs[id];}});
     snap.forEach(d=>{
       if(adminChatUnsubs[d.id])return;
       adminChatUnsubs[d.id]=onSnapshot(doc(db,'chats',d.id),chatSnap=>{
@@ -628,11 +622,11 @@ function listenOrders(){
         if(bdg){bdg.textContent='💬 '+unread;bdg.style.display=unread>0?'inline-flex':'none';}
       });
     });
-  },err=>{
-    console.error('listenOrders:',err);
-    $('ordersEl').innerHTML='<div class="lt">โหลดออเดอร์ไม่ได้: '+err.message+'<br><button onclick="listenOrders()" style="margin-top:8px;height:36px;padding:0 16px;border:none;border-radius:8px;background:var(--p);color:#fff;cursor:pointer;font-size:13px">ลองใหม่</button></div>';
-  });
+  }catch(e){
+    $('ordersEl').innerHTML=`<div class="lt">โหลดไม่ได้: ${e.message}<br><button onclick="loadOrders()" style="margin-top:8px;height:36px;padding:0 16px;border:none;border-radius:8px;background:var(--p);color:#fff;cursor:pointer;font-size:13px">ลองใหม่</button></div>`;
+  }
 }
+
 function updDash(){
   const now=new Date().toDateString();
   const tod=orders.filter(o=>new Date((o.createdAt?.seconds||0)*1000).toDateString()===now);
@@ -973,7 +967,7 @@ async function doTopup(){
 
 // PRICING
 async function loadPricing(){
-  try{const snap=await getDoc(doc(db,'settings','pricing'));if(snap.exists()){const d=snap.data();$('gpPercent').value=d.gpPercent||34;$('gpSubPercent').value=d.gpSubPercent||0;$('walletPct').value=d.walletPercent||30;$('riderPct').value=d.riderPercent||70;$('freeDist').value=d.freeDistance||1.5;$('delFee').value=d.deliveryFee||9;}window.updPrev();}
+  try{const snap=await getDoc(doc(db,'settings','pricing'));if(snap.exists()){const d=snap.data();$('gpPercent').value=d.gpPercent||34;$('gpSubPercent').value=d.gpSubPercent||0;$('walletPct').value=d.walletPercent||30;$('riderPct').value=d.riderPercent||70;$('freeDist').value=d.freeDistance||1.5;$('delFee').value=d.deliveryFee||9;}updPrev();}
   catch(e){}
 }
 async function savePricing(){
@@ -1037,7 +1031,7 @@ document.addEventListener('click', e => {
 
 ['gpPercent','walletPct','riderPct'].forEach(id=>$(id)?.addEventListener('input',updPrev));
 
-window.updPrev();
+updPrev();
 listenOrders();
 </script>
 <script>window._fcmRole="admin";</script>
