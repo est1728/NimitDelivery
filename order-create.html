@@ -413,9 +413,8 @@ window.addToOrderFromPopup=function(){
   const base=Math.ceil((m.price||0)*(1+settings.gpPercent/100));
   const extra=selectedOptions.reduce((s,o)=>s+o.price,0);
   const note=document.getElementById("popupNote")?.value||'';
-  const optLabel=selectedOptions.length?' ('+selectedOptions.map(o=>o.name).join(', ')+')':'';
   const key=m.id+'_'+selectedOptions.map(o=>o.name).join('_')+'_'+Date.now();
-  selItems[key]={name:m.name+optLabel,basePrice:m.price,price:base+extra,qty:1,note,options:selectedOptions};
+  selItems[key]={name:m.name,subOptions:selectedOptions.map(o=>o.name),basePrice:m.price,price:base+extra,qty:1,note,options:selectedOptions};
   closePopup();
   window.confirmMenu();
 }
@@ -432,7 +431,10 @@ window.confirmMenu=function(){
   var items=Object.values(selItems);
   if(!items.length){document.getElementById('menuItems').innerHTML='<div class="t-empty">ยังไม่มีรายการ</div>';document.getElementById('menuTotal').textContent='-';}
   else{
-    document.getElementById('menuItems').innerHTML=items.map(it=>`<div class="t-row"><span>${esc(it.name)}</span><span>×${it.qty}</span><span>฿${it.price*it.qty}</span></div>`).join('');
+    document.getElementById('menuItems').innerHTML=items.map(it=>{
+      const subs=it.subOptions&&it.subOptions.length?it.subOptions.map(s=>`<div style="font-size:12px;color:var(--s);padding-left:8px">- ${esc(s)}</div>`).join(''):'';
+      return `<div class="t-row"><span><div>${esc(it.name)}</div>${subs}</span><span>×${it.qty}</span><span>฿${it.price*it.qty}</span></div>`;
+    }).join('');
     document.getElementById('menuTotal').textContent='฿'+items.reduce((s,i)=>s+i.price*i.qty,0);
   }
   calcRev();checkCreate();
