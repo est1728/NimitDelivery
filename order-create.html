@@ -306,7 +306,7 @@ function renderShopList(){
 window.pickShop=function(shopId){
   var shop=allShops.find(s=>s.id===shopId);if(!shop)return;
   if(selShop&&selShop.id!==shopId)selItems={};
-  selShop={id:shopId,name:shop.name};
+  selShop={id:shopId,name:shop.name,phone:shop.phone||'',address:shop.address||'',lat:shop.lat||null,lng:shop.lng||null};
   document.getElementById('shopBox').classList.add('done');
   document.getElementById('shopBoxTxt').textContent='✓ '+shop.name;
   document.getElementById('rShopName').textContent=shop.name;
@@ -484,36 +484,36 @@ function calcRev(){
 function checkCreate(){document.getElementById('createBtn').disabled=!(selShop&&Object.keys(selItems).length&&selCus);}
 window.createOrder=async function(){
   var btn=document.getElementById('createBtn');btn.disabled=true;btn.textContent='กำลังสร้าง...';
-  var rev=window._rev||{total:0,base:0,wallet:0,rider:0,delivery:0};
-  // clean items — เอาแค่ name, price, qty, options ที่จำเป็น
-  var cleanItems=Object.values(selItems).map(function(it){
-    var item={name:String(it.name||''),price:Number(it.price)||0,qty:Number(it.qty)||1};
-    if(it.subOptions&&it.subOptions.length) item.options=it.subOptions.filter(Boolean);
-    if(it.note) item.note=String(it.note);
-    return item;
+  var items=Object.values(selItems).map(function(it){
+    return {
+      name:String(it.name||''),
+      price:Number(it.price)||0,
+      basePrice:Number(it.basePrice)||0,
+      qty:Number(it.qty)||1,
+      options:(it.subOptions||[]).filter(Boolean).map(function(s){return {name:s,price:0};}),
+      note:String(it.note||''),
+      imgUrl:''
+    };
   });
+  var subtotal=items.reduce(function(s,i){return s+i.price*i.qty;},0);
+  var baseCost=items.reduce(function(s,i){return s+i.basePrice*i.qty;},0);
+  var deliveryFee=Number(settings.deliveryFee)||0;
+  var grandTotal=subtotal+deliveryFee;
+  var totalDiff=subtotal-baseCost;
+  var walletCut=Math.round(totalDiff*(settings.walletPercent||10)/100);
+  var riderEarn=Math.round(totalDiff*(settings.riderPercent||16)/100);
   var orderData={
     orderId:orderId,
-    shopId:selShop.id, shopName:selShop.name,
-    customer:{
-      name:String(selCus.name||''),
-      phone:String(selCus.phone||''),
-      address:String(selCus.address||''),
-      lat:selCus.lat!=null?Number(selCus.lat):null,
-      lng:selCus.lng!=null?Number(selCus.lng):null
-    },
-    items:cleanItems,
-    grandTotal:Number(rev.total)||0,
-    deliveryFee:Number(rev.delivery)||0,
-    riderEarn:Number(rev.rider)||0,
-    walletCut:Number(rev.wallet)||0,
-    status:'pending',
-    createdBy:'admin',
-    createdAt:serverTimestamp()
+    shopId:selShop.id,shopName:selShop.name,
+    shopPhone:selShop.phone||'',shopAddress:selShop.address||'',
+    customer:{name:selCus.name||'',phone:selCus.phone||'',address:selCus.address||'',lat:selCus.lat||null,lng:selCus.lng||null},
+    items:items,
+    subtotal:subtotal,baseCost:baseCost,deliveryFee:deliveryFee,
+    grandTotal:grandTotal,totalDiff:totalDiff,
+    walletCut:walletCut,riderEarn:riderEarn,
+    paymentMethod:'cash',status:'pending',
+    createdBy:'admin',createdAt:serverTimestamp()
   };
-  // ลบ null values ที่ Firestore ไม่ชอบ
-  if(orderData.customer.lat===null) delete orderData.customer.lat;
-  if(orderData.customer.lng===null) delete orderData.customer.lng;
   try{
     await setDoc(doc(db,'orders',orderId),orderData);
     location.href='admin.html?newOrder='+orderId;
