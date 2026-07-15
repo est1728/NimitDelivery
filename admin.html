@@ -718,9 +718,8 @@ function renderDetail(o){
   $('dtStatus').textContent=SL[o.status]||o.status;
   $('dtRider').textContent=o.riderName||'ยังไม่มี';
   $('dtShopName').textContent=o.shopName||'-';
-  if(o.shopPhone){$('dtShopPhone').textContent=o.shopPhone;$('dtShopPhoneRow').style.display='flex';$('dtShopPhone').onclick=()=>location.href='tel:'+o.shopPhone;}else{$('dtShopPhoneRow').style.display='none';}
-  if(o.shopAddress){$('dtShopAddr').textContent=o.shopAddress;$('dtShopAddrRow').style.display='flex';}else{$('dtShopAddrRow').style.display='none';}
   $('dtShopPhone').textContent=o.shopPhone||'-';
+  if($('dtShopPhone').parentElement) $('dtShopPhone').onclick=o.shopPhone?()=>location.href='tel:'+o.shopPhone:null;
   $('dtShopAddr').textContent=o.shopAddress||'-';
   $('dtCusName').textContent=o.customer?.name||'-';
   $('dtCusPhone').textContent=o.customer?.phone||'-';
