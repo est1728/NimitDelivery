@@ -724,7 +724,7 @@ function renderDetail(o){
   $('dtCusAddr').textContent=o.customer?.address||'-';
   // items table
   $('dtItems').innerHTML=(o.items||[]).map(i=>{
-    const opts=i.options?.length?'<div class="item-opts">'+i.options.map(op=>'<div>- '+esc(op.name)+(op.price?' (+฿'+op.price+')':'')+'</div>').join('')+'</div>':'';
+    const opts=i.options?.length?'<div class="item-opts">'+i.options.map(op=>typeof op==='string'?'<div>- '+esc(op)+'</div>':'<div>- '+esc(op.name||op)+(op.price?' (+฿'+op.price+')':'')+'</div>').join('')+'</div>':'';
     return `<tr><td><div>${esc(i.name)}</div>${opts}</td><td>${i.qty}</td><td>฿${i.price||i.basePrice||0}</td><td>฿${(i.price||i.basePrice||0)*i.qty}</td></tr>`;
   }).join('');
   $('pTotal').textContent='฿'+(o.grandTotal||0);
@@ -835,8 +835,7 @@ window.confirmCancelOrder=async function(){
     closeCancelOrder();
     window.toast('ยกเลิกออเดอร์แล้ว','ok');
     showNotif('❌','ยกเลิกออเดอร์แล้ว',note,'linear-gradient(135deg,#dc2626,#b91c1c)');
-    setTimeout(()=>{$('detailPage').classList.remove('on');$('ordersPage').classList.add('on');},600);
-    setTimeout(()=>swPg('ordersPage'),800);
+    setTimeout(()=>{closeDetail();swPg('ordersPage');},600);
   }catch(e){window.toast('ไม่สำเร็จ: '+e.message,'er');}
 }
 
