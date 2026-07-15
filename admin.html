@@ -364,8 +364,7 @@ body{background:var(--g);min-height:100vh;}
     <div class="dr"><span class="drl">ที่จัดส่ง</span><span class="drv" id="dtCusAddr">-</span></div>
     <div class="dr"><span class="drl" style="color:var(--green)">สั่งสำเร็จ</span><span class="drv" id="dtCusDone" style="color:var(--green)">-</span></div>
     <div class="dr"><span class="drl" style="color:#dc2626">ยกเลิก</span><span class="drv" id="dtCusCancel" style="color:#dc2626">-</span></div>
-    <div class="dr"><span class="drl">สั่งสำเร็จ</span><span class="drv" id="dtCusOk" style="color:var(--gn)">-</span></div>
-    <div class="dr"><span class="drl">ยกเลิก</span><span class="drv" id="dtCusCancel" style="color:var(--r)">-</span></div>
+
     <div class="act-row">
       <button class="act-btn" id="callCusBtn"><svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>โทร</button>
       <button class="act-btn gn" id="chatCusBtn"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>แชท</button>
@@ -719,20 +718,14 @@ function renderDetail(o){
   $('dtStatus').textContent=SL[o.status]||o.status;
   $('dtRider').textContent=o.riderName||'ยังไม่มี';
   $('dtShopName').textContent=o.shopName||'-';
+  if(o.shopPhone){$('dtShopPhone').textContent=o.shopPhone;$('dtShopPhoneRow').style.display='flex';$('dtShopPhone').onclick=()=>location.href='tel:'+o.shopPhone;}else{$('dtShopPhoneRow').style.display='none';}
+  if(o.shopAddress){$('dtShopAddr').textContent=o.shopAddress;$('dtShopAddrRow').style.display='flex';}else{$('dtShopAddrRow').style.display='none';}
   $('dtShopPhone').textContent=o.shopPhone||'-';
   $('dtShopAddr').textContent=o.shopAddress||'-';
   $('dtCusName').textContent=o.customer?.name||'-';
   $('dtCusPhone').textContent=o.customer?.phone||'-';
   $('dtCusAddr').textContent=o.customer?.address||'-';
-  $('dtCusDone').textContent='-';$('dtCusCancel').textContent='-';
-  if(o.customer?.phone){
-    getDocs(query(collection(db,'orders'),where('customer.phone','==',o.customer.phone))).then(snap=>{
-      let done=0,cancel=0;
-      snap.forEach(d=>{const st=d.data().status;if(st==='done')done++;else if(st==='rejected')cancel++;});
-      $('dtCusDone').textContent=done+' ครั้ง';
-      $('dtCusCancel').textContent=cancel+' ครั้ง';
-    }).catch(()=>{});
-  }
+
   // items table
   $('dtItems').innerHTML=(o.items||[]).map(i=>{
     const opts=i.options?.length?'<div class="item-opts">'+i.options.map(op=>typeof op==='string'?'<div>- '+esc(op)+'</div>':'<div>- '+esc(op.name||op)+(op.price?' (+฿'+op.price+')':'')+'</div>').join('')+'</div>':'';
@@ -760,13 +753,13 @@ function renderDetail(o){
 
 // CUSTOMER STATS
 async function loadCusStats(orderDocId){
-  $('dtCusOk').textContent='-';$('dtCusCancel').textContent='-';
+  $('dtCusDone').textContent='-';$('dtCusCancel').textContent='-';
   if(!curOrder?.customer?.phone)return;
   try{
     const phone=curOrder.customer.phone;
     const snap=await getDocs(query(collection(db,'orders'),where('customer.phone','==',phone)));
     let ok=0,cancel=0;snap.forEach(d=>{const st=d.data().status;if(st==='done')ok++;if(st==='rejected')cancel++;});
-    $('dtCusOk').textContent=ok+' ครั้ง';$('dtCusCancel').textContent=cancel+' ครั้ง';
+    $('dtCusDone').textContent=ok+' ครั้ง';$('dtCusCancel').textContent=cancel+' ครั้ง';
   }catch(e){}
 }
 
