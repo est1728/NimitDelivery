@@ -362,6 +362,8 @@ body{background:var(--g);min-height:100vh;}
     <div class="dr"><span class="drl">ชื่อ</span><span class="drv" id="dtCusName">-</span></div>
     <div class="dr"><span class="drl">โทร</span><span class="drv" id="dtCusPhone">-</span></div>
     <div class="dr"><span class="drl">ที่จัดส่ง</span><span class="drv" id="dtCusAddr">-</span></div>
+    <div class="dr"><span class="drl" style="color:var(--green)">สั่งสำเร็จ</span><span class="drv" id="dtCusDone" style="color:var(--green)">-</span></div>
+    <div class="dr"><span class="drl" style="color:#dc2626">ยกเลิก</span><span class="drv" id="dtCusCancel" style="color:#dc2626">-</span></div>
     <div class="dr"><span class="drl">สั่งสำเร็จ</span><span class="drv" id="dtCusOk" style="color:var(--gn)">-</span></div>
     <div class="dr"><span class="drl">ยกเลิก</span><span class="drv" id="dtCusCancel" style="color:var(--r)">-</span></div>
     <div class="act-row">
@@ -722,6 +724,15 @@ function renderDetail(o){
   $('dtCusName').textContent=o.customer?.name||'-';
   $('dtCusPhone').textContent=o.customer?.phone||'-';
   $('dtCusAddr').textContent=o.customer?.address||'-';
+  $('dtCusDone').textContent='-';$('dtCusCancel').textContent='-';
+  if(o.customer?.phone){
+    getDocs(query(collection(db,'orders'),where('customer.phone','==',o.customer.phone))).then(snap=>{
+      let done=0,cancel=0;
+      snap.forEach(d=>{const st=d.data().status;if(st==='done')done++;else if(st==='rejected')cancel++;});
+      $('dtCusDone').textContent=done+' ครั้ง';
+      $('dtCusCancel').textContent=cancel+' ครั้ง';
+    }).catch(()=>{});
+  }
   // items table
   $('dtItems').innerHTML=(o.items||[]).map(i=>{
     const opts=i.options?.length?'<div class="item-opts">'+i.options.map(op=>typeof op==='string'?'<div>- '+esc(op)+'</div>':'<div>- '+esc(op.name||op)+(op.price?' (+฿'+op.price+')':'')+'</div>').join('')+'</div>':'';
