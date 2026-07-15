@@ -702,7 +702,6 @@ function openDetail(docId){
     const bdg=$('chatUnreadBdg');
     if(bdg){bdg.textContent=unread;bdg.style.display=unread>0?'flex':'none';}
   });
-  loadCusStats(docId);
 }
 function closeDetail(){$('detailPage').classList.remove('show');if(detUnsub){detUnsub();detUnsub=null;}curDocId=null;curOrder=null;}
 function renderDetail(o){
@@ -724,6 +723,16 @@ function renderDetail(o){
   $('dtCusName').textContent=o.customer?.name||'-';
   $('dtCusPhone').textContent=o.customer?.phone||'-';
   $('dtCusAddr').textContent=o.customer?.address||'-';
+  // โหลดสถิติลูกค้า
+  $('dtCusDone').textContent='...';$('dtCusCancel').textContent='...';
+  if(o.customer?.phone){
+    getDocs(query(collection(db,'orders'),where('customer.phone','==',o.customer.phone))).then(snap=>{
+      let done=0,cancel=0;
+      snap.forEach(d=>{const st=d.data().status;if(st==='done')done++;else if(st==='rejected')cancel++;});
+      $('dtCusDone').textContent=done+' ครั้ง';
+      $('dtCusCancel').textContent=cancel+' ครั้ง';
+    }).catch(()=>{$('dtCusDone').textContent='-';$('dtCusCancel').textContent='-';});
+  }
 
   // items table
   $('dtItems').innerHTML=(o.items||[]).map(i=>{
@@ -750,17 +759,6 @@ function renderDetail(o){
   $('navCusBtn').onclick=()=>{ if(o.customer?.lat&&o.customer?.lng)window.open('https://maps.google.com?q='+o.customer.lat+','+o.customer.lng,'_blank'); else if(o.customer?.address)window.open('https://maps.google.com?q='+encodeURIComponent(o.customer.address),'_blank'); else window.toast('ไม่มีพิกัดลูกค้า','in'); };
 }
 
-// CUSTOMER STATS
-async function loadCusStats(orderDocId){
-  $('dtCusDone').textContent='-';$('dtCusCancel').textContent='-';
-  if(!curOrder?.customer?.phone)return;
-  try{
-    const phone=curOrder.customer.phone;
-    const snap=await getDocs(query(collection(db,'orders'),where('customer.phone','==',phone)));
-    let ok=0,cancel=0;snap.forEach(d=>{const st=d.data().status;if(st==='done')ok++;if(st==='rejected')cancel++;});
-    $('dtCusDone').textContent=ok+' ครั้ง';$('dtCusCancel').textContent=cancel+' ครั้ง';
-  }catch(e){}
-}
 
 // STATUS CHANGE WITH CONFIRM
 async function nextSt(){
