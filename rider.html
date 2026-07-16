@@ -685,7 +685,9 @@ function listenPending(){
           }
         }
       });
-      knownPending=newIds;
+      // สะสม — ไม่ลบออก ป้องกันแจ้งซ้ำเมื่อถอดงานแล้วกลับมา pending
+      newIds.forEach(id=>knownPending.add(id));
+      sessionStorage.setItem('kp',JSON.stringify([...knownPending]));
       pendingOrders={};
       snap.forEach(d=>{ pendingOrders[d.id]={docId:d.id,...d.data()}; });
       renderPending(Object.values(pendingOrders));
