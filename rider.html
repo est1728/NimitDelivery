@@ -678,9 +678,11 @@ function listenPending(){
       newIds.forEach(id=>{
         if(!knownPending.has(id)){
           const o=snap.docs.find(d=>d.id===id)?.data();
-          playNotifSound('new');
-          window.showNotif('🔔','งานใหม่มาแล้ว!',(o?.orderId||id)+' · '+(o?.shopName||''),  'new');
-          showOSNotif('🔔 งานใหม่มาแล้ว!',(o?.orderId||id)+' · '+(o?.shopName||'')+' · ฿'+(o?.grandTotal||0));
+          if(performance.now()>3000){
+            try{playNotifSound('new');}catch(e){}
+            window.showNotif('🔔','งานใหม่มาแล้ว!',(o?.orderId||id)+' · '+(o?.shopName||''), 'new');
+            try{showOSNotif('🔔 งานใหม่มาแล้ว!',(o?.orderId||id)+' · '+(o?.shopName||'')+' · ฿'+(o?.grandTotal||0));}catch(e){}
+          }
         }
       });
       knownPending=newIds;
@@ -773,7 +775,7 @@ function listenTotalUnread(){
 }
 
 // ฟังการ assign/reassign ของ order
-let myAssignedOrders=new Set();
+let myAssignedOrders=new Set(JSON.parse(sessionStorage.getItem('ma')||'[]'));
 function listenMyAssignments(){
   if(!riderData?.id) return;
   onSnapshot(query(collection(db,'orders'),where('riderId','==',riderData.id),where('status','in',['accepted','picking','arrived','delivering'])),
@@ -782,6 +784,7 @@ function listenMyAssignments(){
         if(!myAssignedOrders.has(d.id)){
           const o=d.data();
           myAssignedOrders.add(d.id);
+          sessionStorage.setItem('ma',JSON.stringify([...myAssignedOrders]));
           if(myAssignedOrders.size>1){ // ไม่แจ้งครั้งแรก
             playNotifSound('assigned');
             window.showNotif('📦','ถูกมอบหมายงาน!','ออเดอร์ '+(o.orderId||d.id),'assigned');
