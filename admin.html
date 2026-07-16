@@ -804,7 +804,9 @@ async function confirmAssign(){
   const btn=$('cfmAsgnBtn');
   btn.disabled=true; btn.textContent='กำลังโยน...';
   const assignedOrder=orders.find(o=>o.docId===asgDocId)||curOrder;
-  const keepStatus=(assignedOrder&&!['done','rejected'].includes(assignedOrder.status))?assignedOrder.status:'accepted';
+  // ไม่ให้ status ถอยหลัง: pending → accepted, ส่วน accepted/picking/arrived/delivering คงไว้
+  const curSt=(assignedOrder?.status)||'pending';
+  const keepStatus=['pending','done','rejected'].includes(curSt)?'accepted':curSt;
   try{
     const asgOrder=orders.find(o=>o.docId===asgDocId)||curOrder;
     await updateDoc(doc(db,'orders',asgDocId),{riderId:r.id,riderName:r.name,riderPhone:r.phone||'',status:keepStatus,updatedAt:serverTimestamp()});
