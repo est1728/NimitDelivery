@@ -605,7 +605,7 @@ window.loadOrders=async function loadOrders(){
     snap.forEach(d=>{
       if(!knownOrders.has(d.id)){
         const o=d.data();
-        if(knownOrders.size>0){
+        if(knownOrders.size>0&&performance.now()>3000){
           try{playNotifSound('new');}catch(e){}
           try{showNotif('🔔','งานใหม่!',(o.orderId||d.id)+' · '+(o.shopName||''),'linear-gradient(135deg,#0c4aa6,#083570)');}catch(e){}
         }
