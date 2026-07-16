@@ -782,6 +782,7 @@ async function prevSt(){
 // ASSIGN
 async function openAssign(){
   if(!curOrder)return;asgDocId=curDocId;
+  const cfm=$('cfmAsgnBtn');if(cfm){cfm.disabled=false;cfm.textContent='ยืนยัน';}
   $('sobEl').textContent='ออเดอร์: #'+curOrder.orderId+' · '+(curOrder.shopName||'');
   selRider=null;
   try{
@@ -796,9 +797,15 @@ function closeAssign(){$('sov').classList.remove('show');$('ash').classList.remo
 async function confirmAssign(){
   if(!selRider){window.toast('กรุณาเลือกไรเดอร์หรือเลือกถอดงาน','er');return;}
   if(selRider==='__unassign__'){
-    confirm2('ถอดงาน','ถอดไรเดอร์ออกจากออเดอร์นี้?','ถอด','er',async()=>{
-      try{await updateDoc(doc(db,'orders',asgDocId),{riderId:'',riderName:'',riderPhone:'',status:'pending',updatedAt:serverTimestamp()});closeAssign();window.toast('ถอดไรเดอร์แล้ว','ok');}catch(e){window.toast('ไม่สำเร็จ','er');}
-    });return;
+    const btn2=$('cfmAsgnBtn');btn2.disabled=true;btn2.textContent='กำลังถอด...';
+    try{
+      await updateDoc(doc(db,'orders',asgDocId),{riderId:'',riderName:'',riderPhone:'',status:'pending',updatedAt:serverTimestamp()});
+      // ป้องกันการแจ้งเตือนซ้ำ — เพิ่มเข้า known set
+      knownOrders.add(asgDocId);sessionStorage.setItem('ka',JSON.stringify([...knownOrders]));
+      closeAssign();window.toast('ถอดไรเดอร์แล้ว','ok');
+    }catch(e){window.toast('ไม่สำเร็จ','er');}
+    btn2.disabled=false;btn2.textContent='ยืนยัน';
+    return;
   }
   const r=riders.find(x=>x.id===selRider);if(!r)return;
   const btn=$('cfmAsgnBtn');
@@ -835,10 +842,11 @@ window.confirmCancelOrder=async function(){
   document.getElementById('cancelNote').style.borderColor='#e2e8f0';
   try{
     await updateDoc(doc(db,'orders',curDocId),{status:'rejected',cancelNote:note,updatedAt:serverTimestamp()});
-    closeCancelOrder();
+    window.closeCancelOrder();
     window.toast('ยกเลิกออเดอร์แล้ว','ok');
     showNotif('❌','ยกเลิกออเดอร์แล้ว',note,'linear-gradient(135deg,#dc2626,#b91c1c)');
-    setTimeout(()=>{closeDetail();swPg('ordersPage');},600);
+    closeDetail();
+    swPg('ordersPage');
   }catch(e){window.toast('ไม่สำเร็จ: '+e.message,'er');}
 }
 
