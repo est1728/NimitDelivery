@@ -220,6 +220,9 @@ body{background:var(--g);min-height:100vh;}
 .notif-close{width:28px;height:28px;border:none;background:rgba(255,255,255,.2);border-radius:50%;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .item-opts{font-size:12px;color:var(--s);padding-top:2px;}
 .item-opts div{line-height:1.6;}
+
+#rActive:checked + #rActiveSwitch{background:var(--p);}
+#rActive:checked ~ #rActiveThumb{transform:translateX(22px);}
 </style>
 </head>
 <body>
@@ -484,7 +487,34 @@ body{background:var(--g);min-height:100vh;}
 
 <div class="mov" id="riderMov">
   <div class="mb"><div class="mh"><div class="mt" id="riderMovT">เพิ่มไรเดอร์</div><button class="mc" data-close="riderMov"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>
-  <div class="mbd"><div class="mf"><div class="ml">ชื่อ</div><input class="mi" id="rName"></div><div class="mf"><div class="ml">เบอร์</div><input class="mi" id="rPh" type="tel"></div><div class="mf"><div class="ml">ทะเบียน</div><input class="mi" id="rPlate"></div><div class="mf"><div class="ml">Slug</div><input class="mi" id="rSlug"></div><div class="mf"><div class="ml">กะ</div><input class="mi" id="rShift"></div><button class="msb" id="saveRiderBtn">บันทึก</button><button class="mxb" data-close="riderMov">ยกเลิก</button></div></div>
+  <div class="mbd">
+    <div style="font-size:11px;font-weight:700;color:var(--s);letter-spacing:.5px;margin-bottom:8px;text-transform:uppercase">ข้อมูลส่วนตัว</div>
+    <div class="mf"><div class="ml">ชื่อ-นามสกุล *</div><input class="mi" id="rName" placeholder="ชื่อ นามสกุล"></div>
+    <div class="mf"><div class="ml">เลขบัตรประชาชน</div><input class="mi" id="rIdCard" type="tel" maxlength="13" placeholder="1-xxxx-xxxxx-xx-x"></div>
+    <div class="mf"><div class="ml">ที่อยู่บ้าน</div><input class="mi" id="rAddress" placeholder="บ้านเลขที่ ซอย ถนน"></div>
+    <div class="mf"><div class="ml">รหัสไปรษณีย์</div><input class="mi" id="rZip" type="tel" maxlength="5" placeholder="xxxxx"></div>
+    <div style="font-size:11px;font-weight:700;color:var(--s);letter-spacing:.5px;margin:12px 0 8px;text-transform:uppercase">ข้อมูลติดต่อ</div>
+    <div class="mf"><div class="ml">เบอร์ติดต่อหลัก *</div><input class="mi" id="rPh" type="tel" placeholder="08x-xxx-xxxx"></div>
+    <div class="mf"><div class="ml">เบอร์ฉุกเฉิน (คนใกล้ชิด)</div><input class="mi" id="rEmergPhone" type="tel" placeholder="08x-xxx-xxxx"></div>
+    <div class="mf"><div class="ml">ชื่อผู้ติดต่อฉุกเฉิน</div><input class="mi" id="rEmergName" placeholder="ชื่อ ความสัมพันธ์"></div>
+    <div style="font-size:11px;font-weight:700;color:var(--s);letter-spacing:.5px;margin:12px 0 8px;text-transform:uppercase">ข้อมูลการทำงาน</div>
+    <div class="mf"><div class="ml">เลขทะเบียนรถ *</div><input class="mi" id="rPlate" placeholder="กข 1234 กทม."></div>
+    <div class="mf"><div class="ml">เริ่มงานวันที่</div><input class="mi" id="rStartDate" type="date"></div>
+    <div class="mf"><div class="ml">เวลาเข้างาน</div><input class="mi" id="rShiftIn" type="time" value="08:00"></div>
+    <div class="mf"><div class="ml">เวลาออกงาน</div><input class="mi" id="rShiftOut" type="time" value="20:00"></div>
+    <div class="mf"><div class="ml">ID / Slug</div><input class="mi" id="rSlug" placeholder="rider01"></div>
+    <div style="font-size:11px;font-weight:700;color:var(--s);letter-spacing:.5px;margin:12px 0 8px;text-transform:uppercase">สถานะการใช้งาน</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f0f2f5;">
+      <div><div style="font-size:14px;font-weight:700;color:var(--t)">เปิดใช้งาน</div><div style="font-size:12px;color:var(--s)">ปิดเมื่อไรเดอร์ลา</div></div>
+      <label style="position:relative;display:inline-block;width:48px;height:26px;cursor:pointer">
+        <input type="checkbox" id="rActive" checked style="opacity:0;width:0;height:0;">
+        <span id="rActiveSwitch" style="position:absolute;inset:0;background:#ccc;border-radius:26px;transition:.2s;"></span>
+        <span id="rActiveThumb" style="position:absolute;left:3px;top:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></span>
+      </label>
+    </div>
+    <button class="msb" id="saveRiderBtn" style="margin-top:16px">บันทึก</button>
+    <button class="mxb" data-close="riderMov">ยกเลิก</button>
+  </div></div>
 </div>
 
 <div class="mov" id="topupMov">
@@ -804,11 +834,12 @@ async function nextSt(){
         const cut=curOrder.walletCut;
         addDoc(collection(db,'walletTx'),{riderId:curOrder.riderId,riderName:curOrder.riderName||'',amount:-cut,type:'หักจากออเดอร์',orderId:curOrder.orderId||curDocId,note:'',createdAt:serverTimestamp(),by:'system'}).catch(()=>{});
         updateDoc(doc(db,'riders',curOrder.riderId),{wallet:increment(-cut)}).catch(()=>{});
-        getDoc(doc(db,'wallet','central')).then(d=>{
-          if(d.exists())updateDoc(doc(db,'wallet','central'),{balance:increment(cut)});
-          else import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js").then(({setDoc})=>setDoc(doc(db,'wallet','central'),{balance:cut}));
-        }).catch(()=>{});
-      }if(next==='done')window.toast('ออเดอร์เสร็จสิ้น','ok');}
+        setDoc(doc(db,'wallet','central'),{balance:increment(cut)},{merge:true}).catch(()=>{});
+      }
+      if(next==='done'){
+        window.toast('ออเดอร์เสร็จสิ้น ✓','ok');
+        setTimeout(()=>{closeDetail();swPg('ordersPage');},600);
+      }}
     catch(e){window.toast('เกิดข้อผิดพลาด','er');}
   });
 }
@@ -1005,7 +1036,21 @@ async function loadRiders(){
     }).join('')+'</div>';
   }catch(e){window.toast('โหลดไรเดอร์ไม่ได้','er');}
 }
-function openAddRider(){editRiderId=null;$('riderMovT').textContent='เพิ่มไรเดอร์';['rName','rPh','rPlate','rSlug','rShift'].forEach(id=>$(id).value='');$('riderMov').classList.add('show');}
+function updateSwitch(){
+  const on=$('rActive')?.checked;
+  if($('rActiveSwitch'))$('rActiveSwitch').style.background=on?'var(--p)':'#ccc';
+  if($('rActiveThumb'))$('rActiveThumb').style.transform=on?'translateX(22px)':'translateX(0)';
+}
+document.addEventListener('change',e=>{if(e.target.id==='rActive')updateSwitch();});
+window.openAddRider=function(){
+  editRiderId=null;$('riderMovT').textContent='เพิ่มไรเดอร์';
+  ['rName','rIdCard','rAddress','rZip','rPh','rEmergPhone','rEmergName','rPlate','rSlug'].forEach(id=>{if($(id))$(id).value='';});
+  if($('rStartDate'))$('rStartDate').value='';
+  if($('rShiftIn'))$('rShiftIn').value='08:00';
+  if($('rShiftOut'))$('rShiftOut').value='20:00';
+  if($('rActive')){$('rActive').checked=true;updateSwitch();}
+  $('riderMov').classList.add('show');
+}
 function editRiderOpen(id){const r=riders.find(x=>x.id===id);if(!r)return;editRiderId=id;$('riderMovT').textContent='แก้ไขไรเดอร์';$('rName').value=r.name||'';$('rPh').value=r.phone||'';$('rPlate').value=r.plate||'';$('rSlug').value=r.slug||'';$('rShift').value=r.shift||'';$('riderMov').classList.add('show');}
 async function saveRider(){
   const name=$('rName').value.trim();if(!name){window.toast('กรุณากรอกชื่อ','er');return;}
