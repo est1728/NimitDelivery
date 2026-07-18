@@ -223,6 +223,28 @@ body{background:var(--g);min-height:100vh;}
 
 #rActive:checked + #rActiveSwitch{background:var(--p);}
 #rActive:checked ~ #rActiveThumb{transform:translateX(22px);}
+
+/* RIDER SWITCH */
+.r-switch{position:relative;width:44px;height:24px;flex-shrink:0;}
+.r-switch input{opacity:0;width:0;height:0;position:absolute;}
+.r-switch-track{position:absolute;inset:0;border-radius:24px;background:#d1d5db;transition:.2s;cursor:pointer;}
+.r-switch input:checked+.r-switch-track{background:var(--p);}
+.r-switch-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:.2s;pointer-events:none;}
+.r-switch input:checked~.r-switch-thumb{transform:translateX(20px);}
+/* RIDER CARD NEW */
+.lr{background:#fff;border-radius:16px;margin-bottom:10px;overflow:hidden;border:1px solid #f0f2f5;}
+.lr-top{display:flex;align-items:center;gap:12px;padding:12px 14px;}
+.lr-mid{display:flex;align-items:center;justify-content:space-between;padding:6px 14px 10px;border-top:1px solid #f5f6f8;}
+.lr-info{flex:1;min-width:0;}
+.lr-name{font-size:14px;font-weight:800;color:var(--t);}
+.lr-sub{font-size:11px;color:var(--s);margin-top:2px;}
+.lr-wallet{text-align:right;flex-shrink:0;}
+.lr-wallet-v{font-size:15px;font-weight:800;color:var(--p);}
+.lr-wallet-l{font-size:10px;color:var(--s);}
+.lr-actions{display:flex;align-items:center;gap:6px;}
+.lr-link{font-size:10px;color:var(--s);padding:4px 14px;background:#f5f6f8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.lr-copy{font-size:11px;font-weight:700;color:var(--p);padding:4px 10px;border:none;background:none;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+
 </style>
 </head>
 <body>
@@ -991,11 +1013,40 @@ async function loadShops(){
     if(!shops.length){el.innerHTML='<div class="lt">ยังไม่มีร้านค้า</div>';return;}
     el.innerHTML='<div class="scard">'+shops.map(s=>{
       const slug=s.slug||s.id,link=location.origin+'/shop-admin.html?id='+slug;
-      return `<div class="lr"><div class="lrt"><div class="lav"><svg viewBox="0 0 24 24"><path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/></svg></div><div class="li"><div class="ln">${esc(s.name)}</div><div class="ls">/${esc(slug)}${s.phone?' · '+s.phone:''}</div></div><span class="ob ${s.isOpen?'oy':'on2'}">${s.isOpen?'เปิด':'ปิด'}</span><div class="la">
-      <button class="ib ibv" data-ext="shop-admin.html?id=${slug}"><svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg></button>
-      <button class="ib ibm" data-goto="shop-manage.html?id=${s.id}"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
-      <button class="ib ibd" data-del-shop="${s.id}"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
-      </div></div><div class="lkr"><span class="lkt">${link}</span><button class="lkb" data-copy="${link}">คัดลอก</button></div></div>`;
+      return `<div class="lr"${r.active===false?' style="opacity:.55"':''}>
+        <div class="lr-top">
+          <div class="lav"><svg viewBox="0 0 24 24"><path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/></svg></div>
+          <div class="lr-info">
+            <div class="lr-name">${esc(r.name)}</div>
+            <div class="lr-sub">${r.phone?r.phone:''} ${r.plate?'· '+r.plate:''}</div>
+            <div class="lr-sub">${r.shiftIn?'เข้า '+r.shiftIn:''} ${r.shiftOut?'ออก '+r.shiftOut:''}</div>
+          </div>
+          <div class="lr-wallet">
+            <div class="lr-wallet-v">฿${(r.wallet||0).toLocaleString()}</div>
+            <div class="lr-wallet-l">กระเป๋า</div>
+          </div>
+        </div>
+        <div class="lr-mid">
+          <div class="lr-actions">
+            <label class="r-switch" title="${r.active!==false?'เปิดอยู่':'ปิดอยู่'}" onclick="event.stopPropagation()">
+              <input type="checkbox" ${r.active!==false?'checked':''} onchange="window.toggleRiderActive('${r.id}',${r.active!==false})">
+              <span class="r-switch-track"></span>
+              <span class="r-switch-thumb"></span>
+            </label>
+            <span style="font-size:10px;color:var(--s);margin-left:2px">${r.active!==false?'เปิด':'ปิด'}</span>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="ib ibv" data-ext="rider.html?id=${slug}" title="ดูลิงก์"><svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg></button>
+            <button class="ib" style="background:var(--gnl)" data-topup="${r.id}" data-tname="${esc(r.name)}" data-twal="${r.wallet||0}" title="เติมกระเป๋า"><svg style="fill:var(--gn)" viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9z"/></svg></button>
+            <button class="ib ibm" data-edit-rider="${r.id}" title="แก้ไข"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
+            <button class="ib ibd" data-del-rider="${r.id}" title="ลบ"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;padding:0 14px 10px;gap:6px">
+          <span class="lr-link" style="flex:1;font-size:10px;color:var(--s);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${link}</span>
+          <button class="lr-copy" data-copy="${link}">คัดลอก</button>
+        </div>
+      </div>`
     }).join('')+'</div>';
   }catch(e){window.toast('โหลดร้านค้าไม่ได้','er');}
 }
@@ -1017,16 +1068,40 @@ async function loadRiders(){
     if(!riders.length){el.innerHTML='<div class="lt">ยังไม่มีไรเดอร์</div>';return;}
     el.innerHTML='<div class="scard">'+riders.map(r=>{
       const slug=r.slug||r.id,link=location.origin+'/rider.html?id='+slug;
-      return `<div class="lr"><div class="lrt"><div class="lav"><svg viewBox="0 0 24 24"><path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/></svg></div>
-      <div class="li"><div class="ln">${esc(r.name)}</div><div class="ls">${esc(r.phone||'')}${r.plate?' · '+r.plate:''}${r.shift?' · '+r.shift:''}</div></div>
-      <div style="text-align:right;margin-right:4px"><div style="font-size:13px;font-weight:800;color:var(--gn)">฿${r.wallet||0}</div><div style="font-size:10px;color:var(--s)">กระเป๋า</div></div>
-      <div class="la">
-      <button class="ib ibv" data-ext="rider.html?id=${slug}"><svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg></button>
-      <button class="ib" style="background:var(--gnl)" data-topup="${r.id}" data-tname="${esc(r.name)}" data-twal="${r.wallet||0}"><svg style="fill:var(--gn)" viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9z"/></svg></button>
-      <button class="ib ibm<button onclick="event.stopPropagation();window.toggleRiderActive('${r.id}',${r.active!==false})" style="width:36px;height:36px;border:none;border-radius:10px;cursor:pointer;font-size:11px;font-weight:800;flex-shrink:0;background:${r.active!==false?'#fee2e2':'#dcfce7'};color:${r.active!==false?'#dc2626':'#16a34a'}">${r.active!==false?'ปิด':'เปิด'}</button>
-      <button class="ib ibm" data-edit-rider="${r.id}"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
-      <button class="ib ibd" data-del-rider="${r.id}"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
-      </div></div><div class="lkr"><span class="lkt">${link}</span><button class="lkb" data-copy="${link}">คัดลอก</button></div></div>`;
+      return `<div class="lr"${r.active===false?' style="opacity:.55"':''}>
+        <div class="lr-top">
+          <div class="lav"><svg viewBox="0 0 24 24"><path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/></svg></div>
+          <div class="lr-info">
+            <div class="lr-name">${esc(r.name)}</div>
+            <div class="lr-sub">${r.phone||''} ${r.plate?'· '+r.plate:''}</div>
+            ${r.shiftIn||r.shiftOut?`<div class="lr-sub">เข้า ${r.shiftIn||'-'} · ออก ${r.shiftOut||'-'}</div>`:''}
+          </div>
+          <div class="lr-wallet">
+            <div class="lr-wallet-v">฿${(r.wallet||0).toLocaleString()}</div>
+            <div class="lr-wallet-l">กระเป๋า</div>
+          </div>
+        </div>
+        <div class="lr-mid">
+          <div class="lr-actions">
+            <label class="r-switch" onclick="event.stopPropagation()" title="${r.active!==false?'เปิดอยู่ — กดเพื่อปิด':'ปิดอยู่ — กดเพื่อเปิด'}">
+              <input type="checkbox" ${r.active!==false?'checked':''} onchange="event.stopPropagation();window.toggleRiderActive('${r.id}',${r.active!==false})">
+              <span class="r-switch-track"></span>
+              <span class="r-switch-thumb"></span>
+            </label>
+            <span style="font-size:11px;color:var(--s);margin-left:4px;font-weight:600">${r.active!==false?'เปิด':'ปิด'}</span>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <button class="ib ibv" data-ext="rider.html?id=${slug}" title="ดูลิงก์"><svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg></button>
+            <button class="ib" style="background:var(--gnl)" data-topup="${r.id}" data-tname="${esc(r.name)}" data-twal="${r.wallet||0}"><svg style="fill:var(--gn)" viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9z"/></svg></button>
+            <button class="ib ibm" data-edit-rider="${r.id}"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
+            <button class="ib ibd" data-del-rider="${r.id}"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;padding:0 14px 10px;gap:6px">
+          <span style="flex:1;font-size:10px;color:var(--s);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${link}</span>
+          <button class="lr-copy" data-copy="${link}" style="font-size:11px;font-weight:700;color:var(--p);border:none;background:none;cursor:pointer;white-space:nowrap;flex-shrink:0">คัดลอก</button>
+        </div>
+      </div>`
     }).join('')+'</div>';
   }catch(e){window.toast('โหลดไรเดอร์ไม่ได้','er');}
 }
