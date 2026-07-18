@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Wallet Center</title>
+<style>
+:root{--p:#1565C0;--p2:#1E88E5;--pl:#EBF5FF;--s:#22C55E;--d:#EF4444;--bg:#F5F7FA;--card:#fff;--t:#1a2340;--t2:#64748b;--r:20px;--sh:0 2px 12px rgba(0,0,0,.07);}
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);min-height:100vh;padding-bottom:32px;}
+
+/* TOPBAR */
+.tb{background:#fff;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid #eaeef4;position:sticky;top:0;z-index:50;}
+.tb-ic{width:40px;height:40px;border:none;background:none;cursor:pointer;border-radius:12px;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+.tb-ic:active{background:#f0f4ff;}
+.tb-ic svg{width:20px;height:20px;}
+.tb-t{font-size:16px;font-weight:700;color:var(--p);display:flex;align-items:center;gap:7px;}
+
+/* SIDEBAR */
+.sb-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:none;}
+.sb-bg.on{display:block;animation:fd .2s;}
+.sb{position:fixed;top:0;right:-280px;bottom:0;width:260px;background:#fff;z-index:101;transition:right .2s ease;box-shadow:-4px 0 20px rgba(0,0,0,.1);}
+.sb.on{right:0;}
+@keyframes fd{from{opacity:0}to{opacity:1}}
+.sb-hd{background:linear-gradient(135deg,var(--p),var(--p2));padding:52px 20px 20px;}
+.sb-hd-t{font-size:18px;font-weight:800;color:#fff;}
+.sb-hd-s{font-size:11px;color:rgba(255,255,255,.6);margin-top:2px;}
+.sb-mi{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid #f5f7fa;cursor:pointer;transition:background .15s;}
+.sb-mi:active{background:#f0f4ff;}
+.sb-mi-ic{width:34px;height:34px;border-radius:10px;background:#f0f4ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sb-mi-ic svg{width:16px;height:16px;stroke:var(--p);fill:none;stroke-width:2;}
+.sb-mi-t{font-size:14px;font-weight:600;color:var(--t);}
+.sb-mi-s{font-size:10px;color:var(--t2);}
+
+/* CARD */
+.card{background:var(--card);border-radius:var(--r);margin:14px 16px 0;padding:18px;box-shadow:var(--sh);animation:cardIn .2s ease;}
+@keyframes cardIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.card-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.card-t{font-size:13px;font-weight:700;color:var(--t2);letter-spacing:.3px;}
+.card-badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--pl);color:var(--p);}
+
+/* BALANCE CARD */
+.bal-main{display:flex;flex-direction:column;}
+.bal-amt{font-size:36px;font-weight:900;color:var(--p);letter-spacing:-1px;line-height:1;}
+.bal-cur{font-size:20px;font-weight:700;opacity:.6;margin-right:3px;}
+.bal-sub{font-size:12px;color:var(--t2);margin-top:6px;}
+.bal-row{display:flex;align-items:center;gap:16px;margin-top:14px;padding-top:14px;border-top:1px solid #f0f4f8;}
+.bal-stat{flex:1;}
+.bal-stat-v{font-size:16px;font-weight:800;color:var(--t);}
+.bal-stat-l{font-size:10px;color:var(--t2);margin-top:1px;}
+.live{display:flex;align-items:center;gap:5px;}
+.live-d{width:7px;height:7px;border-radius:50%;background:var(--s);animation:bl 1.4s infinite;}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.3}}
+.live-t{font-size:10px;color:var(--t2);font-weight:500;}
+
+/* ACTION GRID */
+.act-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.act-btn{height:68px;border:1.5px solid #e8ecf4;border-radius:16px;background:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;transition:all .15s;position:relative;overflow:hidden;}
+.act-btn:active{transform:scale(.97);background:var(--pl);}
+.act-btn .ico{width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;}
+.act-btn .lbl{font-size:12px;font-weight:700;color:var(--t);}
+.act-btn .sub{font-size:10px;color:var(--t2);}
+/* ripple */
+.ripple{position:absolute;border-radius:50%;background:rgba(21,101,192,.15);transform:scale(0);animation:rip .5s ease;pointer-events:none;}
+@keyframes rip{to{transform:scale(4);opacity:0}}
+
+/* SEARCH */
+.srch{display:flex;align-items:center;gap:10px;background:#f5f7fa;border-radius:12px;padding:0 14px;margin-bottom:12px;}
+.srch svg{width:16px;height:16px;fill:none;stroke:var(--t2);stroke-width:2;flex-shrink:0;}
+.srch input{flex:1;height:40px;border:none;background:none;outline:none;font-size:14px;color:var(--t);}
+
+/* RIDER CARD */
+.r-item{display:flex;align-items:center;gap:12px;padding:12px;border:1.5px solid #f0f3f8;border-radius:16px;margin-bottom:8px;cursor:pointer;background:#fff;transition:all .15s;}
+.r-item:active{transform:scale(.98);}
+.r-item.sel{border-color:var(--p);background:var(--pl);}
+.r-av{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--p2));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;flex-shrink:0;}
+.r-name{font-size:14px;font-weight:700;color:var(--t);}
+.r-item.sel .r-name{color:var(--p);}
+.r-bal{font-size:11px;color:var(--t2);margin-top:1px;}
+.r-bal b{color:var(--p);}
+.r-cut{font-size:11px;color:var(--d);margin-top:1px;}
+.r-arr{margin-left:auto;color:var(--t2);font-size:18px;}
+
+/* SKELETON */
+.skel{background:linear-gradient(90deg,#f0f3f8 25%,#e8ecf4 50%,#f0f3f8 75%);background-size:200% 100%;animation:sk 1.2s infinite;border-radius:8px;}
+@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* TIMELINE */
+.tl{position:relative;padding-left:20px;}
+.tl::before{content:'';position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:#e8ecf4;}
+.tl-item{position:relative;padding:0 0 16px 16px;animation:slideIn .25s ease;}
+@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+.tl-dot{position:absolute;left:-6px;top:4px;width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid #e8ecf4;z-index:1;}
+.tl-dot.pos{border-color:var(--s);background:var(--s);}
+.tl-dot.neg{border-color:var(--d);background:var(--d);}
+.tl-time{font-size:10px;color:var(--t2);margin-bottom:3px;}
+.tl-card{background:#f8fafc;border-radius:14px;padding:11px 13px;}
+.tl-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
+.tl-type{font-size:12px;font-weight:700;color:var(--t);}
+.tl-amt{font-size:15px;font-weight:900;}
+.tl-amt.pos{color:var(--s);}
+.tl-amt.neg{color:var(--d);}
+.tl-tag{font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;display:inline-block;margin-right:4px;}
+.tag-o{background:#EBF5FF;color:var(--p);}
+.tag-a{background:#f0fdf4;color:#166534;}
+.tag-s{background:#f5f5f5;color:#6b7280;}
+.tl-bal{font-size:10px;color:var(--t2);margin-top:4px;}
+.tl-bal b{color:var(--p);font-weight:700;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a2340;color:#fff;padding:11px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:999;animation:toastIn .2s ease;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.2);}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* SHEET */
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:200;display:none;align-items:flex-end;}
+.mask.on{display:flex;}
+.sheet{background:#fff;border-radius:24px 24px 0 0;width:100%;padding:18px 20px 40px;animation:up .22s ease;}
+@keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sh-pill{width:36px;height:4px;border-radius:2px;background:#e2e8f0;margin:0 auto 16px;}
+.sh-t{font-size:18px;font-weight:800;color:var(--t);margin-bottom:16px;}
+.sh-lbl{font-size:11px;font-weight:700;color:var(--t2);letter-spacing:.8px;text-transform:uppercase;margin-bottom:7px;}
+.sh-in{width:100%;height:54px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 18px;font-size:22px;font-weight:800;color:var(--t);outline:none;margin-bottom:14px;}
+.sh-in:focus{border-color:var(--p);}
+.sh-info{background:#f5f7fa;border-radius:14px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;}
+.sh-ok{width:100%;height:52px;border:none;border-radius:16px;background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;font-size:16px;font-weight:800;cursor:pointer;}
+.sh-ok.danger{background:linear-gradient(135deg,#b91c1c,var(--d));}
+.sh-ok:disabled{background:#cbd5e1;cursor:not-allowed;}
+.sh-cancel{width:100%;height:42px;border:none;background:none;color:var(--t2);font-size:14px;font-weight:600;cursor:pointer;margin-top:8px;}
+.empty{text-align:center;padding:24px;color:var(--t2);font-size:12px;}
+.lt{text-align:center;padding:16px;color:var(--t2);font-size:11px;}
+
+/* DETAIL OVERLAY */
+.detail{position:fixed;inset:0;background:var(--bg);z-index:80;transform:translateX(100%);transition:transform .22s ease;overflow-y:auto;padding-bottom:32px;}
+.detail.on{transform:translateX(0);}
+.detail-tb{background:#fff;height:56px;display:flex;align-items:center;gap:12px;padding:0 16px;border-bottom:1px solid #eaeef4;position:sticky;top:0;}
+.detail-back{width:38px;height:38px;border:none;background:none;cursor:pointer;border-radius:10px;}
+.detail-back svg{width:20px;height:20px;}
+.detail-t{font-size:15px;font-weight:700;color:var(--t);}
+.stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:0;}
+.stat-c{background:#fff;border-radius:16px;padding:13px;text-align:center;box-shadow:var(--sh);}
+.stat-v{font-size:18px;font-weight:900;color:var(--p);}
+.stat-l{font-size:10px;color:var(--t2);margin-top:2px;}
+.det-btns{display:flex;gap:10px;margin-bottom:0;}
+.det-btn{flex:1;height:46px;border:none;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;}
+.det-btn.add{background:var(--pl);color:var(--p);}
+.det-btn.sub{background:#fff0f0;color:var(--d);}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="tb">
+  <button class="tb-ic" onclick="history.back()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  </button>
+  <div class="tb-t">กระเป๋ากลาง</div>
+  <button class="tb-ic" onclick="openSb()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
+  </button>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sb-bg" id="sbBg" onclick="closeSb()"></div>
+<div class="sb" id="sb">
+  <div class="sb-hd"><div class="sb-hd-t">Wallet Center</div><div class="sb-hd-s">ระบบกระเป๋ากลาง</div></div>
+  <div class="sb-mi" onclick="closeSb();window.scrollTo({top:0,behavior:'smooth'})"><div class="sb-mi-ic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--p)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg></div><div><div class="sb-mi-t">Dashboard</div><div class="sb-mi-s">กลับด้านบน</div></div></div>
+  <div class="sb-mi" onclick="closeSb();document.querySelector('.card').scrollIntoView({behavior:'smooth'})"><div class="sb-mi-ic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--p)" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div><div><div class="sb-mi-t">กระเป๋ากลาง</div><div class="sb-mi-s">ดูยอดเงิน</div></div></div>
+  <div class="sb-mi" onclick="closeSb();window.openRealSheet('topup')"><div class="sb-mi-ic"><svg viewBox="0 0 24 24"><polyline points="12 5 12 19"/><polyline points="5 12 12 5 19 12"/></svg></div><div><div class="sb-mi-t">เติมเงินจริง</div><div class="sb-mi-s">รับเงินโอนเข้า</div></div></div>
+  <div class="sb-mi" onclick="closeSb();window.openRealSheet('withdraw')"><div class="sb-mi-ic"><svg viewBox="0 0 24 24"><polyline points="12 19 12 5"/><polyline points="5 12 12 19 19 12"/></svg></div><div><div class="sb-mi-t">ถอนเงินจริง</div><div class="sb-mi-s">โอนออกสู่ธนาคาร</div></div></div>
+</div>
+
+<!-- CARD 1: BALANCE -->
+<div class="card">
+  <div class="card-hd"><span class="card-t">กระเป๋ากลาง</span><div class="live"><div class="live-d"></div><div class="live-t" id="liveT">ออนไลน์</div></div></div>
+  <div class="bal-main">
+    <div class="bal-amt"><span class="bal-cur">฿</span><span id="balAmt">0.00</span></div>
+    <div class="bal-sub">ยอดเงินจริงคงเหลือ</div>
+  </div>
+  <div class="bal-row">
+    <div class="bal-stat"><div class="bal-stat-v" id="todayIn">+฿0</div><div class="bal-stat-l">เข้าวันนี้</div></div>
+    <div class="bal-stat"><div class="bal-stat-v" id="todayOut" style="color:#EF4444">-฿0</div><div class="bal-stat-l">ออกวันนี้</div></div>
+    <div class="bal-stat"><div class="bal-stat-v" id="txCount">0</div><div class="bal-stat-l">รายการวันนี้</div></div>
+  </div>
+</div>
+
+<!-- CARD 2: ACTIONS -->
+<div class="card">
+  <div class="card-hd"><span class="card-t">การจัดการเครดิต</span></div>
+  <div class="act-grid" style="grid-template-columns:1fr 1fr;">
+    <button class="act-btn" onclick="ripple(event);window.openCreditSheet('add')">
+      <div class="ico" style="background:#EBF5FF"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+      <div class="lbl">เติมเครดิต</div><div class="sub">ให้ไรเดอร์</div>
+    </button>
+    <button class="act-btn" onclick="ripple(event);window.openCreditSheet('sub')">
+      <div class="ico" style="background:#fff0f0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+      <div class="lbl">ถอนเครดิต</div><div class="sub">จากไรเดอร์</div>
+    </button>
+  </div>
+</div>
+
+<!-- CARD 3: RIDERS -->
+<div class="card">
+  <div class="card-hd">
+    <span class="card-t">ไรเดอร์ทั้งหมด</span>
+    <span class="card-badge" id="rCount">0 คน</span>
+  </div>
+  <div class="srch">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+    <input id="srch" placeholder="ค้นหาชื่อไรเดอร์..." oninput="window.filterRiders(this.value)">
+  </div>
+  <div id="riderList"><div class="lt">กำลังโหลด...</div></div>
+</div>
+
+<!-- CARD 5: CENTRAL HISTORY -->
+<div class="card">
+  <div class="card-hd"><span class="card-t">ประวัติกระเป๋ากลาง</span></div>
+  <div class="tl" id="centralTl"><div class="lt">กำลังโหลด...</div></div>
+</div>
+
+<!-- RIDER DETAIL OVERLAY -->
+<div class="detail" id="detailPanel">
+  <div class="detail-tb">
+    <button class="detail-back" onclick="closeDetail()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#1a2340" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="detail-t" id="detName">ไรเดอร์</div>
+  </div>
+  <div style="padding:14px 16px;display:flex;flex-direction:column;gap:12px;">
+    <div class="stat-row">
+      <div class="stat-c"><div class="stat-v" id="detBal">฿0</div><div class="stat-l">เครดิตคงเหลือ</div></div>
+      <div class="stat-c"><div class="stat-v" id="detToday" style="color:#EF4444">฿0</div><div class="stat-l">หักวันนี้</div></div>
+      <div class="stat-c"><div class="stat-v" id="detMonth" style="color:#EF4444">฿0</div><div class="stat-l">หักเดือนนี้</div></div>
+    </div>
+    <div class="det-btns">
+      <button class="det-btn add" onclick="window.openCreditSheetFor(detRider,'add')">＋ เติมเครดิต</button>
+      <button class="det-btn sub" onclick="window.openCreditSheetFor(detRider,'sub')">－ ถอนเครดิต</button>
+    </div>
+    <div class="card" style="margin:0;padding:16px;">
+      <div class="card-hd" style="margin-bottom:12px"><span class="card-t">Timeline</span></div>
+      <div class="tl" id="detTl"><div class="lt">กำลังโหลด...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SHEET -->
+<div class="mask" id="mask"><div class="sheet" id="shBody"></div></div>
+
+<script>
+function openSb(){document.getElementById('sb').classList.add('on');document.getElementById('sbBg').classList.add('on');}
+function closeSb(){document.getElementById('sb').classList.remove('on');document.getElementById('sbBg').classList.remove('on');}
+function closeDetail(){document.getElementById('detailPanel').classList.remove('on');}
+function hideSheet(){document.getElementById('mask').classList.remove('on');}
+function ripple(e){var b=e.currentTarget;var r=document.createElement('div');r.className='ripple';var s=Math.max(b.clientWidth,b.clientHeight);r.style.cssText='width:'+s+'px;height:'+s+'px;left:'+(e.offsetX-s/2)+'px;top:'+(e.offsetY-s/2)+'px';b.appendChild(r);setTimeout(function(){r.remove();},500);}
+</script>
+<script type="module">
+// expose ก่อนทุกอย่าง
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import{getFirestore,collection,doc,onSnapshot,getDocs,addDoc,updateDoc,setDoc,query,orderBy,where,serverTimestamp,increment,limit,getDoc}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const db=getFirestore(initializeApp({apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",authDomain:"nimit-delivery.firebaseapp.com",projectId:"nimit-delivery",storageBucket:"nimit-delivery.firebasestorage.app",messagingSenderId:"233476256130",appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"}));
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function fd(ts){if(!ts)return'';const d=ts.toDate?ts.toDate():new Date(ts);return d.toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}
+function toast(m,ok=true){const t=document.createElement('div');t.className='toast';t.textContent=(ok?'✓ ':'✕ ')+m;document.body.appendChild(t);setTimeout(()=>t.remove(),2500);}
+
+let allRiders=[],filteredRiders=[],detRider=null;
+window.detRider=null;
+
+// BALANCE
+onSnapshot(doc(db,'wallet','central'),s=>{
+  const b=s.exists()?s.data().balance||0:0;
+  document.getElementById('balAmt').textContent=b.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('liveT').textContent='อัปเดต '+new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+});
+
+// TODAY STATS from walletTx
+async function loadTodayStats(){
+  const today=new Date();today.setHours(0,0,0,0);
+  try{
+    const snap=await getDocs(collection(db,'walletTx'));
+    let tin=0,tout=0,cnt=0;
+    snap.forEach(d=>{const dd=d.data();const ts=dd.createdAt?.toDate?dd.createdAt.toDate():new Date(0);if(ts<today)return;const a=dd.amount||0;if(a>0)tin+=a;else tout+=Math.abs(a);cnt++;});
+    document.getElementById('todayIn').textContent='+฿'+tin.toLocaleString();
+    document.getElementById('todayOut').textContent='-฿'+tout.toLocaleString();
+    document.getElementById('txCount').textContent=cnt;
+  }catch(e){}
+}
+loadTodayStats();
+
+// RIDERS
+onSnapshot(collection(db,'riders'),s=>{
+  allRiders=[];s.forEach(d=>allRiders.push({id:d.id,...d.data()}));
+  allRiders.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  filteredRiders=[...allRiders];
+  document.getElementById('rCount').textContent=allRiders.length+' คน';
+  renderRiders();
+});
+
+window.filterRiders=q=>{filteredRiders=q?allRiders.filter(r=>(r.name||'').toLowerCase().includes(q.toLowerCase())):allRiders;renderRiders();};
+
+function renderRiders(){
+  const el=document.getElementById('riderList');
+  if(!filteredRiders.length){el.innerHTML='<div class="empty">ไม่พบไรเดอร์</div>';return;}
+  el.innerHTML=filteredRiders.map(r=>`<div class="r-item" data-rid="${r.id}">
+    <div class="r-av">${(r.name||'?').slice(0,1)}</div>
+    <div style="flex:1;min-width:0">
+      <div class="r-name">${esc(r.name||r.id)}</div>
+      <div class="r-bal">เครดิต ฿<b>${(r.wallet||0).toLocaleString()}</b></div>
+    </div>
+    <div style="font-size:18px;color:#c0cad8">›</div>
+  </div>`).join('');
+  document.querySelectorAll('.r-item').forEach(el=>el.addEventListener('click',()=>openDetail(el.dataset.rid)));
+}
+
+// CENTRAL HISTORY
+async function loadCentralHistory(){
+  const tl=document.getElementById('centralTl');
+  tl.innerHTML='<div class="lt">กำลังโหลด...</div>';
+  try{
+    const snap=await getDocs(collection(db,'walletTx'));
+    const txs=[];snap.forEach(d=>txs.push({id:d.id,...d.data()}));
+    txs.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    const show30=txs.slice(0,30);
+    if(!txs.length){tl.innerHTML='<div class="empty">ยังไม่มีรายการ</div>';return;}
+    tl.innerHTML=show30.map(t=>{
+      const p=t.amount>=0;
+      const tag=t.orderId?'<span class="tl-tag tag-o">ออเดอร์</span>':(t.by==='system'?'<span class="tl-tag tag-s">ระบบ</span>':'<span class="tl-tag tag-a">แอดมิน</span>');
+      const rn=t.riderName?`<span style="font-size:10px;font-weight:600;color:var(--p)">${esc(t.riderName)}</span> · `:'';
+      return `<div class="tl-item"><div class="tl-dot ${p?'pos':'neg'}"></div>
+        <div class="tl-time">${fd(t.createdAt)}</div>
+        <div class="tl-card">
+          <div class="tl-top"><span class="tl-type">${esc(t.type||'-')}</span><span class="tl-amt ${p?'pos':'neg'}">${p?'+':'-'}฿${Math.abs(t.amount).toLocaleString()}</span></div>
+          <div style="font-size:10px;color:var(--t2)">${tag}${rn}${t.orderId?'#'+esc(t.orderId):''}</div>
+        </div></div>`;
+    }).join('');
+  }catch(e){tl.innerHTML='<div class="empty">โหลดไม่ได้</div>';}
+}
+loadCentralHistory();
+
+// DETAIL
+async function openDetail(rid){
+  detRider=rid;window.detRider=rid;
+  const r=allRiders.find(x=>x.id===rid);
+  document.getElementById('detName').textContent=r?.name||'-';
+  document.getElementById('detBal').textContent='฿'+(r?.wallet||0).toLocaleString();
+  document.getElementById('detToday').textContent='฿0';
+  document.getElementById('detMonth').textContent='฿0';
+  document.getElementById('detTl').innerHTML='<div class="lt">กำลังโหลด...</div>';
+  document.getElementById('detailPanel').classList.add('on');
+  // load tx
+  try{
+    // ดึงทั้งหมดแล้ว filter client-side เพื่อหลีกเลี่ยง composite index
+    const snap=await getDocs(query(collection(db,'walletTx'),where('riderId','==',rid)));
+    const txs=[];snap.forEach(d=>txs.push({id:d.id,...d.data()}));
+    txs.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    const today=new Date();today.setHours(0,0,0,0);
+    const mo=new Date(today);mo.setDate(1);
+    let dCut=0,mCut=0;
+    txs.forEach(t=>{if(t.amount<0){const ts=t.createdAt?.toDate?t.createdAt.toDate():new Date(t.createdAt||0);if(ts>=today)dCut+=Math.abs(t.amount);if(ts>=mo)mCut+=Math.abs(t.amount);}});
+    document.getElementById('detToday').textContent='฿'+dCut.toLocaleString();
+    document.getElementById('detMonth').textContent='฿'+mCut.toLocaleString();
+    if(!txs.length){document.getElementById('detTl').innerHTML='<div class="empty">ยังไม่มีรายการ</div>';return;}
+    document.getElementById('detTl').innerHTML=txs.map(t=>{
+      const p=t.amount>=0;
+      const tag=t.orderId?'<span class="tl-tag tag-o">ออเดอร์</span>':(t.by==='system'?'<span class="tl-tag tag-s">ระบบ</span>':'<span class="tl-tag tag-a">แอดมิน</span>');
+      return `<div class="tl-item"><div class="tl-dot ${p?'pos':'neg'}"></div>
+        <div class="tl-time">${fd(t.createdAt)}</div>
+        <div class="tl-card">
+          <div class="tl-top"><span class="tl-type">${esc(t.type||'-')}</span><span class="tl-amt ${p?'pos':'neg'}">${p?'+':'-'}฿${Math.abs(t.amount).toLocaleString()}</span></div>
+          <div style="font-size:10px;color:var(--t2)">${tag}${t.orderId?'#'+esc(t.orderId)+(t.note?' · '+esc(t.note):''):''}</div>
+          <div class="tl-bal">เครดิตคงเหลือ <b>฿${(r?.wallet||0).toLocaleString()}</b></div>
+        </div></div>`;
+    }).join('');
+  }catch(e){document.getElementById('detTl').innerHTML='<div class="empty">โหลดไม่ได้</div>';}
+}
+
+// SIDEBAR
+
+// SHEET HELPERS
+function show(h){document.getElementById('shBody').innerHTML=h;document.getElementById('mask').classList.add('on');}
+
+// CREDIT SHEET
+window.openCreditSheet=function(mode,preRid){
+  const title=mode==='add'?'เติมเครดิตไรเดอร์':'ถอนเครดิตไรเดอร์';
+  show(`<div class="sh-pill"></div><div class="sh-t">${title}</div>
+    <div class="sh-lbl">เลือกไรเดอร์</div>
+    <select id="shRider" style="width:100%;height:48px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:15px;outline:none;margin-bottom:14px;background:#fff;">
+      <option value="">— เลือก —</option>
+      ${allRiders.map(r=>`<option value="${r.id}" ${preRid===r.id?'selected':''}>${esc(r.name||r.id)} (฿${(r.wallet||0).toLocaleString()})</option>`).join('')}
+    </select>
+    <div class="sh-lbl">จำนวน (บาท)</div>
+    <input class="sh-in" id="shAmt" type="number" min="1" placeholder="0.00" inputmode="decimal">
+    <button class="sh-ok${mode==='sub'?' danger':''}" id="shOk" onclick="window.doCredit('${mode}')">ยืนยัน${mode==='add'?'เติม':'ถอน'}</button>
+    <button class="sh-cancel" onclick="hideSheet()">ยกเลิก</button>`);
+  if(preRid)setTimeout(()=>{const s=document.getElementById('shRider');if(s)s.value=preRid;},50);
+  setTimeout(()=>document.getElementById('shAmt')?.focus(),200);
+};
+window.openCreditSheetFor=(rid,mode)=>{closeDetail();setTimeout(()=>window.openCreditSheet(mode,rid),50);};
+
+window.doCredit=async function(mode){
+  const rid=document.getElementById('shRider')?.value;
+  const amt=parseFloat(document.getElementById('shAmt')?.value)||0;
+  if(!rid){toast('กรุณาเลือกไรเดอร์',false);return;}
+  if(amt<=0){toast('กรุณาใส่จำนวนเงิน',false);return;}
+  const ok=document.getElementById('shOk');ok.disabled=true;ok.textContent='กำลังบันทึก...';
+  const fa=mode==='add'?amt:-amt;
+  const r=allRiders.find(x=>x.id===rid);
+  try{
+    await addDoc(collection(db,'walletTx'),{riderId:rid,riderName:r?.name||'',amount:fa,type:mode==='add'?'เติมเครดิต':'ถอนเครดิต',note:'',createdAt:serverTimestamp(),by:'admin'});
+    await updateDoc(doc(db,'riders',rid),{wallet:increment(fa)});
+    await setDoc(doc(db,'wallet','central'),{balance:increment(-fa)},{merge:true});
+    hideSheet();
+    toast(mode==='add'?`เติมเครดิต ฿${amt.toLocaleString()} ให้ ${r?.name} แล้ว`:`ถอนเครดิต ฿${amt.toLocaleString()} จาก ${r?.name} แล้ว`);
+    loadCentralHistory();loadTodayStats();
+  }catch(e){toast('ไม่สำเร็จ: '+e.message,false);ok.disabled=false;}
+};
+
+// REAL MONEY SHEET
+window.openRealSheet=function(type){
+  const isIn=type==='topup';
+  show(`<div class="sh-pill"></div>
+    <div class="sh-t">${isIn?'เติมเงินจริงเข้า':'ถอนเงินจริงออก'}กระเป๋ากลาง</div>
+    <div class="sh-lbl">จำนวน (บาท)</div>
+    <input class="sh-in" id="shAmt" type="number" min="1" placeholder="0.00" inputmode="decimal">
+    <button class="sh-ok${!isIn?' danger':''}" id="shOk" onclick="window.doReal('${type}')">ยืนยัน${isIn?'เติมเงิน':'ถอนเงิน'}</button>
+    <button class="sh-cancel" onclick="hideSheet()">ยกเลิก</button>`);
+  setTimeout(()=>document.getElementById('shAmt')?.focus(),200);
+};
+window.doReal=async function(type){
+  const amt=parseFloat(document.getElementById('shAmt')?.value)||0;
+  if(amt<=0){toast('กรุณาใส่จำนวนเงิน',false);return;}
+  const ok=document.getElementById('shOk');ok.disabled=true;ok.textContent='กำลังบันทึก...';
+  const fa=type==='topup'?amt:-amt;
+  try{
+    await addDoc(collection(db,'walletTx'),{riderId:'',riderName:'',amount:fa,type:type==='topup'?'เติมเงินจริง':'ถอนเงินจริง',note:'',createdAt:serverTimestamp(),by:'admin'});
+    await setDoc(doc(db,'wallet','central'),{balance:increment(fa)},{merge:true});
+    hideSheet();
+    toast(type==='topup'?`เติมเงิน ฿${amt.toLocaleString()} เข้ากระเป๋ากลางแล้ว`:`ถอนเงิน ฿${amt.toLocaleString()} ออกแล้ว`);
+    loadCentralHistory();loadTodayStats();
+  }catch(e){toast('ไม่สำเร็จ: '+e.message,false);ok.disabled=false;}
+};
+</script>
+</body>
+</html>
