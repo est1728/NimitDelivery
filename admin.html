@@ -256,7 +256,7 @@ body{background:var(--g);min-height:100vh;}
           <div class="sc-l">ดูสถิติย้อนหลัง</div>
           <div class="sc-v" id="statDateLbl" style="font-size:13px">เลือกวันที่</div>
         </div>
-        <input type="date" id="statDate" onchange="loadHistoricalStats(this.value)"
+        <input type="date" id="statDate" max="2026-07-18" onchange="window.loadHistoricalStats(this.value)"
           style="height:36px;border:2px solid rgba(255,255,255,.3);border-radius:10px;background:rgba(255,255,255,.15);color:#fff;padding:0 10px;font-size:13px;font-weight:600;cursor:pointer;outline:none;color-scheme:dark;">
       </div>
     </div>
@@ -499,7 +499,7 @@ body{background:var(--g);min-height:100vh;}
     <div class="mf"><div class="ml">ชื่อผู้ติดต่อฉุกเฉิน</div><input class="mi" id="rEmergName" placeholder="ชื่อ ความสัมพันธ์"></div>
     <div style="font-size:11px;font-weight:700;color:var(--s);letter-spacing:.5px;margin:12px 0 8px;text-transform:uppercase">ข้อมูลการทำงาน</div>
     <div class="mf"><div class="ml">เลขทะเบียนรถ *</div><input class="mi" id="rPlate" placeholder="กข 1234 กทม."></div>
-    <div class="mf"><div class="ml">เริ่มงานวันที่</div><input class="mi" id="rStartDate" type="date"></div>
+    <div class="mf"><div class="ml">เริ่มงานวันที่</div><input class="mi" id="rStartDate" type="date" max="2026-07-18"></div>
     <div class="mf"><div class="ml">เวลาเข้างาน</div><input class="mi" id="rShiftIn" type="time" value="08:00"></div>
     <div class="mf"><div class="ml">เวลาออกงาน</div><input class="mi" id="rShiftOut" type="time" value="20:00"></div>
     <div class="mf"><div class="ml">ID / Slug</div><input class="mi" id="rSlug" placeholder="rider01"></div>
@@ -561,7 +561,7 @@ async function reqNotifPerm(){
 }
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, query, where, onSnapshot, doc, getDocs, updateDoc, setDoc, addDoc, deleteDoc, getDoc, serverTimestamp, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, query, where, onSnapshot, doc, getDocs, updateDoc, setDoc, addDoc, deleteDoc, getDoc, serverTimestamp, orderBy, limit, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const db = getFirestore(initializeApp({
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -631,10 +631,10 @@ const adminChatUnsubs={};
 
 let knownOrders=new Set(JSON.parse(sessionStorage.getItem('ka')||'[]'));
 function listenOrders(){
-  loadOrders();
+  window.loadOrders();
   setInterval(loadOrders, 15000); // refresh ทุก 15 วิ
 }
-window.loadOrders=async function loadOrders(){
+window.loadOrders=async function(){
   try{
     const snap=await getDocs(query(collection(db,'orders'),where('status','in',ACTIVE)));
     orders=[];
@@ -666,11 +666,11 @@ window.loadOrders=async function loadOrders(){
       });
     });
   }catch(e){
-    $('ordersEl').innerHTML=`<div class="lt">โหลดไม่ได้: ${e.message}<br><button onclick="loadOrders()" style="margin-top:8px;height:36px;padding:0 16px;border:none;border-radius:8px;background:var(--p);color:#fff;cursor:pointer;font-size:13px">ลองใหม่</button></div>`;
+    $('ordersEl').innerHTML=`<div class="lt">โหลดไม่ได้: ${e.message}<br><button onclick="window.loadOrders()" style="margin-top:8px;height:36px;padding:0 16px;border:none;border-radius:8px;background:var(--p);color:#fff;cursor:pointer;font-size:13px">ลองใหม่</button></div>`;
   }
 }
 
-async function loadHistoricalStats(dateStr){
+window.loadHistoricalStats=async function(dateStr){
   if(!dateStr)return;
   const d=new Date(dateStr);d.setHours(0,0,0,0);
   const d2=new Date(d);d2.setDate(d2.getDate()+1);
@@ -752,7 +752,7 @@ function openDetail(docId){
     }
     // unread badge
     const unread=d.unread_admin||0;
-    const bdg=$('chatUnreadBdg');
+    const bdg=$('chatUnreadBdg');if(!bdg)return;
     if(bdg){bdg.textContent=unread;bdg.style.display=unread>0?'flex':'none';}
   });
 }
@@ -1030,12 +1030,6 @@ async function loadRiders(){
     }).join('')+'</div>';
   }catch(e){window.toast('โหลดไรเดอร์ไม่ได้','er');}
 }
-function updateSwitch(){
-  const on=$('rActive')?.checked;
-  if($('rActiveSwitch'))$('rActiveSwitch').style.background=on?'var(--p)':'#ccc';
-  if($('rActiveThumb'))$('rActiveThumb').style.transform=on?'translateX(22px)':'translateX(0)';
-}
-document.addEventListener('change',e=>{if(e.target.id==='rActive')updateSwitch();});
 window.toggleRiderActive=async function(rid,currentActive){
   try{
     await updateDoc(doc(db,'riders',rid),{active:!currentActive,updatedAt:serverTimestamp()});
@@ -1050,10 +1044,10 @@ window.openAddRider=function(){
   if($('rShiftOut'))$('rShiftOut').value='20:00';
   $('riderMov').classList.add('show');
 }
-function editRiderOpen(id){const r=riders.find(x=>x.id===id);if(!r)return;editRiderId=id;$('riderMovT').textContent='แก้ไขไรเดอร์';$('rName').value=r.name||'';$('rPh').value=r.phone||'';$('rPlate').value=r.plate||'';$('rSlug').value=r.slug||'';$('rShift').value=r.shift||'';$('riderMov').classList.add('show');}
+function editRiderOpen(id){const r=riders.find(x=>x.id===id);if(!r)return;editRiderId=id;$('riderMovT').textContent='แก้ไขไรเดอร์';$('rName').value=r.name||'';$('rPh').value=r.phone||'';$('rPlate').value=r.plate||'';$('rSlug').value=r.slug||'';$('riderMov').classList.add('show');}
 async function saveRider(){
   const name=$('rName').value.trim();if(!name){window.toast('กรุณากรอกชื่อ','er');return;}
-  const data={name,phone:$('rPh').value.trim(),plate:$('rPlate').value.trim(),slug:$('rSlug').value.trim(),shift:$('rShift').value.trim(),updatedAt:serverTimestamp()};
+  const data={name,phone:$('rPh').value.trim(),plate:$('rPlate').value.trim(),slug:$('rSlug').value.trim(),updatedAt:serverTimestamp()};
   try{editRiderId?await updateDoc(doc(db,'riders',editRiderId),data):await addDoc(collection(db,'riders'),{...data,wallet:0,createdAt:serverTimestamp()});closeMov('riderMov');loadRiders();window.toast('บันทึกสำเร็จ','ok');}
   catch(e){window.toast('บันทึกไม่สำเร็จ','er');}
 }
