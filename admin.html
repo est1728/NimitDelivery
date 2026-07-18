@@ -1052,6 +1052,16 @@ async function loadShops(){
   }catch(e){window.toast('โหลดร้านค้าไม่ได้','er');}
 }
 // RIDERS
+function openEditShop(sid){
+  const s=shops.find(x=>x.id===sid);if(!s)return;
+  editShopId=sid;
+  $('shopMovT').textContent='แก้ไขร้านค้า';
+  $('sName').value=s.name||'';
+  $('sSlug').value=s.slug||'';
+  $('sDesc').value=s.desc||'';
+  $('sPh').value=s.phone||'';
+  $('shopMov').classList.add('show');
+}
 async function openAddShop(){editShopId=null;$('shopMovT').textContent='เพิ่มร้านค้า';['sName','sSlug','sDesc','sPh'].forEach(id=>$(id).value='');$('shopMov').classList.add('show');}
 async function saveShop(){
   const name=$('sName').value.trim();if(!name){window.toast('กรุณากรอกชื่อร้าน','er');return;}
