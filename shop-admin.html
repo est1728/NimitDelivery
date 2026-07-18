@@ -440,22 +440,19 @@ async function initShop(){
     document.getElementById("edit-deliveryTime").value=shopData.deliveryTime||"";
     document.getElementById("edit-address").value=shopData.address||"";
     // init map
-    if(!window._shopMap){
-      const lat=shopData.lat||13.7563, lng=shopData.lng||100.5018;
-      window._shopMapLat=lat; window._shopMapLng=lng;
-      setTimeout(()=>{
-        window._shopMap=L.map('shopMap').setView([lat,lng],15);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(window._shopMap);
-        window._shopMarker=L.marker([lat,lng],{draggable:true}).addTo(window._shopMap);
-        window._shopMarker.on('dragend',e=>{window._shopMapLat=e.target.getLatLng().lat;window._shopMapLng=e.target.getLatLng().lng;});
-        window._shopMap.on('contextmenu',e=>{window._shopMapLat=e.latlng.lat;window._shopMapLng=e.latlng.lng;window._shopMarker.setLatLng(e.latlng);});
-      },400);
-    } else {
-      const lat=shopData.lat||13.7563, lng=shopData.lng||100.5018;
-      window._shopMapLat=lat; window._shopMapLng=lng;
-      window._shopMap.setView([lat,lng],15);
-      window._shopMarker?.setLatLng([lat,lng]);
-    }
+    // init map (destroy ก่อนสร้างใหม่ทุกครั้ง)
+    const lat=shopData.lat||13.7563, lng=shopData.lng||100.5018;
+    window._shopMapLat=lat; window._shopMapLng=lng;
+    setTimeout(()=>{
+      if(window._shopMap){try{window._shopMap.remove();}catch(e){} window._shopMap=null;}
+      const mapEl=document.getElementById('shopMap');
+      if(!mapEl)return;
+      window._shopMap=L.map(mapEl).setView([lat,lng],15);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(window._shopMap);
+      window._shopMarker=L.marker([lat,lng],{draggable:true}).addTo(window._shopMap);
+      window._shopMarker.on('dragend',e=>{window._shopMapLat=e.target.getLatLng().lat;window._shopMapLng=e.target.getLatLng().lng;});
+      window._shopMap.on('contextmenu',e=>{window._shopMapLat=e.latlng.lat;window._shopMapLng=e.latlng.lng;window._shopMarker.setLatLng(e.latlng);});
+    },300);
     document.getElementById("edit-openHours").value=shopData.openHours||"";
     isOpen=shopData.isOpen||false; updateOpenUI();
     showPage("mainPage"); listenOrders();
@@ -473,11 +470,13 @@ window.toggleOpen=async function(){
 
 let allShopOrders=[];
 function listenOrders(){
-  onSnapshot(query(collection(db,"orders"),where("shopId","==",shopData.id),where("status","in",ACTIVE_STATUSES)),snap=>{
+  onSnapshot(query(collection(db,"orders"),where("shopId","==",shopData.id)),snap=>{
+    // filter active client-side เพื่อหลีกเลี่ยง composite index
     allShopOrders=[];
     if(!window._knownOrders) window._knownOrders=new Set();
     snap.forEach(d=>{
       const o={docId:d.id,...d.data()};
+      if(!ACTIVE_STATUSES.includes(o.status))return; // filter client-side
       allShopOrders.push(o);
       if(!window._knownOrders.has(d.id)&&window._knownOrders.size>0){
         playNotifSound();
