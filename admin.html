@@ -1165,7 +1165,7 @@ async function savePricing(){
 
 // ===== EVENT LISTENERS =====
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-pg],[data-f],[data-close],[data-copy],[data-ext],[data-goto],[data-docid],[data-rid],[data-del-shop],[data-del-rider],[data-topup],[data-edit-rider],[data-recall],[id]');
+  const t = e.target.closest('[data-pg],[data-f],[data-close],[data-copy],[data-ext],[data-goto],[data-docid],[data-rid],[data-del-shop],[data-del-rider],[data-topup],[data-edit-rider],[data-edit-shop],[data-recall],[id]');
   if (!t) return;
   if (t.dataset.pg) { swPg(t.dataset.pg); return; }
   if (t.dataset.f !== undefined) {
