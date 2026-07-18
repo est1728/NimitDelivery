@@ -198,6 +198,7 @@ body{background:var(--gray);min-height:100vh;}
 @keyframes toastIn{from{transform:translateY(-12px);opacity:0}to{transform:translateY(0);opacity:1}}
 @keyframes toastOut{from{opacity:1}to{opacity:0}}
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 </head>
 <body>
 <div class="toast-wrap" id="toastWrap"></div>
@@ -263,7 +264,12 @@ body{background:var(--gray);min-height:100vh;}
     <div class="ep-field"><div class="ep-label">เบอร์โทร</div><input class="ep-input" id="edit-phone" type="tel" placeholder="08X-XXX-XXXX"></div>
     <div class="ep-field"><div class="ep-label">เวลาส่ง</div><input class="ep-input" id="edit-deliveryTime" placeholder="20-30 นาที"></div>
     <div class="ep-field"><div class="ep-label">เวลาเปิด-ปิดร้าน</div><input class="ep-input" id="edit-openHours" placeholder="08:00 - 20:00"></div>
-    <div class="ep-field" style="margin-bottom:0"><div class="ep-label">ที่อยู่</div><input class="ep-input" id="edit-address" placeholder="ที่อยู่ร้าน"></div>
+    <div class="ep-field"><div class="ep-label">ที่อยู่</div><input class="ep-input" id="edit-address" placeholder="ที่อยู่ร้าน"></div>
+    <div class="ep-field" style="margin-bottom:0">
+      <div class="ep-label">ปักหมุดตำแหน่งร้าน</div>
+      <div id="shopMap" style="height:200px;border-radius:14px;overflow:hidden;border:1.5px solid #e8eef5;margin-bottom:8px"></div>
+      <button onclick="useMyLocShop()" style="width:100%;height:38px;border:1.5px solid var(--primary);border-radius:12px;background:#fff;color:var(--primary);font-size:13px;font-weight:700;cursor:pointer;margin-bottom:4px">📍 ใช้ตำแหน่งปัจจุบัน</button>
+    </div>
   </div>
   <button class="ep-save-btn" onclick="saveShopInfo()">บันทึก</button>
 </div>
@@ -347,6 +353,7 @@ body{background:var(--gray);min-height:100vh;}
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, query, where, onSnapshot, doc, getDocs, updateDoc, getDoc, addDoc, deleteDoc, serverTimestamp }
@@ -360,6 +367,32 @@ const firebaseConfig = {
   messagingSenderId:"233476256130",
   appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
 };
+// SOUND & NOTIFICATION
+function playNotifSound(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    [523,659,784].forEach((freq,i)=>{
+      const osc=ctx.createOscillator(),gain=ctx.createGain();
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.type='sine';osc.frequency.value=freq;
+      const t=ctx.currentTime+i;
+      gain.gain.setValueAtTime(0,t);
+      gain.gain.linearRampToValueAtTime(0.3,t+0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001,t+0.9);
+      osc.start(t);osc.stop(t+1);
+    });
+  }catch(e){}
+}
+function showOSNotif(title,body){
+  if('Notification' in window&&Notification.permission==='granted'){
+    new Notification(title,{body,tag:'nimit-shop',renotify:true});
+  }
+}
+async function reqNotifPerm(){
+  if('Notification' in window&&Notification.permission==='default'){
+    await Notification.requestPermission();
+  }
+}
 const app=initializeApp(firebaseConfig);
 const db=getFirestore(app);
 
@@ -393,7 +426,7 @@ async function initShop(){
       const found=all.docs.find(d=>d.id===shopSlug);
       if(!found){showPage("notFoundPage");return;}
       shopData={id:found.id,...found.data()};
-    } else {shopData={id:snap.docs[0].id,...snap.docs[0].data()};}
+    } else {shopData={id:snap.docs[0].id,...snap.docs[0].data()};reqNotifPerm();}
     document.getElementById("shopNameTop").textContent=shopData.name||"ร้านค้า";
     document.getElementById("sbName").textContent=shopData.name||"ร้านค้า";
     document.getElementById("sbSub").textContent=shopData.desc||"จัดการข้อมูลร้าน";
@@ -406,6 +439,23 @@ async function initShop(){
     document.getElementById("edit-phone").value=shopData.phone||"";
     document.getElementById("edit-deliveryTime").value=shopData.deliveryTime||"";
     document.getElementById("edit-address").value=shopData.address||"";
+    // init map
+    if(!window._shopMap){
+      const lat=shopData.lat||13.7563, lng=shopData.lng||100.5018;
+      window._shopMapLat=lat; window._shopMapLng=lng;
+      setTimeout(()=>{
+        window._shopMap=L.map('shopMap').setView([lat,lng],15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(window._shopMap);
+        window._shopMarker=L.marker([lat,lng],{draggable:true}).addTo(window._shopMap);
+        window._shopMarker.on('dragend',e=>{window._shopMapLat=e.target.getLatLng().lat;window._shopMapLng=e.target.getLatLng().lng;});
+        window._shopMap.on('contextmenu',e=>{window._shopMapLat=e.latlng.lat;window._shopMapLng=e.latlng.lng;window._shopMarker.setLatLng(e.latlng);});
+      },400);
+    } else {
+      const lat=shopData.lat||13.7563, lng=shopData.lng||100.5018;
+      window._shopMapLat=lat; window._shopMapLng=lng;
+      window._shopMap.setView([lat,lng],15);
+      window._shopMarker?.setLatLng([lat,lng]);
+    }
     document.getElementById("edit-openHours").value=shopData.openHours||"";
     isOpen=shopData.isOpen||false; updateOpenUI();
     showPage("mainPage"); listenOrders();
@@ -424,7 +474,18 @@ window.toggleOpen=async function(){
 let allShopOrders=[];
 function listenOrders(){
   onSnapshot(query(collection(db,"orders"),where("shopId","==",shopData.id),where("status","in",ACTIVE_STATUSES)),snap=>{
-    allShopOrders=[]; snap.forEach(d=>allShopOrders.push({docId:d.id,...d.data()}));
+    allShopOrders=[];
+    if(!window._knownOrders) window._knownOrders=new Set();
+    snap.forEach(d=>{
+      const o={docId:d.id,...d.data()};
+      allShopOrders.push(o);
+      if(!window._knownOrders.has(d.id)&&window._knownOrders.size>0){
+        playNotifSound();
+        showOSNotif('🔔 ออเดอร์ใหม่!','ออเดอร์ '+(o.orderId||d.id)+' · ฿'+(o.grandTotal||0));
+        if(typeof toast==='function') toast('ออเดอร์ใหม่! '+(o.orderId||d.id),'ok');
+      }
+      window._knownOrders.add(d.id);
+    });
     allShopOrders.sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
     renderOrders();
   });
@@ -507,9 +568,16 @@ window.closeSidebar=function(){document.getElementById("sidebar").classList.remo
 window.openExtraPanel=function(id){document.getElementById(id)?.classList.add('show');}
 window.closeExtraPanel=function(id){document.getElementById(id)?.classList.remove('show');}
 
+window.useMyLocShop=function(){
+  navigator.geolocation.getCurrentPosition(p=>{
+    window._shopMapLat=p.coords.latitude;window._shopMapLng=p.coords.longitude;
+    window._shopMap?.setView([window._shopMapLat,window._shopMapLng],16);
+    window._shopMarker?.setLatLng([window._shopMapLat,window._shopMapLng]);
+  },()=>alert('ไม่สามารถเข้าถึง GPS'));
+};
 window.saveShopInfo=async function(){
   try{
-    const data={name:document.getElementById("edit-name").value.trim(),desc:document.getElementById("edit-desc").value.trim(),phone:document.getElementById("edit-phone").value.trim(),deliveryTime:document.getElementById("edit-deliveryTime").value.trim(),address:document.getElementById("edit-address").value.trim(),openHours:document.getElementById("edit-openHours").value.trim(),updatedAt:serverTimestamp()};
+    const data={name:document.getElementById("edit-name").value.trim(),desc:document.getElementById("edit-desc").value.trim(),phone:document.getElementById("edit-phone").value.trim(),deliveryTime:document.getElementById("edit-deliveryTime").value.trim(),address:document.getElementById("edit-address").value.trim(),openHours:document.getElementById("edit-openHours").value.trim(),lat:window._shopMapLat||null,lng:window._shopMapLng||null,updatedAt:serverTimestamp()};
     await updateDoc(doc(db,"shops",shopData.id),data);
     document.getElementById("shopNameTop").textContent=data.name;
     document.getElementById("sbName").textContent=data.name;
@@ -671,5 +739,7 @@ initShop();
 
 function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 </script>
+<script>window._fcmRole="shop";</script>
+<script src="fcm.js"></script>
 </body>
 </html>
