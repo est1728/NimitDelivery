@@ -1016,7 +1016,29 @@ window.requestNextStatus=function(){
 
 window.confirmAction=async function(){
   if(!pendingNextStatus||!currentOrderDocId) return;
-  try{ await updateDoc(doc(db,"orders",currentOrderDocId),{status:pendingNextStatus}); }catch(e){}
+  try{
+    await updateDoc(doc(db,"orders",currentOrderDocId),{status:pendingNextStatus,updatedAt:serverTimestamp()});
+    // หักกระเป๋าไรเดอร์อัตโนมัติเมื่อส่งสำเร็จ
+    if(pendingNextStatus==='done'&&currentOrder){
+      const cut=currentOrder.walletCut||0;
+      const rid=currentOrder.riderId||riderData?.id||'';
+      const rname=currentOrder.riderName||riderData?.name||'';
+      if(cut>0&&rid){
+        addDoc(collection(db,'walletTx'),{
+          riderId:rid,riderName:rname,amount:-cut,
+          type:'หักจากออเดอร์',orderId:currentOrder.orderId||currentOrderDocId,
+          note:'',createdAt:serverTimestamp(),by:'system'
+        }).catch(()=>{});
+        updateDoc(doc(db,'riders',rid),{wallet:increment(-cut)}).catch(()=>{});
+        import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js").then(({setDoc,doc:d2,increment:inc2,getDoc})=>{
+          getDoc(d2(db,'wallet','central')).then(snap=>{
+            if(snap.exists())updateDoc(d2(db,'wallet','central'),{balance:inc2(cut)});
+            else setDoc(d2(db,'wallet','central'),{balance:cut});
+          }).catch(()=>{});
+        }).catch(()=>{});
+      }
+    }
+  }catch(e){}
   const wasDone=pendingNextStatus==='done';
   closeConfirm();
   if(wasDone){ setTimeout(()=>showMain(),350); }
