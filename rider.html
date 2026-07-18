@@ -893,6 +893,10 @@ window.confirmDatePicker=function(){
   };
   const d=getVal('dp-day'), m=getVal('dp-month'), y=getVal('dp-year');
   if(d) dpDay=d; if(m) dpMonth=m; if(y) dpYear=y;
+  // ห้ามเลือกวันที่ล่วงหน้า
+  const sel=new Date(dpYear,dpMonth-1,dpDay);
+  const today=new Date();today.setHours(0,0,0,0);
+  if(sel>today){dpDay=today.getDate();dpMonth=today.getMonth()+1;dpYear=today.getFullYear();}
   updateDateDisplay();
   closeDatePicker();
   loadIncome();
