@@ -503,15 +503,7 @@ body{background:var(--g);min-height:100vh;}
     <div class="mf"><div class="ml">เวลาเข้างาน</div><input class="mi" id="rShiftIn" type="time" value="08:00"></div>
     <div class="mf"><div class="ml">เวลาออกงาน</div><input class="mi" id="rShiftOut" type="time" value="20:00"></div>
     <div class="mf"><div class="ml">ID / Slug</div><input class="mi" id="rSlug" placeholder="rider01"></div>
-    <div style="font-size:11px;font-weight:700;color:var(--s);letter-spacing:.5px;margin:12px 0 8px;text-transform:uppercase">สถานะการใช้งาน</div>
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f0f2f5;">
-      <div><div style="font-size:14px;font-weight:700;color:var(--t)">เปิดใช้งาน</div><div style="font-size:12px;color:var(--s)">ปิดเมื่อไรเดอร์ลา</div></div>
-      <label style="position:relative;display:inline-block;width:48px;height:26px;cursor:pointer">
-        <input type="checkbox" id="rActive" checked style="opacity:0;width:0;height:0;">
-        <span id="rActiveSwitch" style="position:absolute;inset:0;background:#ccc;border-radius:26px;transition:.2s;"></span>
-        <span id="rActiveThumb" style="position:absolute;left:3px;top:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></span>
-      </label>
-    </div>
+
     <button class="msb" id="saveRiderBtn" style="margin-top:16px">บันทึก</button>
     <button class="mxb" data-close="riderMov">ยกเลิก</button>
   </div></div>
@@ -1030,7 +1022,7 @@ async function loadRiders(){
       <div class="la">
       <button class="ib ibv" data-ext="rider.html?id=${slug}"><svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg></button>
       <button class="ib" style="background:var(--gnl)" data-topup="${r.id}" data-tname="${esc(r.name)}" data-twal="${r.wallet||0}"><svg style="fill:var(--gn)" viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9z"/></svg></button>
-      <button class="ib ibm" data-edit-rider="${r.id}"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
+      <button class="ib ibm<button onclick="event.stopPropagation();window.toggleRiderActive('${r.id}',${r.active!==false})" style="width:36px;height:36px;border:none;border-radius:10px;cursor:pointer;font-size:11px;font-weight:800;flex-shrink:0;background:${r.active!==false?'#fee2e2':'#dcfce7'};color:${r.active!==false?'#dc2626':'#16a34a'}">${r.active!==false?'ปิด':'เปิด'}</button>" data-edit-rider="${r.id}"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
       <button class="ib ibd" data-del-rider="${r.id}"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
       </div></div><div class="lkr"><span class="lkt">${link}</span><button class="lkb" data-copy="${link}">คัดลอก</button></div></div>`;
     }).join('')+'</div>';
@@ -1042,13 +1034,18 @@ function updateSwitch(){
   if($('rActiveThumb'))$('rActiveThumb').style.transform=on?'translateX(22px)':'translateX(0)';
 }
 document.addEventListener('change',e=>{if(e.target.id==='rActive')updateSwitch();});
+window.toggleRiderActive=async function(rid,currentActive){
+  try{
+    await updateDoc(doc(db,'riders',rid),{active:!currentActive,updatedAt:serverTimestamp()});
+    window.toast(!currentActive?'เปิดใช้งานไรเดอร์แล้ว':'ปิดใช้งานไรเดอร์แล้ว','ok');
+  }catch(e){window.toast('ไม่สำเร็จ','er');}
+};
 window.openAddRider=function(){
   editRiderId=null;$('riderMovT').textContent='เพิ่มไรเดอร์';
   ['rName','rIdCard','rAddress','rZip','rPh','rEmergPhone','rEmergName','rPlate','rSlug'].forEach(id=>{if($(id))$(id).value='';});
   if($('rStartDate'))$('rStartDate').value='';
   if($('rShiftIn'))$('rShiftIn').value='08:00';
   if($('rShiftOut'))$('rShiftOut').value='20:00';
-  if($('rActive')){$('rActive').checked=true;updateSwitch();}
   $('riderMov').classList.add('show');
 }
 function editRiderOpen(id){const r=riders.find(x=>x.id===id);if(!r)return;editRiderId=id;$('riderMovT').textContent='แก้ไขไรเดอร์';$('rName').value=r.name||'';$('rPh').value=r.phone||'';$('rPlate').value=r.plate||'';$('rSlug').value=r.slug||'';$('rShift').value=r.shift||'';$('riderMov').classList.add('show');}
