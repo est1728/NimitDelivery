@@ -152,7 +152,7 @@ body{background:var(--g);min-height:100vh;padding-bottom:28px;}
 </div>
 
 <!-- POPULAR -->
-<div id="popSec" style="display:none;padding:16px 16px 0">
+<div id="popSec" style="display:none;margin-top:16px">
   <div class="sec-hd">
     <div class="sec-t">ร้านยอดนิยม</div>
   </div>
@@ -163,7 +163,7 @@ body{background:var(--g);min-height:100vh;padding-bottom:28px;}
 <div style="padding:16px 16px 0 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
   <div class="sec-t" id="shopsHd">ร้านทั้งหมด</div>
 </div>
-<div id="shopsEl" style="padding:0 16px 100px"></div>
+<div id="shopsEl" style="padding:0 0 100px"></div>
 
 
 <script type="module">
@@ -272,7 +272,7 @@ window.goAd=function(i){
   track.style.transform=`translateX(-${i*100}%)`;
   document.querySelectorAll(".dot").forEach((d,j)=>d.classList.toggle("on",j===i));
 };
-function startAds(){ if(adTimer)clearInterval(adTimer); if(totalAds<2)return; adTimer=setInterval(()=>window.goAd((curAd+1)%totalAds),5000); }
+function startAds(){ if(adTimer)clearInterval(adTimer); if(totalAds<2)return; adTimer=setInterval(()=>window.goAd((curAd+1)%totalAds),8000); }
 
 
 function calcDist(la1,lo1,la2,lo2){
