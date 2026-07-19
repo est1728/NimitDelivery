@@ -166,6 +166,8 @@ body{background:var(--gray);min-height:100vh;padding-bottom:120px;}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+// local aliases for cross-scope calls
+const closeAddrSheet=(...a)=>window.closeAddrSheet(...a);
 
 const firebaseConfig = {
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -274,7 +276,7 @@ window.selectTempAddr=function(i){ tempAddrIdx=i; renderSheetBody(); }
 window.confirmAddr=function(){
   selectedAddrIdx=tempAddrIdx;
   localStorage.setItem("defaultAddress",selectedAddrIdx);
-  closeAddrSheet();
+  window.closeAddrSheet();
   renderAddress();
   renderSummary();
 }
@@ -323,7 +325,6 @@ window.placeOrder=async function(){
 
 init();
 
-function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
-</script>
+function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }</script>
 </body>
 </html>
