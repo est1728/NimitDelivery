@@ -147,7 +147,7 @@ body{background:var(--g);min-height:100vh;padding-bottom:28px;}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const db = getFirestore(initializeApp({
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -367,6 +367,6 @@ loadShops();
 </script>
 <script src="motion.js"></script>
 <script>window._fcmRole="customer";</script>
-<script src="fcm.js"></script>
+<script src="fcm.js">cm.js"></script>
 </body>
 </html>
