@@ -548,7 +548,7 @@ body{background:var(--gray);min-height:100vh;}
 </script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, query, where, onSnapshot, doc, getDocs, getDoc, updateDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, query, where, onSnapshot, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, increment, serverTimestamp, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -1034,11 +1034,9 @@ window.confirmAction=async function(){
           note:'',createdAt:serverTimestamp(),by:'system'
         }).catch(()=>{});
         updateDoc(doc(db,'riders',rid),{wallet:increment(-cut)}).catch(()=>{});
-        import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js").then(({setDoc,doc:d2,increment:inc2,getDoc})=>{
-          getDoc(d2(db,'wallet','central')).then(snap=>{
-            if(snap.exists())updateDoc(d2(db,'wallet','central'),{balance:inc2(cut)});
-            else setDoc(d2(db,'wallet','central'),{balance:cut});
-          }).catch(()=>{});
+        getDoc(doc(db,'wallet','central')).then(snap=>{
+          if(snap.exists())updateDoc(doc(db,'wallet','central'),{balance:increment(cut)});
+          else setDoc(doc(db,'wallet','central'),{balance:cut});
         }).catch(()=>{});
       }
     }
