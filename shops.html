@@ -72,7 +72,7 @@ body{background:var(--g);min-height:100vh;padding-bottom:28px;}
 
 /* SHOP CARDS */
 .shops-cont{padding:0 16px;}
-.sc{background:#fff;border-radius:20px;margin-bottom:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.sc{background:#fff;border-radius:20px;margin-bottom:12px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.08);border:1px solid #f0f2f5;}
 .sc:active{opacity:.92;}
 .sc.closed{opacity:.5;pointer-events:none;}
 .sc-banner{width:100%;height:100px;position:relative;border-radius:20px 20px 0 0;}
@@ -272,7 +272,7 @@ window.goAd=function(i){
   track.style.transform=`translateX(-${i*100}%)`;
   document.querySelectorAll(".dot").forEach((d,j)=>d.classList.toggle("on",j===i));
 };
-function startAds(){ if(adTimer)clearInterval(adTimer); if(totalAds<2)return; adTimer=setInterval(()=>window.goAd((curAd+1)%totalAds),3500); }
+function startAds(){ if(adTimer)clearInterval(adTimer); if(totalAds<2)return; adTimer=setInterval(()=>window.goAd((curAd+1)%totalAds),5000); }
 
 
 function calcDist(la1,lo1,la2,lo2){
