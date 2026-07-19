@@ -487,6 +487,9 @@ function listenOrders(){
     });
     allShopOrders.sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
     renderOrders();
+  },err=>{
+    console.error('orders error:',err);
+    document.getElementById('ordersList').innerHTML='<div style="padding:20px;text-align:center;color:#888">โหลดออเดอร์ไม่ได้: '+err.message+'</div>';
   });
 }
 function renderOrders(){
@@ -564,7 +567,25 @@ async function loadHistory(){
 
 window.openSidebar=function(){document.getElementById("sidebar").classList.add("open");document.getElementById("sidebarOverlay").classList.add("show");}
 window.closeSidebar=function(){document.getElementById("sidebar").classList.remove("open");document.getElementById("sidebarOverlay").classList.remove("show");}
-window.openExtraPanel=function(id){document.getElementById(id)?.classList.add('show');}
+window.openExtraPanel=function(id){
+  document.getElementById(id)?.classList.add('show');
+  if(id==='panelEdit'){
+    // init map หลัง panel visible
+    setTimeout(()=>{
+      if(window._shopMap){try{window._shopMap.remove();}catch(e){} window._shopMap=null;}
+      const mapEl=document.getElementById('shopMap');
+      if(!mapEl||!window.L)return;
+      const lat=shopData?.lat||13.7563, lng=shopData?.lng||100.5018;
+      window._shopMapLat=lat; window._shopMapLng=lng;
+      window._shopMap=L.map(mapEl).setView([lat,lng],15);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(window._shopMap);
+      window._shopMarker=L.marker([lat,lng],{draggable:true}).addTo(window._shopMap);
+      window._shopMarker.on('dragend',e=>{window._shopMapLat=e.target.getLatLng().lat;window._shopMapLng=e.target.getLatLng().lng;});
+      window._shopMap.on('contextmenu',e=>{window._shopMapLat=e.latlng.lat;window._shopMapLng=e.latlng.lng;window._shopMarker.setLatLng(e.latlng);});
+      setTimeout(()=>window._shopMap?.invalidateSize(),100);
+    },250);
+  }
+};
 window.closeExtraPanel=function(id){document.getElementById(id)?.classList.remove('show');}
 
 window.useMyLocShop=function(){
