@@ -195,7 +195,9 @@ body{background:var(--bg);min-height:100vh;padding-bottom:120px;}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, getDoc, query } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+// local aliases for cross-scope calls
+const closePopup=(...a)=>window.closePopup(...a);
 
 const firebaseConfig = {
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -203,8 +205,7 @@ const firebaseConfig = {
   projectId:"nimit-delivery",
   storageBucket:"nimit-delivery.firebasestorage.app",
   messagingSenderId:"233476256130",
-  appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
-};
+  appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"};
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -217,8 +218,7 @@ let allMenus = [], filteredMenus = [], categories = [], currentCat = "ทั้�
 let gpPercent = 0, popupMenu = null, popupSelections = {};
 
 async function loadSettings(){
-  try{ const s=await getDoc(doc(db,"settings","pricing")); if(s.exists()) gpPercent=s.data().gpPercent||0; }catch(e){}
-}
+  try{ const s=await getDoc(doc(db,"settings","pricing")); if(s.exists()) gpPercent=s.data().gpPercent||0; }catch(e){}}
 
 async function loadShopInfo(){
   try{
@@ -230,10 +230,8 @@ async function loadShopInfo(){
       const avatar=document.getElementById("shopAvatar");
       if(d.avatarUrl) avatar.innerHTML=`<img src="${d.avatarUrl}">`;
       const banner=document.getElementById("bannerArea");
-      if(d.bannerUrl) banner.innerHTML=`<img src="${d.bannerUrl}"><div class="banner-top-btns"><button class="back-btn" onclick="history.back()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button><button class="cart-top-btn" onclick="window.location.href='cart.html'"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg><span class="cart-badge" id="topCartBadge">0</span></button></div>`;
-    }
-  }catch(e){}
-}
+      if(d.bannerUrl) banner.innerHTML=`<img src="${d.bannerUrl}"><div class="banner-top-btns"><button class="back-btn" onclick="history.back()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button><button class="cart-top-btn" onclick="window.location.href='cart.html'"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg><span class="cart-badge" id="topCartBadge">0</span></button></div>`;}
+  }catch(e){}}
 
 function calcPrice(base,menuGp){ return Math.ceil(base*(1+(gpPercent+(menuGp||0))/100)); }
 
@@ -245,24 +243,20 @@ async function loadMenu(){
     allMenus=[]; snap.forEach(d=>allMenus.push({id:d.id,...d.data()}));
     categories=["ทั้งหมด",...new Set(allMenus.map(m=>m.category).filter(Boolean))];
     renderCats(); applyFilter();
-  }catch(e){ document.getElementById("menuContainer").innerHTML='<div class="loading">โหลดไม่ได้</div>'; }
-}
+  }catch(e){ document.getElementById("menuContainer").innerHTML='<div class="loading">โหลดไม่ได้</div>'; }}
 
 function renderCats(){
   document.getElementById("catScroll").innerHTML=categories.map(c=>
     `<button class="cat-btn ${c===currentCat?'active':''}" onclick="selectCat('${c}')">${c}</button>`
-  ).join('');
-}
+  ).join('');}
 
 function applyFilter(){
   const q=document.getElementById("searchBox").value.toLowerCase();
   filteredMenus=allMenus.filter(m=>{
     const matchCat=currentCat==="ทั้งหมด"||m.category===currentCat;
     const matchQ=!q||m.name.toLowerCase().includes(q);
-    return matchCat&&matchQ;
-  });
-  renderMenus();
-}
+    return matchCat&&matchQ;});
+  renderMenus();}
 
 window.selectCat=function(c){ currentCat=c; renderCats(); applyFilter(); }
 window.onSearch=function(){ applyFilter(); }
@@ -279,8 +273,7 @@ function renderMenus(){
       <div class="menu-img">
         ${m.imgUrl
           ?`<img src="${m.imgUrl}" onerror="this.parentElement.innerHTML='<div class=menu-img-placeholder><svg viewBox=\\'0 0 24 24\\'><path d=\\'M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26 1.44 1.42 2.43 2.89 2.43 5.29v8.05zM1 21.99V21h15.03v.99c0 .55-.45 1-1.01 1H2.01c-.56 0-1.01-.45-1.01-1zm15.03-7c0-4.5-6.72-5-8.03-5-1.28 0-8 .5-8 5h16.03z\\'/></svg></div>'">`
-          :`<div class="menu-img-placeholder"><svg viewBox="0 0 24 24"><path d="M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26 1.44 1.42 2.43 2.89 2.43 5.29v8.05zM1 21.99V21h15.03v.99c0 .55-.45 1-1.01 1H2.01c-.56 0-1.01-.45-1.01-1zm15.03-7c0-4.5-6.72-5-8.03-5-1.28 0-8 .5-8 5h16.03z"/></svg></div>`
-        }
+          :`<div class="menu-img-placeholder"><svg viewBox="0 0 24 24"><path d="M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26 1.44 1.42 2.43 2.89 2.43 5.29v8.05zM1 21.99V21h15.03v.99c0 .55-.45 1-1.01 1H2.01c-.56 0-1.01-.45-1.01-1zm15.03-7c0-4.5-6.72-5-8.03-5-1.28 0-8 .5-8 5h16.03z"/></svg></div>`}
       </div>
       <div class="menu-info">
         <div class="menu-name">${m.name}</div>
@@ -295,13 +288,11 @@ function renderMenus(){
               </div>`
             :`<button class="cart-add-btn" onclick="event.stopPropagation();openMenuPopup('${m.id}')">
                 <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg>
-              </button>`
-          }
+              </button>`}
         </div>
       </div>
     </div>`;
-  }).join('')}</div>`;
-}
+  }).join('')}</div>`;}
 
 // POPUP
 window.openMenuPopup=function(menuId){
@@ -314,8 +305,7 @@ window.openMenuPopup=function(menuId){
   document.getElementById("popupPrice").textContent=`฿${calcPrice(m.price,m.gp)}`;
   renderPopupBody(); updatePopupTotal();
   document.getElementById("optionPopup").classList.add("show");
-  document.getElementById("optionPopup").querySelector('.popup-box').scrollTop=0;
-}
+  document.getElementById("optionPopup").querySelector('.popup-box').scrollTop=0;}
 
 function renderPopupBody(){
   const m=popupMenu; const groups=m.optionGroups||[];
@@ -331,35 +321,27 @@ function renderPopupBody(){
         html+=`<div class="option-item ${sel?'selected':''}" onclick="selectOption(${gi},'${o.name.replace(/'/g,"\\'")}',${o.price||0},true)">
           <div class="opt-radio ${sel?'checked':''}"></div>
           <div class="opt-name-text">${o.name}</div>
-          ${o.price?`<div class="opt-price-text">+฿${o.price}</div>`:''}</div>`;
-      } else {
+          ${o.price?`<div class="opt-price-text">+฿${o.price}</div>`:''}</div>`;} else {
         html+=`<div class="option-item ${sel?'selected-multi':''}" onclick="selectOption(${gi},'${o.name.replace(/'/g,"\\'")}',${o.price||0},false)">
           <div class="opt-checkbox ${sel?'checked':''}"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
           <div class="opt-name-text">${o.name}</div>
-          ${o.price?`<div class="opt-price-text">+฿${o.price}</div>`:''}</div>`;
-      }
-    });
-    html+=`</div>`;
-  });
+          ${o.price?`<div class="opt-price-text">+฿${o.price}</div>`:''}</div>`;}});
+    html+=`</div>`;});
   html+=`<div class="popup-note"><div class="popup-note-label">คำแนะนำเพิ่มเติม</div><textarea class="popup-note-input" id="popupNote" placeholder="เช่น ไม่ใส่ผัก, หวานน้อย"></textarea></div>`;
-  document.getElementById("popupBody").innerHTML=html;
-}
+  document.getElementById("popupBody").innerHTML=html;}
 
 window.selectOption=function(gi,optName,optPrice,isSingle){
   if(isSingle){ popupSelections[gi]=popupSelections[gi]===optName?null:optName; }
   else{ if(!(popupSelections[gi] instanceof Set)) popupSelections[gi]=new Set(); if(popupSelections[gi].has(optName)) popupSelections[gi].delete(optName); else popupSelections[gi].add(optName); }
-  renderPopupBody(); updatePopupTotal();
-}
+  renderPopupBody(); updatePopupTotal();}
 
 function updatePopupTotal(){
   const m=popupMenu; if(!m) return;
   const base=calcPrice(m.price,m.gp); let extra=0;
   (m.optionGroups||[]).forEach((g,gi)=>{
     if(g.required&&popupSelections[gi]){ const opt=g.options.find(o=>o.name===popupSelections[gi]); extra+=opt?.price||0; }
-    else if(!g.required&&popupSelections[gi] instanceof Set){ popupSelections[gi].forEach(name=>{ const opt=g.options.find(o=>o.name===name); extra+=opt?.price||0; }); }
-  });
-  document.getElementById("popupTotal").textContent=base+extra;
-}
+    else if(!g.required&&popupSelections[gi] instanceof Set){ popupSelections[gi].forEach(name=>{ const opt=g.options.find(o=>o.name===name); extra+=opt?.price||0; }); }});
+  document.getElementById("popupTotal").textContent=base+extra;}
 
 window.addToCartFromPopup=function(){
   const m=popupMenu; if(!m) return;
@@ -369,15 +351,13 @@ window.addToCartFromPopup=function(){
   const selectedOptions=[];
   (m.optionGroups||[]).forEach((g,gi)=>{
     if(g.required&&popupSelections[gi]){ const opt=g.options.find(o=>o.name===popupSelections[gi]); selectedOptions.push({groupTitle:g.title,name:popupSelections[gi],price:opt?.price||0}); }
-    else if(!g.required&&popupSelections[gi] instanceof Set){ popupSelections[gi].forEach(name=>{ const opt=g.options.find(o=>o.name===name); selectedOptions.push({groupTitle:g.title,name,price:opt?.price||0}); }); }
-  });
+    else if(!g.required&&popupSelections[gi] instanceof Set){ popupSelections[gi].forEach(name=>{ const opt=g.options.find(o=>o.name===name); selectedOptions.push({groupTitle:g.title,name,price:opt?.price||0}); }); }});
   const base=calcPrice(m.price,m.gp);
   const extra=selectedOptions.reduce((s,o)=>s+o.price,0);
   if(!cart[shopId]) cart[shopId]={shopName,items:[]};
   cart[shopId].items.push({id:m.id,name:m.name,basePrice:m.price,price:base+extra,qty:1,imgUrl:m.imgUrl||'',options:selectedOptions,optionGroups:m.optionGroups,note:document.getElementById("popupNote")?.value||''});
   localStorage.setItem("cart",JSON.stringify(cart));
-  closePopup(); renderMenus(); updateCartBar();
-}
+  window.closePopup(); renderMenus(); updateCartBar();}
 
 window.quickRemove=function(menuId){
   if(!cart[shopId]) return;
@@ -386,11 +366,10 @@ window.quickRemove=function(menuId){
   if(lastIdx!==undefined){ items[lastIdx].qty--; if(items[lastIdx].qty<=0) items.splice(lastIdx,1); }
   if(!cart[shopId].items.length) delete cart[shopId];
   localStorage.setItem("cart",JSON.stringify(cart));
-  renderMenus(); updateCartBar();
-}
+  renderMenus(); updateCartBar();}
 
 window.closePopup=function(){ document.getElementById("optionPopup").classList.remove("show"); popupMenu=null; popupSelections={}; }
-document.getElementById("optionPopup").addEventListener('click',function(e){ if(e.target===this) closePopup(); });
+document.getElementById("optionPopup").addEventListener('click',function(e){ if(e.target===this) window.closePopup(); });
 
 function updateCartBar(){
   let qty=0,total=0;
@@ -399,13 +378,12 @@ function updateCartBar(){
   document.getElementById("cartTotal").textContent=total;
   document.getElementById("cartBar").style.display=qty>0?"block":"none";
   const badge=document.getElementById("topCartBadge");
-  badge.textContent=qty; badge.style.display=qty>0?"flex":"none";
-}
+  badge.textContent=qty; badge.style.display=qty>0?"flex":"none";}
 
 updateCartBar();
 loadMenu();
 
-function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 </script>
 </body>
 </html>
