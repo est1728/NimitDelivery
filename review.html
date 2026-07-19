@@ -151,9 +151,18 @@ document.querySelectorAll('.star').forEach(s=>{
 });
 
 window.submitReview = async function(){
+  if(!orderId){ alert('ไม่พบข้อมูลออเดอร์'); return; }
+  if(!ratings.shop){ alert('กรุณาให้คะแนนร้านค้าก่อน'); return; }
   const btn = document.getElementById('submitBtn');
   btn.disabled=true; btn.textContent='กำลังส่ง...';
   try{
+    // เช็คว่ารีวิวซ้ำหรือไม่
+    const exist=await getDoc(doc(db,'reviews',orderId));
+    if(exist.exists()){ 
+      document.getElementById('reviewScreen').style.display='none';
+      document.getElementById('doneScreen').style.display='block';
+      return;
+    }
     const review = {
       orderId,
       shopId: orderData?.shopId||'',
@@ -206,5 +215,6 @@ window.goBack = function(){
   location.href='shops.html';
 };
 </script>
+<script src="motion.js"></script>
 </body>
 </html>
