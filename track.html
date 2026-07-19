@@ -175,6 +175,8 @@ body{background:var(--gray);min-height:100vh;}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, onSnapshot, collection, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+// local aliases for cross-scope calls
+const openDetail=(...a)=>window.openDetail(...a);
 
 const firebaseConfig = {
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -243,6 +245,13 @@ function renderOrderList(orders){
   const doneEl=document.getElementById("doneOrders");
   doneEl.innerHTML=done.length ? `<div class="group-label">เสร็จสิ้น / ยกเลิก</div>`+done.map(o=>renderOrderCard(o)).join('') : '';
   if(!active.length&&!done.length) renderEmpty();
+  // auto redirect ไป review.html สำหรับ order ที่เพิ่งเสร็จ
+  done.forEach(o=>{
+    if(o.status==='done'&&!localStorage.getItem("reviewed_"+o.docId)&&!localStorage.getItem("reviewSeen_"+o.docId)){
+      localStorage.setItem("reviewSeen_"+o.docId,"1");
+      setTimeout(()=>location.href="review.html?orderId="+o.docId, 800);
+    }
+  });
 }
 
 function renderOrderCard(o){
@@ -252,6 +261,8 @@ function renderOrderCard(o){
   ).join('');
   const items=(o.items||[]).map(i=>i.name).join(', ');
   const time=o.createdAt?.toDate?o.createdAt.toDate().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):'';
+  const reviewDone=localStorage.getItem("reviewed_"+o.docId);
+  const reviewBtn=o.status==='done'&&!reviewDone?`<button onclick="event.stopPropagation();location.href='review.html?orderId=${o.docId}'" style="margin-top:8px;width:100%;height:36px;border:none;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-size:13px;font-weight:700;cursor:pointer">⭐ ให้คะแนน</button>`:'';
   return `<div class="order-shop-card" onclick="openDetail('${o.docId}')">
     <div class="shop-status-icon ${statusIconClass[o.status]||'icon-active'}">
       <svg viewBox="0 0 24 24">${statusSteps.find(s=>s.key===o.status)?.icon||''}</svg>
@@ -262,6 +273,7 @@ function renderOrderCard(o){
       <div class="order-shop-items">${items}</div>
       ${!["done","rejected"].includes(o.status)?`<div class="mini-progress">${miniDots}</div>`:''}
       <div class="order-shop-time">${time}</div>
+      ${o.status==='done'&&!localStorage.getItem("reviewed_"+o.docId)?`<button onclick="event.stopPropagation();localStorage.setItem('reviewed_${o.docId}','1');location.href='review.html?orderId=${o.docId}'" style="margin-top:8px;width:100%;height:34px;border:none;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-size:12px;font-weight:700;cursor:pointer">⭐ ให้คะแนน</button>`:''}
     </div>
     <div class="order-shop-right">
       <div class="order-total">฿${o.grandTotal||0}</div>
@@ -326,10 +338,11 @@ function renderDetail(o){
 
 const urlParams=new URLSearchParams(window.location.search);
 const directOrderId=urlParams.get("orderId");
-if(directOrderId){ openDetail(directOrderId); }
+if(directOrderId){ window.openDetail(directOrderId); }
 else{ loadOrderList(); }
 
-function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
-</script>
+function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }</script>
+<script>window._fcmRole="customer";</script>
+<script src="fcm.js"></script>
 </body>
 </html>
