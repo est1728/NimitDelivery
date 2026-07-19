@@ -356,8 +356,12 @@ body{background:var(--gray);min-height:100vh;}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, query, where, onSnapshot, doc, getDocs, updateDoc, getDoc, addDoc, deleteDoc, serverTimestamp }
-  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, query, where, onSnapshot, doc, getDocs, updateDoc, getDoc, addDoc, deleteDoc, serverTimestamp, setDoc, increment} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+// local aliases for cross-scope calls
+const loadAds=(...a)=>window.loadAds(...a);
+const cancelCrop=(...a)=>window.cancelCrop(...a);
+const closeConfirmAd=(...a)=>window.closeConfirmAd(...a);
+const closeExtraPanel=(...a)=>window.closeExtraPanel(...a);
 
 const firebaseConfig = {
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -605,7 +609,7 @@ window.saveShopInfo=async function(){
     document.getElementById("shopNameTop").textContent=data.name;
     document.getElementById("sbName").textContent=data.name;
     showToast("บันทึกสำเร็จ","success");
-    closeExtraPanel('panelEdit');
+    window.closeExtraPanel('panelEdit');
   }catch(e){showToast("เกิดข้อผิดพลาด","error");}
 }
 
@@ -644,7 +648,7 @@ window.confirmSubmitAd=function(){
 window.closeConfirmAd=function(){document.getElementById("confirmAdOverlay").classList.remove("show");}
 
 window.submitAd=async function(){
-  closeConfirmAd();
+  window.closeConfirmAd();
   const caption=document.getElementById("adCaption").value.trim();
   try{
     await addDoc(collection(db,"ads"),{shopId:shopData.id,shopName:shopData.name,imgUrl:adImgBase64||'',caption,active:true,createdAt:serverTimestamp()});
@@ -657,8 +661,8 @@ window.submitAd=async function(){
     showToast("เผยแพร่โฆษณาสำเร็จ","success");
     // เด้งกลับหน้าออเดอร์
     setTimeout(()=>{
-      closeExtraPanel('panelAds');
-      loadAds();
+      window.closeExtraPanel('panelAds');
+      window.loadAds();
     },800);
   }catch(e){showToast("เกิดข้อผิดพลาด","error");}
 }
@@ -666,7 +670,7 @@ window.submitAd=async function(){
 window.deleteAd=async function(id){
   if(!confirm("ลบโฆษณานี้?")) return;
   await deleteDoc(doc(db,"ads",id));
-  showToast("ลบโฆษณาแล้ว","info");loadAds();
+  showToast("ลบโฆษณาแล้ว","info");window.loadAds();
 }
 
 // ===== CROP =====
@@ -742,7 +746,7 @@ window.confirmCrop=function(){
   const area=document.getElementById("adImgArea");
   area.innerHTML='<img src="'+adImgBase64+'" style="width:100%;height:100%;object-fit:cover">';
   area.onclick=()=>document.getElementById('adImgFile').click();
-  cancelCrop();
+  window.cancelCrop();
 }
 window.cancelCrop=function(){
   document.getElementById("cropOverlay").classList.remove("show");
