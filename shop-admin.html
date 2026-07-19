@@ -469,28 +469,31 @@ window.toggleOpen=async function(){
 }
 
 let allShopOrders=[];
-function listenOrders(){
-  onSnapshot(query(collection(db,"orders"),where("shopId","==",shopData.id)),snap=>{
-    // filter active client-side เพื่อหลีกเลี่ยง composite index
+async function loadOrders(){
+  try{
+    const snap=await getDocs(collection(db,"orders"));
     allShopOrders=[];
     if(!window._knownOrders) window._knownOrders=new Set();
     snap.forEach(d=>{
       const o={docId:d.id,...d.data()};
-      if(!ACTIVE_STATUSES.includes(o.status))return; // filter client-side
+      if(o.shopId!==shopData.id&&o.shopId!==shopData.slug)return;
+      if(!ACTIVE_STATUSES.includes(o.status))return;
       allShopOrders.push(o);
       if(!window._knownOrders.has(d.id)&&window._knownOrders.size>0){
         playNotifSound();
-        showOSNotif('🔔 ออเดอร์ใหม่!','ออเดอร์ '+(o.orderId||d.id)+' · ฿'+(o.grandTotal||0));
-        if(typeof toast==='function') toast('ออเดอร์ใหม่! '+(o.orderId||d.id),'ok');
+        showOSNotif("🔔 ออเดอร์ใหม่!","ออเดอร์ "+(o.orderId||d.id)+" · ฿"+(o.grandTotal||0));
       }
       window._knownOrders.add(d.id);
     });
-    allShopOrders.sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
+    allShopOrders.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
     renderOrders();
-  },err=>{
-    console.error('orders error:',err);
-    document.getElementById('ordersList').innerHTML='<div style="padding:20px;text-align:center;color:#888">โหลดออเดอร์ไม่ได้: '+err.message+'</div>';
-  });
+  }catch(err){
+    document.getElementById("ordersList").innerHTML="<div style='padding:20px;text-align:center;color:#888'>โหลดออเดอร์ไม่ได้: "+err.message+"</div>";
+  }
+}
+function listenOrders(){
+  loadOrders();
+  setInterval(loadOrders,15000);
 }
 function renderOrders(){
   const el=document.getElementById("ordersList");
