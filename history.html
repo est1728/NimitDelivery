@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>ประวัติระบบ</title>
+<style>
+:root{--p:#1565C0;--p2:#1E88E5;--pl:#EBF5FF;--bg:#F5F7FA;--card:#fff;--t:#1a2340;--s:#64748b;--d:#EF4444;--r:16px;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);min-height:100vh;display:flex;flex-direction:column;}
+
+/* TOPBAR */
+.tb{background:#fff;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid #eaeef4;position:sticky;top:0;z-index:50;flex-shrink:0;}
+.tb-ic{width:40px;height:40px;border:none;background:none;cursor:pointer;border-radius:12px;display:flex;align-items:center;justify-content:center;}
+.tb-ic:active{background:#f0f4ff;}
+.tb-ic svg{width:20px;height:20px;}
+.tb-title{font-size:16px;font-weight:700;color:var(--p);}
+
+/* SIDEBAR */
+.sb-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:none;}
+.sb-bg.on{display:block;animation:fd .2s;}
+@keyframes fd{from{opacity:0}to{opacity:1}}
+.sb{position:fixed;top:0;right:-280px;bottom:0;width:260px;background:#fff;z-index:101;transition:right .2s ease;box-shadow:-4px 0 20px rgba(0,0,0,.1);display:flex;flex-direction:column;}
+.sb.on{right:0;}
+.sb-hd{background:linear-gradient(135deg,var(--p),var(--p2));padding:52px 20px 20px;}
+.sb-hd-t{font-size:18px;font-weight:800;color:#fff;}
+.sb-hd-s{font-size:11px;color:rgba(255,255,255,.6);margin-top:2px;}
+.sb-mi{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid #f5f7fa;cursor:pointer;}
+.sb-mi:active{background:#f0f4ff;}
+.sb-mi-ic{width:34px;height:34px;border-radius:10px;background:#f0f4ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sb-mi-ic svg{width:16px;height:16px;stroke:var(--p);fill:none;stroke-width:2;}
+.sb-mi-t{font-size:14px;font-weight:600;color:var(--t);}
+.sb-mi-s{font-size:10px;color:var(--s);}
+.sb-section{padding:12px 20px 6px;font-size:10px;font-weight:700;color:var(--s);letter-spacing:.8px;text-transform:uppercase;}
+
+/* CONTENT */
+.content{flex:1;padding:16px;}
+.page-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.page-title{font-size:20px;font-weight:800;color:var(--t);}
+.page-count{font-size:12px;color:var(--s);font-weight:500;}
+
+
+/* FILE CARDS */
+.file-card{background:#fff;border-radius:var(--r);padding:14px 16px;margin-bottom:10px;border:1px solid #eaeef4;cursor:pointer;display:flex;align-items:center;gap:14px;transition:all .15s;animation:slideIn .2s ease;}
+@keyframes slideIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.file-card:active{transform:scale(.99);background:#f8fafc;}
+.file-ico{width:44px;height:44px;border-radius:12px;background:var(--pl);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.file-ico svg{width:22px;height:22px;fill:var(--p);}
+.file-info{flex:1;min-width:0;}
+.file-name{font-size:14px;font-weight:700;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.file-date{font-size:11px;color:var(--s);margin-top:3px;}
+.file-reason{font-size:11px;color:var(--p);margin-top:2px;font-weight:600;}
+.file-stats{display:flex;gap:10px;margin-top:6px;}
+.file-stat{font-size:10px;color:var(--s);background:#f5f7fa;padding:2px 8px;border-radius:20px;}
+.file-arr{color:#c0cad8;font-size:20px;flex-shrink:0;}
+.empty-state{text-align:center;padding:48px 20px;color:var(--s);}
+.empty-ico{font-size:48px;margin-bottom:12px;}
+.empty-t{font-size:16px;font-weight:700;color:var(--t);margin-bottom:6px;}
+.empty-s{font-size:13px;}
+
+/* DETAIL PANEL */
+.detail{position:fixed;inset:0;background:var(--bg);z-index:80;transform:translateX(100%);transition:transform .22s ease;overflow-y:auto;padding-bottom:40px;}
+.detail.on{transform:translateX(0);}
+.detail-tb{background:#fff;height:56px;display:flex;align-items:center;gap:12px;padding:0 16px;border-bottom:1px solid #eaeef4;position:sticky;top:0;z-index:1;}
+.det-back{width:36px;height:36px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.det-back svg{width:20px;height:20px;}
+.det-title{font-size:15px;font-weight:700;color:var(--t);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.det-dl{height:34px;padding:0 14px;border:none;border-radius:17px;background:var(--p);color:#fff;font-size:12px;font-weight:700;cursor:pointer;}
+
+/* DETAIL CONTENT */
+.det-card{background:#fff;border-radius:var(--r);margin:14px 16px 0;padding:16px;border:1px solid #eaeef4;}
+.det-card-t{font-size:11px;font-weight:700;color:var(--s);letter-spacing:.6px;text-transform:uppercase;margin-bottom:12px;}
+.det-row{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid #f5f7fa;}
+.det-row:last-child{border-bottom:none;}
+.det-row-l{font-size:13px;color:var(--s);}
+.det-row-r{font-size:13px;font-weight:600;color:var(--t);text-align:right;max-width:55%;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.stat-box{background:#f8fafc;border-radius:12px;padding:12px;text-align:center;}
+.stat-v{font-size:22px;font-weight:900;color:var(--p);}
+.stat-l{font-size:10px;color:var(--s);margin-top:2px;}
+
+/* TIMELINE in detail */
+.tl{padding-left:16px;position:relative;}
+.tl::before{content:'';position:absolute;left:5px;top:6px;bottom:6px;width:2px;background:#e8ecf4;}
+.tl-item{position:relative;padding:0 0 14px 18px;}
+.tl-dot{position:absolute;left:-5px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--p);border:2px solid #fff;box-shadow:0 0 0 2px var(--p);}
+.tl-t{font-size:12px;font-weight:700;color:var(--t);}
+.tl-s{font-size:11px;color:var(--s);margin-top:2px;}
+
+/* SHEET */
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:200;display:none;align-items:flex-end;}
+.mask.on{display:flex;}
+.sheet{background:#fff;border-radius:24px 24px 0 0;width:100%;padding:20px 20px 48px;animation:up .22s ease;}
+@keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sh-pill{width:36px;height:4px;border-radius:2px;background:#e2e8f0;margin:0 auto 18px;}
+.sh-title{font-size:18px;font-weight:800;color:var(--t);margin-bottom:6px;}
+.sh-sub{font-size:13px;color:var(--s);margin-bottom:20px;}
+.sh-lbl{font-size:11px;font-weight:700;color:var(--s);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;}
+.sh-in{width:100%;height:50px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:15px;color:var(--t);outline:none;margin-bottom:14px;}
+.sh-in:focus{border-color:var(--p);}
+.sh-warn{background:#fff8f0;border:1px solid #fde68a;border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:#92400e;line-height:1.5;}
+.sh-ok{width:100%;height:52px;border:none;border-radius:16px;background:linear-gradient(135deg,#b91c1c,var(--d));color:#fff;font-size:16px;font-weight:800;cursor:pointer;}
+.sh-ok:disabled{background:#cbd5e1;cursor:not-allowed;}
+.sh-cancel{width:100%;height:42px;border:none;background:none;color:var(--s);font-size:14px;font-weight:600;cursor:pointer;margin-top:8px;}
+.auto-field{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+.auto-field-l{font-size:12px;color:var(--s);}
+.auto-field-v{font-size:13px;font-weight:700;color:var(--t);}
+.lt{text-align:center;padding:20px;color:var(--s);font-size:12px;}
+
+.restore-card{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:var(--r);padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;}
+.restore-ico{width:44px;height:44px;border-radius:12px;background:#dcfce7;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.restore-ico svg{width:20px;height:20px;stroke:#16a34a;fill:none;stroke-width:2;}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="tb">
+  <button class="tb-ic" onclick="history.back()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+  </button>
+  <div class="tb-title">ประวัติระบบ</div>
+  <button class="tb-ic" onclick="openSb()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
+  </button>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sb-bg" id="sbBg" onclick="closeSb()"></div>
+<div class="sb" id="sb">
+  <div class="sb-hd"><div class="sb-hd-t">ประวัติระบบ</div><div class="sb-hd-s">จัดการและส่งออกข้อมูล</div></div>
+  <div class="sb-section">ดูข้อมูล</div>
+  <div class="sb-mi" onclick="closeSb();window.switchTab('archive')">
+    <div class="sb-mi-ic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--p)" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+    <div><div class="sb-mi-t">ไฟล์ Archive ทั้งหมด</div><div class="sb-mi-s">ดูไฟล์ที่รีเซ็ตมา</div></div>
+  </div>
+  <div class="sb-mi" onclick="closeSb();window.switchTab('restore')">
+    <div class="sb-mi-ic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--p)" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg></div>
+    <div><div class="sb-mi-t">ประวัติการกู้คืน</div><div class="sb-mi-s">ดูทุกครั้งที่กู้คืนระบบ</div></div>
+  </div>
+  <div class="sb-section">ส่งออก</div>
+  <div class="sb-mi" onclick="closeSb();printAll()">
+    <div class="sb-mi-ic"><svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></div>
+    <div><div class="sb-mi-t">พิมพ์ประวัติทั้งหมด</div><div class="sb-mi-s">ส่งออกเป็นเอกสาร</div></div>
+  </div>
+  <div class="sb-mi" onclick="closeSb();downloadAll()">
+    <div class="sb-mi-ic"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+    <div><div class="sb-mi-t">ดาวน์โหลดไฟล์ทั้งหมด</div><div class="sb-mi-s">JSON รวมทุก archive</div></div>
+  </div>
+  <div class="sb-section">ระบบ</div>
+  <div class="sb-mi" onclick="closeSb();openRestoreSheet()">
+    <div class="sb-mi-ic" style="background:#f0fdf4"><svg viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg></div>
+    <div><div class="sb-mi-t" style="color:#16a34a">กู้คืนระบบ</div><div class="sb-mi-s">โหลดข้อมูลจากไฟล์ archive</div></div>
+  </div>
+  <div class="sb-mi" onclick="closeSb();openResetSheet()">
+    <div class="sb-mi-ic" style="background:#fff0f0"><svg viewBox="0 0 24 24" stroke="#EF4444" fill="none" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg></div>
+    <div><div class="sb-mi-t" style="color:#EF4444">รีเซ็ตระบบ</div><div class="sb-mi-s">เก็บข้อมูลแล้วเริ่มใหม่</div></div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+  <div class="page-hd">
+    <div>
+      <div class="page-title">ไฟล์ประวัติ</div>
+      <div class="page-count" id="archiveCount">กำลังโหลด...</div>
+    </div>
+  </div>
+  <div style="display:flex;border-bottom:2px solid #eaeef4;margin-bottom:16px;">
+    <button id="tabArchive" onclick="window.switchTab('archive')" style="flex:1;height:40px;border:none;background:none;font-size:13px;font-weight:700;color:var(--p);border-bottom:2px solid var(--p);margin-bottom:-2px;cursor:pointer;">ไฟล์ Archive</button>
+    <button id="tabRestore" onclick="window.switchTab('restore')" style="flex:1;height:40px;border:none;background:none;font-size:13px;font-weight:600;color:var(--s);cursor:pointer;">ประวัติกู้คืน</button>
+  </div>
+  <div id="archiveList"><div class="lt">กำลังโหลด...</div></div>
+  <div id="restoreList" style="display:none"><div class="lt">กำลังโหลด...</div></div>
+</div>
+
+<!-- DETAIL PANEL -->
+<div class="detail" id="detailPanel">
+  <div class="detail-tb">
+    <button class="det-back" onclick="closeDetail()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#1a2340" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="det-title" id="detTitle">รายละเอียด</div>
+    <button class="det-dl" id="detDlBtn">ดาวน์โหลด</button>
+  </div>
+  <div id="detContent"></div>
+</div>
+
+<!-- RESET SHEET -->
+<div class="mask" id="mask"><div class="sheet" id="shBody"></div></div>
+
+<script>
+function openSb(){document.getElementById('sb').classList.add('on');document.getElementById('sbBg').classList.add('on');}
+function closeSb(){document.getElementById('sb').classList.remove('on');document.getElementById('sbBg').classList.remove('on');}
+function closeDetail(){document.getElementById('detailPanel').classList.remove('on');}
+function hideMask(){document.getElementById('mask').classList.remove('on');}
+function switchTab(tab){
+  var isArchive=tab==='archive';
+  document.getElementById('archiveList').style.display=isArchive?'block':'none';
+  document.getElementById('restoreList').style.display=isArchive?'none':'block';
+  var activeStyle='flex:1;height:40px;border:none;background:none;font-size:13px;font-weight:700;border-bottom:2px solid;margin-bottom:-2px;cursor:pointer;';
+  var inactStyle='flex:1;height:40px;border:none;background:none;font-size:13px;font-weight:600;cursor:pointer;';
+  document.getElementById('tabArchive').style.cssText=isArchive?(activeStyle+'color:#1565C0;border-color:#1565C0;'):(inactStyle+'color:#64748b;');
+  document.getElementById('tabRestore').style.cssText=isArchive?(inactStyle+'color:#64748b;'):(activeStyle+'color:#16a34a;border-color:#16a34a;');
+  if(!isArchive && window._loadRestoreLogs) window._loadRestoreLogs();
+}
+</script>
+
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import{getFirestore,collection,doc,getDocs,addDoc,deleteDoc,setDoc,query,orderBy,serverTimestamp,where}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const db=getFirestore(initializeApp({apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",authDomain:"nimit-delivery.firebaseapp.com",projectId:"nimit-delivery",storageBucket:"nimit-delivery.firebasestorage.app",messagingSenderId:"233476256130",appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"}));
+
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function fmtDt(ts){
+  if(!ts)return'-';
+  const d=ts.toDate?ts.toDate():new Date(ts);
+  return d.toLocaleString('th-TH',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+function fmtFileDt(ts){
+  const d=ts.toDate?ts.toDate():new Date(ts);
+  const y=d.getFullYear(),mo=String(d.getMonth()+1).padStart(2,'0'),dy=String(d.getDate()).padStart(2,'0');
+  const h=String(d.getHours()).padStart(2,'0'),mi=String(d.getMinutes()).padStart(2,'0'),s=String(d.getSeconds()).padStart(2,'0');
+  return `${y}${mo}${dy}_${h}${mi}${s}`;
+}
+
+let archives=[], curArchive=null;
+
+// โหลด archives
+async function loadArchives(){
+  try{
+    const snap=await getDocs(query(collection(db,'archives'),orderBy('createdAt','desc')));
+    archives=[];
+    snap.forEach(d=>archives.push({id:d.id,...d.data()}));
+    renderList();
+  }catch(e){
+    document.getElementById('archiveList').innerHTML='<div class="lt">โหลดไม่ได้</div>';
+  }
+}
+loadArchives();
+
+function renderList(){
+  const el=document.getElementById('archiveList');
+  document.getElementById('archiveCount').textContent=archives.length+' ไฟล์';
+  if(!archives.length){
+    el.innerHTML=`<div class="empty-state"><div class="empty-ico">🗂️</div><div class="empty-t">ยังไม่มีประวัติ</div><div class="empty-s">กดปุ่มรีเซ็ตเพื่อสร้างไฟล์ประวัติแรก</div></div>`;
+    return;
+  }
+  el.innerHTML=archives.map(a=>`
+    <div class="file-card" data-id="${a.id}">
+      <div class="file-ico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+      <div class="file-info">
+        <div class="file-name">${esc(a.filename)}</div>
+        <div class="file-date">${fmtDt(a.createdAt)}</div>
+        <div class="file-reason">${esc(a.reason)}</div>
+        <div class="file-stats">
+          <span class="file-stat">ออเดอร์ ${a.stats?.orderCount||0}</span>
+          <span class="file-stat">รายได้ ฿${(a.stats?.totalRevenue||0).toLocaleString()}</span>
+          <span class="file-stat">Tx ${a.stats?.walletTxCount||0}</span>
+        </div>
+      </div>
+      <div class="file-arr">›</div>
+    </div>`).join('');
+  document.querySelectorAll('.file-card').forEach(c=>c.addEventListener('click',()=>openDetail(c.dataset.id)));
+}
+
+// เปิดรายละเอียด
+function openDetail(id){
+  curArchive=archives.find(a=>a.id===id);
+  if(!curArchive)return;
+  document.getElementById('detTitle').textContent=curArchive.filename;
+  document.getElementById('detDlBtn').onclick=()=>downloadArchive(curArchive);
+  const a=curArchive;
+  document.getElementById('detContent').innerHTML=`
+    <div class="det-card" style="margin-top:14px">
+      <div class="det-card-t">ข้อมูลไฟล์</div>
+      <div class="det-row"><span class="det-row-l">ชื่อไฟล์</span><span class="det-row-r">${esc(a.filename)}</span></div>
+      <div class="det-row"><span class="det-row-l">เหตุผล</span><span class="det-row-r">${esc(a.reason)}</span></div>
+      <div class="det-row"><span class="det-row-l">วันที่รีเซ็ต</span><span class="det-row-r">${fmtDt(a.createdAt)}</span></div>
+      <div class="det-row"><span class="det-row-l">รีเซ็ตโดย</span><span class="det-row-r">${esc(a.resetBy||'Admin')}</span></div>
+    </div>
+    <div class="det-card">
+      <div class="det-card-t">สรุปข้อมูล</div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-v">${a.stats?.orderCount||0}</div><div class="stat-l">ออเดอร์ทั้งหมด</div></div>
+        <div class="stat-box"><div class="stat-v">฿${(a.stats?.totalRevenue||0).toLocaleString()}</div><div class="stat-l">รายได้รวม</div></div>
+        <div class="stat-box"><div class="stat-v">${a.stats?.doneCount||0}</div><div class="stat-l">ออเดอร์สำเร็จ</div></div>
+        <div class="stat-box"><div class="stat-v">${a.stats?.walletTxCount||0}</div><div class="stat-l">รายการกระเป๋า</div></div>
+      </div>
+    </div>
+    <div class="det-card">
+      <div class="det-card-t">ข้อมูลออเดอร์ช่วง</div>
+      <div class="det-row"><span class="det-row-l">ออเดอร์ pending</span><span class="det-row-r">${a.stats?.pendingCount||0}</span></div>
+      <div class="det-row"><span class="det-row-l">ออเดอร์ done</span><span class="det-row-r">${a.stats?.doneCount||0}</span></div>
+      <div class="det-row"><span class="det-row-l">ออเดอร์ rejected</span><span class="det-row-r">${a.stats?.rejectedCount||0}</span></div>
+      <div class="det-row"><span class="det-row-l">รายได้เฉลี่ย/ออเดอร์</span><span class="det-row-r">฿${a.stats?.orderCount?Math.round((a.stats.totalRevenue||0)/a.stats.orderCount).toLocaleString():0}</span></div>
+    </div>
+    <div class="det-card" style="margin-bottom:0">
+      <div class="det-card-t">Timeline การรีเซ็ต</div>
+      <div class="tl">
+        <div class="tl-item"><div class="tl-dot"></div><div class="tl-t">เก็บข้อมูลทั้งหมด</div><div class="tl-s">รวบรวม orders, walletTx, reviews</div></div>
+        <div class="tl-item"><div class="tl-dot"></div><div class="tl-t">บันทึก archive</div><div class="tl-s">สร้างไฟล์ ${esc(a.filename)}</div></div>
+        <div class="tl-item"><div class="tl-dot"></div><div class="tl-t">รีเซ็ตเสร็จสิ้น</div><div class="tl-s">${fmtDt(a.createdAt)}</div></div>
+      </div>
+    </div>`;
+  document.getElementById('detailPanel').classList.add('on');
+}
+window.closeDetail=closeDetail;
+
+// RESET SHEET
+window.openResetSheet=function(){
+  const now=new Date();
+  const dtStr=now.toLocaleString('th-TH',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('shBody').innerHTML=`
+    <div class="sh-pill"></div>
+    <div class="sh-title">รีเซ็ตระบบ</div>
+    <div class="sh-sub">ข้อมูลจะถูกเก็บเป็นไฟล์ประวัติ ไม่มีการลบข้อมูลจริง</div>
+    <div class="sh-warn">⚠️ การรีเซ็ตจะเก็บ snapshot ของออเดอร์ กระเป๋า และรีวิวทั้งหมด แล้วสร้างไฟล์ประวัติให้ดาวน์โหลด</div>
+    <div class="sh-lbl">วันเวลา (อัตโนมัติ)</div>
+    <div class="auto-field"><span class="auto-field-l">Timestamp</span><span class="auto-field-v" id="autoTime">${dtStr}</span></div>
+    <div class="sh-lbl">เหตุผลการรีเซ็ต *</div>
+    <input class="sh-in" id="shReason" placeholder="เช่น สิ้นเดือน, ปิดรอบบัญชี, ทดสอบระบบ">
+    <div class="sh-lbl">ชื่อไฟล์ (ไม่ต้องใส่นามสกุล) *</div>
+    <input class="sh-in" id="shFilename" placeholder="เช่น รายงานเดือนมกราคม">
+    <button class="sh-ok" id="shOk" onclick="window.doReset()">ยืนยันรีเซ็ตและสร้างไฟล์</button>
+    <button class="sh-cancel" onclick="hideMask()">ยกเลิก</button>`;
+  document.getElementById('mask').classList.add('on');
+  setTimeout(()=>document.getElementById('shReason')?.focus(),200);
+};
+
+window.doReset=async function(){
+  const reason=document.getElementById('shReason')?.value.trim();
+  const filenameRaw=document.getElementById('shFilename')?.value.trim();
+  if(!reason){alert('กรุณากรอกเหตุผล');return;}
+  if(!filenameRaw){alert('กรุณากรอกชื่อไฟล์');return;}
+  const btn=document.getElementById('shOk');
+  btn.disabled=true;btn.textContent='กำลังเก็บข้อมูล...';
+  try{
+    // ดึงข้อมูลทั้งหมด
+    btn.textContent='โหลด orders...';
+    const ordersSnap=await getDocs(collection(db,'orders'));
+    const orders=[];ordersSnap.forEach(d=>orders.push({id:d.id,...d.data()}));
+
+    btn.textContent='โหลด walletTx...';
+    const txSnap=await getDocs(collection(db,'walletTx'));
+    const walletTx=[];txSnap.forEach(d=>walletTx.push({id:d.id,...d.data()}));
+
+    btn.textContent='โหลด reviews...';
+    const revSnap=await getDocs(collection(db,'reviews'));
+    const reviews=[];revSnap.forEach(d=>reviews.push({id:d.id,...d.data()}));
+
+    // คำนวณ stats
+    const doneOrders=orders.filter(o=>o.status==='done');
+    const stats={
+      orderCount:orders.length,
+      doneCount:doneOrders.length,
+      pendingCount:orders.filter(o=>o.status==='pending').length,
+      rejectedCount:orders.filter(o=>o.status==='rejected').length,
+      totalRevenue:doneOrders.reduce((s,o)=>s+(o.grandTotal||0),0),
+      walletTxCount:walletTx.length,
+      reviewCount:reviews.length,
+    };
+
+    // สร้างชื่อไฟล์
+    const ts=fmtFileDt({toDate:()=>new Date()});
+    const filename=`${filenameRaw}_${ts}.json`;
+
+    // บันทึก archive metadata + data
+    btn.textContent='บันทึก archive...';
+    const archiveDoc={
+      filename,reason,stats,resetBy:'Admin',
+      createdAt:serverTimestamp(),
+      data:{orders,walletTx,reviews}
+    };
+    await addDoc(collection(db,'archives'),archiveDoc);
+
+    // ดาวน์โหลดไฟล์ทันที
+    const json=JSON.stringify({filename,reason,createdAt:new Date().toISOString(),stats,data:{orders,walletTx,reviews}},null,2);
+    const blob=new Blob([json],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=filename;a.click();
+    URL.revokeObjectURL(url);
+
+    hideMask();
+    loadArchives();
+    alert('รีเซ็ตเสร็จสิ้น ไฟล์ '+filename+' ถูกบันทึกแล้ว');
+  }catch(e){
+    alert('เกิดข้อผิดพลาด: '+e.message);
+    btn.disabled=false;btn.textContent='ยืนยันรีเซ็ตและสร้างไฟล์';
+  }
+};
+
+// ดาวน์โหลด archive เฉพาะ
+function downloadArchive(a){
+  const json=JSON.stringify({filename:a.filename,reason:a.reason,createdAt:a.createdAt?.toDate?.()?.toISOString()||'',stats:a.stats,data:a.data||{}},null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const el=document.createElement('a');el.href=url;el.download=a.filename;el.click();
+  URL.revokeObjectURL(url);
+}
+
+// ดาวน์โหลดทั้งหมด
+window.downloadAll=async function(){
+  if(!archives.length){alert('ยังไม่มีไฟล์');return;}
+  const json=JSON.stringify(archives.map(a=>({filename:a.filename,reason:a.reason,createdAt:a.createdAt?.toDate?.()?.toISOString()||'',stats:a.stats})),null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const el=document.createElement('a');el.href=url;el.download=`history_all_${fmtFileDt({toDate:()=>new Date()})}.json`;el.click();
+  URL.revokeObjectURL(url);
+};
+
+// พิมพ์
+// TAB SWITCH handled in regular script
+
+
+// RESTORE SHEET
+window.openRestoreSheet=function(){
+  if(!archives.length){alert('ไม่มีไฟล์ archive กรุณารีเซ็ตระบบก่อน');return;}
+  document.getElementById('shBody').innerHTML=`
+    <div class="sh-pill"></div>
+    <div class="sh-title">กู้คืนระบบ</div>
+    <div class="sh-sub">เลือก archive ที่ต้องการกู้คืน</div>
+    <div class="sh-warn">⚠️ การกู้คืนจะเพิ่มข้อมูลจาก archive เข้า Firestore ข้อมูลปัจจุบันจะยังคงอยู่</div>
+    <div class="sh-lbl">เลือก archive *</div>
+    <select id="shArchive" style="width:100%;height:50px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:14px;outline:none;margin-bottom:14px;background:#fff;">
+      <option value="">— เลือกไฟล์ —</option>
+      ${archives.map(a=>'<option value="'+a.id+'">'+a.filename+' ('+fmtDt(a.createdAt)+')</option>').join('')}
+    </select>
+    <div class="sh-lbl">เหตุผลการกู้คืน *</div>
+    <input class="sh-in" id="shRestoreReason" placeholder="เช่น ข้อมูลสูญหาย, ทดสอบระบบ">
+    <button class="sh-ok" style="background:linear-gradient(135deg,#166534,#16a34a)" id="shRestoreOk" onclick="window.doRestore()">ยืนยันกู้คืน</button>
+    <button class="sh-cancel" onclick="hideMask()">ยกเลิก</button>`;
+  document.getElementById('mask').classList.add('on');
+};
+
+window.doRestore=async function(){
+  const archiveId=document.getElementById('shArchive')?.value;
+  const reason=document.getElementById('shRestoreReason')?.value.trim();
+  if(!archiveId){alert('กรุณาเลือกไฟล์ archive');return;}
+  if(!reason){alert('กรุณากรอกเหตุผลการกู้คืน');return;}
+  const btn=document.getElementById('shRestoreOk');
+  btn.disabled=true;btn.textContent='กำลังกู้คืน...';
+  try{
+    const archive=archives.find(a=>a.id===archiveId);
+    if(!archive?.data){alert('ไฟล์นี้ไม่มีข้อมูล');btn.disabled=false;return;}
+    const {orders=[],walletTx=[],reviews=[]}=archive.data;
+    
+    // restore orders
+    btn.textContent='กู้คืน orders...';
+    for(const o of orders){
+      const {id,...data}=o;
+      await setDoc(doc(db,'orders',id),{...data,_restored:true,_restoredAt:serverTimestamp()},{merge:true});
+    }
+    // restore walletTx
+    btn.textContent='กู้คืน walletTx...';
+    for(const t of walletTx){
+      const {id,...data}=t;
+      await setDoc(doc(db,'walletTx',id),{...data,_restored:true},{merge:true});
+    }
+    // restore reviews
+    btn.textContent='กู้คืน reviews...';
+    for(const r of reviews){
+      const {id,...data}=r;
+      await setDoc(doc(db,'reviews',id),{...data,_restored:true},{merge:true});
+    }
+    // บันทึก restore log
+    await addDoc(collection(db,'restoreLogs'),{
+      archiveId,archiveName:archive.filename,reason,
+      restoredBy:'Admin',restoredAt:serverTimestamp(),
+      stats:{orderCount:orders.length,walletTxCount:walletTx.length,reviewCount:reviews.length}
+    });
+    hideMask();
+    alert('กู้คืนสำเร็จ orders: '+orders.length+' walletTx: '+walletTx.length);
+  }catch(e){
+    alert('เกิดข้อผิดพลาด: '+e.message);
+    btn.disabled=false;btn.textContent='ยืนยันกู้คืน';
+  }
+};
+
+// โหลด restore logs
+window._loadRestoreLogs=async function loadRestoreLogs(){
+  const el=document.getElementById('restoreList');
+  el.innerHTML='<div class="lt">กำลังโหลด...</div>';
+  try{
+    const snap=await getDocs(query(collection(db,'restoreLogs'),orderBy('restoredAt','desc')));
+    const logs=[];snap.forEach(d=>logs.push({id:d.id,...d.data()}));
+    if(!logs.length){el.innerHTML='<div class="lt">ยังไม่มีประวัติการกู้คืน</div>';return;}
+    el.innerHTML=logs.map(l=>`
+      <div class="restore-card">
+        <div class="restore-ico"><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700;color:#166534">กู้คืนจาก: ${esc(l.archiveName||'-')}</div>
+          <div style="font-size:11px;color:var(--s);margin-top:2px">${fmtDt(l.restoredAt)}</div>
+          <div style="font-size:11px;color:#16a34a;font-weight:600;margin-top:2px">${esc(l.reason)}</div>
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <span class="file-stat">orders ${l.stats?.orderCount||0}</span>
+            <span class="file-stat">Tx ${l.stats?.walletTxCount||0}</span>
+          </div>
+        </div>
+      </div>`).join('');
+  }catch(e){el.innerHTML='<div class="lt">โหลดไม่ได้</div>';}
+}
+
+window.printAll=function(){
+  if(!archives.length){alert('ยังไม่มีข้อมูล');return;}
+  const rows=archives.map(a=>`
+    <tr>
+      <td>${esc(a.filename)}</td>
+      <td>${fmtDt(a.createdAt)}</td>
+      <td>${esc(a.reason)}</td>
+      <td>${a.stats?.orderCount||0}</td>
+      <td>฿${(a.stats?.totalRevenue||0).toLocaleString()}</td>
+    </tr>`).join('');
+  const w=window.open('','_blank');
+  w.document.write(`<html><head><title>ประวัติระบบ</title>
+    <style>body{font-family:Arial,sans-serif;padding:20px}h1{margin-bottom:16px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#1565C0;color:#fff}</style></head>
+    <body><h1>ประวัติระบบ Nimit Delivery</h1><p>ส่งออก ณ ${new Date().toLocaleString('th-TH')}</p><br>
+    <table><tr><th>ชื่อไฟล์</th><th>วันที่</th><th>เหตุผล</th><th>ออเดอร์</th><th>รายได้</th></tr>${rows}</table>
+    </body></html>`);
+  w.document.close();w.print();
+};
+</script>
+</body>
+</html>
