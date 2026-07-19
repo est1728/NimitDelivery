@@ -1120,7 +1120,47 @@ window.toggleNotif=function(){
   document.getElementById("notifToggle").className=`sidebar-toggle ${notifOn?'on':''}`;
   document.getElementById("notifStatusText").textContent=`การแจ้งเตือน: ${notifOn?'เปิดอยู่':'ปิดอยู่'}`;
 }
-window.openExtraPanel=function(id){ document.getElementById(id)?.classList.add('show'); }
+window.openExtraPanel=function(id){
+  document.getElementById(id)?.classList.add('show');
+  if(id==='panelWallet'&&riderData?.id){
+    loadWalletHistory();
+    // real-time balance
+    if(window._walletUnsub) window._walletUnsub();
+    window._walletUnsub=onSnapshot(doc(db,'riders',riderData.id),snap=>{
+      if(snap.exists()){
+        const bal=snap.data().wallet||0;
+        const el=document.getElementById('walletBal');
+        if(el)el.textContent=bal.toLocaleString();
+      }
+    });
+  }
+};
+window.closeExtraPanel=function(id){
+  document.getElementById(id)?.classList.remove('show');
+  if(id==='panelWallet'&&window._walletUnsub){window._walletUnsub();window._walletUnsub=null;}
+};
+async function loadWalletHistory(){
+  const el=document.getElementById('walletHistory');
+  if(!el||!riderData?.id)return;
+  el.innerHTML='<div style="text-align:center;padding:16px;color:#94a3b8;font-size:12px">กำลังโหลด...</div>';
+  try{
+    const snap=await getDocs(query(collection(db,'walletTx'),where('riderId','==',riderData.id)));
+    const txs=[];snap.forEach(d=>txs.push({id:d.id,...d.data()}));
+    txs.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    if(!txs.length){el.innerHTML='<div style="text-align:center;padding:16px;color:#94a3b8;font-size:12px">ยังไม่มีรายการ</div>';return;}
+    el.innerHTML=txs.slice(0,30).map(t=>{
+      const p=t.amount>=0;
+      const d=t.createdAt?.toDate?t.createdAt.toDate().toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'-';
+      return '<div style="background:#f8fafc;border-radius:14px;padding:11px 14px;margin-bottom:8px">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">'+
+        '<span style="font-size:13px;font-weight:700;color:#1e293b">'+escHtml(t.type||'-')+'</span>'+
+        '<span style="font-size:15px;font-weight:900;color:'+(p?'#16a34a':'#dc2626')+'">'+(p?'+':'-')+'฿'+Math.abs(t.amount).toLocaleString()+'</span></div>'+
+        '<div style="font-size:11px;color:#94a3b8">'+(t.orderId?'#'+escHtml(t.orderId)+' · ':'')+d+'</div>'+
+        '</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div style="text-align:center;padding:16px;color:#94a3b8;font-size:12px">โหลดไม่ได้</div>';}
+}
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');}
 window.closeExtraPanel=function(id){ document.getElementById(id)?.classList.remove('show'); }
 
 initRider();
