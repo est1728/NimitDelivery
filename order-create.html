@@ -264,7 +264,10 @@ body{background:var(--g);min-height:100vh;padding-bottom:90px;}
 </body>
 </html><script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, getDoc, getDocs, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, serverTimestamp, query } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+// local aliases for cross-scope calls
+const closePopup=(...a)=>window.closePopup(...a);
+const updatePopupTotal=(...a)=>window.updatePopupTotal(...a);
 
 const app = initializeApp({
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -351,7 +354,7 @@ window.openMenuPopup=function(menuId){
 
   document.getElementById("popupName").textContent=m.name;
   document.getElementById("popupPrice").textContent=`฿${Math.ceil((m.price||0)*(1+settings.gpPercent/100))}`;
-  renderPopupBody(); updatePopupTotal();
+  renderPopupBody(); window.updatePopupTotal();
   document.getElementById("optionPopup").classList.add("show");
   document.getElementById("optionPopup").querySelector('.popup-box').scrollTop=0;
 }
@@ -387,7 +390,7 @@ function renderPopupBody(){
 window.selectOption=function(gi,optName,optPrice,isSingle){
   if(isSingle){ popupSelections[gi]=popupSelections[gi]===optName?null:optName; }
   else{ if(!(popupSelections[gi] instanceof Set)) popupSelections[gi]=new Set(); if(popupSelections[gi].has(optName)) popupSelections[gi].delete(optName); else popupSelections[gi].add(optName); }
-  renderPopupBody(); updatePopupTotal();
+  renderPopupBody(); window.updatePopupTotal();
 }
 
 window.updatePopupTotal=function(){
@@ -415,7 +418,7 @@ window.addToOrderFromPopup=function(){
   const note=document.getElementById("popupNote")?.value||'';
   const key=m.id+'_'+selectedOptions.map(o=>o.name).join('_')+'_'+Date.now();
   selItems[key]={name:m.name,subOptions:selectedOptions.map(o=>o.name),basePrice:m.price,price:base+extra,qty:1,note,options:selectedOptions};
-  closePopup();
+  window.closePopup();
   window.confirmMenu();
 }
 
