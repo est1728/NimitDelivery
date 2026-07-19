@@ -147,6 +147,25 @@ body{background:var(--g);min-height:100vh;padding-bottom:28px;}
 <div class="ao" id="aoEl" onclick="window.Motion?window.Motion.navigate('track.html'):location.href='track.html'">
   <div class="ao-top"><div class="ao-id" id="aoId">-</div><div class="ao-badge">กำลังดำเนินการ</div></div>
   <div class="ao-shop" id
+="aoShop"><span id="aoShop"></span><span class="ao-st" id="aoSt"></span></div>
+  <div class="ao-bar-wrap"><div class="ao-bar" id="aoBar"></div></div>
+</div>
+
+<!-- POPULAR -->
+<div id="popSec" style="display:none;padding:16px 16px 0">
+  <div class="sec-hd">
+    <div class="sec-t">ร้านยอดนิยม</div>
+  </div>
+  <div class="pop-row" id="popRow"></div>
+</div>
+
+<!-- SHOPS -->
+<div style="padding:16px 16px 0 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+  <div class="sec-t" id="shopsHd">ร้านทั้งหมด</div>
+</div>
+<div id="shopsEl" style="padding:0 16px 100px"></div>
+
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, getDocs, doc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -169,7 +188,7 @@ function safeRating(val){
   return isNaN(num)?"0.0":num.toFixed(2);
 }
 let allShops=[], curQ="";
-
+let userLat=null, userLng=null;
 // ADDRESS
 const addrs=JSON.parse(localStorage.getItem("addresses")||"[]");
 const defAddr=addrs[parseInt(localStorage.getItem("defaultAddress")||"0")]||addrs[0];
@@ -255,7 +274,6 @@ window.goAd=function(i){
 };
 function startAds(){ if(adTimer)clearInterval(adTimer); if(totalAds<2)return; adTimer=setInterval(()=>window.goAd((curAd+1)%totalAds),3500); }
 
-let userLat=null, userLng=null;
 
 function calcDist(la1,lo1,la2,lo2){
   const R=6371,dLat=(la2-la1)*Math.PI/180,dLon=(lo2-lo1)*Math.PI/180;
@@ -366,8 +384,7 @@ async function loadShops(){
   }catch(e){
     console.error('loadShops:',e);
     window.Motion?.toast('โหลดร้านค้าไม่สำเร็จ','error');
-    document.getElementById("shopsEl").innerHTML=
-      `<div class="lt"><div style="font-size:24px;margin-bottom:8px">⚠️</div><div style="font-weight:800;margin-bottom:6px">โหลดไม่ได้</div><div style="font-size:12px;color:#64748b;margin-bottom:12px">${e.message}</div><button onclick="window.loadShops()" style="height:40px;padding:0 20px;border:none;border-radius:10px;background:#0c4aa6;color:#fff;font-size:14px;font-weight:700;cursor:pointer">ลองใหม่</button></div>`;
+    document.getElementById("shopsEl").innerHTML='<div style="text-align:center;padding:32px;color:#94a3b8"><div style="font-size:28px;margin-bottom:8px">⚠️</div><div style="font-size:14px;font-weight:700">โหลดร้านค้าไม่สำเร็จ</div></div>';
   }
 }
 
@@ -388,9 +405,9 @@ window.loadShops=loadShops;
 loadAds();
 loadShops();
 
-x;background:#0c4aa6;color:#fff;font-size:14px;font-weight:700;cursor:pointer">ลองใหม่</button></div>`;
-  }
-}
+
+
+
 
 window.doSearch=function(q){
   curQ=q.toLowerCase();
@@ -409,6 +426,7 @@ window.loadShops=loadShops;
 loadAds();
 loadShops();
 </script>
+
 </script>
 <script src="motion.js"></script>
 <script>window._fcmRole="customer";</script>
