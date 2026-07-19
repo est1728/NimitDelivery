@@ -316,8 +316,11 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, getDocs, deleteDoc, serverTimestamp }
-  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, getDocs, deleteDoc, serverTimestamp, setDoc, increment} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+// local aliases for cross-scope calls
+const livePreview=(...a)=>window.livePreview(...a);
+const closeModal=(...a)=>window.closeModal(...a);
+const closeCrop=(...a)=>window.closeCrop(...a);
 
 const firebaseConfig = {
   apiKey: "AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -728,21 +731,21 @@ window.saveShopInfo = async function() {
 // ============ BANNER / AVATAR ============
 window.openBannerModal = function() {
   document.getElementById("bannerUrlInput").value = bannerUrl;
-  livePreview('bannerPreviewEl','bannerUrlInput');
+  window.livePreview('bannerPreviewEl','bannerUrlInput');
   document.getElementById("bannerModal").classList.add("show");
 }
 window.openAvatarModal = function() {
   document.getElementById("avatarUrlInput").value = avatarUrl;
-  livePreview('avatarPreviewEl','avatarUrlInput');
+  window.livePreview('avatarPreviewEl','avatarUrlInput');
   document.getElementById("avatarModal").classList.add("show");
 }
 window.saveBanner = function() {
   bannerUrl = document.getElementById("bannerUrlInput").value.trim();
-  updateBanner(); closeModal("bannerModal");
+  updateBanner(); window.closeModal("bannerModal");
 }
 window.saveAvatar = function() {
   avatarUrl = document.getElementById("avatarUrlInput").value.trim();
-  updateAvatar(); closeModal("avatarModal");
+  updateAvatar(); window.closeModal("avatarModal");
 }
 window.livePreview = function(previewId,inputId) {
   const url = document.getElementById(inputId)?.value.trim();
@@ -884,7 +887,7 @@ window.confirmCrop = function() {
   const inputEl = document.getElementById(cropTargetInputId);
   if (inputEl) inputEl.value = base64;
 
-  closeCrop();
+  window.closeCrop();
 }
 window.closeCrop = function() { document.getElementById("cropOverlay").classList.remove("show"); }
 
