@@ -172,6 +172,8 @@ body{background:#e8ecf0;height:100dvh;display:flex;flex-direction:column;overflo
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, doc, addDoc, onSnapshot, updateDoc, serverTimestamp, getDoc, setDoc, increment, orderBy, query, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+// local aliases for cross-scope calls
+const clearPreview=(...a)=>window.clearPreview(...a);
 
 const app = initializeApp({apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",authDomain:"nimit-delivery.firebaseapp.com",projectId:"nimit-delivery",storageBucket:"nimit-delivery.firebasestorage.app",messagingSenderId:"233476256130",appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"});
 const db = getFirestore(app);
@@ -291,8 +293,8 @@ window.updSend=function(){};  // ไม่ต้องทำอะไร ปุ�
 
 window.sendMsg=async function(){
   // ถ้ามี pending media → ส่งก่อน
-  if(pendingFile){ const f=pendingFile; clearPreview(); await uploadImageFile(f); }
-  else if(pendingAudioBlob){ const b=pendingAudioBlob; clearPreview(); await uploadAudioBlob(b); }
+  if(pendingFile){ const f=pendingFile; window.clearPreview(); await uploadImageFile(f); }
+  else if(pendingAudioBlob){ const b=pendingAudioBlob; window.clearPreview(); await uploadAudioBlob(b); }
   // ส่งข้อความถ้ามี
   const input=document.getElementById('msgInput');
   const text=input.value.trim();
@@ -402,10 +404,10 @@ window.clearPreview=function(){
 
 window.sendPending=async function(){
   if(pendingFile){
-    const file=pendingFile;clearPreview();
+    const file=pendingFile;window.clearPreview();
     await uploadImageFile(file);
   } else if(pendingAudioBlob){
-    const blob=pendingAudioBlob;clearPreview();
+    const blob=pendingAudioBlob;window.clearPreview();
     await uploadAudioBlob(blob);
   }
 };
