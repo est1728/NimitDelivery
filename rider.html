@@ -677,7 +677,7 @@ window.hideNotif=function(){ document.getElementById('notifBanner')?.classList.r
 // ============ PENDING ORDERS (งานใหม่) ============
 let pendingUnsub=null, pendingOrders={};
 // โหลด knownPending จาก sessionStorage — ไม่แจ้งซ้ำตอน refresh
-let knownPending=new Set(JSON.parse(sessionStorage.getItem('kp')||'[]'));
+let knownPending=new Set(JSON.parse(localStorage.getItem('kp')||'[]'));
 
 function listenPending(){
   if(!riderData)return;
@@ -691,7 +691,10 @@ function listenPending(){
       newIds.forEach(id=>{
         if(!knownPending.has(id)){
           const o=snap.docs.find(d=>d.id===id)?.data();
-          if(performance.now()>3000){
+          // แจ้งเฉพาะออเดอร์ใหม่จริงๆ (สร้างใน 5 นาทีล่าสุด)
+          const createdTs=o?.createdAt?.toDate?o.createdAt.toDate():new Date(o?.createdAt||0);
+          const isRecent=(Date.now()-createdTs.getTime())<5*60*1000;
+          if(performance.now()>3000 && isRecent){
             try{playNotifSound('new');}catch(e){}
             window.showNotif('🔔','งานใหม่มาแล้ว!',(o?.orderId||id)+' · '+(o?.shopName||''), 'new');
             try{showOSNotif('🔔 งานใหม่มาแล้ว!',(o?.orderId||id)+' · '+(o?.shopName||'')+' · ฿'+(o?.grandTotal||0));}catch(e){}
@@ -700,7 +703,7 @@ function listenPending(){
       });
       // สะสม — ไม่ลบออก ป้องกันแจ้งซ้ำเมื่อถอดงานแล้วกลับมา pending
       newIds.forEach(id=>knownPending.add(id));
-      sessionStorage.setItem('kp',JSON.stringify([...knownPending]));
+      localStorage.setItem('kp',JSON.stringify([...knownPending]));
       pendingOrders={};
       snap.forEach(d=>{ pendingOrders[d.id]={docId:d.id,...d.data()}; });
       renderPending(Object.values(pendingOrders));
@@ -790,7 +793,7 @@ function listenTotalUnread(){
 }
 
 // ฟังการ assign/reassign ของ order
-let myAssignedOrders=new Set(JSON.parse(sessionStorage.getItem('ma')||'[]'));
+let myAssignedOrders=new Set(JSON.parse(localStorage.getItem('ma')||'[]'));
 function listenMyAssignments(){
   if(!riderData?.id) return;
   onSnapshot(query(collection(db,'orders'),where('riderId','==',riderData.id)),
@@ -799,11 +802,13 @@ function listenMyAssignments(){
         if(!myAssignedOrders.has(d.id)){
           const o=d.data();
           myAssignedOrders.add(d.id);
-          sessionStorage.setItem('ma',JSON.stringify([...myAssignedOrders]));
-          if(myAssignedOrders.size>1){ // ไม่แจ้งครั้งแรก
+          localStorage.setItem('ma',JSON.stringify([...myAssignedOrders]));
+          const aTs=o?.createdAt?.toDate?o.createdAt.toDate():new Date(o?.createdAt||0);
+          const aRecent=(Date.now()-aTs.getTime())<5*60*1000;
+          if(performance.now()>3000 && aRecent){
             playNotifSound('assigned');
             window.showNotif('📦','ถูกมอบหมายงาน!','ออเดอร์ '+(o.orderId||d.id),'assigned');
-          showOSNotif('📦 ถูกมอบหมายงาน!','ออเดอร์ '+(o.orderId||d.id));
+            showOSNotif('📦 ถูกมอบหมายงาน!','ออเดอร์ '+(o.orderId||d.id));
           }
         }
       });
