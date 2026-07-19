@@ -555,6 +555,13 @@ body{background:var(--gray);min-height:100vh;}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, query, where, onSnapshot, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, increment, serverTimestamp, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+// local aliases for cross-scope calls
+const showMain=(...a)=>window.showMain(...a);
+const closeConfirm=(...a)=>window.closeConfirm(...a);
+const loadChatList=(...a)=>window.loadChatList(...a);
+const loadIncome=(...a)=>window.loadIncome(...a);
+const closeDatePicker=(...a)=>window.closeDatePicker(...a);
+const switchMainTab=(...a)=>window.switchMainTab(...a);
 
 const firebaseConfig = {
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -786,7 +793,7 @@ function listenTotalUnread(){
 let myAssignedOrders=new Set(JSON.parse(sessionStorage.getItem('ma')||'[]'));
 function listenMyAssignments(){
   if(!riderData?.id) return;
-  onSnapshot(query(collection(db,'orders'),where('riderId','==',riderData.id),where('status','in',['accepted','picking','arrived','delivering'])),
+  onSnapshot(query(collection(db,'orders'),where('riderId','==',riderData.id)),
     snap=>{
       snap.forEach(d=>{
         if(!myAssignedOrders.has(d.id)){
@@ -807,7 +814,7 @@ function listenMyAssignments(){
 function listenOrders(){
   const q=query(collection(db,"orders"),where("status","in",["pending","accepted","picking","arrived","delivering"]),where("riderId","==",riderData.id));
   onSnapshot(q,snap=>{
-    const orders=[]; snap.forEach(d=>orders.push({docId:d.id,...d.data()}));
+    const orders=[]; snap.forEach(d=>{const o={docId:d.id,...d.data()};if(['accepted','picking','arrived','delivering'].includes(o.status))orders.push(o);});
     orders.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
     renderOrders(orders);
   });
@@ -839,13 +846,13 @@ function renderOrders(orders){
 
 // TABS
 window.switchMainTab=function(tab){
-  if(tab==='messages') loadChatList();
+  if(tab==='messages') window.loadChatList();
   ['food','income','messages'].forEach(t=>{
     document.getElementById(`tab${t.charAt(0).toUpperCase()+t.slice(1)}`).style.display=t===tab?'block':'none';
     document.getElementById(`bnav-${t}`).classList.toggle('active',t===tab);
   });
   document.getElementById('bnav-more').classList.remove('active');
-  if(tab==='income') loadIncome();
+  if(tab==='income') window.loadIncome();
 }
 
 // DATE PICKER
@@ -904,8 +911,8 @@ window.confirmDatePicker=function(){
   const today=new Date();today.setHours(0,0,0,0);
   if(sel>today){dpDay=today.getDate();dpMonth=today.getMonth()+1;dpYear=today.getFullYear();}
   updateDateDisplay();
-  closeDatePicker();
-  loadIncome();
+  window.closeDatePicker();
+  window.loadIncome();
 }
 
 // INCOME
@@ -1048,8 +1055,8 @@ window.confirmAction=async function(){
     }
   }catch(e){}
   const wasDone=pendingNextStatus==='done';
-  closeConfirm();
-  if(wasDone){ setTimeout(()=>showMain(),350); }
+  window.closeConfirm();
+  if(wasDone){ setTimeout(()=>window.showMain(),350); }
 }
 window.loadChatList=async function(){
   const el=document.getElementById('chatListContent');
@@ -1111,7 +1118,7 @@ window.viewMyReviews=function(){
   if(riderData) location.href='reviews.html?type=rider&id='+riderData.id+'&name='+encodeURIComponent(riderData.name||'ไรเดอร์');
 };
 window.openMsgTab=function(){
-  switchMainTab('messages');
+  window.switchMainTab('messages');
 };
 window.openOrderChat=function(){
   if(!currentOrderDocId) return;
