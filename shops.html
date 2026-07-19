@@ -313,6 +313,10 @@ function card(s){
     ? (s._dist < 1 ? Math.round(s._dist*1000)+'m' : s._dist.toFixed(2)+'km')
     : '';
   const time=`<div class="mi"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>${s.deliveryTime||'20-30'} นาที${distTxt?' · '+distTxt:''}</div>`;
+  // Shop category badge
+  const shopBadgeType=shopBadge(s);
+  const shopBadgeLabels={pop:'ยอดนิยม',top:'คะแนนสูงสุด',new:'เปิดใหม่',fast:'ส่งไว',promo:'โปรโมชัน'};
+  const badgeEl=shopBadgeType?`<span class="sc-badge sc-badge-${shopBadgeType}">${shopBadgeLabels[shopBadgeType]}</span>`:'';
   const badge=s.isOpen?`<div class="sc-open">เปิด</div>`:`<div class="sc-close">ปิด</div>`;
   const oc=s.isOpen?`onclick="window.pick('${s.id}','${sn}')"` :"";
   return `<div class="sc${s.isOpen?"":" closed"}" ${oc}>
@@ -383,10 +387,6 @@ window.pick=function(id,name){
 window.loadShops=loadShops;
 loadAds();
 loadShops();
-  // Badge
-  const badge=shopBadge(s);
-  const badgeLabels={pop:'ยอดนิยม',top:'คะแนนสูงสุด',new:'เปิดใหม่',fast:'ส่งไว',promo:'โปรโมชัน'};
-  const badgeEl=badge?`<span class="sc-badge sc-badge-${badge}">${badgeLabels[badge]}</span>`:'';
 
 x;background:#0c4aa6;color:#fff;font-size:14px;font-weight:700;cursor:pointer">ลองใหม่</button></div>`;
   }
