@@ -994,7 +994,7 @@ function renderDetail(o){
     document.getElementById("navCusBtn").onclick=()=>{if(cus.lat)window.open(`https://www.google.com/maps/dir/?api=1&destination=${cus.lat},${cus.lng}`);};
   }
   document.getElementById("d-items").innerHTML=(o.items||[]).map(i=>{
-    const opts=i.options&&i.options.length?i.options.map(op=>{const nm=typeof op==='string'?op:(op.name||'');const pr=typeof op==='object'&&op.price?'  +฿'+op.price:'';return nm?'<div>- '+esc(nm)+pr+'</div>':'';}).join(''):'';
+    const opts=i.options&&i.options.length?i.options.map(op=>{const nm=typeof op==='string'?op:(op.name||'');const pr=typeof op==='object'&&'';return nm?'<div>- '+esc(nm)+pr+'</div>':'';}).join(''):'';
     return '<div class="item-row"><div><div style="font-weight:700">'+esc(i.name)+'</div>'+(opts?'<div class="item-opt">'+opts+'</div>':'')+'</div><div>x'+i.qty+'</div><div>฿'+(i.price*i.qty)+'</div></div>';
   }).join('');
   document.getElementById("d-subtotal").textContent=`฿${o.subtotal||0}`;
