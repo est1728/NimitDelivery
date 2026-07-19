@@ -367,7 +367,13 @@ body{background:var(--gray);min-height:100vh;}
 <!-- EXTRA PANELS -->
 <div class="extra-panel" id="panelWallet">
   <div class="ep-topbar"><button class="ep-back" onclick="window.closeExtraPanel('panelWallet')"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button><div class="ep-title">กระเป๋าเงิน</div></div>
-  <div class="wallet-card"><div class="wallet-label">ยอดเงินในกระเป๋า</div><div class="wallet-amount">฿<span id="walletBal">0</span></div><div class="wallet-note"><svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>แอดมินเติมเงินให้เท่านั้น</div></div>
+  <div class="wallet-card">
+    <div class="wallet-label">ยอดเงินในกระเป๋า</div>
+    <div class="wallet-amount">฿<span id="walletBal">0</span></div>
+    <div class="wallet-note"><svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>อัปเดตอัตโนมัติ</div>
+  </div>
+  <div style="padding:14px 16px 6px;font-size:12px;font-weight:700;color:#64748b;letter-spacing:.5px;text-transform:uppercase">ประวัติเครดิต</div>
+  <div id="walletHistory" style="padding:0 16px 80px"><div style="text-align:center;padding:20px;color:#94a3b8;font-size:12px">กำลังโหลด...</div></div>
 </div>
 <div class="extra-panel" id="panelShift">
   <div class="ep-topbar"><button class="ep-back" onclick="window.closeExtraPanel('panelShift')"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button><div class="ep-title">กะงาน</div></div>
