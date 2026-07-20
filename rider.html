@@ -271,6 +271,31 @@ body{background:var(--gray);min-height:100vh;}
 .job-modal-btns{display:flex;gap:10px;}
 .job-modal-cancel{flex:1;height:52px;border:2px solid #e2e8f0;border-radius:16px;background:#fff;font-size:15px;font-weight:700;color:var(--subtext);cursor:pointer;}
 .job-modal-accept{flex:2;height:52px;border:none;border-radius:16px;background:linear-gradient(135deg,var(--green),#15803d);color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(22,163,74,.3);}
+
+/* ORDER / HISTORY TAB BAR */
+.main-tab-bar{display:flex;background:#fff;border-bottom:1px solid #e8eef5;position:sticky;top:0;z-index:10;}
+.main-tab-btn{flex:1;height:44px;border:none;background:none;font-size:14px;font-weight:600;color:#94a3b8;cursor:pointer;border-bottom:3px solid transparent;transition:all .18s;}
+.main-tab-btn.active{color:var(--p,#0c4aa6);border-bottom-color:var(--p,#0c4aa6);font-weight:800;}
+
+/* STATEMENT PAGE */
+#tabStatement{padding-bottom:80px;}
+.stmt-month-row{display:flex;gap:10px;padding:14px 16px;background:#fff;border-bottom:1px solid #eef1f7;}
+.stmt-sel{flex:1;height:40px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:14px;outline:none;background:#fff;color:#0f172a;}
+.stmt-subtab{display:flex;margin:12px 16px 0;background:#f5f7fa;border-radius:14px;padding:4px;}
+.stmt-subtab-btn{flex:1;height:34px;border:none;background:none;border-radius:10px;font-size:13px;font-weight:600;color:#64748b;cursor:pointer;transition:all .18s;}
+.stmt-subtab-btn.active{background:#fff;color:#0c4aa6;font-weight:800;box-shadow:0 1px 4px rgba(0,0,0,.1);}
+#stmtList,#stmtChart{padding:0 16px 16px;}
+.stmt-date-hd{font-size:11px;font-weight:700;color:#94a3b8;padding:12px 0 6px;letter-spacing:.4px;}
+.stmt-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:4px;}
+.stmt-table th{background:#f0f4ff;color:#1565C0;padding:7px 8px;text-align:left;font-weight:700;font-size:11px;}
+.stmt-table th:last-child,.stmt-table td:last-child{text-align:right;}
+.stmt-table td{padding:7px 8px;border-bottom:1px solid #f5f7fa;color:#1a2340;}
+.stmt-table tr:last-child td{border-bottom:none;}
+.stmt-total-row{display:flex;justify-content:space-between;background:#f0f4ff;border-radius:10px;padding:10px 14px;margin-top:10px;font-size:13px;font-weight:700;color:#1565C0;}
+.chart-wrap{padding:16px 0;display:flex;flex-direction:column;align-items:center;}
+.chart-legend{width:100%;margin-top:16px;}
+.legend-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f5f7fa;font-size:13px;}
+.legend-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -325,6 +350,12 @@ body{background:var(--gray);min-height:100vh;}
       <div class="notif-status-text" id="notifStatusText">การแจ้งเตือน: เปิดอยู่</div>
     </div>
     <div class="topbar-side"><button class="menu-btn" onclick="window.openSidebar()"><svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></button></div>
+  </div>
+
+  <!-- ORDER / HISTORY TAB BAR -->
+  <div class="main-tab-bar">
+    <button class="main-tab-btn active" id="mainTabOrders" onclick="window.switchOHTab('orders')">ออเดอร์</button>
+    <button class="main-tab-btn" id="mainTabHistory" onclick="window.switchOHTab('history')">ประวัติ</button>
   </div>
 
   <div class="new-job-section" id="newJobSection" style="display:none">
@@ -502,56 +533,16 @@ body{background:var(--gray);min-height:100vh;}
   </div>
 </div>
 
-<!-- BOTTOM NAV -->
-<div class="bottom-nav" id="mainBottomNav">
-  <button class="bnav-item active" id="bnav-food" onclick="window.switchMainTab('food')">
-    <svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a2.996 2.996 0 0 0-5.5-1.65l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-2 .89-2 2v11c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2z"/></svg>
-    <span>รายการ</span>
-  </button>
-  <button class="bnav-item" id="bnav-income" onclick="window.switchMainTab('income')">
-    <svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
-    <span>รายได้</span>
-  </button>
-  <button class="bnav-item" id="bnav-messages" onclick="window.openMsgTab()" style="position:relative">
-    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-    <span>ข้อความ</span>
-    <div id="msgNavBdg" style="display:none;position:absolute;top:4px;right:calc(50% - 16px);background:#ef4444;color:#fff;font-size:9px;font-weight:800;min-width:15px;height:15px;border-radius:20px;align-items:center;justify-content:center;padding:0 3px;border:1.5px solid #fff;"></div>
-  </button>
-  <button class="bnav-item" id="bnav-more" onclick="window.openSidebar()">
-    <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-    <span>เพิ่มเติม</span>
-  </button>
-</div>
+<!-- STATEMENT TAB -->
+<div id="tabStatement" style="display:none">
+  <div class="stmt-month-row">
+    <select class="stmt-sel" id="stmtMonth">
+      <option value="1">มกราคม</option><option value="2">กุมภาพันธ์</option>
+      <option value="3">มีนาคม</option><option value="4">เมษายน</option>
+      <option value="5">พฤษภาคม</option><option value="6">มิถุนายน</option>
+      <option value="7">กรกฎาคม</option><option value="8">สิงหาคม</option>
+      <optio>
 
-<!-- DATE PICKER OVERLAY -->
-<div class="date-picker-overlay" id="dpOverlay">
-  <div class="date-picker-sheet">
-    <div class="date-picker-header">
-      <button class="dp-cancel" onclick="window.closeDatePicker()">ยกเลิก</button>
-      <div class="dp-title">เลือกวันที่</div>
-      <button class="dp-confirm" onclick="window.confirmDatePicker()">เลือก</button>
-    </div>
-    <div class="dp-columns" style="padding:0 16px">
-      <div class="dp-select-bar"></div>
-      <div class="dp-col" id="dp-day"></div>
-      <div class="dp-col" id="dp-month"></div>
-      <div class="dp-col" id="dp-year"></div>
-    </div>
-  </div>
-</div>
-
-<script>
-// Stubs — ถูก override โดย module เมื่อโหลดเสร็จ
-['switchMainTab','openMsgTab','openSidebar','closeSidebar','showMain',
- 'openDetail','requestNextStatus','closeConfirm','confirmAction',
- 'toggleNotif','openExtraPanel','closeExtraPanel','openDatePicker',
- 'openOrderChat','loadChatList'
-].forEach(fn=>{ window[fn]=window[fn]||function(){
-  // รอ module โหลด แล้วเรียกใหม่
-  const args=arguments;
-  setTimeout(()=>{ if(typeof window[fn]==='function') window[fn].apply(null,args); },300);
-}; });
-</script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, query, where, onSnapshot, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, increment, serverTimestamp, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -1157,6 +1148,214 @@ window.closeExtraPanel=function(id){
   document.getElementById(id)?.classList.remove('show');
   if(id==='panelWallet'&&window._walletUnsub){window._walletUnsub();window._walletUnsub=null;}
 };
+
+window.closeExtraPanel=function(id){ document.getElementById(id)?.classList.remove('show'); }
+
+initRider();
+
+function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+// ===== ORDER/HISTORY TAB =====
+window.switchOHTab=function(tab){
+  const isOrders=tab==='orders';
+  document.getElementById('mainTabOrders').className='main-tab-btn'+(isOrders?' active':'');
+  document.getElementById('mainTabHistory').className='main-tab-btn'+(!isOrders?' active':'');
+  // แสดง/ซ่อน tabFood, tabIncome, tabMessages ตาม tab
+  const food=document.getElementById('tabFood');
+  const inc=document.getElementById('tabIncome');
+  const msg=document.getElementById('tabMessages');
+  if(isOrders){
+    if(food)food.style.display='';
+    if(inc)inc.style.display='none';
+    if(msg)msg.style.display='none';
+    document.getElementById('mainBottomNav').style.display='flex';
+    window.switchMainTab('food');
+  } else {
+    // ประวัติ = tabIncome (รายวัน)
+    if(food)food.style.display='none';
+    if(inc)inc.style.display='';
+    if(msg)msg.style.display='none';
+    document.getElementById('mainBottomNav').style.display='none';
+  }
+};
+
+// ===== STATEMENT =====
+window.switchStmtTab=function(tab){
+  const isList=tab==='list';
+  document.getElementById('stmtBtnList').className='stmt-subtab-btn'+(isList?' active':'');
+  document.getElementById('stmtBtnChart').className='stmt-subtab-btn'+(!isList?' active':'');
+  document.getElementById('stmtList').style.display=isList?'block':'none';
+  document.getElementById('stmtChart').style.display=isList?'none':'block';
+  document.getElementById('stmtChartLegend').style.display=isList?'none':'block';
+  if(!isList) renderStmtChart();
+};
+
+window.openStatement=function(){
+  // ซ่อน bottom nav, แสดง statement
+  document.getElementById('mainBottomNav').style.display='none';
+  ['tabFood','tabIncome','tabMessages'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.style.display='none';
+  });
+  const stmt=document.getElementById('tabStatement');
+  if(stmt)stmt.style.display='block';
+  // init year selector
+  const yr=document.getElementById('stmtYear');
+  if(yr&&!yr.options.length){
+    const now=new Date(); const thisYear=now.getFullYear();
+    for(let y=thisYear;y>=thisYear-3;y--){
+      const opt=document.createElement('option');
+      opt.value=y;opt.textContent=y+543;yr.appendChild(opt);
+    }
+    document.getElementById('stmtMonth').value=now.getMonth()+1;
+  }
+  document.getElementById('stmtList').style.display='block';
+  document.getElementById('stmtChart').style.display='none';
+  document.getElementById('stmtChartLegend').style.display='none';
+  document.getElementById('stmtBtnList').className='stmt-subtab-btn active';
+  document.getElementById('stmtBtnChart').className='stmt-subtab-btn';
+  window.loadStatement();
+};
+window.closeStatement=function(){
+  const stmt=document.getElementById('tabStatement');
+  if(stmt)stmt.style.display='none';
+  document.getElementById('mainBottomNav').style.display='flex';
+  window.switchMainTab('food');
+};
+
+let _stmtOrders=[];
+window.loadStatement=async function(){
+  const month=parseInt(document.getElementById('stmtMonth').value);
+  const year=parseInt(document.getElementById('stmtYear').value);
+  const el=document.getElementById('stmtList');
+  el.innerHTML='<div style="text-align:center;padding:24px;color:#94a3b8;font-size:13px">กำลังโหลด...</div>';
+  try{
+    const snap=await getDocs(collection(db,'orders'));
+    _stmtOrders=[];
+    snap.forEach(d=>{
+      const o={id:d.id,...d.data()};
+      if(o.riderId!==riderData.id||o.status!=='done')return;
+      const dt=o.createdAt?.toDate?o.createdAt.toDate():new Date(o.createdAt||0);
+      if(dt.getFullYear()===year&&dt.getMonth()+1===month) _stmtOrders.push({...o,_date:dt});
+    });
+    _stmtOrders.sort((a,b)=>a._date-b._date);
+    renderStmtList();
+  }catch(e){el.innerHTML='<div style="text-align:center;padding:24px;color:#ef4444">โหลดไม่ได้</div>';}
+};
+
+function renderStmtList(){
+  const el=document.getElementById('stmtList');
+  if(!_stmtOrders.length){
+    el.innerHTML='<div style="text-align:center;padding:32px;color:#94a3b8;font-size:13px">ไม่มีออเดอร์ในเดือนนี้</div>';
+    return;
+  }
+  // จัดกลุ่มตามวัน
+  const groups={};
+  _stmtOrders.forEach(o=>{
+    const key=o._date.toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'});
+    if(!groups[key])groups[key]=[];
+    groups[key].push(o);
+  });
+  let html='';
+  let totalRevenue=0,totalGrand=0,totalShop=0;
+  Object.entries(groups).forEach(([date,orders])=>{
+    html+=`<div class="stmt-date-hd">${date}</div>
+    <table class="stmt-table"><thead><tr>
+      <th>รหัสคำสั่งซื้อ</th><th>ยอดรวม</th><th>จ่ายร้าน</th><th>รายได้</th>
+    </tr></thead><tbody>`;
+    orders.forEach(o=>{
+      const grand=o.grandTotal||o.subtotal||0;
+      const shopPay=o.baseCost||Math.round(grand*(1-0.3));
+      const earn=o.riderEarn||o.walletCut||Math.round(grand*0.18);
+      totalGrand+=grand; totalShop+=shopPay; totalRevenue+=earn;
+      html+=`<tr><td>${o.orderId||o.id}</td><td>฿${grand.toLocaleString()}</td><td>฿${shopPay.toLocaleString()}</td><td style="color:#16a34a;font-weight:700">฿${earn.toLocaleString()}</td></tr>`;
+    });
+    html+='</tbody></table>';
+  });
+  html+=`<div class="stmt-total-row"><span>รวมทั้งเดือน</span><span>฿${totalRevenue.toLocaleString()} รายได้</span></div>`;
+  el.innerHTML=html;
+}
+
+function renderStmtChart(){
+  const canvas=document.getElementById('stmtChart');
+  const legend=document.getElementById('stmtChartLegend');
+  if(!canvas||!_stmtOrders.length)return;
+  const totalGrand=_stmtOrders.reduce((s,o)=>s+(o.grandTotal||0),0);
+  const totalEarn=_stmtOrders.reduce((s,o)=>s+(o.riderEarn||o.walletCut||0),0);
+  const totalShop=_stmtOrders.reduce((s,o)=>s+(o.baseCost||Math.round((o.grandTotal||0)*0.7)),0);
+  const totalPlatform=totalGrand-totalEarn-totalShop;
+  const data=[
+    {label:'รายได้ไรเดอร์',val:totalEarn,color:'#1565C0'},
+    {label:'จ่ายร้านค้า',val:totalShop,color:'#16a34a'},
+    {label:'ส่วนของแพลตฟอร์ม',val:Math.max(0,totalPlatform),color:'#f59e0b'},
+  ];
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width=canvas.offsetWidth||260;
+  const H=canvas.height=260;
+  ctx.clearRect(0,0,W,H);
+  const cx=W/2,cy=H/2,r=Math.min(W,H)/2-20;
+  let start=-Math.PI/2;
+  const total=data.reduce((s,d)=>s+d.val,0);
+  data.forEach(d=>{
+    const slice=d.val/total*Math.PI*2;
+    ctx.beginPath();ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,start,start+slice);
+    ctx.closePath();ctx.fillStyle=d.color;ctx.fill();
+    start+=slice;
+  });
+  // inner circle (donut)
+  ctx.beginPath();ctx.arc(cx,cy,r*0.5,0,Math.PI*2);
+  ctx.fillStyle='#fff';ctx.fill();
+  // center text
+  ctx.fillStyle='#0f172a';ctx.font='bold 13px Arial';ctx.textAlign='center';
+  ctx.fillText('฿'+totalGrand.toLocaleString(),cx,cy-4);
+  ctx.fillStyle='#94a3b8';ctx.font='11px Arial';
+  ctx.fillText('ยอดรวม',cx,cy+14);
+  // legend
+  legend.innerHTML=data.map(d=>`<div class="legend-item">
+    <div class="legend-dot" style="background:${d.color}"></div>
+    <div style="flex:1">${d.label}</div>
+    <div style="font-weight:700">฿${d.val.toLocaleString()} (${total?Math.round(d.val/total*100):0}%)</div>
+  </div>`).join('');
+}
+s=function(){
+  if(riderData) location.href='reviews.html?type=rider&id='+riderData.id+'&name='+encodeURIComponent(riderData.name||'ไรเดอร์');
+};
+window.openMsgTab=function(){
+  window.switchMainTab('messages');
+};
+window.openOrderChat=function(){
+  if(!currentOrderDocId) return;
+  location.href='chat.html?orderId='+currentOrderDocId+'&role=rider';
+};
+
+window.closeConfirm=function(){ document.getElementById("confirmOverlay").classList.remove("on"); pendingNextStatus=null; }
+window.openSidebar=function(){ document.getElementById("sidebar").classList.add("open"); document.getElementById("sidebarOverlay").classList.add("show"); }
+window.closeSidebar=function(){ document.getElementById("sidebar").classList.remove("open"); document.getElementById("sidebarOverlay").classList.remove("show"); }
+window.toggleNotif=function(){
+  notifOn=!notifOn;
+  document.getElementById("notifToggle").className=`sidebar-toggle ${notifOn?'on':''}`;
+  document.getElementById("notifStatusText").textContent=`การแจ้งเตือน: ${notifOn?'เปิดอยู่':'ปิดอยู่'}`;
+}
+window.openExtraPanel=function(id){
+  document.getElementById(id)?.classList.add('show');
+  if(id==='panelWallet'&&riderData?.id){
+    loadWalletHistory();
+    // real-time balance
+    if(window._walletUnsub) window._walletUnsub();
+    window._walletUnsub=onSnapshot(doc(db,'riders',riderData.id),snap=>{
+      if(snap.exists()){
+        const bal=snap.data().wallet||0;
+        const el=document.getElementById('walletBal');
+        if(el)el.textContent=bal.toLocaleString();
+      }
+    });
+  }
+};
+window.closeExtraPanel=function(id){
+  document.getElementById(id)?.classList.remove('show');
+  if(id==='panelWallet'&&window._walletUnsub){window._walletUnsub();window._walletUnsub=null;}
+};
 async function loadWalletHistory(){
   const el=document.getElementById('walletHistory');
   if(!el||!riderData?.id)return;
@@ -1183,7 +1382,8 @@ window.closeExtraPanel=function(id){ document.getElementById(id)?.classList.remo
 
 initRider();
 
-function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+
 </script>
 <script>window._fcmRole="rider";</script>
 <script src="fcm.js"></script>
