@@ -204,7 +204,7 @@ body{background:var(--gray);min-height:100vh;}
 <div class="toast-wrap" id="toastWrap"></div>
 
 <div id="loadingPage" class="page active">
-  <div class="status-screen"><div class="status-icon"><svg viewBox="0 0 24 24"><path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/></svg></div><div class="status-title">กำลังโหลด...</div></div>
+  <div class="status-screen"><div class="status-icon"><svg viewBox="0 0 24 24"><path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/></svg></div><div class="status-title" id="loadingStatus">กำลังโหลด...</div></div>
 </div>
 <div id="notFoundPage" class="page">
   <div class="status-screen"><div class="status-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></div><div class="status-title">ไม่พบลิงก์นี้</div><div class="status-sub">กรุณาติดต่อแอดมิน</div></div>
@@ -339,7 +339,23 @@ body{background:var(--gray);min-height:100vh;}
   <div class="detail-section">
     <div class="detail-section-title"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg>
 
-<script type="module">import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+<script>
+// ตรวจสอบ module load
+window.addEventListener('error', function(e){
+  var lp=document.getElementById('loadingPage');
+  if(lp) lp.innerHTML='<div style="padding:32px;text-align:center"><div style="font-size:24px;margin-bottom:12px">⚠️</div><div style="font-weight:800;margin-bottom:8px">โหลดไม่ได้</div><div style="font-size:12px;color:#666;margin-bottom:20px">'+e.message+'</div><button onclick="location.reload()" style="padding:10px 28px;background:#1565C0;color:#fff;border:none;border-radius:20px;font-size:14px;font-weight:700;cursor:pointer">ลองใหม่</button></div>';
+});
+</script>
+<sc
+// Fallback: ถ้า 8 วิ ยังค้าง loading → แสดง error
+setTimeout(()=>{
+  const lp=document.getElementById('loadingPage');
+  if(lp&&lp.classList.contains('active')){
+    lp.innerHTML='<div style="padding:32px;text-align:center"><div style="font-size:32px;margin-bottom:12px">⚠️</div><div style="font-size:17px;font-weight:800;color:#1a2340;margin-bottom:8px">เชื่อมต่อไม่ได้</div><div style="font-size:13px;color:#64748b;margin-bottom:20px">กรุณาตรวจสอบอินเทอร์เน็ต<br>หรือเปิดหน้านี้จาก Shop Admin ใหม่</div><button onclick="location.reload()" style="height:44px;padding:0 28px;background:#1565C0;color:#fff;border:none;border-radius:22px;font-size:15px;font-weight:700;cursor:pointer">ลองใหม่</button></div>';
+  }
+},8000);>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 
 import { getFirestore, collection, query, where, onSnapshot, doc, getDocs, updateDoc, getDoc, addDoc, deleteDoc, serverTimestamp, setDoc, increment} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -439,7 +455,6 @@ function showPage(id){["loadingPage","notFoundPage","mainPage"].forEach(p=>docum
 async function initShop(){
   if(!shopSlug){showPage("notFoundPage");return;}
   // แสดง debug บน loading page
-  const loadingMsg=document.querySelector('#loadingPage .status-text');
   if(loadingMsg)loadingMsg.textContent='กำลังเชื่อมต่อ...';
   try{
     const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000));
@@ -481,13 +496,12 @@ async function initShop(){
     showPage("mainPage"); listenOrders();
   }catch(e){
     console.error('initShop error:',e);
-    const lp=document.getElementById('loadingPage');
-    if(lp){
-      const st=lp.querySelector('.status-text')||lp.querySelector('div');
-      if(st)st.textContent='โหลดไม่ได้: '+e.message;
-      // ยังอยู่ loading page — ใส่ปุ่ม retry
-      lp.innerHTML+='<div style="margin-top:16px"><button onclick="location.reload()" style="height:40px;padding:0 20px;border:none;border-radius:20px;background:#1565C0;color:#fff;font-size:14px;font-weight:700;cursor:pointer">ลองใหม่</button></div>';
-    }
+    try{
+      const st=document.getElementById('loadingStatus');
+      if(st) st.textContent='โหลดไม่ได้: '+e.message;
+      const lp=document.getElementById('loadingPage');
+      if(lp) lp.innerHTML+='<div style="margin-top:16px"><button onclick="location.reload()" style="height:40px;padding:0 20px;border:none;border-radius:20px;background:#1565C0;color:#fff;font-size:14px;font-weight:700;cursor:pointer">ลองใหม่</button></div>';
+    }catch(_){}
   }
 }
 
@@ -859,6 +873,9 @@ window.cancelCrop=function(){
 
 
 function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+
+
 
 </script>
 <script>window._fcmRole="shop";</script>
