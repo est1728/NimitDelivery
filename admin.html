@@ -265,6 +265,9 @@ body{background:var(--g);min-height:100vh;}
       <button onclick="location.href='history.html'" style="height:34px;width:34px;border:none;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center" title="ประวัติระบบ">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M13 3a9 9 0 10.001 18.001A9 9 0 0013 3zm0 16c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7zm.5-11H12v6l4.75 2.85.75-1.23-4-2.37V8z"/></svg>
       </button>
+      <button onclick="window.openAdCreate();window.loadAdsList()" style="height:34px;width:34px;border:none;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center" title="จัดการโฆษณา">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M20 6h-1V4c0-1.1-.9-2-2-2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h1v2c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-9 11H3V4h14v2H6c-1.1 0-2 .9-2 2v9zm9 2H6V8h14v11z"/></svg>
+      </button>
       <button onclick="location.href='wallet.html'" style="height:34px;width:34px;border:none;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center" title="กระเป๋ากลาง">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
       </button>
@@ -1225,8 +1228,119 @@ document.addEventListener('click', e => {
 
 updPrev();
 listenOrders();
+
+// ===== ADS MANAGEMENT =====
+window.openAdCreate=function(){
+  document.getElementById('adCreateSheet').style.display='flex';
+  document.getElementById('adType').value='image';
+  document.getElementById('adImgRow').style.display='';
+  document.getElementById('adVidRow').style.display='none';
+};
+window.closeAdCreate=function(){
+  document.getElementById('adCreateSheet').style.display='none';
+};
+window.onAdTypeChange=function(v){
+  document.getElementById('adImgRow').style.display=v==='image'?'':'none';
+  document.getElementById('adVidRow').style.display=v==='video'?'':'none';
+};
+window.saveAd=async function(){
+  const type=document.getElementById('adType').value;
+  const caption=document.getElementById('adCaption').value.trim();
+  const shopId=document.getElementById('adShopId').value.trim();
+  const shopName=document.getElementById('adShopName').value.trim();
+  const imgUrl=document.getElementById('adImgUrl').value.trim();
+  const videoUrl=document.getElementById('adVideoUrl').value.trim();
+  if(type==='image'&&!imgUrl){alert('กรุณาใส่ URL รูปภาพ');return;}
+  if(type==='video'&&!videoUrl){alert('กรุณาใส่ URL วิดีโอ');return;}
+  const btn=document.getElementById('adSaveBtn');
+  btn.disabled=true;btn.textContent='กำลังบันทึก...';
+  try{
+    const data={type,caption,shopId,shopName,createdAt:serverTimestamp()};
+    if(type==='image') data.imgUrl=imgUrl;
+    if(type==='video'){ data.videoUrl=videoUrl; data.videoDuration=20; }
+    await addDoc(collection(db,'ads'),data);
+    window.closeAdCreate();
+    alert('เพิ่มโฆษณาเรียบร้อย');
+  }catch(e){alert('ผิดพลาด: '+e.message);}
+  btn.disabled=false;btn.textContent='บันทึก';
+};
+window.deleteAd=async function(id){
+  if(!confirm('ลบโฆษณานี้?'))return;
+  await deleteDoc(doc(db,'ads',id));
+  window.loadAdsList();
+};
+window.loadAdsList=async function(){
+  const el=document.getElementById('adsList');
+  if(!el)return;
+  el.innerHTML='<div style="color:#94a3b8;font-size:13px">กำลังโหลด...</div>';
+  const snap=await getDocs(collection(db,'ads'));
+  const ads=[];snap.forEach(d=>ads.push({id:d.id,...d.data()}));
+  el.innerHTML=ads.length?ads.map(ad=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f2f5">
+    <div style="width:60px;height:45px;border-radius:8px;overflow:hidden;background:#e8ecf4;flex-shrink:0">
+      ${ad.type==='video'?`<video src="${ad.videoUrl||''}" style="width:100%;height:100%;object-fit:cover"></video>`:`<img src="${ad.imgUrl||''}" style="width:100%;height:100%;object-fit:cover">`}
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:13px;font-weight:700;color:#0f172a">${ad.caption||ad.shopName||'ไม่มีชื่อ'}</div>
+      <div style="font-size:11px;color:#94a3b8">${ad.type==='video'?'🎬 วิดีโอ (สูงสุด 20 วิ)':'🖼️ รูปภาพ (8 วิ)'} · ${ad.shopName||'-'}</div>
+    </div>
+    <button onclick="window.deleteAd('${ad.id}')" style="height:30px;padding:0 12px;border:none;border-radius:15px;background:#fee2e2;color:#dc2626;font-size:11px;font-weight:700;cursor:pointer">ลบ</button>
+  </div>`).join(''):'<div style="color:#94a3b8;font-size:13px">ยังไม่มีโฆษณา</div>';
+};
 </script>
 <script>window._fcmRole="admin";</script>
 <script src="fcm.js"></script>
+<!-- AD SHEET -->
+<div id="adCreateSheet" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:200;align-items:flex-end;">
+  <div style="background:#fff;border-radius:24px 24px 0 0;width:100%;padding:20px 20px 44px;max-height:90vh;overflow-y:auto">
+    <div style="width:36px;height:4px;border-radius:2px;background:#e2e8f0;margin:0 auto 14px"></div>
+    <div style="font-size:17px;font-weight:800;color:#0f172a;margin-bottom:14px">จัดการโฆษณา</div>
+
+    <div style="background:#f8fafc;border-radius:14px;padding:12px 14px;margin-bottom:14px">
+      <div style="font-size:12px;font-weight:700;color:#1565C0;margin-bottom:6px">📐 ขนาดที่แนะนำ</div>
+      <div style="font-size:12px;color:#475569;line-height:1.7">
+        🖼️ รูปภาพ: 800×400px (สัดส่วน 2:1) · JPG/PNG · ไม่เกิน 2MB · แสดง 8 วิ<br>
+        🎬 วิดีโอ: 1080×540px (สัดส่วน 2:1) · MP4/WebM · ไม่เกิน 20MB · ไม่เกิน 20 วิ
+      </div>
+    </div>
+
+    <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">ประเภท</div>
+    <select id="adType" onchange="window.onAdTypeChange(this.value)" style="width:100%;height:48px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:15px;margin-bottom:14px;outline:none;background:#fff">
+      <option value="image">🖼️ รูปภาพ (8 วินาที)</option>
+      <option value="video">🎬 วิดีโอ (สูงสุด 20 วินาที)</option>
+    </select>
+
+    <div id="adImgRow">
+      <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">URL รูปภาพ *</div>
+      <input id="adImgUrl" placeholder="https://example.com/banner.jpg" style="width:100%;height:48px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:14px;margin-bottom:14px;outline:none">
+    </div>
+    <div id="adVidRow" style="display:none">
+      <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">URL วิดีโอ *</div>
+      <input id="adVideoUrl" placeholder="https://example.com/ad.mp4" style="width:100%;height:48px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:14px;margin-bottom:14px;outline:none">
+    </div>
+
+    <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">คำบรรยาย (caption)</div>
+    <input id="adCaption" placeholder="เช่น โปรโมชันพิเศษ ลด 50%" style="width:100%;height:48px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:14px;margin-bottom:14px;outline:none">
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">Shop ID</div>
+        <input id="adShopId" placeholder="(ถ้ามี)" style="width:100%;height:44px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:13px;outline:none">
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">ชื่อร้าน</div>
+        <input id="adShopName" placeholder="ชื่อร้าน" style="width:100%;height:44px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:13px;outline:none">
+      </div>
+    </div>
+
+    <button id="adSaveBtn" onclick="window.saveAd()" style="width:100%;height:52px;border:none;border-radius:16px;background:linear-gradient(135deg,#083570,#1565C0);color:#fff;font-size:16px;font-weight:800;cursor:pointer;margin-bottom:8px">เพิ่มโฆษณา</button>
+    <button onclick="window.closeAdCreate()" style="width:100%;height:42px;border:none;background:none;color:#64748b;font-size:14px;font-weight:600;cursor:pointer">ปิด</button>
+
+    <div style="border-top:1px solid #f0f2f5;margin-top:16px;padding-top:12px">
+      <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:10px">โฆษณาที่มีอยู่</div>
+      <div id="adsList"><div style="color:#94a3b8;font-size:13px">กด "จัดการโฆษณา" เพื่อโหลดรายการ</div></div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
