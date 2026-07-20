@@ -438,8 +438,12 @@ function showPage(id){["loadingPage","notFoundPage","mainPage"].forEach(p=>docum
 
 async function initShop(){
   if(!shopSlug){showPage("notFoundPage");return;}
+  // แสดง debug บน loading page
+  const loadingMsg=document.querySelector('#loadingPage .status-text');
+  if(loadingMsg)loadingMsg.textContent='กำลังเชื่อมต่อ...';
   try{
-    let snap=await getDocs(query(collection(db,"shops"),where("slug","==",shopSlug)));
+    const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000));
+    let snap=await Promise.race([getDocs(query(collection(db,"shops"),where("slug","==",shopSlug))),timeout]);
     if(snap.empty){
       const all=await getDocs(collection(db,"shops"));
       const found=all.docs.find(d=>d.id===shopSlug);
@@ -475,7 +479,16 @@ async function initShop(){
     document.getElementById("edit-openHours").value=shopData.openHours||"";
     isOpen=shopData.isOpen||false; updateOpenUI();
     showPage("mainPage"); listenOrders();
-  }catch(e){showPage("notFoundPage");}
+  }catch(e){
+    console.error('initShop error:',e);
+    const lp=document.getElementById('loadingPage');
+    if(lp){
+      const st=lp.querySelector('.status-text')||lp.querySelector('div');
+      if(st)st.textContent='โหลดไม่ได้: '+e.message;
+      // ยังอยู่ loading page — ใส่ปุ่ม retry
+      lp.innerHTML+='<div style="margin-top:16px"><button onclick="location.reload()" style="height:40px;padding:0 20px;border:none;border-radius:20px;background:#1565C0;color:#fff;font-size:14px;font-weight:700;cursor:pointer">ลองใหม่</button></div>';
+    }
+  }
 }
 
 function updateOpenUI(){
