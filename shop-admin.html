@@ -271,6 +271,34 @@ body{background:var(--gray);min-height:100vh;}
       <button onclick="useMyLocShop()" style="width:100%;height:38px;border:1.5px solid var(--primary);border-radius:12px;background:#fff;color:var(--primary);font-size:13px;font-weight:700;cursor:pointer;margin-bottom:4px">📍 ใช้ตำแหน่งปัจจุบัน</button>
     </div>
   </div>
+
+  <div class="ep-card">
+    <div class="ep-card-title">🖼️ รูปหน้าปกร้าน</div>
+    <div style="font-size:11px;color:#94a3b8;margin-bottom:10px">แนะนำ: 800×400px (สัดส่วน 2:1) · JPG/PNG · ไม่เกิน 2MB</div>
+    <div id="edit-banner-preview" style="width:100%;height:120px;border-radius:12px;overflow:hidden;background:#f0f4ff;border:1.5px solid #e8eef5;margin-bottom:8px;display:flex;align-items:center;justify-content:center">
+      <span style="color:#94a3b8;font-size:12px">ยังไม่มีรูปหน้าปก</span>
+    </div>
+    <div class="ep-field" style="margin-bottom:0">
+      <div class="ep-label">URL รูปหน้าปก</div>
+      <input class="ep-input" id="edit-bannerUrl" placeholder="https://..." oninput="previewBanner(this.value)">
+    </div>
+  </div>
+
+  <div class="ep-card">
+    <div class="ep-card-title">🎬 วิดีโอแนะนำร้าน</div>
+    <div style="font-size:11px;color:#94a3b8;margin-bottom:10px">แนะนำ: MP4/WebM · ไม่เกิน 30MB · ไม่เกิน 60 วินาที · สัดส่วน 16:9 หรือ 9:16</div>
+    <div id="edit-video-preview" style="width:100%;border-radius:12px;overflow:hidden;background:#000;margin-bottom:8px;display:none">
+      <video id="edit-video-player" controls style="width:100%;max-height:200px;display:block"></video>
+    </div>
+    <div id="edit-video-placeholder" style="width:100%;height:80px;border-radius:12px;background:#f0f4ff;border:1.5px solid #e8eef5;margin-bottom:8px;display:flex;align-items:center;justify-content:center">
+      <span style="color:#94a3b8;font-size:12px">ยังไม่มีวิดีโอ</span>
+    </div>
+    <div class="ep-field" style="margin-bottom:0">
+      <div class="ep-label">URL วิดีโอ</div>
+      <input class="ep-input" id="edit-videoUrl" placeholder="https://..." oninput="previewVideo(this.value)">
+    </div>
+  </div>
+
   <button class="ep-save-btn" onclick="saveShopInfo()">บันทึก</button>
 </div>
 
@@ -316,44 +344,8 @@ body{background:var(--gray);min-height:100vh;}
     </div>
   </div>
   <div class="detail-section">
-    <div class="detail-section-title"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg>เมนูที่สั่ง</div>
-    <div class="items-head"><span>สินค้า</span><span>จำนวน</span><span>ราคา</span></div>
-    <div id="d-items"></div>
-  </div>
-  <div class="price-summary">
-    <div class="price-summary-title">สรุปราคา</div>
-    <div class="price-row main"><span>ร้านรับเงิน</span><span id="d-baseCost">฿0</span></div>
-  </div>
-</div>
+    <div class="detail-section-title"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg>
 
-<!-- CROP OVERLAY -->
-<div class="crop-overlay" id="cropOverlay">
-  <div class="crop-toolbar">
-    <button class="crop-toolbar-btn crop-cancel-btn" onclick="cancelCrop()">ยกเลิก</button>
-    <div class="crop-toolbar-title">เลื่อนรูปให้พอดีกรอบ</div>
-    <button class="crop-toolbar-btn crop-confirm-btn" onclick="confirmCrop()">ใช้รูปนี้</button>
-  </div>
-  <div class="crop-hint">เลื่อนรูปด้วยนิ้ว • ขนาดกรอบคงที่</div>
-  <div class="crop-canvas-wrap" id="cropCanvasWrap">
-    <img id="cropImg" class="crop-img">
-    <div class="crop-frame" id="cropFrame"></div>
-  </div>
-</div>
-
-<!-- CONFIRM DIALOG -->
-<div class="confirm-overlay" id="confirmAdOverlay">
-  <div class="confirm-box">
-    <div class="confirm-icon-wrap"><div class="confirm-icon-circle"><svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zm-9-7l-3 3.72L7 13l-4 5h18l-5-6.28z"/></svg></div></div>
-    <div class="confirm-title">เผยแพร่โฆษณา</div>
-    <div class="confirm-sub">ยืนยันการเผยแพร่โฆษณานี้? โฆษณาจะแสดงบนหน้าหลักทันที</div>
-    <div class="confirm-btns">
-      <button class="confirm-cancel" onclick="closeConfirmAd()">ยกเลิก</button>
-      <button class="confirm-ok" onclick="submitAd()">เผยแพร่</button>
-    </div>
-  </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, query, where, onSnapshot, doc, getDocs, updateDoc, getDoc, addDoc, deleteDoc, serverTimestamp, setDoc, increment} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -577,6 +569,15 @@ window.closeSidebar=function(){document.getElementById("sidebar").classList.remo
 window.openExtraPanel=function(id){
   document.getElementById(id)?.classList.add('show');
   if(id==='panelEdit'){
+    // โหลดค่าเดิมใส่ฟอร์ม
+    if(shopData){
+      const bUrl=shopData.bannerUrl||'';
+      const vUrl=shopData.videoUrl||'';
+      const bInput=document.getElementById('edit-bannerUrl');
+      const vInput=document.getElementById('edit-videoUrl');
+      if(bInput){bInput.value=bUrl; window.previewBanner&&window.previewBanner(bUrl);}
+      if(vInput){vInput.value=vUrl; window.previewVideo&&window.previewVideo(vUrl);}
+    }
     // init map หลัง panel visible
     setTimeout(()=>{
       if(window._shopMap){try{window._shopMap.remove();}catch(e){} window._shopMap=null;}
@@ -602,12 +603,50 @@ window.useMyLocShop=function(){
     window._shopMarker?.setLatLng([window._shopMapLat,window._shopMapLng]);
   },()=>alert('ไม่สามารถเข้าถึง GPS'));
 };
-window.saveShopInfo=async function(){
+window.previewBanner=function(url){
+  const prev=document.getElementById('edit-banner-preview');
+  if(!prev)return;
+  if(url) prev.innerHTML='<img src="'+url+'" style="width:100%;height:100%;object-fit:cover">';
+  else prev.innerHTML='<span style="color:#94a3b8;font-size:12px">ยังไม่มีรูปหน้าปก</span>';
+};
+window.previewBanner=previewBanner;
+previewVideo=function(url){
+  const ph=document.getElementById('edit-video-placeholder');
+  const pv=document.getElementById('edit-video-preview');
+  const vid=document.getElementById('edit-video-player');
+  if(!ph||!pv||!vid)return;
+  if(url){
+    vid.src=url; pv.style.display='block'; ph.style.display='none';
+  } else {
+    pv.style.display='none'; ph.style.display='block'; vid.src='';
+  }
+};
+window.previewVideo=previewVideo;
+saveShopInfo=async function(){
   try{
-    const data={name:document.getElementById("edit-name").value.trim(),desc:document.getElementById("edit-desc").value.trim(),phone:document.getElementById("edit-phone").value.trim(),deliveryTime:document.getElementById("edit-deliveryTime").value.trim(),address:document.getElementById("edit-address").value.trim(),openHours:document.getElementById("edit-openHours").value.trim(),lat:window._shopMapLat||null,lng:window._shopMapLng||null,updatedAt:serverTimestamp()};
+    const bannerUrl=document.getElementById("edit-bannerUrl")?.value.trim()||'';
+    const videoUrl=document.getElementById("edit-videoUrl")?.value.trim()||'';
+    const data={
+      name:document.getElementById("edit-name").value.trim(),
+      desc:document.getElementById("edit-desc").value.trim(),
+      phone:document.getElementById("edit-phone").value.trim(),
+      deliveryTime:document.getElementById("edit-deliveryTime").value.trim(),
+      address:document.getElementById("edit-address").value.trim(),
+      openHours:document.getElementById("edit-openHours").value.trim(),
+      lat:window._shopMapLat||null,
+      lng:window._shopMapLng||null,
+      updatedAt:serverTimestamp()
+    };
+    if(bannerUrl) data.bannerUrl=bannerUrl;
+    if(videoUrl) data.videoUrl=videoUrl;
     await updateDoc(doc(db,"shops",shopData.id),data);
     document.getElementById("shopNameTop").textContent=data.name;
     document.getElementById("sbName").textContent=data.name;
+    // อัพเดต banner ถ้ามี
+    if(bannerUrl){
+      const bEl=document.getElementById('shopBanner');
+      if(bEl) bEl.innerHTML='<img src="'+bannerUrl+'" style="width:100%;height:100%;object-fit:cover">';
+    }
     showToast("บันทึกสำเร็จ","success");
     window.closeExtraPanel('panelEdit');
   }catch(e){showToast("เกิดข้อผิดพลาด","error");}
@@ -759,12 +798,22 @@ function showToast(msg,type){
   el.className='toast '+(type||'info');
   el.innerHTML='<svg viewBox="0 0 24 24">'+(icons[type]||icons.info)+'</svg><span>'+msg+'</span>';
   document.getElementById("toastWrap").appendChild(el);
-  setTimeout(()=>{el.style.animation='toastOut 0.2s ease-in forwards';setTimeout(()=>el.remove(),200);},2400);
+  setTimeout(()=>{el.style.animation='toastOut 0.2s ease-in forwards';setTimeout(()=>el.remove(),200);},3000);
 }
 
 initShop();
 
+
+window.cancelCrop=function(){
+  document.getElementById("cropOverlay").classList.remove("show");
+  document.getElementById("cropImg").src="";
+}
+
+
+initShop();
+
 function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
 </script>
 <script>window._fcmRole="shop";</script>
 <script src="fcm.js"></script>
