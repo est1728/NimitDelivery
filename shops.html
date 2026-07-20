@@ -113,6 +113,8 @@ body{background:var(--g);min-height:100vh;padding-bottom:28px;}
 @keyframes bn{0%,100%{opacity:1}50%{opacity:.75}}
 @keyframes bf{0%,100%{opacity:1}50%{opacity:.85}}
 .sc-banner{position:relative;}
+.ad-zoom{position:absolute;bottom:8px;right:8px;width:32px;height:32px;border:none;border-radius:8px;background:rgba(0,0,0,.55);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:3;}
+.ad-zoom:active{opacity:.8;}
 </style>
 </head>
 <body>
@@ -238,10 +240,17 @@ async function loadAds(){
     totalAds=ads.length;
     document.getElementById("adsEl").style.display="block";
     document.getElementById("adsTrack").innerHTML=ads.map((ad,i)=>{
-      const img=ad.imgUrl?`<img class="ad-img" src="${ad.imgUrl}">`:`<div class="ad-ph"><svg viewBox="0 0 24 24"><path d="M21 3H3v18h18V3zm-9 14l-3-3.72L7 17l-4-5h18z"/></svg></div>`;
-      const cap=ad.caption?`<div class="ad-cap">${esc(ad.caption)}</div>`:"";
-      const sn=(ad.shopName||"").replace(/'/g,"\\'");
-      return `<div class="ad-slide"><div onclick="window.pick('${ad.shopId||""}','${sn}')">${img}${cap}</div></div>`;
+      const sn=(ad.shopName||'').replace(/'/g,"\'");
+      const isVid=ad.type==='video'&&ad.videoUrl;
+      let media;
+      if(isVid){
+        media=`<video class="ad-img" src="${ad.videoUrl}" muted playsinline preload="metadata" style="object-fit:cover"></video>`;
+      } else {
+        media=ad.imgUrl?`<img class="ad-img" src="${ad.imgUrl}">`:`<div class="ad-ph"><svg viewBox="0 0 24 24"><path d="M21 3H3v18h18V3zm-9 14l-3-3.72L7 17l-4-5h18z"/></svg></div>`;
+      }
+      const cap=ad.caption?`<div class="ad-cap">${esc(ad.caption)}</div>`:'';
+      const zoomBtn=isVid?`<button class="ad-zoom" onclick="event.stopPropagation();window.openAdVideo('${ad.videoUrl}')">⛶</button>`:'';
+      return `<div class="ad-slide" data-type="${isVid?'video':'image'}" data-url="${isVid?ad.videoUrl:''}" data-dur="${ad.videoDuration||8}"><div onclick="window.pick('${ad.shopId||''}','${sn}')" style="position:relative">${media}${cap}${zoomBtn}</div></div>`;
     }).join("");
     document.getElementById("adsDots").innerHTML=ads.map((_,i)=>
       `<div class="dot${i===0?" on":""}" onclick="window.goAd(${i})"></div>`).join("");
@@ -271,8 +280,28 @@ window.goAd=function(i){
   track.style.transition="transform .38s ease";
   track.style.transform=`translateX(-${i*100}%)`;
   document.querySelectorAll(".dot").forEach((d,j)=>d.classList.toggle("on",j===i));
+  // pause all videos, play current if video
+  document.querySelectorAll('.ad-slide video').forEach((v,vi)=>{
+    if(vi===i){
+      v.currentTime=0;
+      v.play().catch(()=>{});
+      // auto-advance after video ends or max 20s
+      const dur=Math.min(parseFloat(v.dataset?.dur||20),20)*1000;
+      if(adTimer)clearInterval(adTimer);
+      adTimer=setTimeout(()=>window.goAd((i+1)%totalAds), dur);
+    } else {
+      v.pause();
+    }
+  });
+
 };
-function startAds(){ if(adTimer)clearInterval(adTimer); if(totalAds<2)return; adTimer=setInterval(()=>window.goAd((curAd+1)%totalAds),8000); }
+function startAds(){
+  if(adTimer)clearInterval(adTimer);
+  if(totalAds<2)return;
+  const slide=document.querySelectorAll('.ad-slide')[curAd];
+  if(slide&&slide.dataset.type==='video') return; // video จัดการ duration เอง
+  adTimer=setInterval(()=>window.goAd((curAd+1)%totalAds),8000);
+}
 
 
 function calcDist(la1,lo1,la2,lo2){
@@ -425,6 +454,18 @@ window.pick=function(id,name){
 window.loadShops=loadShops;
 loadAds();
 loadShops();
+
+window.openAdVideo=function(url){
+  const overlay=document.createElement('div');
+  overlay.id='vidOverlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:999;display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML=`<div style="width:100%;max-width:500px;position:relative;padding:0 16px">
+    <button onclick="document.getElementById('vidOverlay').remove()" style="position:absolute;top:-44px;right:16px;background:none;border:none;color:#fff;font-size:28px;cursor:pointer">✕</button>
+    <video src="${url}" controls autoplay style="width:100%;border-radius:16px;max-height:80vh;background:#000"></video>
+  </div>`;
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
+  document.body.appendChild(overlay);
+};
 </script>
 
 </script>
