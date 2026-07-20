@@ -199,6 +199,7 @@ body{background:var(--gray);min-height:100vh;}
 @keyframes toastOut{from{opacity:1}to{opacity:0}}
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 </head>
 <body>
 <div class="toast-wrap" id="toastWrap"></div>
@@ -313,6 +314,23 @@ body{background:var(--gray);min-height:100vh;}
   <div style="padding:12px 16px 0"><div style="font-size:13px;font-weight:800;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px" id="adsListLabel" style="display:none">โฆษณาของคุณ</div><div id="adsList"></div></div>
 </div>
 
+<!-- CONFIRM AD PUBLISH -->
+<div class="confirm-overlay" id="confirmAdOverlay">
+  <div class="confirm-box">
+    <div class="confirm-icon-wrap">
+      <div class="confirm-icon-circle">
+        <svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+      </div>
+    </div>
+    <div class="confirm-title">ยืนยันเผยแพร่โฆษณา</div>
+    <div class="confirm-sub">คุณต้องการเผยแพร่โฆษณานี้ใช่หรือไม่?</div>
+    <div class="confirm-btns">
+      <button class="confirm-cancel" onclick="window.closeConfirmAd()">ยกเลิก</button>
+      <button class="confirm-ok" onclick="window.submitAd()">ยืนยัน</button>
+    </div>
+  </div>
+</div>
+
 <!-- ORDER DETAIL PAGE -->
 <div class="detail-page" id="orderDetailPage">
   <div class="detail-topbar">
@@ -337,7 +355,11 @@ body{background:var(--gray);min-height:100vh;}
     </div>
   </div>
   <div class="detail-section">
-    <div class="detail-section-title"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg>
+    <div class="detail-section-title"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg>รายการสินค้า</div>
+    <div id="d-items"></div>
+    <div class="drow" style="margin-top:8px;padding-top:8px;border-top:1px solid #f5f6f8"><span class="drow-label" style="font-weight:800">ต้นทุนรวม</span><span class="drow-sep">:</span><span class="drow-val" id="d-baseCost" style="font-weight:800">-</span></div>
+  </div>
+</div>
 
 <script>
 // ตรวจสอบ module load
@@ -889,6 +911,19 @@ function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;")
     <div id="uploadBar" style="background:#fff;border-radius:10px;height:6px;width:0%;transition:width .2s"></div>
   </div>
   <div id="uploadPct" style="font-size:11px;text-align:center;margin-top:4px">0%</div>
+</div>
+<!-- CROP OVERLAY -->
+<div class="crop-overlay" id="cropOverlay">
+  <div class="crop-toolbar">
+    <button class="crop-toolbar-btn crop-cancel-btn" onclick="window.cancelCrop()">ยกเลิก</button>
+    <div class="crop-toolbar-title">ปรับขนาดรูปภาพ</div>
+    <button class="crop-toolbar-btn crop-confirm-btn" onclick="window.confirmCrop()">ใช้รูปนี้</button>
+  </div>
+  <div class="crop-canvas-wrap" id="cropCanvasWrap">
+    <img class="crop-img" id="cropImg" draggable="false">
+    <div class="crop-frame" id="cropFrame"></div>
+  </div>
+  <div class="crop-hint">ลากเพื่อปรับตำแหน่งรูปภาพ</div>
 </div>
 </body>
 </html>
