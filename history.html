@@ -5,121 +5,132 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>ประวัติระบบ</title>
 <style>
-:root{--p:#1565C0;--p2:#1E88E5;--pl:#EBF5FF;--bg:#F5F7FA;--card:#fff;--t:#1a2340;--s:#64748b;--d:#EF4444;--r:16px;}
+:root{--p:#1565C0;--p2:#1E88E5;--pl:#EBF5FF;--bg:#F5F7FA;--card:#fff;--t:#1a2340;--s:#64748b;--d:#EF4444;--gn:#16a34a;--r:16px;}
 *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
-body{background:var(--bg);min-height:100vh;display:flex;flex-direction:column;}
+body{background:var(--bg);min-height:100vh;}
 
 /* TOPBAR */
-.tb{background:#fff;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid #eaeef4;position:sticky;top:0;z-index:50;flex-shrink:0;}
+.tb{background:#fff;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid #eaeef4;position:sticky;top:0;z-index:50;}
 .tb-ic{width:40px;height:40px;border:none;background:none;cursor:pointer;border-radius:12px;display:flex;align-items:center;justify-content:center;}
 .tb-ic:active{background:#f0f4ff;}
 .tb-ic svg{width:20px;height:20px;}
 .tb-title{font-size:16px;font-weight:700;color:var(--p);}
+.tb-back-row{display:flex;align-items:center;gap:8px;flex:1;min-width:0;}
+.tb-breadcrumb{font-size:13px;color:var(--s);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
 /* SIDEBAR */
 .sb-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:none;}
-.sb-bg.on{display:block;animation:fd .2s;}
-@keyframes fd{from{opacity:0}to{opacity:1}}
-.sb{position:fixed;top:0;right:-280px;bottom:0;width:260px;background:#fff;z-index:101;transition:right .2s ease;box-shadow:-4px 0 20px rgba(0,0,0,.1);display:flex;flex-direction:column;}
+.sb-bg.on{display:block;}
+.sb{position:fixed;top:0;right:-280px;bottom:0;width:260px;background:#fff;z-index:101;transition:right .2s;box-shadow:-4px 0 20px rgba(0,0,0,.1);}
 .sb.on{right:0;}
-.sb-hd{background:linear-gradient(135deg,var(--p),var(--p2));padding:52px 20px 20px;}
-.sb-hd-t{font-size:18px;font-weight:800;color:#fff;}
+.sb-hd{background:linear-gradient(135deg,var(--p),var(--p2));padding:52px 20px 18px;}
+.sb-hd-t{font-size:17px;font-weight:800;color:#fff;}
 .sb-hd-s{font-size:11px;color:rgba(255,255,255,.6);margin-top:2px;}
-.sb-mi{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid #f5f7fa;cursor:pointer;}
+.sb-sec{padding:10px 20px 4px;font-size:10px;font-weight:700;color:var(--s);letter-spacing:.8px;text-transform:uppercase;}
+.sb-mi{display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid #f5f7fa;cursor:pointer;}
 .sb-mi:active{background:#f0f4ff;}
-.sb-mi-ic{width:34px;height:34px;border-radius:10px;background:#f0f4ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.sb-mi-ic svg{width:16px;height:16px;stroke:var(--p);fill:none;stroke-width:2;}
-.sb-mi-t{font-size:14px;font-weight:600;color:var(--t);}
+.sb-mi-ic{width:32px;height:32px;border-radius:9px;background:#f0f4ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sb-mi-ic svg{width:15px;height:15px;stroke:var(--p);fill:none;stroke-width:2;}
+.sb-mi-t{font-size:13px;font-weight:600;color:var(--t);}
 .sb-mi-s{font-size:10px;color:var(--s);}
-.sb-section{padding:12px 20px 6px;font-size:10px;font-weight:700;color:var(--s);letter-spacing:.8px;text-transform:uppercase;}
 
-/* CONTENT */
-.content{flex:1;padding:16px;}
-.page-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
-.page-title{font-size:20px;font-weight:800;color:var(--t);}
-.page-count{font-size:12px;color:var(--s);font-weight:500;}
+/* PAGES */
+.page{display:none;padding:14px 16px 80px;}
+.page.on{display:block;}
 
+/* CATEGORY CARDS (level 1) */
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.cat-card{background:#fff;border-radius:var(--r);padding:16px;cursor:pointer;border:1px solid #eaeef4;display:flex;flex-direction:column;gap:10px;transition:all .15s;animation:fadeUp .2s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.cat-card:active{transform:scale(.97);}
+.cat-ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;}
+.cat-ico svg{width:22px;height:22px;}
+.cat-name{font-size:15px;font-weight:800;color:var(--t);}
+.cat-count{font-size:12px;color:var(--s);}
 
-/* FILE CARDS */
-.file-card{background:#fff;border-radius:var(--r);padding:14px 16px;margin-bottom:10px;border:1px solid #eaeef4;cursor:pointer;display:flex;align-items:center;gap:14px;transition:all .15s;animation:slideIn .2s ease;}
-@keyframes slideIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-.file-card:active{transform:scale(.99);background:#f8fafc;}
-.file-ico{width:44px;height:44px;border-radius:12px;background:var(--pl);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.file-ico svg{width:22px;height:22px;fill:var(--p);}
-.file-info{flex:1;min-width:0;}
-.file-name{font-size:14px;font-weight:700;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.file-date{font-size:11px;color:var(--s);margin-top:3px;}
-.file-reason{font-size:11px;color:var(--p);margin-top:2px;font-weight:600;}
-.file-stats{display:flex;gap:10px;margin-top:6px;}
-.file-stat{font-size:10px;color:var(--s);background:#f5f7fa;padding:2px 8px;border-radius:20px;}
-.file-arr{color:#c0cad8;font-size:20px;flex-shrink:0;}
-.empty-state{text-align:center;padding:48px 20px;color:var(--s);}
-.empty-ico{font-size:48px;margin-bottom:12px;}
-.empty-t{font-size:16px;font-weight:700;color:var(--t);margin-bottom:6px;}
-.empty-s{font-size:13px;}
+/* LIST ITEMS (level 2) */
+.list-item{background:#fff;border-radius:var(--r);padding:13px 16px;margin-bottom:8px;cursor:pointer;border:1px solid #eaeef4;display:flex;align-items:center;gap:12px;transition:all .15s;animation:fadeUp .15s ease;}
+.list-item:active{transform:scale(.99);}
+.list-av{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;flex-shrink:0;}
+.list-info{flex:1;min-width:0;}
+.list-name{font-size:14px;font-weight:700;color:var(--t);}
+.list-sub{font-size:11px;color:var(--s);margin-top:2px;}
+.list-arr{color:#c0cad8;font-size:20px;flex-shrink:0;}
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:6px;}
+.badge-on{background:#dcfce7;color:#166534;}
+.badge-off{background:#fee2e2;color:#991b1b;}
+.badge-done{background:#dcfce7;color:#166534;}
+.badge-pending{background:#fef9c3;color:#854d0e;}
+.badge-rejected{background:#fee2e2;color:#991b1b;}
 
-/* DETAIL PANEL */
-.detail{position:fixed;inset:0;background:var(--bg);z-index:80;transform:translateX(100%);transition:transform .22s ease;overflow-y:auto;padding-bottom:40px;}
-.detail.on{transform:translateX(0);}
-.detail-tb{background:#fff;height:56px;display:flex;align-items:center;gap:12px;padding:0 16px;border-bottom:1px solid #eaeef4;position:sticky;top:0;z-index:1;}
-.det-back{width:36px;height:36px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.det-back svg{width:20px;height:20px;}
-.det-title{font-size:15px;font-weight:700;color:var(--t);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.det-dl{height:34px;padding:0 14px;border:none;border-radius:17px;background:var(--p);color:#fff;font-size:12px;font-weight:700;cursor:pointer;}
+/* DETAIL SECTIONS (level 3) */
+.sec-card{background:#fff;border-radius:var(--r);margin-bottom:10px;overflow:hidden;border:1px solid #eaeef4;}
+.sec-hd{padding:13px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+.sec-hd-t{font-size:14px;font-weight:700;color:var(--t);display:flex;align-items:center;gap:8px;}
+.sec-hd-ico{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;}
+.sec-hd-ico svg{width:14px;height:14px;}
+.sec-hd-arr{color:var(--s);font-size:18px;transition:transform .2s;}
+.sec-body{display:none;border-top:1px solid #f0f2f5;}
+.sec-body.open{display:block;}
 
-/* DETAIL CONTENT */
-.det-card{background:#fff;border-radius:var(--r);margin:14px 16px 0;padding:16px;border:1px solid #eaeef4;}
-.det-card-t{font-size:11px;font-weight:700;color:var(--s);letter-spacing:.6px;text-transform:uppercase;margin-bottom:12px;}
-.det-row{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid #f5f7fa;}
-.det-row:last-child{border-bottom:none;}
-.det-row-l{font-size:13px;color:var(--s);}
-.det-row-r{font-size:13px;font-weight:600;color:var(--t);text-align:right;max-width:55%;}
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.stat-box{background:#f8fafc;border-radius:12px;padding:12px;text-align:center;}
-.stat-v{font-size:22px;font-weight:900;color:var(--p);}
-.stat-l{font-size:10px;color:var(--s);margin-top:2px;}
+/* ROWS */
+.row{padding:10px 16px;border-bottom:1px solid #f5f7fa;display:flex;justify-content:space-between;align-items:flex-start;}
+.row:last-child{border-bottom:none;}
+.row-l{font-size:12px;color:var(--s);}
+.row-r{font-size:12px;font-weight:600;color:var(--t);text-align:right;max-width:60%;}
+.row-r.pos{color:var(--gn);}
+.row-r.neg{color:var(--d);}
 
-/* TIMELINE in detail */
-.tl{padding-left:16px;position:relative;}
-.tl::before{content:'';position:absolute;left:5px;top:6px;bottom:6px;width:2px;background:#e8ecf4;}
-.tl-item{position:relative;padding:0 0 14px 18px;}
-.tl-dot{position:absolute;left:-5px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--p);border:2px solid #fff;box-shadow:0 0 0 2px var(--p);}
-.tl-t{font-size:12px;font-weight:700;color:var(--t);}
-.tl-s{font-size:11px;color:var(--s);margin-top:2px;}
+/* TX ITEMS */
+.tx-item{padding:10px 16px;border-bottom:1px solid #f5f7fa;}
+.tx-item:last-child{border-bottom:none;}
+.tx-top{display:flex;justify-content:space-between;margin-bottom:2px;}
+.tx-type{font-size:12px;font-weight:700;color:var(--t);}
+.tx-amt{font-size:13px;font-weight:800;}
+.tx-date{font-size:10px;color:var(--s);}
 
-/* SHEET */
+/* ORDER ITEMS */
+.order-item{padding:11px 16px;border-bottom:1px solid #f5f7fa;cursor:pointer;}
+.order-item:last-child{border-bottom:none;}
+.order-item:active{background:#f8fafc;}
+.order-top{display:flex;justify-content:space-between;margin-bottom:3px;}
+.order-id{font-size:12px;font-weight:700;color:var(--t);}
+.order-amt{font-size:12px;font-weight:700;color:var(--p);}
+.order-meta{font-size:10px;color:var(--s);}
+
+/* DEL BTN */
+.del-btn{height:30px;padding:0 12px;border:none;border-radius:15px;background:#fee2e2;color:#dc2626;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;}
+.del-btn:active{opacity:.8;}
+
+/* EMPTY */
+.empty{text-align:center;padding:24px;color:var(--s);font-size:12px;}
+
+/* MODAL */
 .mask{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:200;display:none;align-items:flex-end;}
 .mask.on{display:flex;}
-.sheet{background:#fff;border-radius:24px 24px 0 0;width:100%;padding:20px 20px 48px;animation:up .22s ease;}
+.sheet{background:#fff;border-radius:24px 24px 0 0;width:100%;padding:18px 20px 44px;animation:up .22s ease;}
 @keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.sh-pill{width:36px;height:4px;border-radius:2px;background:#e2e8f0;margin:0 auto 18px;}
-.sh-title{font-size:18px;font-weight:800;color:var(--t);margin-bottom:6px;}
-.sh-sub{font-size:13px;color:var(--s);margin-bottom:20px;}
+.sh-pill{width:36px;height:4px;border-radius:2px;background:#e2e8f0;margin:0 auto 16px;}
+.sh-t{font-size:18px;font-weight:800;color:var(--t);margin-bottom:14px;}
 .sh-lbl{font-size:11px;font-weight:700;color:var(--s);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;}
 .sh-in{width:100%;height:50px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:15px;color:var(--t);outline:none;margin-bottom:14px;}
 .sh-in:focus{border-color:var(--p);}
-.sh-warn{background:#fff8f0;border:1px solid #fde68a;border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:#92400e;line-height:1.5;}
-.sh-ok{width:100%;height:52px;border:none;border-radius:16px;background:linear-gradient(135deg,#b91c1c,var(--d));color:#fff;font-size:16px;font-weight:800;cursor:pointer;}
-.sh-ok:disabled{background:#cbd5e1;cursor:not-allowed;}
-.sh-cancel{width:100%;height:42px;border:none;background:none;color:var(--s);font-size:14px;font-weight:600;cursor:pointer;margin-top:8px;}
-.auto-field{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
-.auto-field-l{font-size:12px;color:var(--s);}
-.auto-field-v{font-size:13px;font-weight:700;color:var(--t);}
-.lt{text-align:center;padding:20px;color:var(--s);font-size:12px;}
-
-.restore-card{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:var(--r);padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;}
-.restore-ico{width:44px;height:44px;border-radius:12px;background:#dcfce7;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.restore-ico svg{width:20px;height:20px;stroke:#16a34a;fill:none;stroke-width:2;}
+.sh-ok{width:100%;height:50px;border:none;border-radius:14px;background:var(--d);color:#fff;font-size:15px;font-weight:800;cursor:pointer;}
+.sh-cancel{width:100%;height:42px;border:none;background:none;color:var(--s);font-size:14px;font-weight:600;cursor:pointer;margin-top:6px;}
+.lt{text-align:center;padding:16px;color:var(--s);font-size:12px;}
 </style>
 </head>
 <body>
 
 <!-- TOPBAR -->
-<div class="tb">
-  <button class="tb-ic" onclick="history.back()">
+<div class="tb" id="tb">
+  <button class="tb-ic" id="tbBack" onclick="goBack()">
     <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
   </button>
-  <div class="tb-title">ประวัติระบบ</div>
+  <div class="tb-back-row">
+    <div class="tb-title" id="tbTitle">ประวัติระบบ</div>
+    <div class="tb-breadcrumb" id="tbBread"></div>
+  </div>
   <button class="tb-ic" onclick="openSb()">
     <svg viewBox="0 0 24 24" fill="none" stroke="#1565C0" stroke-width="2"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
   </button>
@@ -128,397 +139,770 @@ body{background:var(--bg);min-height:100vh;display:flex;flex-direction:column;}
 <!-- SIDEBAR -->
 <div class="sb-bg" id="sbBg" onclick="closeSb()"></div>
 <div class="sb" id="sb">
-  <div class="sb-hd"><div class="sb-hd-t">ประวัติระบบ</div><div class="sb-hd-s">จัดการและส่งออกข้อมูล</div></div>
-  <div class="sb-section">ดูข้อมูล</div>
-  <div class="sb-mi" onclick="closeSb();window.switchTab('archive')">
-    <div class="sb-mi-ic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--p)" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/><polyline points="14 2 14 8 20 8"/></svg></div>
-    <div><div class="sb-mi-t">ไฟล์ Archive ทั้งหมด</div><div class="sb-mi-s">ดูไฟล์ที่รีเซ็ตมา</div></div>
+  <div class="sb-hd"><div class="sb-hd-t">ประวัติระบบ</div><div class="sb-hd-s">จัดการข้อมูลทั้งหมด</div></div>
+  <div class="sb-sec">ดูข้อมูล</div>
+  <div class="sb-mi" onclick="closeSb();showPage('main')">
+    <div class="sb-mi-ic"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+    <div><div class="sb-mi-t">หน้าหลัก</div><div class="sb-mi-s">ดูหมวดหมู่ทั้งหมด</div></div>
   </div>
-  <div class="sb-mi" onclick="closeSb();window.switchTab('restore')">
-    <div class="sb-mi-ic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--p)" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg></div>
-    <div><div class="sb-mi-t">ประวัติการกู้คืน</div><div class="sb-mi-s">ดูทุกครั้งที่กู้คืนระบบ</div></div>
+  <div class="sb-sec">Archive</div>
+  <div class="sb-mi" onclick="closeSb();showPage('archives')">
+    <div class="sb-mi-ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+    <div><div class="sb-mi-t">ไฟล์ Archive</div><div class="sb-mi-s">ประวัติรีเซ็ตระบบ</div></div>
   </div>
-  <div class="sb-section">ส่งออก</div>
-  <div class="sb-mi" onclick="closeSb();printAll()">
-    <div class="sb-mi-ic"><svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></div>
-    <div><div class="sb-mi-t">พิมพ์ประวัติทั้งหมด</div><div class="sb-mi-s">ส่งออกเป็นเอกสาร</div></div>
+  <div class="sb-mi" onclick="closeSb();showPage('restoreLogs')">
+    <div class="sb-mi-ic"><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg></div>
+    <div><div class="sb-mi-t">ประวัติกู้คืน</div></div>
   </div>
-  <div class="sb-mi" onclick="closeSb();downloadAll()">
-    <div class="sb-mi-ic"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
-    <div><div class="sb-mi-t">ดาวน์โหลดไฟล์ทั้งหมด</div><div class="sb-mi-s">JSON รวมทุก archive</div></div>
+  <div class="sb-sec">ระบบ</div>
+  <div class="sb-mi" onclick="closeSb();window.openRestoreSheet()">
+    <div class="sb-mi-ic" style="background:#f0fdf4"><svg viewBox="0 0 24 24" stroke="#16a34a"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg></div>
+    <div><div class="sb-mi-t" style="color:#16a34a">กู้คืนระบบ</div></div>
   </div>
-  <div class="sb-section">ระบบ</div>
-  <div class="sb-mi" onclick="closeSb();openRestoreSheet()">
-    <div class="sb-mi-ic" style="background:#f0fdf4"><svg viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg></div>
-    <div><div class="sb-mi-t" style="color:#16a34a">กู้คืนระบบ</div><div class="sb-mi-s">โหลดข้อมูลจากไฟล์ archive</div></div>
-  </div>
-  <div class="sb-mi" onclick="closeSb();openResetSheet()">
+  <div class="sb-mi" onclick="closeSb();window.openResetSheet()">
     <div class="sb-mi-ic" style="background:#fff0f0"><svg viewBox="0 0 24 24" stroke="#EF4444" fill="none" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg></div>
-    <div><div class="sb-mi-t" style="color:#EF4444">รีเซ็ตระบบ</div><div class="sb-mi-s">เก็บข้อมูลแล้วเริ่มใหม่</div></div>
+    <div><div class="sb-mi-t" style="color:#EF4444">รีเซ็ตระบบ</div></div>
   </div>
 </div>
 
-<!-- CONTENT -->
-<div class="content">
-  <div class="page-hd">
-    <div>
-      <div class="page-title">ไฟล์ประวัติ</div>
-      <div class="page-count" id="archiveCount">กำลังโหลด...</div>
+<!-- PAGE: MAIN -->
+<div class="page on" id="pageMain">
+  <div class="cat-grid">
+    <div class="cat-card" onclick="_call('loadRiders')">
+      <div class="cat-ico" style="background:#EBF5FF"><svg viewBox="0 0 24 24" fill="#1565C0"><path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/></svg></div>
+      <div><div class="cat-name">ไรเดอร์</div><div class="cat-count" id="cntRider">-</div></div>
+    </div>
+    <div class="cat-card" onclick="_call('loadShops')">
+      <div class="cat-ico" style="background:#f0fdf4"><svg viewBox="0 0 24 24" fill="#16a34a"><path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/></svg></div>
+      <div><div class="cat-name">ร้านค้า</div><div class="cat-count" id="cntShop">-</div></div>
+    </div>
+    <div class="cat-card" onclick="_call('loadOrders')">
+      <div class="cat-ico" style="background:#fff7ed"><svg viewBox="0 0 24 24" fill="#ea580c"><path d="M19 3H5c-1.11 0-2 .89-2 2v14c0 1.11.89 2 2 2h14c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>
+      <div><div class="cat-name">ออเดอร์</div><div class="cat-count" id="cntOrder">-</div></div>
+    </div>
+    <div class="cat-card" onclick="_call('loadWallet')">
+      <div class="cat-ico" style="background:#fdf4ff"><svg viewBox="0 0 24 24" fill="#9333ea"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg></div>
+      <div><div class="cat-name">กระเป๋า</div><div class="cat-count" id="cntWallet">-</div></div>
+    </div>
+    <div class="cat-card" onclick="_call('loadReviews')">
+      <div class="cat-ico" style="background:#fffbeb"><svg viewBox="0 0 24 24" fill="#d97706"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></div>
+      <div><div class="cat-name">รีวิว</div><div class="cat-count" id="cntReview">-</div></div>
+    </div>
+    <div class="cat-card" onclick="_call('loadCustomers')">
+      <div class="cat-ico" style="background:#fce7f3"><svg viewBox="0 0 24 24" fill="#db2777"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
+      <div><div class="cat-name">ลูกค้า</div><div class="cat-count" id="cntCustomer">-</div></div>
+    </div>
+    <div class="cat-card" onclick="_call('loadChats')">
+      <div class="cat-ico" style="background:#f0f9ff"><svg viewBox="0 0 24 24" fill="#0284c7"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
+      <div><div class="cat-name">แชท</div><div class="cat-count" id="cntChat">-</div></div>
+    </div>
+    <div class="cat-card" onclick="_call('loadSearchLogs')">
+      <div class="cat-ico" style="background:#f0fdf4"><svg viewBox="0 0 24 24" fill="#16a34a"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></div>
+      <div><div class="cat-name">การค้นหา</div><div class="cat-count" id="cntSearch">-</div></div>
+    </div>
+    <div class="cat-card" onclick="_call('loadDeleteLogs')">
+      <div class="cat-ico" style="background:#fff1f2"><svg viewBox="0 0 24 24" fill="#e11d48"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></div>
+      <div><div class="cat-name">ประวัติลบ</div><div class="cat-count" id="cntDelete">-</div></div>
+    </div>
+    <div class="cat-card" onclick="_call('loadSystemInfo')">
+      <div class="cat-ico" style="background:#f8fafc"><svg viewBox="0 0 24 24" fill="#475569"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.6-.22l-2.39.96a7.2 7.2 0 00-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.47.47 0 00-.6.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.6.22l2.39-.96c.5.37 1.04.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .6-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></div>
+      <div><div class="cat-name">ข้อมูลระบบ</div><div class="cat-count" id="cntSys">ดูได้</div></div>
     </div>
   </div>
-  <div style="display:flex;border-bottom:2px solid #eaeef4;margin-bottom:16px;">
-    <button id="tabArchive" onclick="window.switchTab('archive')" style="flex:1;height:40px;border:none;background:none;font-size:13px;font-weight:700;color:var(--p);border-bottom:2px solid var(--p);margin-bottom:-2px;cursor:pointer;">ไฟล์ Archive</button>
-    <button id="tabRestore" onclick="window.switchTab('restore')" style="flex:1;height:40px;border:none;background:none;font-size:13px;font-weight:600;color:var(--s);cursor:pointer;">ประวัติกู้คืน</button>
-  </div>
-  <div id="archiveList"><div class="lt">กำลังโหลด...</div></div>
-  <div id="restoreList" style="display:none"><div class="lt">กำลังโหลด...</div></div>
 </div>
 
-<!-- DETAIL PANEL -->
-<div class="detail" id="detailPanel">
-  <div class="detail-tb">
-    <button class="det-back" onclick="closeDetail()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#1a2340" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-    </button>
-    <div class="det-title" id="detTitle">รายละเอียด</div>
-    <button class="det-dl" id="detDlBtn">ดาวน์โหลด</button>
-  </div>
-  <div id="detContent"></div>
-</div>
+<!-- PAGE: RIDERS LIST -->
+<div class="page" id="pageRiders"><div class="lt">กำลังโหลด...</div></div>
 
-<!-- RESET SHEET -->
+<!-- PAGE: RIDER DETAIL -->
+<div class="page" id="pageRiderDetail"></div>
+
+<!-- PAGE: SHOPS LIST -->
+<div class="page" id="pageShops"><div class="lt">กำลังโหลด...</div></div>
+
+<!-- PAGE: SHOP DETAIL -->
+<div class="page" id="pageShopDetail"></div>
+
+<!-- PAGE: ORDERS -->
+<div class="page" id="pageOrders"><div class="lt">กำลังโหลด...</div></div>
+
+<!-- PAGE: ORDER DETAIL -->
+<div class="page" id="pageOrderDetail"></div>
+
+<!-- PAGE: WALLET -->
+<div class="page" id="pageWallet"><div class="lt">กำลังโหลด...</div></div>
+
+<!-- PAGE: REVIEWS -->
+<div class="page" id="pageReviews"><div class="lt">กำลังโหลด...</div></div>
+
+<!-- PAGE: CUSTOMERS -->
+<div class="page" id="pageCustomers"><div class="lt">กำลังโหลด...</div></div>
+
+<!-- PAGE: CHATS -->
+<div class="page" id="pageChats"><div class="lt">กำลังโหลด...</div></div>
+<!-- PAGE: SEARCH LOGS -->
+<div class="page" id="pageSearchLogs"><div class="lt">กำลังโหลด...</div></div>
+<!-- PAGE: DELETE LOGS -->
+<div class="page" id="pageDeleteLogs"><div class="lt">กำลังโหลด...</div></div>
+<!-- PAGE: SYSTEM INFO -->
+<div class="page" id="pageSystemInfo"></div>
+<!-- PAGE: ARCHIVES -->
+<div class="page" id="pageArchives"><div class="lt">กำลังโหลด...</div></div>
+
+<!-- PAGE: RESTORE LOGS -->
+<div class="page" id="pageRestoreLogs"><div class="lt">กำลังโหลด...</div></div>
+
+<!-- MODAL -->
 <div class="mask" id="mask"><div class="sheet" id="shBody"></div></div>
 
 <script>
 function openSb(){document.getElementById('sb').classList.add('on');document.getElementById('sbBg').classList.add('on');}
 function closeSb(){document.getElementById('sb').classList.remove('on');document.getElementById('sbBg').classList.remove('on');}
-function closeDetail(){document.getElementById('detailPanel').classList.remove('on');}
 function hideMask(){document.getElementById('mask').classList.remove('on');}
-function switchTab(tab){
-  var isArchive=tab==='archive';
-  document.getElementById('archiveList').style.display=isArchive?'block':'none';
-  document.getElementById('restoreList').style.display=isArchive?'none':'block';
-  var activeStyle='flex:1;height:40px;border:none;background:none;font-size:13px;font-weight:700;border-bottom:2px solid;margin-bottom:-2px;cursor:pointer;';
-  var inactStyle='flex:1;height:40px;border:none;background:none;font-size:13px;font-weight:600;cursor:pointer;';
-  document.getElementById('tabArchive').style.cssText=isArchive?(activeStyle+'color:#1565C0;border-color:#1565C0;'):(inactStyle+'color:#64748b;');
-  document.getElementById('tabRestore').style.cssText=isArchive?(inactStyle+'color:#64748b;'):(activeStyle+'color:#16a34a;border-color:#16a34a;');
-  if(!isArchive && window._loadRestoreLogs) window._loadRestoreLogs();
+function toggleSec(el){
+  var body=el.nextElementSibling;
+  var arr=el.querySelector('.sec-hd-arr');
+  var open=body.classList.contains('open');
+  body.classList.toggle('open',!open);
+  if(arr)arr.style.transform=open?'':'rotate(180deg)';
+}
+function _call(fn){
+  var a=[].slice.call(arguments,1);
+  if(typeof window[fn]==='function') return window[fn].apply(null,a);
+  setTimeout(function(){_call.apply(null,[fn].concat(a));},100);
+}
+// Navigation
+var _stack=['main'];
+function showPage(id,title,bread){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('on');});
+  var el=document.getElementById('page'+id.charAt(0).toUpperCase()+id.slice(1));
+  if(el)el.classList.add('on');
+  document.getElementById('tbTitle').textContent=title||'ประวัติระบบ';
+  document.getElementById('tbBread').textContent=bread||'';
+  _stack.push(id);
+}
+function goBack(){
+  _stack.pop();
+  var prev=_stack[_stack.length-1]||'main';
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('on');});
+  var el=document.getElementById('page'+(prev==='main'?'Main':prev.charAt(0).toUpperCase()+prev.slice(1)));
+  if(el)el.classList.add('on');
+  document.getElementById('tbTitle').textContent=prev==='main'?'ประวัติระบบ':'';
+  document.getElementById('tbBread').textContent='';
 }
 </script>
-
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import{getFirestore,collection,doc,getDocs,addDoc,deleteDoc,setDoc,query,orderBy,serverTimestamp,where}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import{getFirestore,collection,doc,getDocs,getDoc,addDoc,deleteDoc,setDoc,query,orderBy,where,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const db=getFirestore(initializeApp({apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",authDomain:"nimit-delivery.firebaseapp.com",projectId:"nimit-delivery",storageBucket:"nimit-delivery.firebasestorage.app",messagingSenderId:"233476256130",appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"}));
 
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-function fmtDt(ts){
-  if(!ts)return'-';
-  const d=ts.toDate?ts.toDate():new Date(ts);
-  return d.toLocaleString('th-TH',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});
-}
-function fmtFileDt(ts){
-  const d=ts.toDate?ts.toDate():new Date(ts);
-  const y=d.getFullYear(),mo=String(d.getMonth()+1).padStart(2,'0'),dy=String(d.getDate()).padStart(2,'0');
-  const h=String(d.getHours()).padStart(2,'0'),mi=String(d.getMinutes()).padStart(2,'0'),s=String(d.getSeconds()).padStart(2,'0');
-  return `${y}${mo}${dy}_${h}${mi}${s}`;
-}
+const fmt=ts=>{if(!ts)return'-';const d=ts.toDate?ts.toDate():new Date(ts);return d.toLocaleString('th-TH',{day:'numeric',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit'});};
+const fmtFile=()=>{const d=new Date();return`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}_${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}${String(d.getSeconds()).padStart(2,'0')}`;};
 
-let archives=[], curArchive=null;
+// ===== LOAD COUNTS =====
+async function loadCounts(){
+  const cols=['riders','shops','orders','walletTx','reviews','customers','searchLogs','deleteLogs'];
+  const ids=['cntRider','cntShop','cntOrder','cntWallet','cntReview','cntCustomer','cntSearch','cntDelete'];
+  for(let i=0;i<cols.length;i++){
+    try{const s=await getDocs(collection(db,cols[i]));document.getElementById(ids[i]).textContent=s.size+' รายการ';}catch(e){}
+  }
+}
+loadCounts();
 
-// โหลด archives
-async function loadArchives(){
+// ===== RIDERS =====
+window.loadRiders=async function(){
+  showPage('riders','ไรเดอร์');
+  const el=document.getElementById('pageRiders');
+  el.innerHTML='<div class="lt">กำลังโหลด...</div>';
   try{
-    const snap=await getDocs(query(collection(db,'archives'),orderBy('createdAt','desc')));
-    archives=[];
-    snap.forEach(d=>archives.push({id:d.id,...d.data()}));
-    renderList();
-  }catch(e){
-    document.getElementById('archiveList').innerHTML='<div class="lt">โหลดไม่ได้</div>';
-  }
-}
-loadArchives();
+    const snap=await getDocs(collection(db,'riders'));
+    const riders=[];snap.forEach(d=>riders.push({id:d.id,...d.data()}));
+    riders.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+    if(!riders.length){el.innerHTML='<div class="empty">ยังไม่มีไรเดอร์</div>';return;}
+    el.innerHTML=riders.map(r=>`
+      <div class="list-item" data-rid="${r.id}">
+        <div class="list-av" style="background:${r.active!==false?'linear-gradient(135deg,#1565C0,#1E88E5)':'#94a3b8'}">${(r.name||'?').slice(0,1)}</div>
+        <div class="list-info">
+          <div class="list-name">${esc(r.name||r.id)}<span class="badge ${r.active!==false?'badge-on':'badge-off'}">${r.active!==false?'ทำงาน':'หยุด'}</span></div>
+          <div class="list-sub">${r.phone||''} ${r.plate?'· '+r.plate:''}</div>
+          <div class="list-sub">เครดิต ฿${(r.wallet||0).toLocaleString()} ${r.shiftIn?'· เข้า '+r.shiftIn:''}${r.shiftOut?' ออก '+r.shiftOut:''}</div>
+        </div>
+        <button class="del-btn" onclick="event.stopPropagation();window.confirmDel('rider','${r.id}','${esc(r.name||r.id)}')">ลาออก</button>
+        <div class="list-arr">›</div>
+      </div>`).join('');
+    el.querySelectorAll('.list-item').forEach(item=>item.addEventListener('click',()=>loadRiderDetail(item.dataset.rid,riders.find(r=>r.id===item.dataset.rid))));
+  }catch(e){el.innerHTML='<div class="empty">โหลดไม่ได้</div>';}
+};
 
-function renderList(){
-  const el=document.getElementById('archiveList');
-  document.getElementById('archiveCount').textContent=archives.length+' ไฟล์';
-  if(!archives.length){
-    el.innerHTML=`<div class="empty-state"><div class="empty-ico">🗂️</div><div class="empty-t">ยังไม่มีประวัติ</div><div class="empty-s">กดปุ่มรีเซ็ตเพื่อสร้างไฟล์ประวัติแรก</div></div>`;
-    return;
-  }
-  el.innerHTML=archives.map(a=>`
-    <div class="file-card" data-id="${a.id}">
-      <div class="file-ico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/><polyline points="14 2 14 8 20 8"/></svg></div>
-      <div class="file-info">
-        <div class="file-name">${esc(a.filename)}</div>
-        <div class="file-date">${fmtDt(a.createdAt)}</div>
-        <div class="file-reason">${esc(a.reason)}</div>
-        <div class="file-stats">
-          <span class="file-stat">ออเดอร์ ${a.stats?.orderCount||0}</span>
-          <span class="file-stat">รายได้ ฿${(a.stats?.totalRevenue||0).toLocaleString()}</span>
-          <span class="file-stat">Tx ${a.stats?.walletTxCount||0}</span>
+async function loadRiderDetail(rid,r){
+  showPage('riderDetail',r?.name||'ไรเดอร์','ไรเดอร์ ›');
+  const el=document.getElementById('pageRiderDetail');
+  el.innerHTML='<div class="lt">กำลังโหลด...</div>';
+  try{
+    const [txSnap,orderSnap]=await Promise.all([
+      getDocs(query(collection(db,'walletTx'),where('riderId','==',rid))),
+      getDocs(collection(db,'orders'))
+    ]);
+    const txs=[];txSnap.forEach(d=>txs.push({id:d.id,...d.data()}));
+    txs.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    const orders=[];orderSnap.forEach(d=>{const o=d.data();if(o.riderId===rid)orders.push({id:d.id,...o});});
+    orders.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+
+    el.innerHTML=`
+      <!-- ข้อมูลส่วนตัว -->
+      <div class="sec-card"><div class="sec-hd" onclick="toggleSec(this)">
+        <div class="sec-hd-t"><div class="sec-hd-ico" style="background:#EBF5FF"><svg width="14" height="14" viewBox="0 0 24 24" fill="#1565C0"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"/></svg></div>ข้อมูลส่วนตัว</div>
+        <div class="sec-hd-arr">›</div></div>
+        <div class="sec-body open">
+          <div class="row"><span class="row-l">ชื่อ</span><span class="row-r">${esc(r?.name||'-')}</span></div>
+          <div class="row"><span class="row-l">เบอร์</span><span class="row-r">${esc(r?.phone||'-')}</span></div>
+          <div class="row"><span class="row-l">ทะเบียน</span><span class="row-r">${esc(r?.plate||'-')}</span></div>
+          <div class="row"><span class="row-l">บัตรประชาชน</span><span class="row-r">${esc(r?.idCard||'-')}</span></div>
+          <div class="row"><span class="row-l">ที่อยู่</span><span class="row-r">${esc(r?.address||'-')}</span></div>
+          <div class="row"><span class="row-l">เบอร์ฉุกเฉิน</span><span class="row-r">${esc(r?.emergPhone||'-')} ${r?.emergName?'('+esc(r.emergName)+')':''}</span></div>
+          <div class="row"><span class="row-l">เริ่มงาน</span><span class="row-r">${esc(r?.startDate||'-')}</span></div>
+          <div class="row"><span class="row-l">เวลางาน</span><span class="row-r">${r?.shiftIn||'-'} – ${r?.shiftOut||'-'}</span></div>
+          <div class="row"><span class="row-l">สถานะ</span><span class="row-r">${r?.active!==false?'<span class="badge badge-on">ทำงาน</span>':'<span class="badge badge-off">หยุด</span>'}</span></div>
+          <div class="row"><span class="row-l">เครดิตคงเหลือ</span><span class="row-r pos">฿${(r?.wallet||0).toLocaleString()}</span></div>
         </div>
       </div>
-      <div class="file-arr">›</div>
-    </div>`).join('');
-  document.querySelectorAll('.file-card').forEach(c=>c.addEventListener('click',()=>openDetail(c.dataset.id)));
+      <!-- ประวัติเครดิต -->
+      <div class="sec-card"><div class="sec-hd" onclick="toggleSec(this)">
+        <div class="sec-hd-t"><div class="sec-hd-ico" style="background:#fdf4ff"><svg width="14" height="14" viewBox="0 0 24 24" fill="#9333ea"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9z"/></svg></div>ประวัติเครดิต (${txs.length})</div>
+        <div class="sec-hd-arr">›</div></div>
+        <div class="sec-body">
+          ${txs.length?txs.map(t=>`<div class="tx-item">
+            <div class="tx-top"><span class="tx-type">${esc(t.type||'-')}</span><span class="tx-amt ${t.amount>=0?'pos':'neg'}">${t.amount>=0?'+':'-'}฿${Math.abs(t.amount||0).toLocaleString()}</span></div>
+            <div class="tx-date">${fmt(t.createdAt)} ${t.orderId?'· #'+esc(t.orderId):''}</div>
+          </div>`).join(''):'<div class="empty">ยังไม่มีรายการ</div>'}
+        </div>
+      </div>
+      <!-- ออเดอร์ -->
+      <div class="sec-card"><div class="sec-hd" onclick="toggleSec(this)">
+        <div class="sec-hd-t"><div class="sec-hd-ico" style="background:#fff7ed"><svg width="14" height="14" viewBox="0 0 24 24" fill="#ea580c"><path d="M19 3H5c-1.11 0-2 .89-2 2v14c0 1.11.89 2 2 2h14c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2z"/></svg></div>ออเดอร์ที่รับ (${orders.length})</div>
+        <div class="sec-hd-arr">›</div></div>
+        <div class="sec-body">
+          ${orders.length?orders.map(o=>`<div class="order-item">
+            <div class="order-top"><span class="order-id">${esc(o.orderId||o.id)}</span><span class="order-amt">฿${(o.grandTotal||0).toLocaleString()}</span></div>
+            <div class="order-meta">${esc(o.shopName||'')} · <span class="badge badge-${o.status==='done'?'done':o.status==='rejected'?'rejected':'pending'}">${esc(o.status||'-')}</span> · ${fmt(o.createdAt)}</div>
+          </div>`).join(''):'<div class="empty">ยังไม่มีออเดอร์</div>'}
+        </div>
+      </div>`;
+  }catch(e){el.innerHTML='<div class="empty">โหลดไม่ได้: '+e.message+'</div>';}
 }
 
-// เปิดรายละเอียด
-function openDetail(id){
-  curArchive=archives.find(a=>a.id===id);
-  if(!curArchive)return;
-  document.getElementById('detTitle').textContent=curArchive.filename;
-  document.getElementById('detDlBtn').onclick=()=>downloadArchive(curArchive);
-  const a=curArchive;
-  document.getElementById('detContent').innerHTML=`
-    <div class="det-card" style="margin-top:14px">
-      <div class="det-card-t">ข้อมูลไฟล์</div>
-      <div class="det-row"><span class="det-row-l">ชื่อไฟล์</span><span class="det-row-r">${esc(a.filename)}</span></div>
-      <div class="det-row"><span class="det-row-l">เหตุผล</span><span class="det-row-r">${esc(a.reason)}</span></div>
-      <div class="det-row"><span class="det-row-l">วันที่รีเซ็ต</span><span class="det-row-r">${fmtDt(a.createdAt)}</span></div>
-      <div class="det-row"><span class="det-row-l">รีเซ็ตโดย</span><span class="det-row-r">${esc(a.resetBy||'Admin')}</span></div>
-    </div>
-    <div class="det-card">
-      <div class="det-card-t">สรุปข้อมูล</div>
-      <div class="stat-grid">
-        <div class="stat-box"><div class="stat-v">${a.stats?.orderCount||0}</div><div class="stat-l">ออเดอร์ทั้งหมด</div></div>
-        <div class="stat-box"><div class="stat-v">฿${(a.stats?.totalRevenue||0).toLocaleString()}</div><div class="stat-l">รายได้รวม</div></div>
-        <div class="stat-box"><div class="stat-v">${a.stats?.doneCount||0}</div><div class="stat-l">ออเดอร์สำเร็จ</div></div>
-        <div class="stat-box"><div class="stat-v">${a.stats?.walletTxCount||0}</div><div class="stat-l">รายการกระเป๋า</div></div>
+// ===== SHOPS =====
+window.loadShops=async function(){
+  showPage('shops','ร้านค้า');
+  const el=document.getElementById('pageShops');
+  el.innerHTML='<div class="lt">กำลังโหลด...</div>';
+  try{
+    const snap=await getDocs(collection(db,'shops'));
+    const shops=[];snap.forEach(d=>shops.push({id:d.id,...d.data()}));
+    if(!shops.length){el.innerHTML='<div class="empty">ยังไม่มีร้านค้า</div>';return;}
+    el.innerHTML=shops.map(s=>`
+      <div class="list-item" data-sid="${s.id}">
+        <div class="list-av" style="background:linear-gradient(135deg,#0c4aa6,#1565C0)">${(s.name||'?').slice(0,1)}</div>
+        <div class="list-info">
+          <div class="list-name">${esc(s.name||s.id)}<span class="badge ${s.isOpen!==false?'badge-on':'badge-off'}">${s.isOpen!==false?'เปิด':'ปิด'}</span></div>
+          <div class="list-sub">${s.phone||''} ${s.address?'· '+s.address:''}</div>
+          <div class="list-sub">⭐${(parseFloat(s.rating)||0).toFixed(1)} · รีวิว ${s.ratingCount||0}</div>
+        </div>
+        <div class="list-arr">›</div>
+      </div>`).join('');
+    el.querySelectorAll('.list-item').forEach(item=>item.addEventListener('click',()=>loadShopDetail(item.dataset.sid,shops.find(s=>s.id===item.dataset.sid))));
+  }catch(e){el.innerHTML='<div class="empty">โหลดไม่ได้</div>';}
+};
+
+async function loadShopDetail(sid,s){
+  showPage('shopDetail',s?.name||'ร้านค้า','ร้านค้า ›');
+  const el=document.getElementById('pageShopDetail');
+  el.innerHTML='<div class="lt">กำลังโหลด...</div>';
+  try{
+    const [menuSnap,orderSnap,revSnap]=await Promise.all([
+      getDocs(collection(db,'shops',sid,'menus')),
+      getDocs(collection(db,'orders')),
+      getDocs(query(collection(db,'reviews'),where('shopId','==',sid)))
+    ]);
+    const menus=[];menuSnap.forEach(d=>menus.push({id:d.id,...d.data()}));
+    const orders=[];orderSnap.forEach(d=>{const o=d.data();if(o.shopId===sid)orders.push({id:d.id,...o});});
+    orders.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    const revs=[];revSnap.forEach(d=>revs.push({id:d.id,...d.data()}));
+
+    el.innerHTML=`
+      <div class="sec-card"><div class="sec-hd" onclick="toggleSec(this)">
+        <div class="sec-hd-t"><div class="sec-hd-ico" style="background:#f0fdf4"><svg width="14" height="14" viewBox="0 0 24 24" fill="#16a34a"><path d="M20 4H4v2l8 5 8-5V4z"/></svg></div>ข้อมูลร้าน</div>
+        <div class="sec-hd-arr">›</div></div>
+        <div class="sec-body open">
+          <div class="row"><span class="row-l">ชื่อ</span><span class="row-r">${esc(s?.name||'-')}</span></div>
+          <div class="row"><span class="row-l">เบอร์</span><span class="row-r">${esc(s?.phone||'-')}</span></div>
+          <div class="row"><span class="row-l">ที่อยู่</span><span class="row-r">${esc(s?.address||s?.desc||'-')}</span></div>
+          <div class="row"><span class="row-l">เวลาเปิด</span><span class="row-r">${esc(s?.openHours||'-')}</span></div>
+          <div class="row"><span class="row-l">คะแนน</span><span class="row-r">⭐${(parseFloat(s?.rating)||0).toFixed(1)} (${s?.ratingCount||0} รีวิว)</span></div>
+          <div class="row"><span class="row-l">ออเดอร์ทั้งหมด</span><span class="row-r">${orders.length}</span></div>
+        </div>
+      </div>
+      <div class="sec-card"><div class="sec-hd" onclick="toggleSec(this)">
+        <div class="sec-hd-t"><div class="sec-hd-ico" style="background:#fff7ed"><svg width="14" height="14" viewBox="0 0 24 24" fill="#ea580c"><path d="M8 5v14l11-7z"/></svg></div>เมนู (${menus.length})</div>
+        <div class="sec-hd-arr">›</div></div>
+        <div class="sec-body">
+          ${menus.map(m=>`<div class="row"><span class="row-l">${esc(m.name||'-')}</span><span class="row-r">฿${(m.price||0).toLocaleString()}</span></div>`).join('')||'<div class="empty">ไม่มีเมนู</div>'}
+        </div>
+      </div>
+      <div class="sec-card"><div class="sec-hd" onclick="toggleSec(this)">
+        <div class="sec-hd-t"><div class="sec-hd-ico" style="background:#fff7ed"><svg width="14" height="14" viewBox="0 0 24 24" fill="#ea580c"><path d="M19 3H5c-1.11 0-2 .89-2 2v14h14c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2z"/></svg></div>ออเดอร์ (${orders.length})</div>
+        <div class="sec-hd-arr">›</div></div>
+        <div class="sec-body">
+          ${orders.slice(0,30).map(o=>`<div class="order-item">
+            <div class="order-top"><span class="order-id">${esc(o.orderId||o.id)}</span><span class="order-amt">฿${(o.grandTotal||0).toLocaleString()}</span></div>
+            <div class="order-meta"><span class="badge badge-${o.status==='done'?'done':o.status==='rejected'?'rejected':'pending'}">${esc(o.status||'-')}</span> · ${fmt(o.createdAt)}</div>
+          </div>`).join('')||'<div class="empty">ไม่มีออเดอร์</div>'}
+        </div>
+      </div>
+      <div class="sec-card"><div class="sec-hd" onclick="toggleSec(this)">
+        <div class="sec-hd-t"><div class="sec-hd-ico" style="background:#fffbeb"><svg width="14" height="14" viewBox="0 0 24 24" fill="#d97706"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></div>รีวิว (${revs.length})</div>
+        <div class="sec-hd-arr">›</div></div>
+        <div class="sec-body">
+          ${revs.map(r=>`<div class="tx-item">
+            <div class="tx-top"><span class="tx-type">⭐${r.shopRating||0} ${r.shopComment?'· '+esc(r.shopComment):''}</span></div>
+            <div class="tx-date">${fmt(r.createdAt)}</div>
+          </div>`).join('')||'<div class="empty">ไม่มีรีวิว</div>'}
+        </div>
+      </div>`;
+  }catch(e){el.innerHTML='<div class="empty">โหลดไม่ได้</div>';}
+}
+
+// ===== ORDERS =====
+window.loadOrders=async function(){
+  showPage('orders','ออเดอร์ทั้งหมด');
+  const el=document.getElementById('pageOrders');
+  el.innerHTML='<div class="lt">กำลังโหลด...</div>';
+  try{
+    const snap=await getDocs(collection(db,'orders'));
+    const orders=[];snap.forEach(d=>orders.push({id:d.id,...d.data()}));
+    orders.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    if(!orders.length){el.innerHTML='<div class="empty">ยังไม่มีออเดอร์</div>';return;}
+    const done=orders.filter(o=>o.status==='done').length;
+    const rev=orders.filter(o=>o.status==='done').reduce((s,o)=>s+(o.grandTotal||0),0);
+    el.innerHTML=`<div style="background:#fff;border-radius:var(--r);padding:14px 16px;margin-bottom:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;border:1px solid #eaeef4">
+      <div style="text-align:center"><div style="font-size:20px;font-weight:900;color:var(--p)">${orders.length}</div><div style="font-size:10px;color:var(--s)">ทั้งหมด</div></div>
+      <div style="text-align:center"><div style="font-size:20px;font-weight:900;color:var(--gn)">${done}</div><div style="font-size:10px;color:var(--s)">สำเร็จ</div></div>
+      <div style="text-align:center"><div style="font-size:16px;font-weight:900;color:var(--p)">฿${rev.toLocaleString()}</div><div style="font-size:10px;color:var(--s)">รายได้รวม</div></div>
+    </div>`+orders.map(o=>`
+      <div class="list-item" data-oid="${o.id}">
+        <div class="list-av" style="background:${o.status==='done'?'#16a34a':o.status==='rejected'?'#dc2626':'#1565C0'};font-size:10px">${esc(o.status==='done'?'✓':o.status==='rejected'?'✗':'...')}</div>
+        <div class="list-info">
+          <div class="list-name">${esc(o.orderId||o.id)} <span class="badge badge-${o.status==='done'?'done':o.status==='rejected'?'rejected':'pending'}">${esc(o.status||'-')}</span></div>
+          <div class="list-sub">${esc(o.shopName||'')} · ฿${(o.grandTotal||0).toLocaleString()}</div>
+          <div class="list-sub">${esc(o.customer?.name||'')} · ${fmt(o.createdAt)}</div>
+        </div>
+        <div class="list-arr">›</div>
+      </div>`).join('');
+    el.querySelectorAll('.list-item').forEach(item=>item.addEventListener('click',()=>loadOrderDetail(item.dataset.oid,orders.find(o=>o.id===item.dataset.oid))));
+  }catch(e){el.innerHTML='<div class="empty">โหลดไม่ได้</div>';}
+};
+
+async function loadOrderDetail(oid,o){
+  showPage('orderDetail','#'+(o?.orderId||oid),'ออเดอร์ ›');
+  const el=document.getElementById('pageOrderDetail');
+  const items=(o?.items||[]).map(i=>`<div class="row"><span class="row-l">${esc(i.name||'')} x${i.qty||1}</span><span class="row-r">฿${((i.price||0)*i.qty).toLocaleString()}</span></div>`).join('');
+  el.innerHTML=`
+    <div class="sec-card"><div class="sec-hd" onclick="toggleSec(this)"><div class="sec-hd-t">ข้อมูลออเดอร์</div><div class="sec-hd-arr">›</div></div>
+      <div class="sec-body open">
+        <div class="row"><span class="row-l">เลขออเดอร์</span><span class="row-r">${esc(o?.orderId||oid)}</span></div>
+        <div class="row"><span class="row-l">สถานะ</span><span class="row-r"><span class="badge badge-${o?.status==='done'?'done':o?.status==='rejected'?'rejected':'pending'}">${esc(o?.status||'-')}</span></span></div>
+        <div class="row"><span class="row-l">ร้าน</span><span class="row-r">${esc(o?.shopName||'-')}</span></div>
+        <div class="row"><span class="row-l">ไรเดอร์</span><span class="row-r">${esc(o?.riderName||'-')}</span></div>
+        <div class="row"><span class="row-l">ลูกค้า</span><span class="row-r">${esc(o?.customer?.name||'-')} ${esc(o?.customer?.phone||'')}</span></div>
+        <div class="row"><span class="row-l">ที่อยู่จัดส่ง</span><span class="row-r">${esc(o?.customer?.address||'-')}</span></div>
+        <div class="row"><span class="row-l">วันที่สั่ง</span><span class="row-r">${fmt(o?.createdAt)}</span></div>
       </div>
     </div>
-    <div class="det-card">
-      <div class="det-card-t">ข้อมูลออเดอร์ช่วง</div>
-      <div class="det-row"><span class="det-row-l">ออเดอร์ pending</span><span class="det-row-r">${a.stats?.pendingCount||0}</span></div>
-      <div class="det-row"><span class="det-row-l">ออเดอร์ done</span><span class="det-row-r">${a.stats?.doneCount||0}</span></div>
-      <div class="det-row"><span class="det-row-l">ออเดอร์ rejected</span><span class="det-row-r">${a.stats?.rejectedCount||0}</span></div>
-      <div class="det-row"><span class="det-row-l">รายได้เฉลี่ย/ออเดอร์</span><span class="det-row-r">฿${a.stats?.orderCount?Math.round((a.stats.totalRevenue||0)/a.stats.orderCount).toLocaleString():0}</span></div>
+    <div class="sec-card"><div class="sec-hd" onclick="toggleSec(this)"><div class="sec-hd-t">รายการอาหาร</div><div class="sec-hd-arr">›</div></div>
+      <div class="sec-body open">${items||'<div class="empty">ไม่มีรายการ</div>'}
+        <div class="row" style="border-top:1px solid #e8ecf4;font-weight:700"><span class="row-l">รวมอาหาร</span><span class="row-r">฿${(o?.subtotal||0).toLocaleString()}</span></div>
+        <div class="row"><span class="row-l">ค่าส่ง</span><span class="row-r">฿${(o?.deliveryFee||0).toLocaleString()}</span></div>
+        <div class="row"><span class="row-l">ยอดรวม</span><span class="row-r pos" style="font-size:15px;font-weight:800">฿${(o?.grandTotal||0).toLocaleString()}</span></div>
+      </div>
     </div>
-    <div class="det-card" style="margin-bottom:0">
-      <div class="det-card-t">Timeline การรีเซ็ต</div>
-      <div class="tl">
-        <div class="tl-item"><div class="tl-dot"></div><div class="tl-t">เก็บข้อมูลทั้งหมด</div><div class="tl-s">รวบรวม orders, walletTx, reviews</div></div>
-        <div class="tl-item"><div class="tl-dot"></div><div class="tl-t">บันทึก archive</div><div class="tl-s">สร้างไฟล์ ${esc(a.filename)}</div></div>
-        <div class="tl-item"><div class="tl-dot"></div><div class="tl-t">รีเซ็ตเสร็จสิ้น</div><div class="tl-s">${fmtDt(a.createdAt)}</div></div>
+    <div class="sec-card"><div class="sec-hd" onclick="toggleSec(this)"><div class="sec-hd-t">ข้อมูลกระเป๋า</div><div class="sec-hd-arr">›</div></div>
+      <div class="sec-body">
+        <div class="row"><span class="row-l">ยอดหักกระเป๋า</span><span class="row-r neg">฿${(o?.walletCut||0).toLocaleString()}</span></div>
+        <div class="row"><span class="row-l">ไรเดอร์ได้</span><span class="row-r pos">฿${(o?.riderEarn||0).toLocaleString()}</span></div>
+        <div class="row"><span class="row-l">ช่องทางชำระ</span><span class="row-r">${esc(o?.paymentMethod||'-')}</span></div>
       </div>
     </div>`;
-  document.getElementById('detailPanel').classList.add('on');
 }
-window.closeDetail=closeDetail;
 
-// RESET SHEET
-window.openResetSheet=function(){
-  const now=new Date();
-  const dtStr=now.toLocaleString('th-TH',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+// ===== WALLET =====
+window.loadWallet=async function(){
+  showPage('wallet','กระเป๋ากลาง');
+  const el=document.getElementById('pageWallet');
+  el.innerHTML='<div class="lt">กำลังโหลด...</div>';
+  try{
+    const snap=await getDocs(collection(db,'walletTx'));
+    const txs=[];snap.forEach(d=>txs.push({id:d.id,...d.data()}));
+    txs.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    const totalIn=txs.filter(t=>t.amount>0).reduce((s,t)=>s+t.amount,0);
+    const totalOut=Math.abs(txs.filter(t=>t.amount<0).reduce((s,t)=>s+t.amount,0));
+    el.innerHTML=`<div style="background:#fff;border-radius:var(--r);padding:14px;margin-bottom:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px;border:1px solid #eaeef4">
+      <div style="text-align:center"><div style="font-size:18px;font-weight:900;color:var(--gn)">+฿${totalIn.toLocaleString()}</div><div style="font-size:10px;color:var(--s)">รวมเข้า</div></div>
+      <div style="text-align:center"><div style="font-size:18px;font-weight:900;color:var(--d)">-฿${totalOut.toLocaleString()}</div><div style="font-size:10px;color:var(--s)">รวมออก</div></div>
+    </div>`+txs.map(t=>`<div class="list-item" style="cursor:default">
+      <div class="list-av" style="background:${t.amount>=0?'#16a34a':'#dc2626'};font-size:12px">${t.amount>=0?'+':'-'}</div>
+      <div class="list-info">
+        <div class="list-name">${esc(t.type||'-')}</div>
+        <div class="list-sub">${esc(t.riderName||'')} ${t.orderId?'· #'+esc(t.orderId):''}</div>
+        <div class="list-sub">${fmt(t.createdAt)}</div>
+      </div>
+      <div style="font-size:14px;font-weight:800;color:${t.amount>=0?'var(--gn)':'var(--d)'}">${t.amount>=0?'+':'-'}฿${Math.abs(t.amount||0).toLocaleString()}</div>
+    </div>`).join('')||'<div class="empty">ยังไม่มีรายการ</div>';
+  }catch(e){el.innerHTML='<div class="empty">โหลดไม่ได้</div>';}
+};
+
+// ===== REVIEWS =====
+window.loadReviews=async function(){
+  showPage('reviews','รีวิวทั้งหมด');
+  const el=document.getElementById('pageReviews');
+  el.innerHTML='<div class="lt">กำลังโหลด...</div>';
+  try{
+    const snap=await getDocs(collection(db,'reviews'));
+    const revs=[];snap.forEach(d=>revs.push({id:d.id,...d.data()}));
+    revs.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    el.innerHTML=revs.map(r=>`<div class="list-item" style="cursor:default">
+      <div class="list-av" style="background:#d97706;font-size:12px">⭐</div>
+      <div class="list-info">
+        <div class="list-name">${esc(r.shopName||'-')} · ร้าน ${'⭐'.repeat(r.shopRating||0)}</div>
+        <div class="list-sub">${r.shopComment?esc(r.shopComment):''}</div>
+        <div class="list-sub">ไรเดอร์ ${'⭐'.repeat(r.riderRating||0)} ${r.riderComment?'· '+esc(r.riderComment):''}</div>
+        <div class="list-sub">${fmt(r.createdAt)}</div>
+      </div>
+    </div>`).join('')||'<div class="empty">ยังไม่มีรีวิว</div>';
+  }catch(e){el.innerHTML='<div class="empty">โหลดไม่ได้</div>';}
+};
+
+// ===== CUSTOMERS =====
+window.loadCustomers=async function(){
+  showPage('customers','ลูกค้า');
+  const el=document.getElementById('pageCustomers');
+  el.innerHTML='<div class="lt">กำลังโหลด...</div>';
+  try{
+    const snap=await getDocs(collection(db,'customers'));
+    const custs=[];snap.forEach(d=>custs.push({id:d.id,...d.data()}));
+    el.innerHTML=custs.map(cu=>`<div class="list-item" style="cursor:default">
+      <div class="list-av" style="background:#db2777">${(cu.name||cu.id||'?').slice(0,1)}</div>
+      <div class="list-info">
+        <div class="list-name">${esc(cu.name||cu.id)}</div>
+        <div class="list-sub">${cu.id} ${cu.address?'· '+esc(cu.address):''}</div>
+      </div>
+    </div>`).join('')||'<div class="empty">ยังไม่มีข้อมูลลูกค้า</div>';
+  }catch(e){el.innerHTML='<div class="empty">โหลดไม่ได้</div>';}
+};
+
+// ===== DELETE RIDER =====
+window.confirmDel=function(type,id,name){
   document.getElementById('shBody').innerHTML=`
     <div class="sh-pill"></div>
-    <div class="sh-title">รีเซ็ตระบบ</div>
-    <div class="sh-sub">ข้อมูลจะถูกเก็บเป็นไฟล์ประวัติ ไม่มีการลบข้อมูลจริง</div>
-    <div class="sh-warn">⚠️ การรีเซ็ตจะเก็บ snapshot ของออเดอร์ กระเป๋า และรีวิวทั้งหมด แล้วสร้างไฟล์ประวัติให้ดาวน์โหลด</div>
-    <div class="sh-lbl">วันเวลา (อัตโนมัติ)</div>
-    <div class="auto-field"><span class="auto-field-l">Timestamp</span><span class="auto-field-v" id="autoTime">${dtStr}</span></div>
-    <div class="sh-lbl">เหตุผลการรีเซ็ต *</div>
-    <input class="sh-in" id="shReason" placeholder="เช่น สิ้นเดือน, ปิดรอบบัญชี, ทดสอบระบบ">
-    <div class="sh-lbl">ชื่อไฟล์ (ไม่ต้องใส่นามสกุล) *</div>
-    <input class="sh-in" id="shFilename" placeholder="เช่น รายงานเดือนมกราคม">
-    <button class="sh-ok" id="shOk" onclick="window.doReset()">ยืนยันรีเซ็ตและสร้างไฟล์</button>
+    <div class="sh-t">${type==='rider'?'ไรเดอร์ลาออก':'ลบข้อมูล'}</div>
+    <div style="background:#fff8f0;border:1px solid #fde68a;border-radius:12px;padding:12px;margin-bottom:14px;font-size:13px;color:#92400e">
+      ยืนยันให้ <b>${esc(name)}</b> ลาออกจากระบบ? ข้อมูลจะถูกลบถาวร
+    </div>
+    <div class="sh-lbl">เหตุผล *</div>
+    <input class="sh-in" id="shDelReason" placeholder="เช่น ลาออกเอง, หมดสัญญา">
+    <button class="sh-ok" onclick="window.doDel('${type}','${id}','${esc(name)}')">ยืนยันลบ</button>
     <button class="sh-cancel" onclick="hideMask()">ยกเลิก</button>`;
   document.getElementById('mask').classList.add('on');
-  setTimeout(()=>document.getElementById('shReason')?.focus(),200);
+};
+
+window.doDel=async function(type,id,name){
+  const reason=document.getElementById('shDelReason')?.value.trim();
+  if(!reason){alert('กรุณากรอกเหตุผล');return;}
+  const btn=document.querySelector('#shBody .sh-ok');
+  btn.disabled=true;btn.textContent='กำลังลบ...';
+  try{
+    // บันทึก log
+    await addDoc(collection(db,'deleteLogs'),{type,docId:id,name,reason,deletedAt:serverTimestamp(),by:'Admin'});
+    await deleteDoc(doc(db,type==='rider'?'riders':'shops',id));
+    hideMask();
+    if(type==='rider')window.loadRiders();
+    else window.loadShops();
+  }catch(e){alert('ลบไม่ได้: '+e.message);btn.disabled=false;}
+};
+
+// ===== ARCHIVES & RESTORE =====
+let _archives=[];
+async function loadArchivePage(){
+  showPage('archives','ไฟล์ Archive');
+  const el=document.getElementById('pageArchives');
+  el.innerHTML='<div class="lt">กำลังโหลด...</div>';
+  try{
+    const snap=await getDocs(query(collection(db,'archives'),orderBy('createdAt','desc')));
+    _archives=[];snap.forEach(d=>_archives.push({id:d.id,...d.data()}));
+    if(!_archives.length){el.innerHTML='<div class="empty">ยังไม่มี archive</div>';return;}
+    el.innerHTML=_archives.map(a=>`<div class="list-item" style="cursor:default">
+      <div class="list-av" style="background:var(--p);font-size:10px">JSON</div>
+      <div class="list-info">
+        <div class="list-name">${esc(a.filename)}</div>
+        <div class="list-sub">${fmt(a.createdAt)}</div>
+        <div class="list-sub" style="color:var(--p)">${esc(a.reason)}</div>
+        <div style="display:flex;gap:6px;margin-top:4px">
+          <span class="badge badge-pending">orders ${a.stats?.orderCount||0}</span>
+          <span class="badge badge-pending">฿${(a.stats?.totalRevenue||0).toLocaleString()}</span>
+        </div>
+      </div>
+      <button class="del-btn" style="background:#EBF5FF;color:var(--p)" onclick="dlArchive('${a.id}')">↓</button>
+    </div>`).join('');
+    el.querySelectorAll('.del-btn').forEach(btn=>btn.addEventListener('click',e=>e.stopPropagation()));
+  }catch(e){el.innerHTML='<div class="empty">โหลดไม่ได้</div>';}
+}
+window.showPage=function(id,title,bread){showPage(id,title,bread);if(id==='archives')loadArchivePage();if(id==='restoreLogs')loadRestoreLogsPage();};
+
+function dlArchive(aid){
+  const a=_archives.find(x=>x.id===aid);if(!a)return;
+  const blob=new Blob([JSON.stringify({...a,createdAt:a.createdAt?.toDate?.()?.toISOString()},null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);const el=document.createElement('a');el.href=url;el.download=a.filename;el.click();URL.revokeObjectURL(url);
+}
+window.dlArchive=dlArchive;
+
+async function loadRestoreLogsPage(){
+  showPage('restoreLogs','ประวัติกู้คืน');
+  const el=document.getElementById('pageRestoreLogs');
+  el.innerHTML='<div class="lt">กำลังโหลด...</div>';
+  try{
+    const snap=await getDocs(query(collection(db,'restoreLogs'),orderBy('restoredAt','desc')));
+    const logs=[];snap.forEach(d=>logs.push({id:d.id,...d.data()}));
+    el.innerHTML=logs.map(l=>`<div class="list-item" style="cursor:default">
+      <div class="list-av" style="background:#16a34a;font-size:11px">↩</div>
+      <div class="list-info">
+        <div class="list-name">${esc(l.archiveName||'-')}</div>
+        <div class="list-sub">${fmt(l.restoredAt)}</div>
+        <div class="list-sub" style="color:#16a34a">${esc(l.reason)}</div>
+        <div style="display:flex;gap:6px;margin-top:4px">
+          <span class="badge badge-on">orders ${l.stats?.orderCount||0}</span>
+        </div>
+      </div>
+    </div>`).join('')||'<div class="empty">ยังไม่มีประวัติ</div>';
+  }catch(e){el.innerHTML='<div class="empty">โหลดไม่ได้</div>';}
+}
+
+const fmtFileTs=()=>{const d=new Date();return`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}_${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}${String(d.getSeconds()).padStart(2,'0')}`;};
+
+window.openResetSheet=function(){
+  const dtStr=new Date().toLocaleString('th-TH');
+  document.getElementById('shBody').innerHTML=`
+    <div class="sh-pill"></div>
+    <div class="sh-t">รีเซ็ตระบบ</div>
+    <div style="background:#fff8f0;border:1px solid #fde68a;border-radius:12px;padding:12px;margin-bottom:14px;font-size:12px;color:#92400e">⚠️ จะเก็บ snapshot ข้อมูลทั้งหมดเป็นไฟล์ก่อนรีเซ็ต</div>
+    <div class="sh-lbl">วันเวลา (อัตโนมัติ)</div>
+    <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:var(--t)">${dtStr}</div>
+    <div class="sh-lbl">เหตุผล *</div>
+    <input class="sh-in" id="shRstReason" placeholder="เช่น สิ้นเดือน, ปิดรอบบัญชี">
+    <div class="sh-lbl">ชื่อไฟล์ *</div>
+    <input class="sh-in" id="shRstName" placeholder="เช่น รายงานเดือนมกราคม">
+    <button class="sh-ok" id="shRstOk" onclick="window.doReset()">ยืนยันรีเซ็ต</button>
+    <button class="sh-cancel" onclick="hideMask()">ยกเลิก</button>`;
+  document.getElementById('mask').classList.add('on');
 };
 
 window.doReset=async function(){
-  const reason=document.getElementById('shReason')?.value.trim();
-  const filenameRaw=document.getElementById('shFilename')?.value.trim();
-  if(!reason){alert('กรุณากรอกเหตุผล');return;}
-  if(!filenameRaw){alert('กรุณากรอกชื่อไฟล์');return;}
-  const btn=document.getElementById('shOk');
-  btn.disabled=true;btn.textContent='กำลังเก็บข้อมูล...';
+  const reason=document.getElementById('shRstReason')?.value.trim();
+  const name=document.getElementById('shRstName')?.value.trim();
+  if(!reason||!name){alert('กรุณากรอกให้ครบ');return;}
+  const btn=document.getElementById('shRstOk');btn.disabled=true;
   try{
-    // ดึงข้อมูลทั้งหมด
-    btn.textContent='โหลด orders...';
-    const ordersSnap=await getDocs(collection(db,'orders'));
-    const orders=[];ordersSnap.forEach(d=>orders.push({id:d.id,...d.data()}));
+    btn.textContent='โหลดข้อมูล...';
+    const [o,w,r]=await Promise.all([getDocs(collection(db,'orders')),getDocs(collection(db,'walletTx')),getDocs(collection(db,'reviews'))]);
+    const orders=[],walletTx=[],reviews=[];
+    o.forEach(d=>orders.push({id:d.id,...d.data()}));
+    w.forEach(d=>walletTx.push({id:d.id,...d.data()}));
+    r.forEach(d=>reviews.push({id:d.id,...d.data()}));
+    const stats={orderCount:orders.length,doneCount:orders.filter(x=>x.status==='done').length,totalRevenue:orders.filter(x=>x.status==='done').reduce((s,x)=>s+(x.grandTotal||0),0),walletTxCount:walletTx.length};
+    const filename=name+'_'+fmtFileTs()+'.json';
+    btn.textContent='บันทึก...';
+    await addDoc(collection(db,'archives'),{filename,reason,stats,resetBy:'Admin',createdAt:serverTimestamp(),data:{orders,walletTx,reviews}});
+    const blob=new Blob([JSON.stringify({filename,reason,createdAt:new Date().toISOString(),stats,data:{orders,walletTx,reviews}},null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);const el=document.createElement('a');el.href=url;el.download=filename;el.click();URL.revokeObjectURL(url);
+    hideMask();alert('รีเซ็ตเสร็จ บันทึกไฟล์ '+filename+' แล้ว');loadCounts();
+  }catch(e){alert('ผิดพลาด: '+e.message);btn.disabled=false;}
+};
 
-    btn.textContent='โหลด walletTx...';
-    const txSnap=await getDocs(collection(db,'walletTx'));
-    const walletTx=[];txSnap.forEach(d=>walletTx.push({id:d.id,...d.data()}));
-
-    btn.textContent='โหลด reviews...';
-    const revSnap=await getDocs(collection(db,'reviews'));
-    const reviews=[];revSnap.forEach(d=>reviews.push({id:d.id,...d.data()}));
-
-    // คำนวณ stats
-    const doneOrders=orders.filter(o=>o.status==='done');
-    const stats={
-      orderCount:orders.length,
-      doneCount:doneOrders.length,
-      pendingCount:orders.filter(o=>o.status==='pending').length,
-      rejectedCount:orders.filter(o=>o.status==='rejected').length,
-      totalRevenue:doneOrders.reduce((s,o)=>s+(o.grandTotal||0),0),
-      walletTxCount:walletTx.length,
-      reviewCount:reviews.length,
-    };
-
-    // สร้างชื่อไฟล์
-    const ts=fmtFileDt({toDate:()=>new Date()});
-    const filename=`${filenameRaw}_${ts}.json`;
-
-    // บันทึก archive metadata + data
-    btn.textContent='บันทึก archive...';
-    const archiveDoc={
-      filename,reason,stats,resetBy:'Admin',
-      createdAt:serverTimestamp(),
-      data:{orders,walletTx,reviews}
-    };
-    await addDoc(collection(db,'archives'),archiveDoc);
-
-    // ดาวน์โหลดไฟล์ทันที
-    const json=JSON.stringify({filename,reason,createdAt:new Date().toISOString(),stats,data:{orders,walletTx,reviews}},null,2);
-    const blob=new Blob([json],{type:'application/json'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');a.href=url;a.download=filename;a.click();
-    URL.revokeObjectURL(url);
-
-    hideMask();
-    loadArchives();
-    alert('รีเซ็ตเสร็จสิ้น ไฟล์ '+filename+' ถูกบันทึกแล้ว');
-  }catch(e){
-    alert('เกิดข้อผิดพลาด: '+e.message);
-    btn.disabled=false;btn.textContent='ยืนยันรีเซ็ตและสร้างไฟล์';
+window.openRestoreSheet=async function(){
+  if(!_archives.length){
+    const snap=await getDocs(query(collection(db,'archives'),orderBy('createdAt','desc')));
+    _archives=[];snap.forEach(d=>_archives.push({id:d.id,...d.data()}));
   }
-};
-
-// ดาวน์โหลด archive เฉพาะ
-function downloadArchive(a){
-  const json=JSON.stringify({filename:a.filename,reason:a.reason,createdAt:a.createdAt?.toDate?.()?.toISOString()||'',stats:a.stats,data:a.data||{}},null,2);
-  const blob=new Blob([json],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const el=document.createElement('a');el.href=url;el.download=a.filename;el.click();
-  URL.revokeObjectURL(url);
-}
-
-// ดาวน์โหลดทั้งหมด
-window.downloadAll=async function(){
-  if(!archives.length){alert('ยังไม่มีไฟล์');return;}
-  const json=JSON.stringify(archives.map(a=>({filename:a.filename,reason:a.reason,createdAt:a.createdAt?.toDate?.()?.toISOString()||'',stats:a.stats})),null,2);
-  const blob=new Blob([json],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const el=document.createElement('a');el.href=url;el.download=`history_all_${fmtFileDt({toDate:()=>new Date()})}.json`;el.click();
-  URL.revokeObjectURL(url);
-};
-
-// พิมพ์
-// TAB SWITCH handled in regular script
-
-
-// RESTORE SHEET
-window.openRestoreSheet=function(){
-  if(!archives.length){alert('ไม่มีไฟล์ archive กรุณารีเซ็ตระบบก่อน');return;}
+  if(!_archives.length){alert('ไม่มีไฟล์ archive');return;}
   document.getElementById('shBody').innerHTML=`
     <div class="sh-pill"></div>
-    <div class="sh-title">กู้คืนระบบ</div>
-    <div class="sh-sub">เลือก archive ที่ต้องการกู้คืน</div>
-    <div class="sh-warn">⚠️ การกู้คืนจะเพิ่มข้อมูลจาก archive เข้า Firestore ข้อมูลปัจจุบันจะยังคงอยู่</div>
+    <div class="sh-t">กู้คืนระบบ</div>
     <div class="sh-lbl">เลือก archive *</div>
-    <select id="shArchive" style="width:100%;height:50px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:14px;outline:none;margin-bottom:14px;background:#fff;">
+    <select id="shRestArc" style="width:100%;height:50px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:14px;outline:none;margin-bottom:14px;background:#fff">
       <option value="">— เลือกไฟล์ —</option>
-      ${archives.map(a=>'<option value="'+a.id+'">'+a.filename+' ('+fmtDt(a.createdAt)+')</option>').join('')}
+      ${_archives.map(a=>`<option value="${a.id}">${esc(a.filename)}</option>`).join('')}
     </select>
-    <div class="sh-lbl">เหตุผลการกู้คืน *</div>
-    <input class="sh-in" id="shRestoreReason" placeholder="เช่น ข้อมูลสูญหาย, ทดสอบระบบ">
-    <button class="sh-ok" style="background:linear-gradient(135deg,#166534,#16a34a)" id="shRestoreOk" onclick="window.doRestore()">ยืนยันกู้คืน</button>
+    <div class="sh-lbl">เหตุผล *</div>
+    <input class="sh-in" id="shRestReason" placeholder="เช่น ข้อมูลสูญหาย">
+    <button class="sh-ok" style="background:linear-gradient(135deg,#166534,#16a34a)" id="shRestOk" onclick="window.doRestore()">ยืนยันกู้คืน</button>
     <button class="sh-cancel" onclick="hideMask()">ยกเลิก</button>`;
   document.getElementById('mask').classList.add('on');
 };
 
 window.doRestore=async function(){
-  const archiveId=document.getElementById('shArchive')?.value;
-  const reason=document.getElementById('shRestoreReason')?.value.trim();
-  if(!archiveId){alert('กรุณาเลือกไฟล์ archive');return;}
-  if(!reason){alert('กรุณากรอกเหตุผลการกู้คืน');return;}
-  const btn=document.getElementById('shRestoreOk');
-  btn.disabled=true;btn.textContent='กำลังกู้คืน...';
+  const aid=document.getElementById('shRestArc')?.value;
+  const reason=document.getElementById('shRestReason')?.value.trim();
+  if(!aid||!reason){alert('กรุณากรอกให้ครบ');return;}
+  const btn=document.getElementById('shRestOk');btn.disabled=true;btn.textContent='กำลังกู้คืน...';
   try{
-    const archive=archives.find(a=>a.id===archiveId);
-    if(!archive?.data){alert('ไฟล์นี้ไม่มีข้อมูล');btn.disabled=false;return;}
-    const {orders=[],walletTx=[],reviews=[]}=archive.data;
-    
-    // restore orders
-    btn.textContent='กู้คืน orders...';
-    for(const o of orders){
-      const {id,...data}=o;
-      await setDoc(doc(db,'orders',id),{...data,_restored:true,_restoredAt:serverTimestamp()},{merge:true});
-    }
-    // restore walletTx
-    btn.textContent='กู้คืน walletTx...';
-    for(const t of walletTx){
-      const {id,...data}=t;
-      await setDoc(doc(db,'walletTx',id),{...data,_restored:true},{merge:true});
-    }
-    // restore reviews
-    btn.textContent='กู้คืน reviews...';
-    for(const r of reviews){
-      const {id,...data}=r;
-      await setDoc(doc(db,'reviews',id),{...data,_restored:true},{merge:true});
-    }
-    // บันทึก restore log
-    await addDoc(collection(db,'restoreLogs'),{
-      archiveId,archiveName:archive.filename,reason,
-      restoredBy:'Admin',restoredAt:serverTimestamp(),
-      stats:{orderCount:orders.length,walletTxCount:walletTx.length,reviewCount:reviews.length}
-    });
-    hideMask();
-    alert('กู้คืนสำเร็จ orders: '+orders.length+' walletTx: '+walletTx.length);
-  }catch(e){
-    alert('เกิดข้อผิดพลาด: '+e.message);
-    btn.disabled=false;btn.textContent='ยืนยันกู้คืน';
-  }
+    const a=_archives.find(x=>x.id===aid);
+    const {orders=[],walletTx=[],reviews=[]}=a?.data||{};
+    for(const o of orders){const{id,...d}=o;await setDoc(doc(db,'orders',id),{...d,_restored:true},{merge:true});}
+    for(const t of walletTx){const{id,...d}=t;await setDoc(doc(db,'walletTx',id),{...d,_restored:true},{merge:true});}
+    for(const r of reviews){const{id,...d}=r;await setDoc(doc(db,'reviews',id),{...d,_restored:true},{merge:true});}
+    await addDoc(collection(db,'restoreLogs'),{archiveId:aid,archiveName:a?.filename,reason,restoredBy:'Admin',restoredAt:serverTimestamp(),stats:{orderCount:orders.length,walletTxCount:walletTx.length}});
+    hideMask();alert('กู้คืนสำเร็จ orders: '+orders.length);loadCounts();
+  }catch(e){alert('ผิดพลาด: '+e.message);btn.disabled=false;}
 };
 
-// โหลด restore logs
-window._loadRestoreLogs=async function loadRestoreLogs(){
-  const el=document.getElementById('restoreList');
+// ===== CHATS =====
+window.loadChats=async function(){
+  showPage('chats','ประวัติแชท');
+  const el=document.getElementById('pageChats');
   el.innerHTML='<div class="lt">กำลังโหลด...</div>';
   try{
-    const snap=await getDocs(query(collection(db,'restoreLogs'),orderBy('restoredAt','desc')));
-    const logs=[];snap.forEach(d=>logs.push({id:d.id,...d.data()}));
-    if(!logs.length){el.innerHTML='<div class="lt">ยังไม่มีประวัติการกู้คืน</div>';return;}
-    el.innerHTML=logs.map(l=>`
-      <div class="restore-card">
-        <div class="restore-ico"><svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg></div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:14px;font-weight:700;color:#166534">กู้คืนจาก: ${esc(l.archiveName||'-')}</div>
-          <div style="font-size:11px;color:var(--s);margin-top:2px">${fmtDt(l.restoredAt)}</div>
-          <div style="font-size:11px;color:#16a34a;font-weight:600;margin-top:2px">${esc(l.reason)}</div>
-          <div style="display:flex;gap:8px;margin-top:4px">
-            <span class="file-stat">orders ${l.stats?.orderCount||0}</span>
-            <span class="file-stat">Tx ${l.stats?.walletTxCount||0}</span>
+    const ordSnap=await getDocs(collection(db,'orders'));
+    const orderIds=[];ordSnap.forEach(d=>orderIds.push({id:d.id,...d.data()}));
+    const chatOrders=[];
+    for(const o of orderIds.slice(0,50)){
+      const msgSnap=await getDocs(collection(db,'chats',o.id,'messages'));
+      if(msgSnap.size>0) chatOrders.push({...o,msgCount:msgSnap.size,msgs:msgSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0))});
+    }
+    document.getElementById('cntChat').textContent=chatOrders.length+' ห้อง';
+    if(!chatOrders.length){el.innerHTML='<div class="empty">ยังไม่มีประวัติแชท</div>';return;}
+    el.innerHTML=chatOrders.map(o=>`
+      <div class="sec-card">
+        <div class="sec-hd" onclick="toggleSec(this)">
+          <div class="sec-hd-t">
+            <div class="sec-hd-ico" style="background:#f0f9ff"><svg width="14" height="14" viewBox="0 0 24 24" fill="#0284c7"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
+            ${esc(o.orderId||o.id)} · ${esc(o.shopName||'')} (${o.msgCount} ข้อความ)
+          </div>
+          <div class="sec-hd-arr">›</div>
+        </div>
+        <div class="sec-body">
+          <div class="row"><span class="row-l">ลูกค้า</span><span class="row-r">${esc(o.customer?.name||'-')}</span></div>
+          <div class="row"><span class="row-l">ไรเดอร์</span><span class="row-r">${esc(o.riderName||'-')}</span></div>
+          <div style="border-top:1px solid #f0f2f5;padding:8px 16px;">
+            ${o.msgs.map(m=>`<div style="margin-bottom:8px">
+              <div style="font-size:11px;color:var(--s);margin-bottom:2px">${esc(m.sender||'-')} · ${fmt(m.createdAt)}</div>
+              <div style="font-size:13px;color:var(--t);background:#f8fafc;border-radius:10px;padding:8px 12px;display:inline-block;max-width:90%">${esc(m.text||'[ไฟล์/รูป]')}</div>
+            </div>`).join('')}
           </div>
         </div>
       </div>`).join('');
-  }catch(e){el.innerHTML='<div class="lt">โหลดไม่ได้</div>';}
-}
-
-window.printAll=function(){
-  if(!archives.length){alert('ยังไม่มีข้อมูล');return;}
-  const rows=archives.map(a=>`
-    <tr>
-      <td>${esc(a.filename)}</td>
-      <td>${fmtDt(a.createdAt)}</td>
-      <td>${esc(a.reason)}</td>
-      <td>${a.stats?.orderCount||0}</td>
-      <td>฿${(a.stats?.totalRevenue||0).toLocaleString()}</td>
-    </tr>`).join('');
-  const w=window.open('','_blank');
-  w.document.write(`<html><head><title>ประวัติระบบ</title>
-    <style>body{font-family:Arial,sans-serif;padding:20px}h1{margin-bottom:16px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#1565C0;color:#fff}</style></head>
-    <body><h1>ประวัติระบบ Nimit Delivery</h1><p>ส่งออก ณ ${new Date().toLocaleString('th-TH')}</p><br>
-    <table><tr><th>ชื่อไฟล์</th><th>วันที่</th><th>เหตุผล</th><th>ออเดอร์</th><th>รายได้</th></tr>${rows}</table>
-    </body></html>`);
-  w.document.close();w.print();
+  }catch(e){el.innerHTML='<div class="empty">โหลดไม่ได้: '+e.message+'</div>';}
 };
+
+// ===== SEARCH LOGS =====
+window.loadSearchLogs=async function(){
+  showPage('searchLogs','ประวัติการค้นหา');
+  const el=document.getElementById('pageSearchLogs');
+  el.innerHTML='<div class="lt">กำลังโหลด...</div>';
+  try{
+    const snap=await getDocs(collection(db,'searchLogs'));
+    const logs=[];snap.forEach(d=>logs.push({id:d.id,...d.data()}));
+    logs.sort((a,b)=>(b.count||0)-(a.count||0));
+    document.getElementById('cntSearch').textContent=logs.length+' คำ';
+    el.innerHTML=`<div style="background:#fff;border-radius:var(--r);padding:14px 16px;margin-bottom:12px;border:1px solid #eaeef4">
+      <div style="font-size:13px;font-weight:700;color:var(--t);margin-bottom:10px">คำค้นหายอดนิยม</div>
+      ${logs.slice(0,10).map((l,i)=>`<div class="row">
+        <span class="row-l"><span style="color:var(--s);margin-right:8px">${i+1}.</span>${esc(l.id)}</span>
+        <span class="row-r">${(l.count||0).toLocaleString()} ครั้ง</span>
+      </div>`).join('')}
+    </div>`+logs.map(l=>`<div class="list-item" style="cursor:default">
+      <div class="list-av" style="background:var(--p);font-size:12px">#${l.count||0}</div>
+      <div class="list-info">
+        <div class="list-name">${esc(l.id)}</div>
+        <div class="list-sub">ค้นหา ${(l.count||0).toLocaleString()} ครั้ง</div>
+      </div>
+    </div>`).join('');
+  }catch(e){el.innerHTML='<div class="empty">ยังไม่มีข้อมูล</div>';}
+};
+
+// ===== DELETE LOGS =====
+window.loadDeleteLogs=async function(){
+  showPage('deleteLogs','ประวัติการลบ');
+  const el=document.getElementById('pageDeleteLogs');
+  el.innerHTML='<div class="lt">กำลังโหลด...</div>';
+  try{
+    const snap=await getDocs(query(collection(db,'deleteLogs'),orderBy('deletedAt','desc')));
+    const logs=[];snap.forEach(d=>logs.push({id:d.id,...d.data()}));
+    document.getElementById('cntDelete').textContent=logs.length+' รายการ';
+    el.innerHTML=logs.map(l=>`<div class="list-item" style="cursor:default">
+      <div class="list-av" style="background:#e11d48;font-size:11px">ลบ</div>
+      <div class="list-info">
+        <div class="list-name">${esc(l.name||l.docId||'-')}</div>
+        <div class="list-sub">ประเภท: ${esc(l.type||'-')} · ลบโดย ${esc(l.by||'Admin')}</div>
+        <div class="list-sub" style="color:var(--d)">เหตุผล: ${esc(l.reason||'-')}</div>
+        <div class="list-sub">${fmt(l.deletedAt)}</div>
+      </div>
+    </div>`).join('')||'<div class="empty">ยังไม่มีประวัติการลบ</div>';
+  }catch(e){el.innerHTML='<div class="empty">ยังไม่มีข้อมูล</div>';}
+};
+
+// ===== SYSTEM INFO =====
+window.loadSystemInfo=async function(){
+  showPage('systemInfo','ข้อมูลระบบ');
+  const el=document.getElementById('pageSystemInfo');
+  el.innerHTML='<div class="lt">กำลังโหลด...</div>';
+  try{
+    const cols=['orders','riders','shops','walletTx','reviews','customers','archives','chats','searchLogs','deleteLogs','restoreLogs','ads','fcmTokens'];
+    const counts={};
+    await Promise.all(cols.map(async col=>{
+      try{const s=await getDocs(collection(db,col));counts[col]=s.size;}catch(e){counts[col]='N/A';}
+    }));
+    // คำนวณ stats
+    let totalRev=0,doneCount=0;
+    try{const s=await getDocs(collection(db,'orders'));s.forEach(d=>{const o=d.data();if(o.status==='done'){doneCount++;totalRev+=o.grandTotal||0;}});}catch(e){}
+    let centralBal=0;
+    try{const s=await getDocs(collection(db,'walletTx'));s.forEach(d=>centralBal+=d.data().amount||0);}catch(e){}
+
+    el.innerHTML=`
+      <div class="sec-card" style="margin-top:14px">
+        <div class="sec-hd" onclick="toggleSec(this)"><div class="sec-hd-t">สรุประบบ</div><div class="sec-hd-arr">›</div></div>
+        <div class="sec-body open">
+          <div class="row"><span class="row-l">ออเดอร์สำเร็จ</span><span class="row-r pos">${doneCount.toLocaleString()}</span></div>
+          <div class="row"><span class="row-l">รายได้รวมทั้งหมด</span><span class="row-r pos">฿${totalRev.toLocaleString()}</span></div>
+          <div class="row"><span class="row-l">ยอดสุทธิกระเป๋ากลาง</span><span class="row-r ${centralBal>=0?'pos':'neg'}">${centralBal>=0?'+':'-'}฿${Math.abs(centralBal).toLocaleString()}</span></div>
+        </div>
+      </div>
+      <div class="sec-card">
+        <div class="sec-hd" onclick="toggleSec(this)"><div class="sec-hd-t">จำนวนข้อมูลในระบบ</div><div class="sec-hd-arr">›</div></div>
+        <div class="sec-body open">
+          ${cols.map(col=>`<div class="row"><span class="row-l">${col}</span><span class="row-r">${counts[col]} records</span></div>`).join('')}
+        </div>
+      </div>
+      <div class="sec-card">
+        <div class="sec-hd" onclick="toggleSec(this)"><div class="sec-hd-t">Firebase Config</div><div class="sec-hd-arr">›</div></div>
+        <div class="sec-body">
+          <div class="row"><span class="row-l">Project ID</span><span class="row-r">nimit-delivery</span></div>
+          <div class="row"><span class="row-l">Region</span><span class="row-r">us-central1 (default)</span></div>
+          <div class="row"><span class="row-l">Database</span><span class="row-r">Firestore (Native)</span></div>
+        </div>
+      </div>
+      <div class="sec-card">
+        <div class="sec-hd" onclick="toggleSec(this)"><div class="sec-hd-t">ข้อมูลตามกฎ PDPA</div><div class="sec-hd-arr">›</div></div>
+        <div class="sec-body">
+          <div class="row"><span class="row-l">ข้อมูลที่เก็บ</span><span class="row-r">ชื่อ เบอร์ ที่อยู่ ประวัติออเดอร์</span></div>
+          <div class="row"><span class="row-l">วัตถุประสงค์</span><span class="row-r">การให้บริการส่งอาหาร</span></div>
+          <div class="row"><span class="row-l">การเก็บรักษา</span><span class="row-r">ตลอดอายุการใช้บริการ</span></div>
+          <div class="row"><span class="row-l">สิทธิ์ผู้ใช้</span><span class="row-r">ขอลบข้อมูลได้ผ่าน Admin</span></div>
+        </div>
+      </div>`;
+  }catch(e){el.innerHTML='<div class="empty">โหลดไม่ได้</div>';}
+};
+
+// อัพเดต loadCounts
+
 </script>
 </body>
 </html>
