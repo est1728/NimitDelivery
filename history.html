@@ -275,11 +275,15 @@ function _call(fn){
 var _stack=['main'];
 function showPage(id,title,bread){
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('on');});
-  var el=document.getElementById('page'+id.charAt(0).toUpperCase()+id.slice(1));
+  var cap=id.charAt(0).toUpperCase()+id.slice(1);
+  var el=document.getElementById('page'+cap);
   if(el)el.classList.add('on');
   document.getElementById('tbTitle').textContent=title||'ประวัติระบบ';
   document.getElementById('tbBread').textContent=bread||'';
   _stack.push(id);
+  // โหลดข้อมูลเมื่อเข้าหน้า archive/restore
+  if(id==='archives') _call('_loadArchivePage');
+  if(id==='restoreLogs') _call('_loadRestoreLogsPage');
 }
 function goBack(){
   _stack.pop();
@@ -632,7 +636,7 @@ window.doDel=async function(type,id,name){
 
 // ===== ARCHIVES & RESTORE =====
 let _archives=[];
-async function loadArchivePage(){
+window._loadArchivePage=async function loadArchivePage(){
   showPage('archives','ไฟล์ Archive');
   const el=document.getElementById('pageArchives');
   el.innerHTML='<div class="lt">กำลังโหลด...</div>';
@@ -656,7 +660,7 @@ async function loadArchivePage(){
     el.querySelectorAll('.del-btn').forEach(btn=>btn.addEventListener('click',e=>e.stopPropagation()));
   }catch(e){el.innerHTML='<div class="empty">โหลดไม่ได้</div>';}
 }
-window.showPage=function(id,title,bread){showPage(id,title,bread);if(id==='archives')loadArchivePage();if(id==='restoreLogs')loadRestoreLogsPage();};
+
 
 function dlArchive(aid){
   const a=_archives.find(x=>x.id===aid);if(!a)return;
@@ -665,7 +669,7 @@ function dlArchive(aid){
 }
 window.dlArchive=dlArchive;
 
-async function loadRestoreLogsPage(){
+window._loadRestoreLogsPage=async function loadRestoreLogsPage(){
   showPage('restoreLogs','ประวัติกู้คืน');
   const el=document.getElementById('pageRestoreLogs');
   el.innerHTML='<div class="lt">กำลังโหลด...</div>';
