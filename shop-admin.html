@@ -674,7 +674,7 @@ window.previewVideoFile=function(input){
   };
   reader.readAsDataURL(file);
 };
-saveShopInfo=async function(){
+window.saveShopInfo=async function(){
   try{
     const bannerFile=document.getElementById("edit-bannerFile")?.files[0];
     const videoFile=document.getElementById("edit-videoFile")?.files[0];
@@ -703,9 +703,9 @@ saveShopInfo=async function(){
     document.getElementById("shopNameTop").textContent=data.name;
     document.getElementById("sbName").textContent=data.name;
     // อัพเดต banner ถ้ามี
-    if(bannerUrl){
+    if(data.bannerUrl){
       const bEl=document.getElementById('shopBanner');
-      if(bEl) bEl.innerHTML='<img src="'+bannerUrl+'" style="width:100%;height:100%;object-fit:cover">';
+      if(bEl) bEl.innerHTML='<img src="'+data.bannerUrl+'" style="width:100%;height:100%;object-fit:cover">';
     }
     showToast("บันทึกสำเร็จ","success");
     window.closeExtraPanel('panelEdit');
