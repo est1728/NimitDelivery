@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1.0">
 <title>แอดมิน - Nimit Delivery</title>
 <style>
 :root{
@@ -547,7 +547,7 @@ body{background:var(--g);min-height:100vh;}
   <div class="mbd"><div id="recallInfo" style="background:var(--ol);border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--o);font-weight:700"></div><div class="mf"><div class="ml">หมายเหตุ (บังคับ)</div><textarea class="mta" id="recallNote"></textarea></div><button class="msb" style="background:linear-gradient(135deg,var(--o),#c2410c)" id="doRecallBtn">เรียกกลับ</button><button class="mxb" data-close="recallMov">ยกเลิก</button></div></div>
 </div>
 
-<script type="module">
+<scri
 // ===== AD IMAGE CROP =====
 let _cropFile=null, cropX=0, cropY=0, cropScale=1, _cropBase64='';
 let _dragSX=0, _dragSY=0, _dragIX=0, _dragIY=0, _dragging=false;
@@ -609,8 +609,9 @@ function updateCropImg(){
   },{passive:true});
   document.addEventListener('touchmove',e=>{
     if(!_dragging||e.touches.length!==1)return;
+    e.preventDefault();
     cropX=_dragIX+(e.touches[0].clientX-_dragSX);cropY=_dragIY+(e.touches[0].clientY-_dragSY);updateCropImg();
-  },{passive:true});
+  },{passive:false});
   document.addEventListener('touchend',()=>{_dragging=false;});
   // Pinch zoom
   let _lastDist=0;
@@ -618,10 +619,15 @@ function updateCropImg(){
     if(e.touches.length===2) _lastDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
   },{passive:true});
   document.addEventListener('touchmove',e=>{
-    if(e.touches.length!==2)return;
-    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-    cropScale*=d/_lastDist;_lastDist=d;updateCropImg();
-  },{passive:true});
+    const wrap=document.getElementById('cropCanvasWrap');
+    if(!wrap)return;
+    if(e.touches.length===2&&wrap.contains(e.target)){
+      e.preventDefault();
+      const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+      if(_lastDist>0) cropScale*=d/_lastDist;
+      _lastDist=d;updateCropImg();
+    }
+  },{passive:false});
 })();
 
 window.cancelCrop=function(){
@@ -643,7 +649,9 @@ window.confirmCrop=function(){
   const prev=document.getElementById('adImgPreview');
   if(prev)prev.innerHTML='<img src="'+_cropBase64+'" style="width:100%;height:100%;object-fit:cover">';
   document.getElementById('cropOverlay').style.display='none';
-};
+};>
+
+<script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, query, where, onSnapshot, doc, getDocs, updateDoc, setDoc, addDoc, deleteDoc, getDoc, serverTimestamp, orderBy, limit, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -662,23 +670,22 @@ window.previewAdFile=function(input,type){
 
 // ===== FIREBASE STORAGE UPLOAD =====
 async function uploadFile(file, path){
-  const {getStorage,ref,uploadBytesResumable,getDownloadURL}=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js");
-  const storage=getStorage();
-  const fileRef=ref(storage, path+'/'+Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9.]/g,'_'));
-  return new Promise((resolve,reject)=>{
-    const task=uploadBytesResumable(fileRef,file);
-    task.on('state_changed',
-      snap=>{
-        const pct=Math.round(snap.bytesTransferred/snap.totalBytes*100);
-        const bar=document.getElementById('uploadBar');
-        const txt=document.getElementById('uploadPct');
-        if(bar) bar.style.width=pct+'%';
-        if(txt) txt.textContent=pct+'%';
-      },
-      err=>reject(err),
-      async()=>resolve(await getDownloadURL(task.snapshot.ref))
-    );
-  });
+  const bar=document.getElementById('uploadBar');
+  const txt=document.getElementById('uploadPct');
+  try{
+    const bucket='nimit-delivery.firebasestorage.app';
+    const fname=path+'/'+Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9.]/g,'_');
+    const url='https://firebasestorage.googleapis.com/v0/b/'+bucket+'/o?uploadType=media&name='+encodeURIComponent(fname);
+    if(bar)bar.style.width='20%';if(txt)txt.textContent='อัพโหลด...';
+    const res=await fetch(url,{method:'POST',headers:{'Content-Type':file.type||'application/octet-stream'},body:file});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    if(bar)bar.style.width='100%';if(txt)txt.textContent='100%';
+    return 'https://firebasestorage.googleapis.com/v0/b/'+bucket+'/o/'+encodeURIComponent(fname)+'?alt=media&token='+(data.downloadTokens||'');
+  }catch(e){
+    hideUploadProgress();
+    throw new Error('อัพโหลดไม่สำเร็จ: '+e.message);
+  }
 }
 function showUploadProgress(label){
   const el=document.getElementById('uploadProgress');
@@ -1319,7 +1326,14 @@ document.addEventListener('click', e => {
     t.classList.add('on');renderOrders();return;
   }
   if (t.dataset.close) { closeMov(t.dataset.close); return; }
-  if (t.dataset.copy) { navigator.clipboard.writeText(t.dataset.copy).then(()=>window.toast('คัดลอกแล้ว','ok')); return; }
+  if (t.dataset.copy) {
+    navigator.clipboard.writeText(t.dataset.copy).then(()=>{
+      window.toast('คัดลอกแล้ว ✓','ok');
+      t.style.transform='scale(.92)';t.style.background='#dcfce7';t.style.color='#16a34a';
+      setTimeout(()=>{t.style.transform='';t.style.background='';t.style.color='';},800);
+    });
+    return;
+  }
   if (t.dataset.ext) { window.open(t.dataset.ext,'_blank'); return; }
   if (t.dataset.goto) { location.href=t.dataset.goto; return; }
   if (t.dataset.docid) { openDetail(t.dataset.docid); return; }
@@ -1443,6 +1457,103 @@ window.loadAdsList=async function(){
     <button onclick="window.deleteAd('${ad.id}')" style="height:30px;padding:0 12px;border:none;border-radius:15px;background:#fee2e2;color:#dc2626;font-size:11px;font-weight:700;cursor:pointer">ลบ</button>
   </div>`).join(''):'<div style="color:#94a3b8;font-size:13px">ยังไม่มีโฆษณา</div>';
 };
+
+
+
+
+
+// ===== CROP =====
+let _cropFile=null, cropX=0, cropY=0, cropScale=1, _cropBase64='';
+let _dragSX=0, _dragSY=0, _dragIX=0, _dragIY=0, _dragging=false, _lastDist=0;
+
+window.openAdCrop=function(input){
+  const file=input.files[0]; if(!file)return;
+  _cropFile=file;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=document.getElementById('cropImg');
+    const wrap=document.getElementById('cropCanvasWrap');
+    img.onload=()=>{
+      const ww=wrap.clientWidth||320, wh=wrap.clientHeight||200;
+      cropScale=Math.max(ww/img.naturalWidth, wh/img.naturalHeight);
+      cropX=(ww-img.naturalWidth*cropScale)/2;
+      cropY=(wh-img.naturalHeight*cropScale)/2;
+      updateCropImg();
+    };
+    img.src=e.target.result;
+    document.getElementById('cropOverlay').style.display='flex';
+  };
+  reader.readAsDataURL(file);
+};
+
+function updateCropImg(){
+  const img=document.getElementById('cropImg');
+  const wrap=document.getElementById('cropCanvasWrap');
+  if(!img||!wrap)return;
+  img.style.width=(img.naturalWidth*cropScale)+'px';
+  img.style.height=(img.naturalHeight*cropScale)+'px';
+  img.style.left=cropX+'px'; img.style.top=cropY+'px';
+}
+
+(function setupCropEvents(){
+  document.addEventListener('mousedown',e=>{
+    const wrap=document.getElementById('cropCanvasWrap');
+    if(!wrap||!wrap.contains(e.target))return;
+    _dragging=true;_dragSX=e.clientX;_dragSY=e.clientY;
+    const img=document.getElementById('cropImg');
+    _dragIX=parseInt(img.style.left||0);_dragIY=parseInt(img.style.top||0);
+  });
+  document.addEventListener('mousemove',e=>{
+    if(!_dragging)return;
+    cropX=_dragIX+(e.clientX-_dragSX);cropY=_dragIY+(e.clientY-_dragSY);updateCropImg();
+  });
+  document.addEventListener('mouseup',()=>{_dragging=false;});
+  document.addEventListener('touchstart',e=>{
+    const wrap=document.getElementById('cropCanvasWrap');
+    if(!wrap||!wrap.contains(e.target))return;
+    if(e.touches.length===1){
+      _dragging=true;_dragSX=e.touches[0].clientX;_dragSY=e.touches[0].clientY;
+      const img=document.getElementById('cropImg');
+      _dragIX=parseInt(img.style.left||0);_dragIY=parseInt(img.style.top||0);
+    } else if(e.touches.length===2){
+      _lastDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    }
+  },{passive:true});
+  document.addEventListener('touchmove',e=>{
+    const wrap=document.getElementById('cropCanvasWrap');
+    if(!wrap||!wrap.contains(e.target))return;
+    if(e.touches.length===1&&_dragging){
+      e.preventDefault();
+      cropX=_dragIX+(e.touches[0].clientX-_dragSX);cropY=_dragIY+(e.touches[0].clientY-_dragSY);updateCropImg();
+    } else if(e.touches.length===2&&_lastDist>0){
+      e.preventDefault();
+      const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+      cropScale*=d/_lastDist;_lastDist=d;updateCropImg();
+    }
+  },{passive:false});
+  document.addEventListener('touchend',()=>{_dragging=false;_lastDist=0;});
+})();
+
+window.cancelCrop=function(){
+  document.getElementById('cropOverlay').style.display='none';
+  const fi=document.getElementById('adImgFile'); if(fi)fi.value='';
+  _cropBase64='';
+};
+window.confirmCrop=function(){
+  const img=document.getElementById('cropImg');
+  const wrap=document.getElementById('cropCanvasWrap');
+  if(!img||!wrap)return;
+  const ww=wrap.clientWidth||320, wh=wrap.clientHeight||200;
+  const canvas=document.createElement('canvas');
+  canvas.width=800;canvas.height=400;
+  const ctx=canvas.getContext('2d');
+  const sx=(0-cropX)/cropScale, sy=(0-cropY)/cropScale;
+  ctx.drawImage(img,sx,sy,ww/cropScale,wh/cropScale,0,0,800,400);
+  _cropBase64=canvas.toDataURL('image/jpeg',0.85);
+  const prev=document.getElementById('adImgPreview');
+  if(prev) prev.innerHTML='<img src="'+_cropBase64+'" style="width:100%;height:100%;object-fit:cover">';
+  document.getElementById('cropOverlay').style.display='none';
+};
 </script>
 <script>window._fcmRole="admin";</script>
 <script src="fcm.js"></script>
@@ -1519,7 +1630,7 @@ window.loadAdsList=async function(){
 <!-- CROP OVERLAY -->
 <div id="cropOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:300;flex-direction:column;align-items:center;justify-content:center;">
   <div style="color:#fff;font-size:14px;font-weight:700;margin-bottom:12px">ปรับขนาดรูปภาพ</div>
-  <div id="cropCanvasWrap" style="position:relative;width:90vw;max-width:400px;height:200px;overflow:hidden;background:#000;border-radius:12px">
+  <div id="cropCanvasWrap" style="position:relative;width:90vw;max-width:400px;height:200px;overflow:hidden;background:#000;border-radius:12px;touch-action:none">
     <img id="cropImg" style="position:absolute;cursor:move;max-width:none" draggable="false">
     <div id="cropFrame" style="position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,.5);pointer-events:none"></div>
   </div>
