@@ -547,7 +547,10 @@ body{background:var(--g);min-height:100vh;}
   <div class="mbd"><div id="recallInfo" style="background:var(--ol);border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--o);font-weight:700"></div><div class="mf"><div class="ml">หมายเหตุ (บังคับ)</div><textarea class="mta" id="recallNote"></textarea></div><button class="msb" style="background:linear-gradient(135deg,var(--o),#c2410c)" id="doRecallBtn">เรียกกลับ</button><button class="mxb" data-close="recallMov">ยกเลิก</button></div></div>
 </div>
 
-<script type="module">window.previewAdFile=function(input,type){
+<script type="module">import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, query, where, onSnapshot, doc, getDocs, updateDoc, setDoc, addDoc, deleteDoc, getDoc, serverTimestamp, orderBy, limit, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import{getStorage,ref,uploadBytesResumable,getDownloadURL}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+window.previewAdFile=function(input,type){
   const file=input.files[0]; if(!file)return;
   const reader=new FileReader();
   reader.onload=e=>{
@@ -628,8 +631,6 @@ async function reqNotifPerm(){
     await Notification.requestPermission();
 }
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, query, where, onSnapshot, doc, getDocs, updateDoc, setDoc, addDoc, deleteDoc, getDoc, serverTimestamp, orderBy, limit, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const db = getFirestore(initializeApp({
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -1359,12 +1360,20 @@ window.loadAdsList=async function(){
     </select>
 
     <div id="adImgRow">
-      <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">URL รูปภาพ *</div>
-      <input id="adImgUrl" placeholder="https://example.com/banner.jpg" style="width:100%;height:48px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:14px;margin-bottom:14px;outline:none">
+      <input type="file" id="adImgFile" accept="image/*" style="display:none" onchange="window.previewAdFile(this,'img')">
+      <div id="adImgPreview" onclick="document.getElementById('adImgFile').click()" style="width:100%;height:130px;border-radius:14px;background:#f0f4ff;border:2px dashed #c7d7f5;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-bottom:14px;overflow:hidden;flex-direction:column;gap:6px">
+        <span style="font-size:30px">🖼️</span>
+        <span style="font-size:12px;color:#94a3b8">กดเพื่อเลือกรูปภาพ</span>
+        <span style="font-size:10px;color:#c0cad8">JPG/PNG · แนะนำ 800×400px · ไม่เกิน 2MB</span>
+      </div>
     </div>
     <div id="adVidRow" style="display:none">
-      <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">URL วิดีโอ *</div>
-      <input id="adVideoUrl" placeholder="https://example.com/ad.mp4" style="width:100%;height:48px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:14px;margin-bottom:14px;outline:none">
+      <input type="file" id="adVidFile" accept="video/*" style="display:none" onchange="window.previewAdFile(this,'vid')">
+      <div id="adVidPreview" onclick="document.getElementById('adVidFile').click()" style="width:100%;height:130px;border-radius:14px;background:#f0f4ff;border:2px dashed #c7d7f5;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-bottom:14px;overflow:hidden;flex-direction:column;gap:6px">
+        <span style="font-size:30px">🎬</span>
+        <span style="font-size:12px;color:#94a3b8">กดเพื่อเลือกวิดีโอ</span>
+        <span style="font-size:10px;color:#c0cad8">MP4/WebM · ไม่เกิน 20MB · ไม่เกิน 20 วินาที</span>
+      </div>
     </div>
 
     <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">คำบรรยาย (caption)</div>
