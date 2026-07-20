@@ -547,7 +547,104 @@ body{background:var(--g);min-height:100vh;}
   <div class="mbd"><div id="recallInfo" style="background:var(--ol);border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--o);font-weight:700"></div><div class="mf"><div class="ml">หมายเหตุ (บังคับ)</div><textarea class="mta" id="recallNote"></textarea></div><button class="msb" style="background:linear-gradient(135deg,var(--o),#c2410c)" id="doRecallBtn">เรียกกลับ</button><button class="mxb" data-close="recallMov">ยกเลิก</button></div></div>
 </div>
 
-<script type="module">import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+<script type="module">
+// ===== AD IMAGE CROP =====
+let _cropFile=null, cropX=0, cropY=0, cropScale=1, _cropBase64='';
+let _dragSX=0, _dragSY=0, _dragIX=0, _dragIY=0, _dragging=false;
+
+window.openAdCrop=function(input){
+  const file=input.files[0]; if(!file)return;
+  _cropFile=file;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=document.getElementById('cropImg');
+    const wrap=document.getElementById('cropCanvasWrap');
+    img.onload=()=>{
+      const ww=wrap.clientWidth, wh=wrap.clientHeight;
+      cropScale=Math.max(ww/img.naturalWidth, wh/img.naturalHeight);
+      cropX=(ww-img.naturalWidth*cropScale)/2;
+      cropY=(wh-img.naturalHeight*cropScale)/2;
+      updateCropImg();
+    };
+    img.src=e.target.result;
+    document.getElementById('cropOverlay').style.display='flex';
+  };
+  reader.readAsDataURL(file);
+};
+
+function updateCropImg(){
+  const img=document.getElementById('cropImg');
+  const wrap=document.getElementById('cropCanvasWrap');
+  const w=img.naturalWidth*cropScale, h=img.naturalHeight*cropScale;
+  img.style.width=w+'px'; img.style.height=h+'px';
+  img.style.left=cropX+'px'; img.style.top=cropY+'px';
+  // Frame = full wrap
+  const fr=document.getElementById('cropFrame');
+  const ww=wrap.clientWidth, wh=wrap.clientHeight;
+  if(fr){fr.style.left='0';fr.style.top='0';fr.style.width=ww+'px';fr.style.height=wh+'px';}
+}
+
+// Touch/Mouse drag
+(function(){
+  function getEl(){return document.getElementById('cropCanvasWrap');}
+  document.addEventListener('mousedown',e=>{
+    if(!getEl()||!getEl().contains(e.target))return;
+    _dragging=true;_dragSX=e.clientX;_dragSY=e.clientY;
+    const img=document.getElementById('cropImg');
+    _dragIX=parseInt(img.style.left||0);_dragIY=parseInt(img.style.top||0);
+  });
+  document.addEventListener('mousemove',e=>{
+    if(!_dragging)return;
+    cropX=_dragIX+(e.clientX-_dragSX);cropY=_dragIY+(e.clientY-_dragSY);updateCropImg();
+  });
+  document.addEventListener('mouseup',()=>{_dragging=false;});
+  // Touch
+  document.addEventListener('touchstart',e=>{
+    if(!getEl()||!getEl().contains(e.target))return;
+    if(e.touches.length===1){
+      _dragging=true;_dragSX=e.touches[0].clientX;_dragSY=e.touches[0].clientY;
+      const img=document.getElementById('cropImg');
+      _dragIX=parseInt(img.style.left||0);_dragIY=parseInt(img.style.top||0);
+    }
+  },{passive:true});
+  document.addEventListener('touchmove',e=>{
+    if(!_dragging||e.touches.length!==1)return;
+    cropX=_dragIX+(e.touches[0].clientX-_dragSX);cropY=_dragIY+(e.touches[0].clientY-_dragSY);updateCropImg();
+  },{passive:true});
+  document.addEventListener('touchend',()=>{_dragging=false;});
+  // Pinch zoom
+  let _lastDist=0;
+  document.addEventListener('touchstart',e=>{
+    if(e.touches.length===2) _lastDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+  },{passive:true});
+  document.addEventListener('touchmove',e=>{
+    if(e.touches.length!==2)return;
+    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    cropScale*=d/_lastDist;_lastDist=d;updateCropImg();
+  },{passive:true});
+})();
+
+window.cancelCrop=function(){
+  document.getElementById('cropOverlay').style.display='none';
+  document.getElementById('adImgFile').value='';
+};
+window.confirmCrop=function(){
+  const img=document.getElementById('cropImg');
+  const wrap=document.getElementById('cropCanvasWrap');
+  const ww=wrap.clientWidth, wh=wrap.clientHeight;
+  const canvas=document.createElement('canvas');
+  canvas.width=800;canvas.height=400;
+  const ctx=canvas.getContext('2d');
+  const sx=(0-cropX)/cropScale, sy=(0-cropY)/cropScale;
+  const sw=ww/cropScale, sh=wh/cropScale;
+  ctx.drawImage(img,sx,sy,sw,sh,0,0,800,400);
+  _cropBase64=canvas.toDataURL('image/jpeg',0.85);
+  // แสดง preview
+  const prev=document.getElementById('adImgPreview');
+  if(prev)prev.innerHTML='<img src="'+_cropBase64+'" style="width:100%;height:100%;object-fit:cover">';
+  document.getElementById('cropOverlay').style.display='none';
+};
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, query, where, onSnapshot, doc, getDocs, updateDoc, setDoc, addDoc, deleteDoc, getDoc, serverTimestamp, orderBy, limit, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 window.previewAdFile=function(input,type){
@@ -1299,8 +1396,17 @@ window.saveAd=async function(){
   try{
     const data={type,caption,shopId,shopName,createdAt:serverTimestamp()};
     if(type==='image'){
-      showUploadProgress('อัพโหลดรูปภาพ...');
-      data.imgUrl=await uploadFile(imgFile,'ads/images');
+      if(_cropBase64){
+        showUploadProgress('อัพโหลดรูปภาพ...');
+        const res=await fetch(_cropBase64);
+        const blob=await res.blob();
+        const f=new File([blob],'ad_'+Date.now()+'.jpg',{type:'image/jpeg'});
+        data.imgUrl=await uploadFile(f,'ads/images');
+        _cropBase64='';
+      } else if(imgFile){
+        showUploadProgress('อัพโหลดรูปภาพ...');
+        data.imgUrl=await uploadFile(imgFile,'ads/images');
+      } else { alert('กรุณาเลือกรูปภาพ'); return; }
     }
     if(type==='video'){
       showUploadProgress('อัพโหลดวิดีโอ (อาจใช้เวลาสักครู่)...');
@@ -1361,7 +1467,7 @@ window.loadAdsList=async function(){
     </select>
 
     <div id="adImgRow">
-      <input type="file" id="adImgFile" accept="image/*" style="display:none" onchange="window.previewAdFile(this,'img')">
+      <input type="file" id="adImgFile" accept="image/*" style="display:none" onchange="window.openAdCrop(this)">
       <div id="adImgPreview" onclick="document.getElementById('adImgFile').click()" style="width:100%;height:130px;border-radius:14px;background:#f0f4ff;border:2px dashed #c7d7f5;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-bottom:14px;overflow:hidden;flex-direction:column;gap:6px">
         <span style="font-size:30px">🖼️</span>
         <span style="font-size:12px;color:#94a3b8">กดเพื่อเลือกรูปภาพ</span>
@@ -1408,6 +1514,20 @@ window.loadAdsList=async function(){
     <div id="uploadBar" style="background:#fff;border-radius:10px;height:6px;width:0%;transition:width .2s"></div>
   </div>
   <div id="uploadPct" style="font-size:11px;text-align:center;margin-top:4px">0%</div>
+</div>
+
+<!-- CROP OVERLAY -->
+<div id="cropOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:300;flex-direction:column;align-items:center;justify-content:center;">
+  <div style="color:#fff;font-size:14px;font-weight:700;margin-bottom:12px">ปรับขนาดรูปภาพ</div>
+  <div id="cropCanvasWrap" style="position:relative;width:90vw;max-width:400px;height:200px;overflow:hidden;background:#000;border-radius:12px">
+    <img id="cropImg" style="position:absolute;cursor:move;max-width:none" draggable="false">
+    <div id="cropFrame" style="position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,.5);pointer-events:none"></div>
+  </div>
+  <div style="color:#94a3b8;font-size:11px;margin-top:8px">ลากเพื่อปรับตำแหน่ง · Pinch เพื่อซูม</div>
+  <div style="display:flex;gap:12px;margin-top:16px">
+    <button onclick="window.cancelCrop()" style="height:42px;padding:0 24px;border:1.5px solid #fff;border-radius:21px;background:none;color:#fff;font-size:14px;cursor:pointer">ยกเลิก</button>
+    <button onclick="window.confirmCrop()" style="height:42px;padding:0 24px;border:none;border-radius:21px;background:#1565C0;color:#fff;font-size:14px;font-weight:700;cursor:pointer">ใช้รูปนี้</button>
+  </div>
 </div>
 </body>
 </html>
