@@ -552,7 +552,7 @@ body{background:var(--gray);min-height:100vh;}
   </div>
   <div style="padding:10px 16px 0"><button onclick="window.closeStatement()" style="height:34px;padding:0 14px;border:none;border-radius:17px;background:#f0f4ff;color:#1565C0;font-size:13px;font-weight:700;cursor:pointer">← กลับ</button></div>
   <div id="stmtList"></div>
-  <canvas id="stmtChart" style="display:none;max-width:260px;max-height:260px;margin:16px auto;"></canvas>
+  <canvas id="stmtChart" style="display:none;width:100%;margin:8px 0;"></canvas>
   <div id="stmtChartLegend" class="chart-legend" style="display:none;padding:0 16px;"></div>
 </div>
 
@@ -1313,43 +1313,87 @@ function renderStmtChart(){
   const canvas=document.getElementById('stmtChart');
   const legend=document.getElementById('stmtChartLegend');
   if(!canvas||!_stmtOrders.length)return;
-  const totalGrand=_stmtOrders.reduce((s,o)=>s+(o.grandTotal||0),0);
-  const totalEarn=_stmtOrders.reduce((s,o)=>s+(o.riderEarn||o.walletCut||0),0);
-  const totalShop=_stmtOrders.reduce((s,o)=>s+(o.baseCost||Math.round((o.grandTotal||0)*0.7)),0);
-  const totalPlatform=totalGrand-totalEarn-totalShop;
-  const data=[
-    {label:'รายได้ไรเดอร์',val:totalEarn,color:'#1565C0'},
-    {label:'จ่ายร้านค้า',val:totalShop,color:'#16a34a'},
-    {label:'ส่วนของแพลตฟอร์ม',val:Math.max(0,totalPlatform),color:'#f59e0b'},
-  ];
-  const ctx=canvas.getContext('2d');
-  const W=canvas.width=canvas.offsetWidth||260;
-  const H=canvas.height=260;
-  ctx.clearRect(0,0,W,H);
-  const cx=W/2,cy=H/2,r=Math.min(W,H)/2-20;
-  let start=-Math.PI/2;
-  const total=data.reduce((s,d)=>s+d.val,0);
-  data.forEach(d=>{
-    const slice=d.val/total*Math.PI*2;
-    ctx.beginPath();ctx.moveTo(cx,cy);
-    ctx.arc(cx,cy,r,start,start+slice);
-    ctx.closePath();ctx.fillStyle=d.color;ctx.fill();
-    start+=slice;
+
+  // จัดกลุ่มตามวัน
+  const dayMap={};
+  _stmtOrders.forEach(o=>{
+    const key=o._date.getDate();
+    if(!dayMap[key]) dayMap[key]={day:key,earn:0,grand:0};
+    dayMap[key].earn+=(o.riderEarn||o.walletCut||0);
+    dayMap[key].grand+=(o.grandTotal||0);
   });
-  // inner circle (donut)
-  ctx.beginPath();ctx.arc(cx,cy,r*0.5,0,Math.PI*2);
-  ctx.fillStyle='#fff';ctx.fill();
-  // center text
-  ctx.fillStyle='#0f172a';ctx.font='bold 13px Arial';ctx.textAlign='center';
-  ctx.fillText('฿'+totalGrand.toLocaleString(),cx,cy-4);
-  ctx.fillStyle='#94a3b8';ctx.font='11px Arial';
-  ctx.fillText('ยอดรวม',cx,cy+14);
-  // legend
-  legend.innerHTML=data.map(d=>`<div class="legend-item">
-    <div class="legend-dot" style="background:${d.color}"></div>
-    <div style="flex:1">${d.label}</div>
-    <div style="font-weight:700">฿${d.val.toLocaleString()} (${total?Math.round(d.val/total*100):0}%)</div>
-  </div>`).join('');
+  const days=Object.values(dayMap).sort((a,b)=>a.day-b.day);
+  const labels=days.map(d=>d.day+'');
+  const earnData=days.map(d=>d.earn);
+  const grandData=days.map(d=>d.grand);
+
+  // วาด line chart ด้วย Canvas
+  const W=canvas.width=canvas.offsetWidth||320;
+  const H=canvas.height=220;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  const PAD={top:20,right:16,bottom:36,left:44};
+  const cW=W-PAD.left-PAD.right;
+  const cH=H-PAD.top-PAD.bottom;
+  const maxVal=Math.max(...earnData,...grandData,1);
+  const step=cW/(days.length-1||1);
+
+  function px(i){return PAD.left+i*step;}
+  function py(v){return PAD.top+cH-(v/maxVal*cH);}
+
+  // Grid lines
+  ctx.strokeStyle='#eef1f7';ctx.lineWidth=1;
+  for(let g=0;g<=4;g++){
+    const y=PAD.top+cH/4*g;
+    ctx.beginPath();ctx.moveTo(PAD.left,y);ctx.lineTo(W-PAD.right,y);ctx.stroke();
+    ctx.fillStyle='#94a3b8';ctx.font='10px Arial';ctx.textAlign='right';
+    ctx.fillText('฿'+(Math.round(maxVal-maxVal/4*g)).toLocaleString(),PAD.left-4,y+4);
+  }
+
+  // วาดเส้น ยอดรวม (เทา)
+  if(days.length>1){
+    ctx.strokeStyle='#cbd5e1';ctx.lineWidth=2;ctx.setLineDash([4,3]);
+    ctx.beginPath();
+    days.forEach((d,i)=>{ctx.lineTo(px(i),py(d.grand));});
+    ctx.stroke();ctx.setLineDash([]);
+  }
+
+  // วาดเส้น รายได้ (น้ำเงิน) + area
+  ctx.strokeStyle='#1565C0';ctx.lineWidth=2.5;
+  ctx.beginPath();
+  days.forEach((d,i)=>{i===0?ctx.moveTo(px(i),py(d.earn)):ctx.lineTo(px(i),py(d.earn));});
+  ctx.stroke();
+
+  // Area fill
+  ctx.beginPath();
+  days.forEach((d,i)=>{i===0?ctx.moveTo(px(i),py(d.earn)):ctx.lineTo(px(i),py(d.earn));});
+  ctx.lineTo(px(days.length-1),PAD.top+cH);
+  ctx.lineTo(PAD.left,PAD.top+cH);
+  ctx.closePath();
+  ctx.fillStyle='rgba(21,101,192,.08)';ctx.fill();
+
+  // จุดบน line รายได้
+  days.forEach((d,i)=>{
+    ctx.beginPath();ctx.arc(px(i),py(d.earn),4,0,Math.PI*2);
+    ctx.fillStyle='#fff';ctx.fill();
+    ctx.strokeStyle='#1565C0';ctx.lineWidth=2;ctx.stroke();
+  });
+
+  // X labels (วันที่)
+  ctx.fillStyle='#64748b';ctx.font='10px Arial';ctx.textAlign='center';
+  days.forEach((d,i)=>{
+    if(days.length<=10||i%2===0)
+      ctx.fillText(d.day,px(i),H-PAD.bottom+14);
+  });
+
+  // Legend
+  const totalEarn=earnData.reduce((s,v)=>s+v,0);
+  const totalGrand=grandData.reduce((s,v)=>s+v,0);
+  legend.innerHTML=`
+    <div class="legend-item"><div class="legend-dot" style="background:#1565C0"></div><div style="flex:1">รายได้ไรเดอร์</div><div style="font-weight:700;color:#1565C0">฿${totalEarn.toLocaleString()}</div></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#cbd5e1"></div><div style="flex:1">ยอดรวมทั้งหมด</div><div style="font-weight:700">฿${totalGrand.toLocaleString()}</div></div>
+  `;
 }
 s=function(){
   if(riderData) location.href='reviews.html?type=rider&id='+riderData.id+'&name='+encodeURIComponent(riderData.name||'ไรเดอร์');
@@ -1417,8 +1461,7 @@ initRider();
 
 
 
-</script>
-<script>window._fcmRole="rider";</script>
+fcmRole="rider";</script>
 <script src="fcm.js"></script>
 </body>
 </html>
