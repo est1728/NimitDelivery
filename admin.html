@@ -547,7 +547,47 @@ body{background:var(--g);min-height:100vh;}
   <div class="mbd"><div id="recallInfo" style="background:var(--ol);border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--o);font-weight:700"></div><div class="mf"><div class="ml">หมายเหตุ (บังคับ)</div><textarea class="mta" id="recallNote"></textarea></div><button class="msb" style="background:linear-gradient(135deg,var(--o),#c2410c)" id="doRecallBtn">เรียกกลับ</button><button class="mxb" data-close="recallMov">ยกเลิก</button></div></div>
 </div>
 
-<script type="module">
+<script type="module">window.previewAdFile=function(input,type){
+  const file=input.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    if(type==='img'){
+      document.getElementById('adImgPreview').innerHTML='<img src="'+e.target.result+'" style="width:100%;height:100%;object-fit:cover">';
+    } else {
+      document.getElementById('adVidPreview').innerHTML='<video src="'+e.target.result+'" controls style="width:100%;height:100%;object-fit:contain"></video>';
+    }
+  };
+  reader.readAsDataURL(file);
+};
+
+// ===== FIREBASE STORAGE UPLOAD =====
+async function uploadFile(file, path){
+  const storage=getStorage();
+  const fileRef=ref(storage, path+'/'+Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9.]/g,'_'));
+  return new Promise((resolve,reject)=>{
+    const task=uploadBytesResumable(fileRef,file);
+    task.on('state_changed',
+      snap=>{
+        const pct=Math.round(snap.bytesTransferred/snap.totalBytes*100);
+        const bar=document.getElementById('uploadBar');
+        const txt=document.getElementById('uploadPct');
+        if(bar) bar.style.width=pct+'%';
+        if(txt) txt.textContent=pct+'%';
+      },
+      err=>reject(err),
+      async()=>resolve(await getDownloadURL(task.snapshot.ref))
+    );
+  });
+}
+function showUploadProgress(label){
+  const el=document.getElementById('uploadProgress');
+  if(el){el.style.display='block';document.getElementById('uploadLabel').textContent=label||'กำลังอัพโหลด...';}
+}
+function hideUploadProgress(){
+  const el=document.getElementById('uploadProgress');
+  if(el){el.style.display='none';const b=document.getElementById('uploadBar');if(b)b.style.width='0%';}
+}
+
 // ===== NOTIFICATION FUNCTIONS =====
 function playNotifSound(type){
   try{
@@ -1248,21 +1288,30 @@ window.saveAd=async function(){
   const caption=document.getElementById('adCaption').value.trim();
   const shopId=document.getElementById('adShopId').value.trim();
   const shopName=document.getElementById('adShopName').value.trim();
-  const imgUrl=document.getElementById('adImgUrl').value.trim();
-  const videoUrl=document.getElementById('adVideoUrl').value.trim();
-  if(type==='image'&&!imgUrl){alert('กรุณาใส่ URL รูปภาพ');return;}
-  if(type==='video'&&!videoUrl){alert('กรุณาใส่ URL วิดีโอ');return;}
+  const imgFile=document.getElementById('adImgFile')?.files[0];
+  const vidFile=document.getElementById('adVidFile')?.files[0];
+  if(type==='image'&&!imgFile){alert('กรุณาเลือกรูปภาพ');return;}
+  if(type==='video'&&!vidFile){alert('กรุณาเลือกวิดีโอ');return;}
   const btn=document.getElementById('adSaveBtn');
-  btn.disabled=true;btn.textContent='กำลังบันทึก...';
+  btn.disabled=true;btn.textContent='กำลังอัพโหลด...';
   try{
     const data={type,caption,shopId,shopName,createdAt:serverTimestamp()};
-    if(type==='image') data.imgUrl=imgUrl;
-    if(type==='video'){ data.videoUrl=videoUrl; data.videoDuration=20; }
+    if(type==='image'){
+      showUploadProgress('อัพโหลดรูปภาพ...');
+      data.imgUrl=await uploadFile(imgFile,'ads/images');
+    }
+    if(type==='video'){
+      showUploadProgress('อัพโหลดวิดีโอ (อาจใช้เวลาสักครู่)...');
+      data.videoUrl=await uploadFile(vidFile,'ads/videos');
+      data.videoDuration=20;
+    }
+    hideUploadProgress();
     await addDoc(collection(db,'ads'),data);
     window.closeAdCreate();
+    window.loadAdsList();
     alert('เพิ่มโฆษณาเรียบร้อย');
-  }catch(e){alert('ผิดพลาด: '+e.message);}
-  btn.disabled=false;btn.textContent='บันทึก';
+  }catch(e){hideUploadProgress();alert('ผิดพลาด: '+e.message);}
+  btn.disabled=false;btn.textContent='เพิ่มโฆษณา';
 };
 window.deleteAd=async function(id){
   if(!confirm('ลบโฆษณานี้?'))return;
@@ -1342,5 +1391,13 @@ window.loadAdsList=async function(){
   </div>
 </div>
 
+<!-- UPLOAD PROGRESS -->
+<div id="uploadProgress" style="display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1565C0;color:#fff;border-radius:20px;padding:10px 20px;z-index:300;min-width:200px;box-shadow:0 4px 20px rgba(0,0,0,.2)">
+  <div id="uploadLabel" style="font-size:12px;font-weight:600;margin-bottom:6px;text-align:center">กำลังอัพโหลด...</div>
+  <div style="background:rgba(255,255,255,.3);border-radius:10px;height:6px">
+    <div id="uploadBar" style="background:#fff;border-radius:10px;height:6px;width:0%;transition:width .2s"></div>
+  </div>
+  <div id="uploadPct" style="font-size:11px;text-align:center;margin-top:4px">0%</div>
+</div>
 </body>
 </html>
