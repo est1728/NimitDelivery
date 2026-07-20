@@ -274,28 +274,21 @@ body{background:var(--gray);min-height:100vh;}
 
   <div class="ep-card">
     <div class="ep-card-title">🖼️ รูปหน้าปกร้าน</div>
-    <div style="font-size:11px;color:#94a3b8;margin-bottom:10px">แนะนำ: 800×400px (สัดส่วน 2:1) · JPG/PNG · ไม่เกิน 2MB</div>
-    <div id="edit-banner-preview" style="width:100%;height:120px;border-radius:12px;overflow:hidden;background:#f0f4ff;border:1.5px solid #e8eef5;margin-bottom:8px;display:flex;align-items:center;justify-content:center">
-      <span style="color:#94a3b8;font-size:12px">ยังไม่มีรูปหน้าปก</span>
-    </div>
-    <div class="ep-field" style="margin-bottom:0">
-      <div class="ep-label">URL รูปหน้าปก</div>
-      <input class="ep-input" id="edit-bannerUrl" placeholder="https://..." oninput="previewBanner(this.value)">
+    <input type="file" id="edit-bannerFile" accept="image/*" style="display:none" onchange="window.previewBannerFile(this)">
+    <div id="edit-banner-preview" onclick="document.getElementById('edit-bannerFile').click()" style="width:100%;height:130px;border-radius:12px;background:#f0f4ff;border:2px dashed #c7d7f5;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;flex-direction:column;gap:6px">
+      <span style="font-size:28px">🖼️</span>
+      <span style="font-size:12px;color:#94a3b8">กดเพื่อเลือกรูปหน้าปก</span>
+      <span style="font-size:10px;color:#c0cad8">JPG/PNG · แนะนำ 800×400px · ไม่เกิน 2MB</span>
     </div>
   </div>
 
   <div class="ep-card">
     <div class="ep-card-title">🎬 วิดีโอแนะนำร้าน</div>
-    <div style="font-size:11px;color:#94a3b8;margin-bottom:10px">แนะนำ: MP4/WebM · ไม่เกิน 30MB · ไม่เกิน 60 วินาที · สัดส่วน 16:9 หรือ 9:16</div>
-    <div id="edit-video-preview" style="width:100%;border-radius:12px;overflow:hidden;background:#000;margin-bottom:8px;display:none">
-      <video id="edit-video-player" controls style="width:100%;max-height:200px;display:block"></video>
-    </div>
-    <div id="edit-video-placeholder" style="width:100%;height:80px;border-radius:12px;background:#f0f4ff;border:1.5px solid #e8eef5;margin-bottom:8px;display:flex;align-items:center;justify-content:center">
-      <span style="color:#94a3b8;font-size:12px">ยังไม่มีวิดีโอ</span>
-    </div>
-    <div class="ep-field" style="margin-bottom:0">
-      <div class="ep-label">URL วิดีโอ</div>
-      <input class="ep-input" id="edit-videoUrl" placeholder="https://..." oninput="previewVideo(this.value)">
+    <input type="file" id="edit-videoFile" accept="video/*" style="display:none" onchange="window.previewVideoFile(this)">
+    <div id="edit-video-preview" onclick="document.getElementById('edit-videoFile').click()" style="width:100%;height:130px;border-radius:12px;background:#f0f4ff;border:2px dashed #c7d7f5;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;flex-direction:column;gap:6px">
+      <span style="font-size:28px">🎬</span>
+      <span style="font-size:12px;color:#94a3b8">กดเพื่อเลือกวิดีโอ</span>
+      <span style="font-size:10px;color:#c0cad8">MP4/WebM · ไม่เกิน 30MB · ไม่เกิน 60 วิ</span>
     </div>
   </div>
 
@@ -347,6 +340,34 @@ body{background:var(--gray);min-height:100vh;}
     <div class="detail-section-title"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg>
 
 <script type="module">
+// ===== FIREBASE STORAGE UPLOAD =====
+async function uploadFile(file, path){
+  const storage=getStorage();
+  const fileRef=ref(storage, path+'/'+Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9.]/g,'_'));
+  return new Promise((resolve,reject)=>{
+    const task=uploadBytesResumable(fileRef,file);
+    task.on('state_changed',
+      snap=>{
+        const pct=Math.round(snap.bytesTransferred/snap.totalBytes*100);
+        const bar=document.getElementById('uploadBar');
+        const txt=document.getElementById('uploadPct');
+        if(bar) bar.style.width=pct+'%';
+        if(txt) txt.textContent=pct+'%';
+      },
+      err=>reject(err),
+      async()=>resolve(await getDownloadURL(task.snapshot.ref))
+    );
+  });
+}
+function showUploadProgress(label){
+  const el=document.getElementById('uploadProgress');
+  if(el){el.style.display='block';document.getElementById('uploadLabel').textContent=label||'กำลังอัพโหลด...';}
+}
+function hideUploadProgress(){
+  const el=document.getElementById('uploadProgress');
+  if(el){el.style.display='none';const b=document.getElementById('uploadBar');if(b)b.style.width='0%';}
+}
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, query, where, onSnapshot, doc, getDocs, updateDoc, getDoc, addDoc, deleteDoc, serverTimestamp, setDoc, increment} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 // local aliases for cross-scope calls
@@ -571,12 +592,15 @@ window.openExtraPanel=function(id){
   if(id==='panelEdit'){
     // โหลดค่าเดิมใส่ฟอร์ม
     if(shopData){
-      const bUrl=shopData.bannerUrl||'';
-      const vUrl=shopData.videoUrl||'';
-      const bInput=document.getElementById('edit-bannerUrl');
-      const vInput=document.getElementById('edit-videoUrl');
-      if(bInput){bInput.value=bUrl; window.previewBanner&&window.previewBanner(bUrl);}
-      if(vInput){vInput.value=vUrl; window.previewVideo&&window.previewVideo(vUrl);}
+      // แสดงรูป/วิดีโอปัจจุบัน
+      if(shopData.bannerUrl){
+        const bEl=document.getElementById('edit-banner-preview');
+        if(bEl) bEl.innerHTML='<img src="'+shopData.bannerUrl+'" style="width:100%;height:100%;object-fit:cover"><div style=\"position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 8px;border-radius:20px\">กดเพื่อเปลี่ยน</div>';
+      }
+      if(shopData.videoUrl){
+        const vEl=document.getElementById('edit-video-preview');
+        if(vEl) vEl.innerHTML='<video src="'+shopData.videoUrl+'" controls style="width:100%;max-height:130px;object-fit:contain"></video>';
+      }
     }
     // init map หลัง panel visible
     setTimeout(()=>{
@@ -603,29 +627,28 @@ window.useMyLocShop=function(){
     window._shopMarker?.setLatLng([window._shopMapLat,window._shopMapLng]);
   },()=>alert('ไม่สามารถเข้าถึง GPS'));
 };
-window.previewBanner=function(url){
-  const prev=document.getElementById('edit-banner-preview');
-  if(!prev)return;
-  if(url) prev.innerHTML='<img src="'+url+'" style="width:100%;height:100%;object-fit:cover">';
-  else prev.innerHTML='<span style="color:#94a3b8;font-size:12px">ยังไม่มีรูปหน้าปก</span>';
+window.window.previewBannerFile=function(input){
+  const file=input.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const el=document.getElementById('edit-banner-preview');
+    if(el) el.innerHTML='<img src="'+e.target.result+'" style="width:100%;height:100%;object-fit:cover">';
+  };
+  reader.readAsDataURL(file);
 };
-window.previewBanner=previewBanner;
-previewVideo=function(url){
-  const ph=document.getElementById('edit-video-placeholder');
-  const pv=document.getElementById('edit-video-preview');
-  const vid=document.getElementById('edit-video-player');
-  if(!ph||!pv||!vid)return;
-  if(url){
-    vid.src=url; pv.style.display='block'; ph.style.display='none';
-  } else {
-    pv.style.display='none'; ph.style.display='block'; vid.src='';
-  }
+window.previewVideoFile=function(input){
+  const file=input.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const el=document.getElementById('edit-video-preview');
+    if(el) el.innerHTML='<video src="'+e.target.result+'" controls style="width:100%;max-height:130px;object-fit:contain"></video>';
+  };
+  reader.readAsDataURL(file);
 };
-window.previewVideo=previewVideo;
 saveShopInfo=async function(){
   try{
-    const bannerUrl=document.getElementById("edit-bannerUrl")?.value.trim()||'';
-    const videoUrl=document.getElementById("edit-videoUrl")?.value.trim()||'';
+    const bannerFile=document.getElementById("edit-bannerFile")?.files[0];
+    const videoFile=document.getElementById("edit-videoFile")?.files[0];
     const data={
       name:document.getElementById("edit-name").value.trim(),
       desc:document.getElementById("edit-desc").value.trim(),
@@ -637,8 +660,16 @@ saveShopInfo=async function(){
       lng:window._shopMapLng||null,
       updatedAt:serverTimestamp()
     };
-    if(bannerUrl) data.bannerUrl=bannerUrl;
-    if(videoUrl) data.videoUrl=videoUrl;
+    if(bannerFile){
+      showUploadProgress('อัพโหลดรูปหน้าปก...');
+      data.bannerUrl=await uploadFile(bannerFile,'shops/banners');
+      hideUploadProgress();
+    }
+    if(videoFile){
+      showUploadProgress('อัพโหลดวิดีโอร้าน (รอสักครู่)...');
+      data.videoUrl=await uploadFile(videoFile,'shops/videos');
+      hideUploadProgress();
+    }
     await updateDoc(doc(db,"shops",shopData.id),data);
     document.getElementById("shopNameTop").textContent=data.name;
     document.getElementById("sbName").textContent=data.name;
@@ -810,12 +841,20 @@ window.cancelCrop=function(){
 }
 
 
-initShop();
+
 
 function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
 </script>
 <script>window._fcmRole="shop";</script>
 <script src="fcm.js"></script>
+<!-- UPLOAD PROGRESS -->
+<div id="uploadProgress" style="display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1565C0;color:#fff;border-radius:20px;padding:10px 20px;z-index:300;min-width:200px;box-shadow:0 4px 20px rgba(0,0,0,.2)">
+  <div id="uploadLabel" style="font-size:12px;font-weight:600;margin-bottom:6px;text-align:center">กำลังอัพโหลด...</div>
+  <div style="background:rgba(255,255,255,.3);border-radius:10px;height:6px">
+    <div id="uploadBar" style="background:#fff;border-radius:10px;height:6px;width:0%;transition:width .2s"></div>
+  </div>
+  <div id="uploadPct" style="font-size:11px;text-align:center;margin-top:4px">0%</div>
+</div>
 </body>
 </html>
