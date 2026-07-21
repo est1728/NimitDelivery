@@ -1212,7 +1212,7 @@ async function loadShops(){
             </label>
             <span style="font-size:11px;color:var(--s);margin-left:4px;font-weight:600">${s.isOpen!==false?'เปิด':'ปิด'}</span>
             <label class="r-switch" style="margin-left:14px" onclick="event.stopPropagation()">
-              <input type="checkbox" ${s.shopType==='proxy'?'checked':''} onchange="event.stopPropagation();window.toggleShopType('${s.id}',${s.shopType==='proxy'})">
+              <input type="checkbox" ${s.shopType==='proxy'?'checked':''} onchange="event.stopPropagation();window.toggleShopType('${s.id}',${s.shopType==='proxy'},this)">
               <span class="r-switch-track"></span>
               <span class="r-switch-thumb"></span>
             </label>
@@ -1305,13 +1305,17 @@ window.toggleShopOpen=async function(sid,currentOpen){
     loadShops();
   }catch(e){window.toast('ไม่สำเร็จ','er');}
 };
-window.toggleShopType=async function(sid,isCurrentlyProxy){
+window.toggleShopType=async function(sid,isCurrentlyProxy,cb){
+  const newType=isCurrentlyProxy?'normal':'proxy';
+  const msg=newType==='proxy'
+    ?'ตั้งร้านนี้เป็น "ร้านฝากซื้อ" ใช่หรือไม่?\nราคาสินค้าจะถือเป็นราคาสุทธิ ไม่บวก GP'
+    :'เปลี่ยนร้านนี้กลับเป็น "ร้านปกติ" ใช่หรือไม่?\nราคาสินค้าจะกลับไปคิด GP ตามปกติ';
+  if(!confirm(msg)){ if(cb) cb.checked=isCurrentlyProxy; return; }
   try{
-    const newType=isCurrentlyProxy?'normal':'proxy';
     await updateDoc(doc(db,'shops',sid),{shopType:newType,updatedAt:serverTimestamp()});
     window.toast(newType==='proxy'?'ตั้งเป็นร้านฝากซื้อแล้ว':'ตั้งเป็นร้านปกติแล้ว','ok');
     loadShops();
-  }catch(e){window.toast('ไม่สำเร็จ','er');}
+  }catch(e){window.toast('ไม่สำเร็จ','er'); if(cb) cb.checked=isCurrentlyProxy;}
 };
 window.toggleRiderActive=async function(rid,currentActive){
   try{
