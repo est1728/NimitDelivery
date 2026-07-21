@@ -370,8 +370,14 @@ async function loadGpSettings(){
 }
 function tierGpPercent(base){
   if(Array.isArray(siteGpTiers) && siteGpTiers.length){
-    const t = siteGpTiers.find(t=>base>=(t.min??0) && base<=(t.max??Infinity));
-    if(t) return t.gp||0;
+    const sorted=[...siteGpTiers].sort((a,b)=>(a.min??0)-(b.min??0));
+    for(let i=0;i<sorted.length;i++){
+      const t=sorted[i];
+      const inRange = i===0
+        ? (base>=(t.min??0) && base<=(t.max??Infinity))
+        : (base>(t.min??0) && base<=(t.max??Infinity));
+      if(inRange) return t.gp||0;
+    }
   }
   return siteGpPercent;
 }
