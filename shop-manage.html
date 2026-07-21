@@ -362,7 +362,7 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, getDocs, deleteDoc, serverTimestamp, query, where }
+import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, getDocs, deleteDoc, serverTimestamp, query, where, onSnapshot }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -491,6 +491,9 @@ function loadMenus() {
     menus = [...remote, ...temp];
     renderCatStrip();
     renderMenuGroups();
+  }, err => {
+    const el = document.getElementById("menuGroups");
+    if(el) el.innerHTML = `<div class="empty-menu">โหลดเมนูไม่ได้: ${err.message}<br>เมนูที่เคยบันทึกไว้ยังอยู่ในระบบ ลองรีเฟรชหน้าอีกครั้ง</div>`;
   });
 }
 
