@@ -678,9 +678,19 @@ function showOSNotif(title,body){
   }
 }
 // ============ SOUND ============
+let _sharedAudioCtx=null;
+function getAudioCtx(){
+  if(!_sharedAudioCtx){
+    try{ _sharedAudioCtx=new(window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; }
+  }
+  return _sharedAudioCtx;
+}
+['click','touchstart'].forEach(ev=>document.addEventListener(ev,()=>{ getAudioCtx()?.resume?.(); },{once:true,passive:true}));
 function playNotifSound(type){
   try{
-    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const ctx=getAudioCtx();
+    if(!ctx)return;
+    if(ctx.state==='suspended') ctx.resume();
     const notes=type==='new'?[523,659,784]:type==='assigned'?[784,659,523]:[523,392,330];
     const dur=type==='new'?3:2;
     notes.forEach((freq,i)=>{
