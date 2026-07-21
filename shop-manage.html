@@ -320,6 +320,7 @@ const shopId = params.get("id");
 let isOpen = false, bannerUrl = "", avatarUrl = "";
 let menus = [];
 let openMenuId = null; // id ของเมนูที่กำลัง expand
+let shopType = "normal"; // "proxy" = ร้านฝากซื้อ (ไม่เชื่อม GP หลักจากตั้งค่า)
 
 // ============ SHOP LOAD ============
 async function loadShop() {
@@ -335,6 +336,7 @@ async function loadShop() {
   document.getElementById("shopDeliveryTime").value = s.deliveryTime||"";
   document.getElementById("shopAddress").value = s.address||"";
   isOpen = s.isOpen||false; bannerUrl = s.bannerUrl||""; avatarUrl = s.avatarUrl||"";
+  shopType = s.shopType==='proxy' ? 'proxy' : 'normal';
   updateOpenToggle(); updateBanner(); updateAvatar();
   loadMenus();
 }
@@ -416,7 +418,7 @@ function renderMenuForm(m) {
         <input class="form-input" id="fi-cat-${m.id}" value="${esc(m.category)}" placeholder="อาหารจานเดียว">
       </div>
       <div class="form-field">
-        <div class="form-label">GP% เพิ่มเติม</div>
+        <div class="form-label">${shopType==='proxy'?'GP หลัก (%)':'GP% เพิ่มเติม'}</div>
         <input class="form-input" id="fi-gp-${m.id}" type="number" value="${m.gp||0}">
       </div>
     </div>
@@ -616,7 +618,7 @@ window.saveMenu = async function(menuId) {
 
   const data = {
     name:m.name, price:m.price||0, category:m.category||'',
-    gp:m.gp||0, desc:m.desc||'', imgUrl:m.imgUrl||'',
+    gp:m.gp||0, gpIsMain:shopType==='proxy', desc:m.desc||'', imgUrl:m.imgUrl||'',
     optionGroups: (m.optionGroups||[]).filter(g=>g.title).map(g=>({
       title:g.title, required:!!g.required,
       options:(g.options||[]).filter(o=>o.name)
