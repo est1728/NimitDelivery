@@ -15,7 +15,7 @@
   --shadow-md:0 6px 18px rgba(15,23,42,0.07);
 }
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Arial',sans-serif;-webkit-tap-highlight-color:transparent;}
-body{background:var(--gray);min-height:100vh;}
+body{background:var(--gray);min-height:100vh;overscroll-behavior-y:none;}
 .page{display:none;animation:fadeIn 0.18s ease-out;}
 .page.active{display:block;}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -149,7 +149,7 @@ body{background:var(--gray);min-height:100vh;}
 .crop-frame{position:absolute;border:3px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,0.55);pointer-events:none;border-radius:8px;}
 
 /* DETAIL PAGE */
-.detail-page{display:none;position:fixed;inset:0;background:var(--gray);z-index:200;overflow-y:auto;padding-bottom:30px;}
+.detail-page{display:none;position:fixed;inset:0;background:var(--gray);z-index:200;overflow-y:auto;padding-bottom:30px;overscroll-behavior:contain;min-height:100%;}
 .detail-page.show{display:block;animation:fadeIn 0.18s ease-out;}
 .detail-topbar{background:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;box-shadow:var(--shadow-sm);}
 .detail-back-btn{width:38px;height:38px;border:none;background:var(--gray);border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
@@ -513,20 +513,9 @@ async function initShop(){
     document.getElementById("edit-phone").value=shopData.phone||"";
     document.getElementById("edit-deliveryTime").value=shopData.deliveryTime||"";
     document.getElementById("edit-address").value=shopData.address||"";
-    // init map
-    // init map (destroy ก่อนสร้างใหม่ทุกครั้ง)
-    const lat=shopData.lat||13.7563, lng=shopData.lng||100.5018;
-    window._shopMapLat=lat; window._shopMapLng=lng;
-    setTimeout(()=>{
-      if(window._shopMap){try{window._shopMap.remove();}catch(e){} window._shopMap=null;}
-      const mapEl=document.getElementById('shopMap');
-      if(!mapEl)return;
-      window._shopMap=L.map(mapEl).setView([lat,lng],15);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(window._shopMap);
-      window._shopMarker=L.marker([lat,lng],{draggable:true}).addTo(window._shopMap);
-      window._shopMarker.on('dragend',e=>{window._shopMapLat=e.target.getLatLng().lat;window._shopMapLng=e.target.getLatLng().lng;});
-      window._shopMap.on('contextmenu',e=>{window._shopMapLat=e.latlng.lat;window._shopMapLng=e.latlng.lng;window._shopMarker.setLatLng(e.latlng);});
-    },300);
+    // หมายเหตุ: แผนที่ #shopMap จะถูกสร้างตอนเปิดแผง "แก้ไขร้าน" จริงๆ (ดู openExtraPanel)
+    // ไม่ init ตรงนี้ เพราะตอนนี้แผงยัง display:none อยู่ (container ขนาด 0 → แผนที่เพี้ยน/ลอย)
+    window._shopMapLat=shopData.lat||13.7563; window._shopMapLng=shopData.lng||100.5018;
     document.getElementById("edit-openHours").value=shopData.openHours||"";
     isOpen=shopData.isOpen||false; updateOpenUI();
     showPage("mainPage"); listenOrders();
@@ -594,11 +583,13 @@ function renderOrders(){
 
 window.openDetail=function(docId){
   document.getElementById("orderDetailPage").classList.add("show");
+  document.body.style.overflow='hidden';
   if(detailUnsub) detailUnsub();
   detailUnsub=onSnapshot(doc(db,"orders",docId),snap=>{if(snap.exists()) renderDetail({docId,...snap.data()});});
 }
 window.closeDetail=function(){
   document.getElementById("orderDetailPage").classList.remove("show");
+  document.body.style.overflow='';
   if(detailUnsub){detailUnsub();detailUnsub=null;}
 }
 function renderDetail(o){
@@ -680,6 +671,8 @@ window.openExtraPanel=function(id){
       window._shopMarker.on('dragend',e=>{window._shopMapLat=e.target.getLatLng().lat;window._shopMapLng=e.target.getLatLng().lng;});
       window._shopMap.on('contextmenu',e=>{window._shopMapLat=e.latlng.lat;window._shopMapLng=e.latlng.lng;window._shopMarker.setLatLng(e.latlng);});
       setTimeout(()=>window._shopMap?.invalidateSize(),100);
+      window.addEventListener('resize',()=>window._shopMap?.invalidateSize());
+      window.addEventListener('orientationchange',()=>setTimeout(()=>window._shopMap?.invalidateSize(),300));
     },250);
   }
 };
