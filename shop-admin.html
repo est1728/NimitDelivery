@@ -680,7 +680,7 @@ window.useMyLocShop=function(){
     window._shopMarker?.setLatLng([window._shopMapLat,window._shopMapLng]);
   },()=>alert('ไม่สามารถเข้าถึง GPS'));
 };
-window.window.previewBannerFile=function(input){
+window.previewBannerFile=function(input){
   const file=input.files[0]; if(!file)return;
   const reader=new FileReader();
   reader.onload=e=>{
@@ -886,14 +886,6 @@ function showToast(msg,type){
 }
 
 initShop();
-
-
-window.cancelCrop=function(){
-  document.getElementById("cropOverlay").classList.remove("show");
-  document.getElementById("cropImg").src="";
-}
-
-
 
 
 function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
