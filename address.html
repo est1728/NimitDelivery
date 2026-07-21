@@ -125,12 +125,12 @@ var backDest = sessionStorage.getItem('addrBack') || 'shops.html';
 
 // ========== INIT ==========
 function init(){
-  if(isFirstTime || addresses.length === 0){
-    // ลูกค้าใหม่ → เปิดฟอร์มก่อน
+  if(addresses.length === 0){
+    // ยังไม่มีที่อยู่เลย → เปิดฟอร์มก่อน
     showForm(-1);
     document.getElementById('formBackBtn').style.display = 'none';
   } else {
-    // มีที่อยู่แล้ว → เปิดหน้า list
+    // มีที่อยู่แล้ว (เช่น เพิ่งบันทึกจาก register.html) → เปิดหน้า list ทันที
     showList();
   }
 }
@@ -175,11 +175,12 @@ function renderList(){
   }
   el.innerHTML = addresses.map(function(a,i){
     var isDef = i === defaultIdx;
-    return '<div class="addr-card'+(isDef?' selected':'')+'" onclick="setDefault('+i+')">'
-      +'<div class="addr-ico'+(isDef?' def':'')+'"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg></div>'
-      +'<div class="addr-info"><div class="addr-name">'+(a.name||'ไม่มีชื่อ')+(isDef?' ⭐':'')+'</div><div class="addr-text">'+(a.address||'-')+'</div></div>'
+    return '<div class="addr-card'+(isDef?' selected':'')+'" onclick="editAddr('+i+')">'
+      +'<div class="addr-ico'+(isDef?' def':'')+'" title="ตั้งเป็นที่อยู่หลัก" onclick="event.stopPropagation();setDefault('+i+')"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg></div>'
+      +'<div class="addr-info"><div class="addr-name">'+(a.name||'ไม่มีชื่อ')+(isDef?' <span style="font-size:11px;font-weight:800;color:var(--p);background:var(--pl);padding:2px 8px;border-radius:20px;margin-left:4px">ที่อยู่หลัก</span>':'')+'</div><div class="addr-text">'+(a.address||'-')+'</div>'
+      +(isDef?'':'<div style="font-size:11px;color:var(--p);font-weight:700;margin-top:4px" onclick="event.stopPropagation();setDefault('+i+')">ตั้งเป็นที่อยู่หลัก</div>')
+      +'</div>'
       +'<div class="addr-actions">'
-      +'<button class="addr-btn edit" onclick="event.stopPropagation();editAddr('+i+')"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>'
       +'<button class="addr-btn del" onclick="event.stopPropagation();delAddr('+i+')"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>'
       +'</div></div>';
   }).join('');
@@ -242,6 +243,10 @@ function initMap(){
     curLat = e.latlng.lat; curLng = e.latlng.lng;
     marker.setLatLng(e.latlng);
   });
+  // บัค "แผนที่ลอย" ตอนเลื่อนหน้า: ต้อง invalidateSize() ซ้ำหลัง container เซ็ตตำแหน่งจริงแล้ว
+  setTimeout(function(){ map.invalidateSize(); }, 300);
+  window.addEventListener('resize', function(){ if(map) map.invalidateSize(); });
+  window.addEventListener('orientationchange', function(){ setTimeout(function(){ if(map) map.invalidateSize(); }, 300); });
 }
 
 function useMyLocation(){
