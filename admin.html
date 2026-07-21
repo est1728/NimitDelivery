@@ -744,9 +744,21 @@ function hideUploadProgress(){
 }
 
 // ===== NOTIFICATION FUNCTIONS =====
+let _sharedAudioCtx=null;
+function getAudioCtx(){
+  if(!_sharedAudioCtx){
+    try{ _sharedAudioCtx=new(window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; }
+  }
+  return _sharedAudioCtx;
+}
+// เบราว์เซอร์จะสั่ง AudioContext ใหม่ให้อยู่ในสถานะ "suspended" เสมอ ถ้าไม่ได้สร้างตอนมีการแตะ/คลิกจากผู้ใช้โดยตรง
+// เสียงแจ้งเตือนที่ยิงจาก Firestore listener (ไม่ใช่การคลิก) จะเงียบเสมอถ้าไม่ resume ก่อน — ปลดล็อกตอนแตะจอครั้งแรก
+['click','touchstart'].forEach(ev=>document.addEventListener(ev,()=>{ getAudioCtx()?.resume?.(); },{once:true,passive:true}));
 function playNotifSound(type){
   try{
-    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const ctx=getAudioCtx();
+    if(!ctx)return;
+    if(ctx.state==='suspended') ctx.resume();
     const notes=type==='new'?[523,659,784]:type==='assigned'?[784,659,523]:[523,392,330];
     notes.forEach((freq,i)=>{
       const osc=ctx.createOscillator(),gain=ctx.createGain();
@@ -1552,6 +1564,7 @@ document.addEventListener('click', e => {
 ['gpPercent','walletPct','riderPct'].forEach(id=>$(id)?.addEventListener('input',updPrev));
 
 updPrev();document.getElementById('statDate').max = new Date().toISOString().split('T')[0];
+reqNotifPerm();
 listenOrders();
 
 // ===== ADS MANAGEMENT =====
