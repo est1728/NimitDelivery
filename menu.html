@@ -200,7 +200,7 @@ body{background:var(--bg);min-height:100vh;padding-bottom:120px;}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, getDoc, query } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, getDoc, query, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 // local aliases for cross-scope calls
 const closePopup=(...a)=>window.closePopup(...a);
 
