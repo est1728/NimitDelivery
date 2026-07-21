@@ -221,10 +221,10 @@ document.getElementById("shopNameTitle").textContent = shopName || "ร้าน
 let cart = JSON.parse(localStorage.getItem("cart") || "{}");
 let allMenus = [], filteredMenus = [], categories = [], currentCat = "ทั้งหมด";
 let shopCategories = []; // [{id,name}] จาก shop-manage.html ถ้ามี
-let gpPercent = 0, popupMenu = null, popupSelections = {};
+let gpPercent = 0, gpSubPercent = 0, gpTiers = [], shopType = "normal", popupMenu = null, popupSelections = {};
 
 async function loadSettings(){
-  try{ const s=await getDoc(doc(db,"settings","pricing")); if(s.exists()) gpPercent=s.data().gpPercent||0; }catch(e){}}
+  try{ const s=await getDoc(doc(db,"settings","pricing")); if(s.exists()){ const d=s.data(); gpPercent=d.gpPercent||0; gpSubPercent=d.gpSubPercent||0; gpTiers=Array.isArray(d.gpTiers)?d.gpTiers:[]; } }catch(e){}}
 
 async function loadShopInfo(){
   try{
@@ -232,6 +232,7 @@ async function loadShopInfo(){
     if(s.exists()){
       const d=s.data();
       shopCategories = Array.isArray(d.categories) ? d.categories : [];
+      shopType = d.shopType || "normal";
       if(d.desc) document.getElementById("shopDescText").textContent=d.desc;
       if(!d.isOpen) document.getElementById("closedBanner").style.display="block";
       const avatar=document.getElementById("shopAvatar");
@@ -240,7 +241,24 @@ async function loadShopInfo(){
       if(d.bannerUrl) banner.innerHTML=`<img src="${d.bannerUrl}"><div class="banner-top-btns"><button class="back-btn" onclick="history.back()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button><button class="cart-top-btn" onclick="window.location.href='cart.html'"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg><span class="cart-badge" id="topCartBadge">0</span></button></div>`;}
   }catch(e){}}
 
-function calcPrice(base,menuGp){ return Math.ceil(base*(1+(gpPercent+(menuGp||0))/100)); }
+// หาค่า GP% ตามช่วงราคา (gpTiers) — ถ้าไม่มีช่วงที่ตรง ใช้ gpPercent (GP รวม) แทน
+function tierGpPercent(base){
+  if(Array.isArray(gpTiers) && gpTiers.length){
+    const t = gpTiers.find(t=>base>=(t.min??0) && base<=(t.max??Infinity));
+    if(t) return t.gp||0;
+  }
+  return gpPercent;
+}
+
+function calcPrice(base,menuGp){
+  if(shopType==='proxy') return Math.ceil(base); // ร้านฝากซื้อ: ราคาดิบ ไม่บวก GP
+  return Math.ceil(base*(1+(tierGpPercent(base)+(menuGp||0))/100));
+}
+// ราคาเมนูย่อย (ตัวเลือกเสริม) ใช้ "GP ย่อย (%)" จากตั้งค่า แยกจาก GP ของเมนูหลัก
+function calcSubPrice(optPrice){
+  if(shopType==='proxy') return Math.ceil(optPrice); // ร้านฝากซื้อ: ราคาดิบ ไม่บวก GP เช่นกัน
+  return Math.ceil(optPrice*(1+gpSubPercent/100));
+}
 
 async function loadMenu(){
   await loadSettings();
@@ -370,8 +388,8 @@ function updatePopupTotal(){
   const m=popupMenu; if(!m) return;
   const base=calcPrice(m.price,m.gp); let extra=0;
   (m.optionGroups||[]).forEach((g,gi)=>{
-    if(g.required&&popupSelections[gi]){ const opt=g.options.find(o=>o.name===popupSelections[gi]); extra+=opt?.price||0; }
-    else if(!g.required&&popupSelections[gi] instanceof Set){ popupSelections[gi].forEach(name=>{ const opt=g.options.find(o=>o.name===name); extra+=opt?.price||0; }); }});
+    if(g.required&&popupSelections[gi]){ const opt=g.options.find(o=>o.name===popupSelections[gi]); extra+=calcSubPrice(opt?.price||0); }
+    else if(!g.required&&popupSelections[gi] instanceof Set){ popupSelections[gi].forEach(name=>{ const opt=g.options.find(o=>o.name===name); extra+=calcSubPrice(opt?.price||0); }); }});
   document.getElementById("popupTotal").textContent=base+extra;}
 
 window.addToCartFromPopup=function(){
@@ -384,9 +402,10 @@ window.addToCartFromPopup=function(){
     if(g.required&&popupSelections[gi]){ const opt=g.options.find(o=>o.name===popupSelections[gi]); selectedOptions.push({groupTitle:g.title,name:popupSelections[gi],price:opt?.price||0}); }
     else if(!g.required&&popupSelections[gi] instanceof Set){ popupSelections[gi].forEach(name=>{ const opt=g.options.find(o=>o.name===name); selectedOptions.push({groupTitle:g.title,name,price:opt?.price||0}); }); }});
   const base=calcPrice(m.price,m.gp);
-  const extra=selectedOptions.reduce((s,o)=>s+o.price,0);
+  const extra=selectedOptions.reduce((s,o)=>s+calcSubPrice(o.price),0);
+  const finalPrice=base+extra;
   if(!cart[shopId]) cart[shopId]={shopName,items:[]};
-  cart[shopId].items.push({id:m.id,name:m.name,basePrice:m.price,price:base+extra,qty:1,imgUrl:m.imgUrl||'',options:selectedOptions,optionGroups:m.optionGroups,note:document.getElementById("popupNote")?.value||''});
+  cart[shopId].items.push({id:m.id,name:m.name,basePrice:m.price,price:finalPrice,qty:1,imgUrl:m.imgUrl||'',options:selectedOptions,optionGroups:m.optionGroups,note:document.getElementById("popupNote")?.value||''});
   localStorage.setItem("cart",JSON.stringify(cart));
   window.closePopup(); renderMenus(); updateCartBar();}
 
