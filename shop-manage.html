@@ -239,6 +239,27 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
   </div>
 </div>
 
+<div class="section">
+  <div class="section-title" style="display:flex;align-items:center;justify-content:space-between">
+    <span>เวลาเปิด-ปิดร้านอัตโนมัติ</span>
+    <button class="toggle" id="autoSchTgl" onclick="toggleAutoSchedule()" style="width:44px;height:24px"></button>
+  </div>
+  <div id="autoSchFields" style="display:none">
+    <div class="field-row">
+      <div class="field">
+        <div class="field-label">เวลาเปิด</div>
+        <input class="field-input" id="schOpenTime" type="time">
+      </div>
+      <div class="field">
+        <div class="field-label">เวลาปิด</div>
+        <input class="field-input" id="schCloseTime" type="time">
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--subtext);line-height:1.6">ระบบจะเปิด-ปิดร้านให้อัตโนมัติตามเวลานี้ทุกวัน โดยไม่ต้องกดสวิตช์เปิด/ปิดเอง (ปุ่มด้านบนยังกดปิดฉุกเฉินเองได้เสมอ แต่ถึงเวลาเปิดรอบถัดไประบบจะเปิดให้อัตโนมัติ)</div>
+  </div>
+  <div id="autoSchOffNote" style="font-size:11px;color:var(--subtext)">ปิดอยู่ — ร้านจะเปิด/ปิดตามที่กดสวิตช์ด้านบนเองเท่านั้น</div>
+</div>
+
 <div class="menu-list-section">
   <div class="menu-list-header">
     <div class="menu-count-title">หมวดหมู่เมนู</div>
@@ -358,6 +379,7 @@ const db = getFirestore(app);
 const params = new URLSearchParams(window.location.search);
 let shopId = params.get("id");
 let isOpen = false, bannerUrl = "", avatarUrl = "";
+let autoSchedule = false;
 let menus = [];
 let openMenuId = null; // id ของเมนูที่กำลัง expand
 let shopType = "normal"; // "proxy" = ร้านฝากซื้อ (ไม่เชื่อม GP หลักจากตั้งค่า)
@@ -416,6 +438,10 @@ async function loadShop() {
   document.getElementById("shopDeliveryTime").value = s.deliveryTime||"";
   document.getElementById("shopAddress").value = s.address||"";
   isOpen = s.isOpen||false; bannerUrl = s.bannerUrl||""; avatarUrl = s.avatarUrl||"";
+  autoSchedule = !!s.autoSchedule;
+  document.getElementById("schOpenTime").value = s.scheduleOpen||"";
+  document.getElementById("schCloseTime").value = s.scheduleClose||"";
+  updateAutoScheduleUI();
   shopType = s.shopType==='proxy' ? 'proxy' : 'normal';
   updateOpenToggle(); updateBanner(); updateAvatar();
   loadMenus();
@@ -424,6 +450,15 @@ async function loadShop() {
 function updateOpenToggle() {
   document.getElementById("openToggle").className = `toggle ${isOpen?'on':''}`;
   document.getElementById("openLabel").textContent = isOpen?"เปิดอยู่":"ปิดอยู่";
+}
+window.toggleAutoSchedule = function(){
+  autoSchedule = !autoSchedule;
+  updateAutoScheduleUI();
+}
+function updateAutoScheduleUI(){
+  document.getElementById("autoSchTgl").className = `toggle ${autoSchedule?'on':''}`;
+  document.getElementById("autoSchFields").style.display = autoSchedule?'block':'none';
+  document.getElementById("autoSchOffNote").style.display = autoSchedule?'none':'block';
 }
 function updateBanner() {
   document.getElementById("bannerInner").innerHTML = bannerUrl
@@ -438,13 +473,25 @@ function updateAvatar() {
 
 window.toggleOpen = function() { isOpen=!isOpen; updateOpenToggle(); }
 
-// ============ MENU LOAD ============
-async function loadMenus() {
-  const snap = await getDocs(collection(db,"shops",shopId,"menus"));
-  menus = [];
-  snap.forEach(d => menus.push({id:d.id,...d.data()}));
-  renderCatStrip();
-  renderMenuGroups();
+// ============ MENU LOAD (เรียลไทม์) ============
+let menusUnsub = null;
+function loadMenus() {
+  if(menusUnsub) menusUnsub();
+  menusUnsub = onSnapshot(collection(db,"shops",shopId,"menus"), snap => {
+    const remote = [];
+    snap.forEach(d => remote.push({id:d.id,...d.data()}));
+    // คงแถวชั่วคราว (กำลังเพิ่มเมนูใหม่/เพิ่มจำนวนมากค้างอยู่) ไว้ ไม่ให้ข้อมูลที่ยังไม่บันทึกหายเวลา snapshot อัปเดต
+    const temp = menus.filter(m=>m.id.startsWith('_new_')||m.id.startsWith('_bulk_'));
+    // ถ้ากำลังเปิดแก้ไขเมนูจริงอยู่ (ไม่ใช่แถวชั่วคราว) คงค่าที่พิมพ์ค้างไว้ ไม่ให้หายถ้ามีคนอื่นแก้เมนูอื่นพร้อมกัน
+    if(openMenuId && !openMenuId.startsWith('_new_') && !openMenuId.startsWith('_bulk_')){
+      const idx = remote.findIndex(m=>m.id===openMenuId);
+      const localVer = menus.find(m=>m.id===openMenuId);
+      if(idx>=0 && localVer) remote[idx] = localVer;
+    }
+    menus = [...remote, ...temp];
+    renderCatStrip();
+    renderMenuGroups();
+  });
 }
 
 // ============ CATEGORIES ============
@@ -497,12 +544,16 @@ function renderMenuGroups(){
   document.getElementById("menuCount") && (document.getElementById("menuCount").textContent = menus.length);
   if(!categories.length && !menus.length){ el.innerHTML='<div class="empty-menu">ยังไม่มีหมวดหมู่ กด "+ เพิ่มหมวดหมู่" ด้านบน</div>'; return; }
   let html = categories.map(c=>renderCatGroup(c)).join('');
-  const uncategorized = menus.filter(m=>!m.categoryId || !categories.find(c=>c.id===m.categoryId));
+  // ข้อสำคัญ: ต้องกัน "_bulk_" (แถวชั่วคราวในหน้าเพิ่มเมนูจำนวนมาก) ออกจากลิสต์หลักเสมอ
+  // ไม่งั้นจะเรนเดอร์ซ้ำกับใน modal เพิ่มเมนูจำนวนมาก ทำให้เกิด id ซ้ำในหน้าเดียวกัน (fi-name-xxx ซ้ำ)
+  // แล้ว document.getElementById จะดึงค่าจากช่องที่ซ่อนอยู่ (หลัง modal) แทนช่องที่ผู้ใช้กำลังพิมพ์จริง
+  // ส่งผลให้พิมพ์แล้วข้อมูลหาย/ไม่ขึ้น เพราะ re-render ทับด้วยค่าเก่าจากช่องที่ผิด
+  const uncategorized = menus.filter(m=>!m.id.startsWith('_bulk_') && (!m.categoryId || !categories.find(c=>c.id===m.categoryId)));
   if(uncategorized.length) html += renderCatGroup({id:'',name:'ไม่มีหมวดหมู่'}, uncategorized);
   el.innerHTML = html || '<div class="empty-menu">ยังไม่มีหมวดหมู่ กด "+ เพิ่มหมวดหมู่" ด้านบน</div>';
 }
 function renderCatGroup(c, itemsOverride){
-  const items = (itemsOverride || menus.filter(m=>m.categoryId===c.id)).sort((a,b)=>(a.order||0)-(b.order||0));
+  const items = (itemsOverride || menus.filter(m=>m.categoryId===c.id && !m.id.startsWith('_bulk_'))).sort((a,b)=>(a.order||0)-(b.order||0));
   const isOpen = openCatId === c.id;
   return `
   <div class="menu-list-section" style="padding:14px 16px">
@@ -965,6 +1016,7 @@ window.addBulkRow = function(){
 }
 window.removeBulkRow = function(id){
   if(bulkIds.length<=1) return; // เหลืออย่างน้อย 1 แถวเสมอ
+  saveFormState(bulkOpenId); // เก็บค่าที่พิมพ์ค้างไว้ในแถวที่เปิดอยู่ก่อน ไม่งั้นจะหายตอน re-render (แก้บัคลบแถวอื่นแล้วข้อมูลแถวที่เปิดอยู่หาย)
   bulkIds = bulkIds.filter(x=>x!==id);
   menus = menus.filter(x=>x.id!==id);
   if(bulkOpenId===id) bulkOpenId=null;
@@ -1019,6 +1071,7 @@ window.saveShopInfo = async function() {
       deliveryTime:document.getElementById("shopDeliveryTime").value.trim(),
       address:document.getElementById("shopAddress").value.trim(),
       isOpen, bannerUrl, avatarUrl,
+      autoSchedule, scheduleOpen:document.getElementById("schOpenTime").value||"", scheduleClose:document.getElementById("schCloseTime").value||"",
       updatedAt:serverTimestamp()
     });
     alert("บันทึกสำเร็จ ✅");
