@@ -800,6 +800,7 @@ window.deleteAd=async function(id){
 // ===== CROP =====
 let cropImgSrc='', cropX=0, cropY=0, cropW=0, cropH=0;
 let isDragging=false, startX=0, startY=0, imgX=0, imgY=0, imgScale=1;
+let lastPinchDist=0;
 const CROP_RATIO=2; // banner ratio 800x400 (ตรงกับขนาด export จริง ป้องกันภาพยืด/เบลอ)
 
 function openCrop(src){
@@ -844,41 +845,80 @@ function applyImgTransform(){
   img.style.transform='';
 }
 
-// drag
-const cropWrap=document.getElementById?document.getElementById("cropCanvasWrap"):null;
+// ซูมเข้า/ออก โดยยึดจุด (cx,cy) ไว้กับที่ — กรอบครอปคงที่เสมอ (ไม่ขยับ/ไม่เปลี่ยนขนาด) กันภาพมีช่องว่างหรือหลุดสัดส่วน
+function zoomImg(factor,cx,cy){
+  const img=document.getElementById("cropImg");
+  if(!img.naturalWidth) return;
+  const minScale=Math.max(cropW/img.naturalWidth, cropH/img.naturalHeight);
+  const maxScale=minScale*4;
+  const newScale=Math.min(maxScale,Math.max(minScale,imgScale*factor));
+  const ratio=newScale/imgScale;
+  imgX=cx-(cx-imgX)*ratio;
+  imgY=cy-(cy-imgY)*ratio;
+  imgScale=newScale;
+  applyImgTransform();
+}
+
+// drag + pinch + wheel
 document.addEventListener("DOMContentLoaded",function(){
   const wrap=document.getElementById("cropCanvasWrap");
-  wrap.addEventListener("touchstart",function(e){isDragging=true;startX=e.touches[0].clientX-imgX;startY=e.touches[0].clientY-imgY;e.preventDefault();},{passive:false});
-  wrap.addEventListener("touchmove",function(e){if(!isDragging)return;imgX=e.touches[0].clientX-startX;imgY=e.touches[0].clientY-startY;applyImgTransform();e.preventDefault();},{passive:false});
-  wrap.addEventListener("touchend",function(){isDragging=false;});
+  wrap.addEventListener("touchstart",function(e){
+    if(e.touches.length===2){
+      isDragging=false;
+      lastPinchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    } else {
+      isDragging=true;startX=e.touches[0].clientX-imgX;startY=e.touches[0].clientY-imgY;
+    }
+    e.preventDefault();
+  },{passive:false});
+  wrap.addEventListener("touchmove",function(e){
+    if(e.touches.length===2){
+      const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+      if(lastPinchDist>0){
+        const rect=wrap.getBoundingClientRect();
+        const midX=(e.touches[0].clientX+e.touches[1].clientX)/2-rect.left;
+        const midY=(e.touches[0].clientY+e.touches[1].clientY)/2-rect.top;
+        zoomImg(d/lastPinchDist,midX,midY);
+      }
+      lastPinchDist=d;
+      e.preventDefault();
+      return;
+    }
+    if(!isDragging)return;
+    imgX=e.touches[0].clientX-startX;imgY=e.touches[0].clientY-startY;applyImgTransform();e.preventDefault();
+  },{passive:false});
+  wrap.addEventListener("touchend",function(e){isDragging=false;if(e.touches.length<2)lastPinchDist=0;});
   wrap.addEventListener("mousedown",function(e){isDragging=true;startX=e.clientX-imgX;startY=e.clientY-imgY;});
   wrap.addEventListener("mousemove",function(e){if(!isDragging)return;imgX=e.clientX-startX;imgY=e.clientY-startY;applyImgTransform();});
   wrap.addEventListener("mouseup",function(){isDragging=false;});
+  wrap.addEventListener("wheel",function(e){
+    e.preventDefault();
+    const rect=wrap.getBoundingClientRect();
+    zoomImg(e.deltaY<0?1.1:0.9,e.clientX-rect.left,e.clientY-rect.top);
+  },{passive:false});
 });
-// ===== RESIZE HANDLES =====
+
+// ===== RESIZE HANDLES (ลากมุม = ซูมเข้า/ออกแบบเดียวกับ pinch แต่ยึดจุดกลางกรอบ — กรอบครอปคงที่ ไม่มีช่องว่าง/ไม่เพี้ยนสัดส่วน) =====
 (function(){
-  let _rz=false,_rzC='',_rzSX=0,_rzSY=0,_rzW=0,_rzH=0,_rzX=0,_rzY=0;
+  let _rz=false,_rzCorner='',_rzStartX=0,_rzStartY=0,_rzStartScale=1;
 
   function startRz(e,corner){
     e.stopPropagation();
-    _rz=true;_rzC=corner;
+    _rz=true;_rzCorner=corner;_rzStartScale=imgScale;
     const pt=e.touches?e.touches[0]:e;
-    _rzSX=pt.clientX;_rzSY=pt.clientY;
-    _rzW=cropW;_rzH=cropH;_rzX=cropX;_rzY=cropY;
+    _rzStartX=pt.clientX;_rzStartY=pt.clientY;
   }
   function doRz(e){
     if(!_rz)return;
     const pt=e.touches?e.touches[0]:e;
-    const dx=pt.clientX-_rzSX, dy=pt.clientY-_rzSY;
-    let nw=_rzW, nh=_rzH, nx=_rzX, ny=_rzY;
-    if(_rzC==='br'){nw=Math.max(80,_rzW+dx); nh=nw/CROP_RATIO;}
-    else if(_rzC==='bl'){nw=Math.max(80,_rzW-dx); nh=nw/CROP_RATIO; nx=_rzX+(_rzW-nw);}
-    else if(_rzC==='tr'){nw=Math.max(80,_rzW+dx); nh=nw/CROP_RATIO; ny=_rzY+(_rzH-nh);}
-    else if(_rzC==='tl'){nw=Math.max(80,_rzW-dx); nh=nw/CROP_RATIO; nx=_rzX+(_rzW-nw); ny=_rzY+(_rzH-nh);}
-    cropW=nw;cropH=nh;cropX=nx;cropY=ny;
-    const frame=document.getElementById('cropFrame');
-    if(frame){frame.style.left=cropX+'px';frame.style.top=cropY+'px';frame.style.width=cropW+'px';frame.style.height=cropH+'px';}
-    applyImgTransform();
+    const dx=pt.clientX-_rzStartX, dy=pt.clientY-_rzStartY;
+    // ลากมุมออกด้านนอก (br/tr ไปขวา, tl/bl ไปซ้าย) = ขยาย(ซูมเข้า); ลากเข้าด้านใน = ซูมออก
+    const hsign=(_rzCorner==='br'||_rzCorner==='tr')?1:-1;
+    const vsign=(_rzCorner==='br'||_rzCorner==='bl')?1:-1;
+    const delta=(dx*hsign+dy*vsign)/2;
+    const newScale=Math.max(0.05,_rzStartScale*(1+delta/cropW));
+    const factor=newScale/imgScale;
+    if(factor!==1) zoomImg(factor,cropX+cropW/2,cropY+cropH/2);
   }
   function endRz(){_rz=false;}
 
@@ -899,7 +939,7 @@ document.addEventListener("DOMContentLoaded",function(){
 window.confirmCrop=function(){
   const img=document.getElementById("cropImg");
   const canvas=document.createElement("canvas");
-  // export ที่ 800×400 โดยตรงจากรูปต้นฉบับ — ไม่ upscale ไม่เบลอ
+  // export ที่ 800×400 โดยตรงจากรูปต้นฉบับ — สัดส่วนกรอบตรงกับ export พอดี ไม่ยืด/ไม่เบลอ
   canvas.width=800; canvas.height=400;
   const ctx=canvas.getContext("2d");
   const offsetX=cropX-imgX, offsetY=cropY-imgY;
