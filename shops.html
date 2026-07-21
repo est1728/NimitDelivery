@@ -27,10 +27,10 @@ body{background:var(--g);min-height:100vh;padding-bottom:28px;}
 
 /* ADS */
 .ads{background:#fff;}
-.ads-outer{overflow:hidden;touch-action:pan-x;}
-.ads-track{display:flex;}
-.ad-slide{min-width:100%;flex-shrink:0;}
-.ad-img{width:100%;height:220px;display:block;object-fit:cover;}
+.ads-outer{overflow:hidden;touch-action:pan-x;width:100%;}
+.ads-track{display:flex;will-change:transform;}
+.ad-slide{width:100%;flex:0 0 100%;flex-shrink:0;}
+.ad-img{width:100%;height:clamp(160px,45vw,240px);display:block;object-fit:cover;}
 .ad-ph{width:100%;height:220px;background:linear-gradient(135deg,var(--p),var(--pd));display:flex;align-items:center;justify-content:center;}
 .ad-ph svg{width:40px;height:40px;fill:rgba(255,255,255,.4);}
 .ad-cap{position:relative;margin-top:-40px;padding:0 16px 14px;background:linear-gradient(transparent,rgba(0,0,0,.6));color:#fff;font-size:16px;font-weight:800;}
@@ -261,8 +261,9 @@ async function loadAds(){
     outer.addEventListener("touchstart",e=>{sx=e.touches[0].clientX;if(adTimer)clearInterval(adTimer);},{passive:true});
     outer.addEventListener("touchmove",e=>{
       const dx=e.touches[0].clientX-sx;
+      const ow=outer.clientWidth;
       track.style.transition="none";
-      track.style.transform=`translateX(calc(-${curAd*100}% + ${dx}px))`;
+      track.style.transform=`translateX(${-(curAd*ow)+dx}px)`;
     },{passive:true});
     outer.addEventListener("touchend",e=>{
       const dx=sx-e.changedTouches[0].clientX;
@@ -277,8 +278,9 @@ async function loadAds(){
 window.goAd=function(i){
   curAd=i;
   const track=document.getElementById("adsTrack");
+  const ow=document.getElementById("adsOuter")?.clientWidth||window.innerWidth;
   track.style.transition="transform .38s ease";
-  track.style.transform=`translateX(-${i*100}%)`;
+  track.style.transform=`translateX(${-(i*ow)}px)`;
   document.querySelectorAll(".dot").forEach((d,j)=>d.classList.toggle("on",j===i));
   // pause all videos, play current if video
   document.querySelectorAll('.ad-slide video').forEach((v,vi)=>{
@@ -468,9 +470,8 @@ window.openAdVideo=function(url){
 };
 </script>
 
-</script>
 <script src="motion.js"></script>
 <script>window._fcmRole="customer";</script>
-<script src="fcm.js">cm.js"></script>
+<script src="fcm.js"></script>
 </body>
 </html>
