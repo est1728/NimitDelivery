@@ -206,24 +206,71 @@ let listUnsub = null;
 
 // ===== BUG FIX: query Firebase ตรงๆ ด้วย customerPhone แทน localStorage =====
 // เพื่อให้ catch ออเดอร์ใหม่ที่สั่งทีหลังได้ทุกร้าน
-function loadOrderList(){
-  const phone = JSON.parse(localStorage.getItem("customerData")||"{}").phone;
-  if(!phone){ renderEmpty(); return; }
-
-  if(listUnsub) listUnsub();
-
-  // ฟัง realtime ทุก order ของ customer คนนี้ที่ยังไม่เสร็จ + เสร็จวันนี้
-  listUnsub = onSnapshot(
-    query(collection(db,"orders"), where("customer.phone","==",phone)),
-    snap => {
-      const orders = [];
-      snap.forEach(d => orders.push({docId:d.id,...d.data()}));
-      // เรียงใหม่ก่อนเก่า
-      orders.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-      renderOrderList(orders);
-    }
-  );
+// เพิ่มเติม: เบอร์โทรอาจถูกบันทึกไว้คนละรูปแบบตอน checkout (เช่น 08xxxxxxxx / 668xxxxxxxx / +668xxxxxxxx)
+// จึงต้อง query หลายรูปแบบพร้อมกันแล้วรวมผลลัพธ์ ไม่ให้ลูกค้าคนอื่นเจอ "ไม่มีออเดอร์ปัจจุบัน" เพราะรูปแบบเบอร์ไม่ตรงเป๊ะ
+function phoneVariants(raw){
+  const digits = (raw||'').replace(/\D/g,'');
+  if(!digits) return [];
+  const variants = new Set([digits]);
+  if(digits.startsWith('66')){ variants.add('0'+digits.slice(2)); variants.add('+'+digits); }
+  if(digits.startsWith('0')){ variants.add('66'+digits.slice(1)); variants.add('+66'+digits.slice(1)); }
+  return [...variants];
 }
+
+let listUnsubs = [];
+let ordersByVariant = {};
+function loadOrderList(){
+  const phone = JSON.parse(localStorage.getItem("customerData")||"{}").phone
+             || localStorage.getItem("customerPhone");
+  if(!phone){ renderPhoneForm(); return; }
+
+  listUnsubs.forEach(u=>u());
+  listUnsubs = [];
+  ordersByVariant = {};
+
+  const variants = phoneVariants(phone);
+  variants.forEach(v=>{
+    const unsub = onSnapshot(
+      query(collection(db,"orders"), where("customer.phone","==",v)),
+      snap => {
+        ordersByVariant[v] = [];
+        snap.forEach(d => ordersByVariant[v].push({docId:d.id,...d.data()}));
+        // รวมออเดอร์จากทุกรูปแบบเบอร์ ตัด docId ซ้ำ
+        const merged = new Map();
+        Object.values(ordersByVariant).forEach(list=>list.forEach(o=>merged.set(o.docId,o)));
+        const orders = [...merged.values()];
+        orders.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+        renderOrderList(orders);
+      }
+    );
+    listUnsubs.push(unsub);
+  });
+}
+
+function renderPhoneForm(){
+  document.getElementById("activeOrders").innerHTML=`
+    <div class="empty-state">
+      <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24 11.4 11.4 0 003.56.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.56a1 1 0 01-.25 1.02l-2.2 2.21z"/></svg></div>
+      <div class="empty-title">ใส่เบอร์โทรเพื่อดูออเดอร์</div>
+      <div class="empty-sub">ใช้เบอร์เดิมที่สั่งอาหารไว้</div>
+      <div style="display:flex;gap:8px;margin-top:16px;width:100%;max-width:300px">
+        <input id="phoneInput" type="tel" placeholder="0812345678" maxlength="10"
+          style="flex:1;height:44px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 14px;font-size:15px;outline:none"
+          onkeydown="if(event.key==='Enter')window.lookupPhone()">
+        <button onclick="window.lookupPhone()"
+          style="height:44px;padding:0 18px;border:none;border-radius:12px;background:#0c4aa6;color:#fff;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap">ค้นหา</button>
+      </div>
+    </div>`;
+  document.getElementById("doneOrders").innerHTML="";
+}
+
+window.lookupPhone=function(){
+  const phone = document.getElementById("phoneInput")?.value.trim();
+  if(!phone||phone.length<9){ alert("กรุณาใส่เบอร์โทรให้ถูกต้อง"); return; }
+  // บันทึกชั่วคราวสำหรับ session นี้
+  localStorage.setItem("customerPhone", phone);
+  loadOrderList();
+};
 
 function renderEmpty(){
   document.getElementById("activeOrders").innerHTML=`
