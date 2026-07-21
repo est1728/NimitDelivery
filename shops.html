@@ -334,7 +334,7 @@ function shopBadge(s){
   return null;
 }
 function renderPop(){
-  const pop=[...allShops.filter(s=>s.isOpen&&shopScore(s)>0)]
+  const pop=[...allShops.filter(s=>s.isOpen!==false&&shopScore(s)>0)]
     .sort((a,b)=>shopScore(b)-shopScore(a))
     .slice(0,8);
   if(!pop.length) return;
@@ -366,9 +366,9 @@ function card(s){
   const shopBadgeType=shopBadge(s);
   const shopBadgeLabels={pop:'ยอดนิยม',top:'คะแนนสูงสุด',new:'เปิดใหม่',fast:'ส่งไว',promo:'โปรโมชัน'};
   const badgeEl=shopBadgeType?`<span class="sc-badge sc-badge-${shopBadgeType}">${shopBadgeLabels[shopBadgeType]}</span>`:'';
-  const badge=s.isOpen?`<div class="sc-open">เปิด</div>`:`<div class="sc-close">ปิด</div>`;
-  const oc=s.isOpen?`onclick="window.pick('${s.id}','${sn}')"` :"";
-  return `<div class="sc${s.isOpen?"":" closed"}" ${oc}>
+  const badge=s.isOpen!==false?`<div class="sc-open">เปิด</div>`:`<div class="sc-close">ปิด</div>`;
+  const oc=s.isOpen!==false?`onclick="window.pick('${s.id}','${sn}')"` :"";
+  return `<div class="sc${s.isOpen!==false?"":" closed"}" ${oc}>
     <div class="sc-banner">${banner}${badgeEl}${badge}</div>
     <div class="sc-body" style="padding:0 14px 14px;position:relative">
       <div style="display:flex;align-items:flex-end;gap:12px;margin-bottom:10px">
@@ -384,7 +384,7 @@ function card(s){
 }
 
 function renderShops(list){
-  const open=list.filter(s=>s.isOpen), closed=list.filter(s=>!s.isOpen);
+  const open=list.filter(s=>s.isOpen!==false), closed=list.filter(s=>s.isOpen===false);
   document.getElementById("shopsHd").textContent=curQ?`ผลลัพธ์ ${list.length} ร้าน`:"ร้านทั้งหมด";
   if(!list.length){document.getElementById("shopsEl").innerHTML='<div class="lt">ไม่พบร้านค้า</div>';return;}
   document.getElementById("shopsEl").innerHTML=
