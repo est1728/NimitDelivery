@@ -240,13 +240,42 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
 
 <div class="menu-list-section">
   <div class="menu-list-header">
-    <div class="menu-count-title">เมนู (<span id="menuCount">0</span>)</div>
-    <button class="add-menu-btn" onclick="openNewMenuForm()">
+    <div class="menu-count-title">หมวดหมู่เมนู</div>
+    <button class="add-menu-btn" onclick="promptAddCategory()">
       <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-      เพิ่มเมนู
+      เพิ่มหมวดหมู่
     </button>
   </div>
-  <div id="menuList"><div class="empty-menu">ยังไม่มีเมนู</div></div>
+  <div id="catStrip"></div>
+  <div style="font-size:11px;color:var(--subtext);margin-top:6px">เพิ่มหมวดหมู่ก่อน แล้วกดที่แถบหมวดหมู่เพื่อเพิ่มเมนูในหมวดนั้น</div>
+</div>
+
+<div id="menuGroups"><div class="empty-menu">ยังไม่มีหมวดหมู่ กด "+ เพิ่มหมวดหมู่" ด้านบน</div></div>
+
+<!-- ADD-MODE CHOICE POPUP -->
+<div class="modal-overlay" id="addModeModal">
+  <div class="modal" style="padding-bottom:24px">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="addModeTitle">เพิ่มเมนู</div>
+    <button class="modal-save-btn" style="margin-bottom:10px" onclick="chooseAddMode('single')">เพิ่มเมนูเดียว</button>
+    <button class="modal-save-btn" style="background:var(--primary-light);color:var(--primary);box-shadow:none" onclick="chooseAddMode('bulk')">เพิ่มเมนูจำนวนมาก</button>
+    <button class="modal-cancel-btn" onclick="closeModal('addModeModal')">ยกเลิก</button>
+  </div>
+</div>
+
+<!-- BULK ADD MODAL (near full-screen) -->
+<div id="bulkModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:600;align-items:flex-end;" onclick="if(event.target===this) confirmBulk()">
+  <div style="background:#fff;border-radius:20px 20px 0 0;width:100%;height:92vh;display:flex;flex-direction:column">
+    <div style="padding:16px;border-bottom:2px solid var(--gray);display:flex;align-items:center;gap:10px">
+      <div style="font-size:16px;font-weight:800;flex:1" id="bulkTitle">เพิ่มเมนูจำนวนมาก</div>
+      <button onclick="addBulkRow()" style="border:none;background:var(--primary-light);color:var(--primary);font-weight:800;font-size:13px;padding:8px 14px;border-radius:20px;cursor:pointer">+ แถว</button>
+    </div>
+    <div id="bulkRows" style="flex:1;overflow-y:auto;padding:12px 16px"></div>
+    <div style="display:flex;gap:10px;padding:12px 16px;border-top:2px solid var(--gray)">
+      <button onclick="cancelBulk()" style="flex:1;height:48px;border:none;border-radius:14px;background:var(--gray);color:var(--text);font-weight:800;font-size:14px;cursor:pointer">ยกเลิก</button>
+      <button onclick="confirmBulk()" style="flex:1;height:48px;border:none;border-radius:14px;background:var(--primary);color:#fff;font-weight:800;font-size:14px;cursor:pointer">ยืนยัน</button>
+    </div>
+  </div>
 </div>
 
 <!-- BANNER MODAL -->
@@ -301,7 +330,7 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, getDocs, deleteDoc, serverTimestamp }
+import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, getDocs, deleteDoc, serverTimestamp, query, where }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -316,18 +345,26 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const params = new URLSearchParams(window.location.search);
-const shopId = params.get("id");
+let shopId = params.get("id");
 let isOpen = false, bannerUrl = "", avatarUrl = "";
 let menus = [];
 let openMenuId = null; // id ของเมนูที่กำลัง expand
 let shopType = "normal"; // "proxy" = ร้านฝากซื้อ (ไม่เชื่อม GP หลักจากตั้งค่า)
+let categories = []; // [{id,name}]
+let openCatId = null; // หมวดหมู่ที่กำลัง expand
 
 // ============ SHOP LOAD ============
 async function loadShop() {
   if (!shopId) return;
-  const snap = await getDoc(doc(db,"shops",shopId));
+  let snap = await getDoc(doc(db,"shops",shopId));
+  if (!snap.exists()) {
+    // ลองค้นหาด้วย slug แทน (กรณีลิงก์ใช้ slug ไม่ใช่ doc id)
+    const q = await getDocs(query(collection(db,"shops"),where("slug","==",shopId)));
+    if (!q.empty) { const d = q.docs[0]; shopId = d.id; snap = d; }
+  }
   if (!snap.exists()) return;
   const s = snap.data();
+  categories = Array.isArray(s.categories) ? s.categories : [];
   document.getElementById("pageTitle").textContent = s.name||"จัดการร้านค้า";
   document.getElementById("shopNameDisplay").textContent = s.name||"ชื่อร้าน";
   document.getElementById("shopName").value = s.name||"";
@@ -363,29 +400,102 @@ async function loadMenus() {
   const snap = await getDocs(collection(db,"shops",shopId,"menus"));
   menus = [];
   snap.forEach(d => menus.push({id:d.id,...d.data()}));
-  document.getElementById("menuCount").textContent = menus.length;
-  renderMenuList();
+  renderCatStrip();
+  renderMenuGroups();
 }
 
-function renderMenuList() {
-  const el = document.getElementById("menuList");
-  if (!menus.length) { el.innerHTML='<div class="empty-menu">ยังไม่มีเมนู กด + เพิ่มเมนู</div>'; return; }
-  el.innerHTML = menus.map(m => renderMenuCard(m)).join('');
+// ============ CATEGORIES ============
+function catName(id){ const c=categories.find(x=>x.id===id); return c?c.name:''; }
+function renderCatStrip(){
+  const el = document.getElementById("catStrip");
+  if(!el) return;
+  if(!categories.length){ el.innerHTML=''; return; }
+  el.innerHTML = categories.map((c,i)=>`
+    <div style="display:flex;align-items:center;gap:6px;padding:8px 10px;background:var(--gray);border-radius:10px;margin-bottom:6px">
+      <span style="flex:1;font-size:13px;font-weight:700;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.name)}</span>
+      <button onclick="moveCategory(${i},-1)" ${i===0?'disabled':''} style="width:28px;height:28px;border:none;background:#fff;border-radius:8px;cursor:pointer;opacity:${i===0?'.35':'1'};flex-shrink:0">▲</button>
+      <button onclick="moveCategory(${i},1)" ${i===categories.length-1?'disabled':''} style="width:28px;height:28px;border:none;background:#fff;border-radius:8px;cursor:pointer;opacity:${i===categories.length-1?'.35':'1'};flex-shrink:0">▼</button>
+      <button onclick="renameCategory(${i})" style="width:28px;height:28px;border:none;background:var(--primary-light);color:var(--primary);border-radius:8px;cursor:pointer;flex-shrink:0">✎</button>
+      <button onclick="deleteCategory(${i})" style="width:28px;height:28px;border:none;background:var(--red-light);color:var(--red);border-radius:8px;cursor:pointer;flex-shrink:0">×</button>
+    </div>`).join('');
+}
+window.promptAddCategory = function(){
+  const name = prompt("ชื่อหมวดหมู่ เช่น เมนูตำถาด");
+  if(!name || !name.trim()) return;
+  categories.push({id:'cat_'+Date.now(), name:name.trim()});
+  saveCategories(); renderCatStrip(); renderMenuGroups();
+}
+window.renameCategory = function(i){
+  const c = categories[i]; if(!c) return;
+  const name = prompt("แก้ไขชื่อหมวดหมู่", c.name);
+  if(!name || !name.trim()) return;
+  c.name = name.trim();
+  saveCategories(); renderCatStrip(); renderMenuGroups();
+}
+window.deleteCategory = function(i){
+  const c = categories[i]; if(!c) return;
+  if(!confirm(`ลบหมวดหมู่ "${c.name}"? เมนูในหมวดนี้จะย้ายไปเป็น "ไม่มีหมวดหมู่"`)) return;
+  categories.splice(i,1);
+  saveCategories(); renderCatStrip(); renderMenuGroups();
+}
+window.moveCategory = function(i,dir){
+  const j = i+dir; if(j<0||j>=categories.length) return;
+  const tmp=categories[i]; categories[i]=categories[j]; categories[j]=tmp;
+  saveCategories(); renderCatStrip(); renderMenuGroups();
+}
+async function saveCategories(){
+  try{ await updateDoc(doc(db,"shops",shopId),{categories, updatedAt:serverTimestamp()}); }catch(e){}
 }
 
-function renderMenuCard(m) {
-  const isOpen = openMenuId === m.id;
+// ============ MENU GROUPS (grouped by category, collapsible bars) ============
+function renderMenuGroups(){
+  const el = document.getElementById("menuGroups");
+  if(!el) return;
+  document.getElementById("menuCount") && (document.getElementById("menuCount").textContent = menus.length);
+  if(!categories.length && !menus.length){ el.innerHTML='<div class="empty-menu">ยังไม่มีหมวดหมู่ กด "+ เพิ่มหมวดหมู่" ด้านบน</div>'; return; }
+  let html = categories.map(c=>renderCatGroup(c)).join('');
+  const uncategorized = menus.filter(m=>!m.categoryId || !categories.find(c=>c.id===m.categoryId));
+  if(uncategorized.length) html += renderCatGroup({id:'',name:'ไม่มีหมวดหมู่'}, uncategorized);
+  el.innerHTML = html || '<div class="empty-menu">ยังไม่มีหมวดหมู่ กด "+ เพิ่มหมวดหมู่" ด้านบน</div>';
+}
+function renderCatGroup(c, itemsOverride){
+  const items = (itemsOverride || menus.filter(m=>m.categoryId===c.id)).sort((a,b)=>(a.order||0)-(b.order||0));
+  const isOpen = openCatId === c.id;
   return `
-  <div class="menu-card ${isOpen?'open':''}" id="card-${m.id}">
+  <div class="menu-list-section" style="padding:14px 16px">
+    <div onclick="toggleCat('${c.id}')" style="cursor:pointer;text-align:center;position:relative;padding:10px 0;border-top:2px solid var(--gray);border-bottom:2px solid var(--gray)">
+      <span style="background:#fff;padding:0 12px;position:relative;font-size:13px;font-weight:800;color:var(--primary)">${esc(c.name)} (${items.length})</span>
+    </div>
+    ${isOpen ? `
+    <div style="padding-top:12px">
+      ${c.id ? `<button onclick="openAddModeFor('${c.id}')" style="width:100%;height:42px;border:2px dashed #c7d7f5;border-radius:12px;background:var(--primary-light);color:var(--primary);font-weight:800;font-size:13px;cursor:pointer;margin-bottom:10px">+ เพิ่มเมนูในหมวดนี้</button>` : ''}
+      ${items.length ? items.map((m,i)=>renderMenuCard(m,i,items.length)).join('') : '<div class="empty-menu">ยังไม่มีเมนูในหมวดนี้</div>'}
+    </div>` : ''}
+  </div>`;
+}
+window.toggleCat = function(id){ openCatId = (openCatId===id) ? null : id; renderMenuGroups(); }
+
+function renderMenuCard(m,idx,total) {
+  const isOpen = openMenuId === m.id;
+  const avail = m.available !== false;
+  return `
+  <div class="menu-card ${isOpen?'open':''}" id="card-${m.id}" style="${avail?'':'opacity:.6'}">
     <div class="menu-card-header" onclick="toggleMenu('${m.id}')">
       <div class="menu-thumb">
         ${m.imgUrl?`<img src="${m.imgUrl}">`:`<svg viewBox="0 0 24 24"><path d="M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26 1.44 1.42 2.43 2.89 2.43 5.29v8.05zM1 21.99V21h15.03v.99c0 .55-.45 1-1.01 1H2.01c-.56 0-1.01-.45-1.01-1zm15.03-7c0-4.5-6.72-5-8.03-5-1.28 0-8 .5-8 5h16.03z"/></svg>`}
       </div>
       <div class="menu-meta">
-        <div class="menu-meta-name">${m.name||'ไม่มีชื่อ'}</div>
-        <div class="menu-meta-sub">฿${m.price||0} ${m.category?`· ${m.category}`:''} ${m.optionGroups?.length?`· ${m.optionGroups.length} กลุ่ม`:''}</div>
+        <div class="menu-meta-name">${m.name||'ไม่มีชื่อ'}${avail?'':' <span style=\"font-size:11px;color:var(--red);font-weight:700\">(ปิดขาย)</span>'}</div>
+        <div class="menu-meta-sub">฿${m.price||0} ${m.optionGroups?.length?`· ${m.optionGroups.length} กลุ่ม`:''}</div>
       </div>
       <div class="menu-card-actions" onclick="event.stopPropagation()">
+        <button class="toggle ${avail?'on':''}" style="width:38px;height:22px" onclick="toggleAvailable('${m.id}',${avail})"></button>
+        <button class="icon-btn" style="background:var(--gray)" onclick="moveMenuOrder('${m.id}',-1)" ${idx===0?'disabled style="opacity:.3;background:var(--gray)"':''}>
+          <svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z"/></svg>
+        </button>
+        <button class="icon-btn" style="background:var(--gray)" onclick="moveMenuOrder('${m.id}',1)" ${idx===total-1?'disabled style="opacity:.3;background:var(--gray)"':''}>
+          <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+        </button>
         <button class="icon-btn btn-del" onclick="deleteMenu('${m.id}')">
           <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
         </button>
@@ -415,7 +525,10 @@ function renderMenuForm(m) {
     <div class="form-row">
       <div class="form-field">
         <div class="form-label">หมวดหมู่</div>
-        <input class="form-input" id="fi-cat-${m.id}" value="${esc(m.category)}" placeholder="อาหารจานเดียว">
+        <select class="form-input" id="fi-cat-${m.id}">
+          <option value="">ไม่มีหมวดหมู่</option>
+          ${categories.map(c=>`<option value="${c.id}" ${m.categoryId===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}
+        </select>
       </div>
       <div class="form-field">
         <div class="form-label">${shopType==='proxy'?'GP หลัก (%)':'GP% เพิ่มเติม'}</div>
@@ -498,7 +611,7 @@ window.toggleMenu = function(menuId) {
   // บันทึก state form ก่อน toggle
   saveFormState(openMenuId);
   openMenuId = openMenuId===menuId ? null : menuId;
-  renderMenuList();
+  renderMenuGroups();
   if (openMenuId) {
     setTimeout(()=>{
       const el = document.getElementById(`card-${openMenuId}`);
@@ -520,7 +633,7 @@ function saveFormState(menuId) {
   const img = document.getElementById(`fi-img-${menuId}`)?.value;
   if (name !== undefined) m.name = name;
   if (price !== undefined) m.price = parseFloat(price)||0;
-  if (cat !== undefined) m.category = cat;
+  if (cat !== undefined) { m.categoryId = cat; m.category = catName(cat); }
   if (gp !== undefined) m.gp = parseFloat(gp)||0;
   if (desc !== undefined) m.desc = desc;
   if (img !== undefined) m.imgUrl = img;
@@ -598,15 +711,17 @@ function reRenderGroups(menuId,m) {
 }
 
 // ============ NEW MENU ============
-window.openNewMenuForm = function() {
+window.openNewMenuForm = function(catId) {
   saveFormState(openMenuId);
-  // เพิ่ม temp menu
+  const cid = catId||'';
+  const group = menus.filter(x=>(x.categoryId||'')===cid);
+  const maxOrder = group.reduce((mx,x)=>Math.max(mx,x.order||0),-1);
   const tmpId = `_new_${Date.now()}`;
-  menus.unshift({id:tmpId,name:'',price:0,category:'',gp:0,desc:'',imgUrl:'',optionGroups:[]});
+  menus.unshift({id:tmpId,name:'',price:0,category:catName(cid),categoryId:cid,gp:0,desc:'',imgUrl:'',optionGroups:[],available:true,order:maxOrder+1});
   openMenuId = tmpId;
-  document.getElementById("menuCount").textContent = menus.length;
-  renderMenuList();
-  window.scrollTo({top:document.getElementById('menuList').offsetTop-20,behavior:'smooth'});
+  openCatId = cid;
+  renderMenuGroups();
+  window.scrollTo({top:document.getElementById('menuGroups').offsetTop-20,behavior:'smooth'});
 }
 
 // ============ SAVE MENU ============
@@ -617,7 +732,8 @@ window.saveMenu = async function(menuId) {
   if(!m.name) { alert("กรุณากรอกชื่อเมนู"); return; }
 
   const data = {
-    name:m.name, price:m.price||0, category:m.category||'',
+    name:m.name, price:m.price||0, category:m.category||'', categoryId:m.categoryId||'',
+    available:m.available!==false, order:m.order||0,
     gp:m.gp||0, gpIsMain:shopType==='proxy', desc:m.desc||'', imgUrl:m.imgUrl||'',
     optionGroups: (m.optionGroups||[]).filter(g=>g.title).map(g=>({
       title:g.title, required:!!g.required,
@@ -647,8 +763,89 @@ window.deleteMenu = async function(menuId) {
   }
   menus = menus.filter(m=>m.id!==menuId);
   if(openMenuId===menuId) openMenuId=null;
-  document.getElementById("menuCount").textContent = menus.length;
-  renderMenuList();
+  renderMenuGroups();
+}
+
+// ============ AVAILABILITY TOGGLE ============
+window.toggleAvailable = async function(menuId, cur) {
+  const m = menus.find(x=>x.id===menuId); if(!m) return;
+  m.available = !cur;
+  renderMenuGroups();
+  if(!menuId.startsWith('_new_')) {
+    try{ await updateDoc(doc(db,"shops",shopId,"menus",menuId),{available:m.available,updatedAt:serverTimestamp()}); }
+    catch(e){ m.available=cur; renderMenuGroups(); }
+  }
+}
+
+// ============ REORDER MENUS WITHIN CATEGORY ============
+window.moveMenuOrder = async function(menuId, dir) {
+  const m = menus.find(x=>x.id===menuId); if(!m) return;
+  const group = menus.filter(x=>(x.categoryId||'')===(m.categoryId||'')).sort((a,b)=>(a.order||0)-(b.order||0));
+  const idx = group.findIndex(x=>x.id===menuId);
+  const j = idx+dir; if(j<0||j>=group.length) return;
+  const other = group[j];
+  const tmp = m.order||0; m.order = other.order||0; other.order = tmp;
+  if(m.order===other.order){ m.order=idx; other.order=j; }
+  renderMenuGroups();
+  try{
+    if(!m.id.startsWith('_new_')) await updateDoc(doc(db,"shops",shopId,"menus",m.id),{order:m.order});
+    if(!other.id.startsWith('_new_')) await updateDoc(doc(db,"shops",shopId,"menus",other.id),{order:other.order});
+  }catch(e){}
+}
+
+// ============ ADD-MODE CHOICE POPUP ============
+let addModeCatId = '';
+window.openAddModeFor = function(catId) {
+  addModeCatId = catId||'';
+  document.getElementById("addModeTitle").textContent = 'เพิ่มเมนู: '+(catName(addModeCatId)||'ไม่มีหมวดหมู่');
+  document.getElementById("addModeModal").classList.add("show");
+}
+window.chooseAddMode = function(mode) {
+  closeModal('addModeModal');
+  if(mode==='single') openNewMenuForm(addModeCatId);
+  else openBulkModal(addModeCatId);
+}
+
+// ============ BULK ADD MODAL ============
+let bulkCatId = '';
+let bulkRows = [];
+function openBulkModal(catId) {
+  bulkCatId = catId||'';
+  document.getElementById("bulkTitle").textContent = 'เพิ่มเมนูจำนวนมาก: '+(catName(bulkCatId)||'ไม่มีหมวดหมู่');
+  bulkRows = [{name:'',price:''}];
+  renderBulkRows();
+  document.getElementById("bulkModal").style.display='flex';
+}
+function renderBulkRows() {
+  const el = document.getElementById("bulkRows");
+  el.innerHTML = bulkRows.map((r,i)=>`
+    <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
+      <input class="form-input" style="flex:2" placeholder="ชื่อเมนู" value="${esc(r.name)}" oninput="bulkRows[${i}].name=this.value">
+      <input class="form-input" style="flex:1" type="number" placeholder="ราคา" value="${r.price}" oninput="bulkRows[${i}].price=this.value">
+      <button onclick="removeBulkRow(${i})" style="width:36px;height:36px;border:none;border-radius:10px;background:var(--red-light);color:var(--red);cursor:pointer;flex-shrink:0;font-size:16px">×</button>
+    </div>`).join('');
+}
+window.addBulkRow = function(){ bulkRows.push({name:'',price:''}); renderBulkRows(); }
+window.removeBulkRow = function(i){ bulkRows.splice(i,1); if(!bulkRows.length) bulkRows.push({name:'',price:''}); renderBulkRows(); }
+window.cancelBulk = function() {
+  bulkRows = [];
+  document.getElementById("bulkModal").style.display='none';
+}
+window.confirmBulk = async function() { await saveBulk(); }
+async function saveBulk() {
+  const valid = bulkRows.filter(r=>r.name && r.name.trim());
+  document.getElementById("bulkModal").style.display='none';
+  if(!valid.length) { bulkRows=[]; return; }
+  const group = menus.filter(x=>(x.categoryId||'')===(bulkCatId||''));
+  let maxOrder = group.reduce((mx,x)=>Math.max(mx,x.order||0),-1);
+  for(const r of valid) {
+    maxOrder++;
+    const data = {name:r.name.trim(), price:parseFloat(r.price)||0, category:catName(bulkCatId), categoryId:bulkCatId||'', gp:0, gpIsMain:shopType==='proxy', desc:'', imgUrl:'', optionGroups:[], available:true, order:maxOrder, createdAt:serverTimestamp(), updatedAt:serverTimestamp()};
+    try{ const ref=await addDoc(collection(db,"shops",shopId,"menus"),data); menus.push({id:ref.id,...data}); }catch(e){}
+  }
+  bulkRows = [];
+  openCatId = bulkCatId||'';
+  renderMenuGroups();
 }
 
 // ============ SHOP SAVE ============
