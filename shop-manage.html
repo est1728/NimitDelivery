@@ -55,7 +55,7 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
 .toggle { width:44px; height:24px; background:#cbd5e1; border-radius:12px; position:relative; cursor:pointer; border:none; transition:background 0.3s; flex-shrink:0; }
 .toggle.on { background:var(--green); }
 .toggle::after { content:''; position:absolute; width:18px; height:18px; background:#fff; border-radius:50%; top:3px; left:3px; transition:left 0.25s; box-shadow:0 1px 3px rgba(0,0,0,0.2); }
-.toggle.on::after { left:23px; }
+.toggle.on::after { left:calc(100% - 21px); }
 
 .section { background:#fff; margin:8px 0; padding:16px; }
 .section-title { font-size:15px; font-weight:800; color:var(--text); margin-bottom:14px; }
@@ -113,22 +113,22 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
 .add-group-btn svg { width:12px; height:12px; fill:var(--primary); }
 
 .group-card { background:#fff; border:2px solid #e2e8f0; border-radius:12px; padding:12px; margin-bottom:10px; }
-.group-header { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
-.group-title-input { flex:1; height:38px; border:2px solid #eef0f4; border-radius:10px; padding:0 12px; font-size:14px; font-weight:700; outline:none; background:#fff; }
+.group-header { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.group-title-input { flex:1; height:38px; border:2px solid #eef0f4; border-radius:10px; padding:0 12px; font-size:14px; font-weight:700; outline:none; background:#fff; min-width:0; }
 .group-title-input:focus { border-color:var(--primary); }
 
-.required-row { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+.required-row { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
 .req-label { font-size:11px; font-weight:700; color:var(--subtext); white-space:nowrap; }
 .mini-toggle { width:34px; height:20px; background:#cbd5e1; border-radius:10px; position:relative; cursor:pointer; border:none; transition:background 0.3s; flex-shrink:0; }
 .mini-toggle.on { background:var(--orange); }
-.mini-toggle::after { content:''; position:absolute; width:14px; height:14px; background:#fff; border-radius:50%; top:3px; left:3px; transition:left 0.25s; }
-.mini-toggle.on::after { left:17px; }
-.req-badge { font-size:10px; font-weight:700; padding:2px 7px; border-radius:20px; white-space:nowrap; }
+.mini-toggle::after { content:''; position:absolute; width:14px; height:14px; background:#fff; border-radius:50%; top:3px; left:3px; transition:left 0.25s, right 0.25s; }
+.mini-toggle.on::after { left:calc(100% - 17px); }
+.req-badge { font-size:10px; font-weight:700; padding:2px 7px; border-radius:20px; white-space:nowrap; flex-shrink:0; }
 .req-badge.on { background:var(--orange-light); color:var(--orange); }
 .req-badge.off { background:var(--gray); color:var(--subtext); }
 
-.del-group-btn { width:28px; height:28px; border-radius:8px; border:none; background:var(--red-light); cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-.del-group-btn svg { width:13px; height:13px; fill:var(--red); }
+.del-group-btn { width:32px; height:32px; border-radius:8px; border:none; background:var(--red-light); cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.del-group-btn svg { width:14px; height:14px; fill:var(--red); }
 
 .option-list { display:flex; flex-direction:column; gap:6px; }
 .option-row { display:flex; align-items:center; gap:6px; }
@@ -284,7 +284,7 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
     <div id="bulkRows" style="flex:1;overflow-y:auto;padding:12px 16px"></div>
     <div style="display:flex;gap:10px;padding:12px 16px;border-top:2px solid var(--gray)">
       <button onclick="cancelBulk()" style="flex:1;height:48px;border:none;border-radius:14px;background:var(--gray);color:var(--text);font-weight:800;font-size:14px;cursor:pointer">ยกเลิก</button>
-      <button onclick="confirmBulk()" style="flex:1;height:48px;border:none;border-radius:14px;background:var(--primary);color:#fff;font-weight:800;font-size:14px;cursor:pointer">ยืนยัน</button>
+      <button onclick="confirmBulk()" id="bulkConfirmBtn" style="flex:1;height:48px;border:none;border-radius:14px;background:var(--primary);color:#fff;font-weight:800;font-size:14px;cursor:pointer">ยืนยัน</button>
     </div>
   </div>
 </div>
@@ -361,6 +361,32 @@ let isOpen = false, bannerUrl = "", avatarUrl = "";
 let menus = [];
 let openMenuId = null; // id ของเมนูที่กำลัง expand
 let shopType = "normal"; // "proxy" = ร้านฝากซื้อ (ไม่เชื่อม GP หลักจากตั้งค่า)
+let siteGpPercent = 0, siteGpSubPercent = 0, siteGpTiers = [];
+async function loadGpSettings(){
+  try{
+    const s = await getDoc(doc(db,"settings","pricing"));
+    if(s.exists()){ const d=s.data(); siteGpPercent=d.gpPercent||0; siteGpSubPercent=d.gpSubPercent||0; siteGpTiers=Array.isArray(d.gpTiers)?d.gpTiers:[]; }
+  }catch(e){}
+}
+function tierGpPercent(base){
+  if(Array.isArray(siteGpTiers) && siteGpTiers.length){
+    const t = siteGpTiers.find(t=>base>=(t.min??0) && base<=(t.max??Infinity));
+    if(t) return t.gp||0;
+  }
+  return siteGpPercent;
+}
+// ราคาที่ลูกค้าจะเห็นจริง (รวม GP) — ใช้แสดงตัวอย่างในฟอร์มแก้ไขเมนู ไม่เกี่ยวกับการคำนวณจริงฝั่งลูกค้า
+function previewCustomerPrice(base, menuGp){
+  base = parseFloat(base)||0;
+  if(shopType==='proxy') return Math.ceil(base);
+  return Math.ceil(base*(1+(tierGpPercent(base)+(parseFloat(menuGp)||0))/100));
+}
+// ราคาตัวเลือกย่อยที่ลูกค้าจะเห็น — ใช้ "GP ย่อย (%)" แยกจาก GP ของเมนูหลัก
+function previewSubPrice(optPrice){
+  optPrice = parseFloat(optPrice)||0;
+  if(shopType==='proxy') return Math.ceil(optPrice);
+  return Math.ceil(optPrice*(1+siteGpSubPercent/100));
+}
 let categories = []; // [{id,name}]
 let openCatId = null; // หมวดหมู่ที่กำลัง expand
 
@@ -522,7 +548,7 @@ function renderMenuCard(m,idx,total) {
   </div>`;
 }
 
-function renderMenuForm(m) {
+function renderMenuForm(m, hideSaveBtn) {
   const groups = m.optionGroups||[];
   return `
   <div class="menu-form" id="form-${m.id}">
@@ -533,7 +559,8 @@ function renderMenuForm(m) {
       </div>
       <div class="form-field">
         <div class="form-label">ราคาร้าน (฿)</div>
-        <input class="form-input" id="fi-price-${m.id}" type="number" value="${m.price||''}" placeholder="50">
+        <input class="form-input" id="fi-price-${m.id}" type="number" value="${m.price||''}" placeholder="50" oninput="updateGpPreview('${m.id}')">
+        <div style="font-size:11px;color:var(--primary);font-weight:700;margin-top:4px" id="price-preview-${m.id}">${shopType==='proxy'?'':(m.price?`${m.price} → ${previewCustomerPrice(m.price,m.gp)} (ราคาที่ลูกค้าเห็น)`:'')}</div>
       </div>
     </div>
     <div class="form-row">
@@ -546,7 +573,7 @@ function renderMenuForm(m) {
       </div>
       <div class="form-field">
         <div class="form-label">${shopType==='proxy'?'GP หลัก (%)':'GP% เพิ่มเติม'}</div>
-        <input class="form-input" id="fi-gp-${m.id}" type="number" value="${m.gp||0}">
+        <input class="form-input" id="fi-gp-${m.id}" type="number" value="${m.gp||0}" oninput="updateGpPreview('${m.id}')">
       </div>
     </div>
     <div class="form-field">
@@ -575,7 +602,7 @@ function renderMenuForm(m) {
       </div>
     </div>
 
-    <button class="save-menu-btn" onclick="saveMenu('${m.id}')">บันทึกเมนูนี้</button>
+    ${hideSaveBtn ? '' : `<button class="save-menu-btn" onclick="saveMenu('${m.id}')">บันทึกเมนูนี้</button>`}
   </div>`;
 }
 
@@ -585,14 +612,13 @@ function renderGroupCard(menuId, g, gi) {
   <div class="group-card" id="gc-${menuId}-${gi}">
     <div class="group-header">
       <input class="group-title-input" id="gt-${menuId}-${gi}" value="${esc(g.title)}" placeholder="ชื่อกลุ่ม เช่น ระดับเผ็ด">
-      <div class="required-row">
-        <span class="req-label">บังคับ</span>
-        <button class="mini-toggle ${g.required?'on':''}" id="greq-${menuId}-${gi}" onclick="toggleReq('${menuId}',${gi})"></button>
-        <span class="req-badge ${g.required?'on':'off'}" id="greq-badge-${menuId}-${gi}">${g.required?'บังคับ':'ไม่บังคับ'}</span>
-      </div>
       <button class="del-group-btn" onclick="delGroup('${menuId}',${gi})">
         <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
       </button>
+    </div>
+    <div class="required-row">
+      <button class="mini-toggle ${g.required?'on':''}" id="greq-${menuId}-${gi}" onclick="toggleReq('${menuId}',${gi})"></button>
+      <span class="req-badge ${g.required?'on':'off'}" id="greq-badge-${menuId}-${gi}">${g.required?'บังคับ':'ไม่บังคับ'}</span>
     </div>
     <div class="option-list" id="opts-${menuId}-${gi}">
       ${opts.map((o,oi) => renderOptionRow(menuId,gi,oi,o)).join('')}
@@ -606,19 +632,38 @@ function renderGroupCard(menuId, g, gi) {
 
 function renderOptionRow(menuId,gi,oi,o) {
   return `
-  <div class="option-row" id="opt-${menuId}-${gi}-${oi}">
+  <div class="option-row" id="opt-${menuId}-${gi}-${oi}" style="flex-wrap:wrap">
     <input class="opt-name" id="on-${menuId}-${gi}-${oi}" value="${esc(o.name)}" placeholder="ชื่อตัวเลือก">
     <div class="opt-price-wrap">
       <span class="opt-price-label">+฿</span>
-      <input class="opt-price" id="op-${menuId}-${gi}-${oi}" type="number" value="${o.price||0}">
+      <input class="opt-price" id="op-${menuId}-${gi}-${oi}" type="number" value="${o.price||0}" oninput="updateOptGpPreview('${menuId}',${gi},${oi})">
     </div>
     <button class="del-opt-btn" onclick="delOption('${menuId}',${gi},${oi})">
       <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
     </button>
+    <div style="width:100%;font-size:10px;color:var(--primary);font-weight:700" id="opt-preview-${menuId}-${gi}-${oi}">${(shopType!=='proxy'&&o.price)?`${o.price} → ${previewSubPrice(o.price)}`:''}</div>
   </div>`;
 }
 
 function esc(v) { return (v||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+window.updateGpPreview = function(menuId){
+  const priceEl = document.getElementById(`fi-price-${menuId}`);
+  const gpEl = document.getElementById(`fi-gp-${menuId}`);
+  const prevEl = document.getElementById(`price-preview-${menuId}`);
+  if(!priceEl || !prevEl) return;
+  const price = parseFloat(priceEl.value)||0;
+  if(shopType==='proxy' || !price){ prevEl.textContent=''; return; }
+  prevEl.textContent = `${price} → ${previewCustomerPrice(price, gpEl?.value||0)} (ราคาที่ลูกค้าเห็น)`;
+}
+window.updateOptGpPreview = function(menuId,gi,oi){
+  const priceEl = document.getElementById(`op-${menuId}-${gi}-${oi}`);
+  const prevEl = document.getElementById(`opt-preview-${menuId}-${gi}-${oi}`);
+  if(!priceEl || !prevEl) return;
+  const price = parseFloat(priceEl.value)||0;
+  if(shopType==='proxy' || !price){ prevEl.textContent=''; return; }
+  prevEl.textContent = `${price} → ${previewSubPrice(price)}`;
+}
 
 // ============ MENU INTERACTIONS ============
 window.toggleMenu = function(menuId) {
@@ -846,45 +891,115 @@ window.chooseAddMode = function(mode) {
 }
 
 // ============ BULK ADD MODAL ============
+// ใช้ระบบเดียวกับการ์ดเมนูปกติ (renderMenuForm) โดยพักเมนูที่กำลังกรอกไว้ใน menus[] ชั่วคราว
+// ด้วย id ขึ้นต้น "_bulk_" แล้วค่อยบันทึกจริงตอนกด "ยืนยัน" ทีเดียว
 let bulkCatId = '';
-let bulkRows = [];
+let bulkIds = [];
+let bulkOpenId = null;   // การ์ดไหนกำลังเปิดอยู่ใน modal นี้ (แยกจาก openMenuId ของหน้าหลัก กันชนกัน)
+let savedOpenMenuId = null; // เก็บ state เดิมของหน้าเมนูหลักไว้ คืนค่ากลับตอนปิด modal
+
 function openBulkModal(catId) {
   bulkCatId = catId||'';
   document.getElementById("bulkTitle").textContent = 'เพิ่มเมนูจำนวนมาก: '+(catName(bulkCatId)||'ไม่มีหมวดหมู่');
-  bulkRows = [{name:'',price:''}];
-  renderBulkRows();
+  savedOpenMenuId = openMenuId;
+  bulkIds = []; bulkOpenId = null;
   document.getElementById("bulkModal").style.display='flex';
+  addBulkRow(); // เริ่มด้วย 1 แถว เปิดค้างไว้ให้กรอกได้ทันที
 }
-function renderBulkRows() {
+
+function renderBulkList() {
   const el = document.getElementById("bulkRows");
-  el.innerHTML = bulkRows.map((r,i)=>`
-    <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
-      <input class="form-input" style="flex:2" placeholder="ชื่อเมนู" value="${esc(r.name)}" oninput="bulkRows[${i}].name=this.value">
-      <input class="form-input" style="flex:1" type="number" placeholder="ราคา" value="${r.price}" oninput="bulkRows[${i}].price=this.value">
-      <button onclick="removeBulkRow(${i})" style="width:36px;height:36px;border:none;border-radius:10px;background:var(--red-light);color:var(--red);cursor:pointer;flex-shrink:0;font-size:16px">×</button>
-    </div>`).join('');
+  const items = bulkIds.map(id=>menus.find(x=>x.id===id)).filter(Boolean);
+  el.innerHTML = items.length
+    ? items.map((m,i)=>renderBulkCard(m,i,items.length)).join('')
+    : '<div class="empty-menu">กด "+ แถว" เพื่อเริ่มเพิ่มเมนู</div>';
 }
-window.addBulkRow = function(){ bulkRows.push({name:'',price:''}); renderBulkRows(); }
-window.removeBulkRow = function(i){ bulkRows.splice(i,1); if(!bulkRows.length) bulkRows.push({name:'',price:''}); renderBulkRows(); }
+
+function renderBulkCard(m, idx, total) {
+  const isOpen = bulkOpenId === m.id;
+  return `
+  <div class="menu-card ${isOpen?'open':''}" id="card-${m.id}">
+    <div class="menu-card-header" onclick="toggleBulkMenu('${m.id}')">
+      <div class="menu-thumb">
+        ${m.imgUrl?`<img src="${m.imgUrl}">`:`<svg viewBox="0 0 24 24"><path d="M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26 1.44 1.42 2.43 2.89 2.43 5.29v8.05zM1 21.99V21h15.03v.99c0 .55-.45 1-1.01 1H2.01c-.56 0-1.01-.45-1.01-1zm15.03-7c0-4.5-6.72-5-8.03-5-1.28 0-8 .5-8 5h16.03z"/></svg>`}
+      </div>
+      <div class="menu-meta">
+        <div class="menu-meta-name">${m.name || `เมนูใหม่ #${idx+1}`}</div>
+        <div class="menu-meta-sub">฿${m.price||0} ${m.optionGroups?.length?`· ${m.optionGroups.length} กลุ่ม`:''}</div>
+      </div>
+      <div class="menu-card-actions" onclick="event.stopPropagation()" style="grid-template-columns:32px">
+        <button class="icon-btn btn-del" onclick="removeBulkRow('${m.id}')" ${total<=1?'disabled style="opacity:.3"':''}>
+          <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+        </button>
+      </div>
+      <button class="expand-btn ${isOpen?'open':''}" onclick="event.stopPropagation();toggleBulkMenu('${m.id}')">
+        <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+      </button>
+    </div>
+    ${isOpen ? renderMenuForm(m, true) : ''}
+  </div>`;
+}
+
+window.toggleBulkMenu = function(menuId) {
+  saveFormState(bulkOpenId); // เก็บค่าที่พิมพ์ไว้ในการ์ดที่กำลังเปิดอยู่ ก่อนย่อ/สลับไปเปิดอันอื่น (แก้บัคข้อมูลหาย)
+  bulkOpenId = (bulkOpenId===menuId) ? null : menuId;
+  renderBulkList();
+}
+
+window.addBulkRow = function(){
+  saveFormState(bulkOpenId); // เก็บค่าฟอร์มที่เปิดอยู่ก่อนเพิ่มแถวใหม่ (แก้บัคชื่อที่พิมพ์ไว้อันแรกหาย)
+  const catGroup = menus.filter(x=>(x.categoryId||'')===bulkCatId && !x.id.startsWith('_bulk_'));
+  const bulkGroup = bulkIds.map(id=>menus.find(x=>x.id===id)).filter(Boolean);
+  const maxOrder = Math.max(-1, ...catGroup.map(x=>x.order||0), ...bulkGroup.map(x=>x.order||0));
+  const id = `_bulk_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+  menus.push({id,name:'',price:0,categoryId:bulkCatId,category:catName(bulkCatId),gp:0,desc:'',imgUrl:'',optionGroups:[],available:true,order:maxOrder+1});
+  bulkIds.push(id);
+  bulkOpenId = id; // เปิดแถวที่เพิ่งเพิ่มให้กรอกได้เลย
+  renderBulkList();
+}
+window.removeBulkRow = function(id){
+  if(bulkIds.length<=1) return; // เหลืออย่างน้อย 1 แถวเสมอ
+  bulkIds = bulkIds.filter(x=>x!==id);
+  menus = menus.filter(x=>x.id!==id);
+  if(bulkOpenId===id) bulkOpenId=null;
+  renderBulkList();
+}
 window.cancelBulk = function() {
-  bulkRows = [];
+  menus = menus.filter(x=>!bulkIds.includes(x.id)); // ลบแถวชั่วคราวทั้งหมดทิ้ง ไม่บันทึกอะไรเลย
+  bulkIds = []; bulkOpenId = null;
   document.getElementById("bulkModal").style.display='none';
+  openMenuId = savedOpenMenuId;
+  renderMenuGroups();
 }
 window.confirmBulk = async function() { await saveBulk(); }
 async function saveBulk() {
-  const valid = bulkRows.filter(r=>r.name && r.name.trim());
-  document.getElementById("bulkModal").style.display='none';
-  if(!valid.length) { bulkRows=[]; return; }
-  const group = menus.filter(x=>(x.categoryId||'')===(bulkCatId||''));
-  let maxOrder = group.reduce((mx,x)=>Math.max(mx,x.order||0),-1);
-  for(const r of valid) {
-    maxOrder++;
-    const data = {name:r.name.trim(), price:parseFloat(r.price)||0, category:catName(bulkCatId), categoryId:bulkCatId||'', gp:0, gpIsMain:shopType==='proxy', desc:'', imgUrl:'', optionGroups:[], available:true, order:maxOrder, createdAt:serverTimestamp(), updatedAt:serverTimestamp()};
-    try{ const ref=await addDoc(collection(db,"shops",shopId,"menus"),data); menus.push({id:ref.id,...data}); }catch(e){}
+  saveFormState(bulkOpenId); // เก็บค่าฟอร์มที่เปิดค้างอยู่ก่อนบันทึกจริง
+  const items = bulkIds.map(id=>menus.find(x=>x.id===id)).filter(Boolean);
+  const valid = items.filter(m=>m.name && m.name.trim());
+  if(!valid.length){ alert("กรุณากรอกชื่อเมนูอย่างน้อย 1 รายการ"); return; }
+
+  const btn = document.getElementById('bulkConfirmBtn');
+  if(btn){ btn.disabled=true; btn.textContent='กำลังบันทึก...'; }
+  let failedNames = [];
+  for(const m of valid){
+    const data = {
+      name:m.name.trim(), price:m.price||0, category:m.category||'', categoryId:m.categoryId||'',
+      available:true, order:m.order||0,
+      gp:m.gp||0, gpIsMain:shopType==='proxy', desc:m.desc||'', imgUrl:m.imgUrl||'',
+      optionGroups:(m.optionGroups||[]).filter(g=>g.title).map(g=>({title:g.title,required:!!g.required,options:(g.options||[]).filter(o=>o.name)})),
+      createdAt:serverTimestamp(), updatedAt:serverTimestamp()
+    };
+    try{ await addDoc(collection(db,"shops",shopId,"menus"),data); }
+    catch(e){ failedNames.push(m.name); }
   }
-  bulkRows = [];
+  menus = menus.filter(x=>!bulkIds.includes(x.id)); // ล้างแถวชั่วคราว จะโหลดของจริงจาก Firestore แทน
+  bulkIds = []; bulkOpenId = null;
+  if(btn){ btn.disabled=false; btn.textContent='ยืนยัน'; }
+  document.getElementById("bulkModal").style.display='none';
+  openMenuId = savedOpenMenuId;
   openCatId = bulkCatId||'';
-  renderMenuGroups();
+  if(failedNames.length) alert(`บันทึกไม่สำเร็จ ${failedNames.length} รายการ: ${failedNames.join(', ')}\nกรุณาลองใหม่`);
+  loadMenus();
 }
 
 // ============ SHOP SAVE ============
@@ -1065,6 +1180,7 @@ window.confirmCrop = function() {
 }
 window.closeCrop = function() { document.getElementById("cropOverlay").classList.remove("show"); }
 
+loadGpSettings();
 loadShop();
 </script>
 </body>
