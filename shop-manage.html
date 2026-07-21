@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>จัดการร้านค้า - Nimit Delivery</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
 <style>
 :root {
   --primary: #0c4aa6;
@@ -45,7 +44,7 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
 .edit-overlay span svg { width:16px; height:16px; fill:#fff; }
 
 .shop-profile-row { padding:0 16px; position:relative; height:32px; }
-.shop-avatar-wrap { position:absolute; top:-26px; left:16px; width:52px; height:52px; border-radius:50%; border:3px solid #fff; background:var(--primary-light); overflow:hidden; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.15); display:flex; align-items:center; justify-content:center; }
+.shop-avatar-wrap { position:absolute; top:-26px; left:16px; width:52px; height:52px; border-radius:16px; border:3px solid #fff; background:var(--primary-light); overflow:hidden; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.15); display:flex; align-items:center; justify-content:center; }
 .shop-avatar-wrap img { width:100%; height:100%; object-fit:cover; }
 .shop-avatar-wrap svg { width:24px; height:24px; fill:var(--primary); }
 
@@ -170,7 +169,7 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
 .crop-container { position:relative; overflow:hidden; background:#000; touch-action:none; border-radius:8px; }
 .crop-img { display:block; position:absolute; user-select:none; pointer-events:none; }
 .crop-frame { position:absolute; border:2px solid #fff; box-shadow:0 0 0 9999px rgba(0,0,0,0.55); cursor:move; touch-action:none; }
-.crop-frame.circle-shape { border-radius:50%; }
+.crop-frame.circle-shape { border-radius:22%; }
 .crop-handle { position:absolute; width:20px; height:20px; background:#fff; border-radius:50%; border:2px solid var(--primary); }
 .ch-tl { top:-10px; left:-10px; cursor:nw-resize; }
 .ch-tr { top:-10px; right:-10px; cursor:ne-resize; }
@@ -194,14 +193,14 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
 
 <div class="shop-header">
   <div class="shop-banner" id="bannerWrap" onclick="openBannerModal()">
-    <div id="bannerInner" style="width:100%;height:100%;background:#eef3fb;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px"><svg viewBox="0 0 24 24" style="width:36px;height:36px;fill:#b8ccee;opacity:0.7"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg><span style="font-size:12px;color:#b8ccee;font-weight:700">เพิ่มรูปปก</span></div>
+    <div id="bannerInner" style="width:100%;height:100%;background:linear-gradient(135deg,#dde8fa,#c2d4f5)"></div>
     <div class="edit-overlay">
       <span><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>เปลี่ยนแบนเนอร์</span>
     </div>
   </div>
   <div class="shop-profile-row">
     <div class="shop-avatar-wrap" id="avatarWrap" onclick="openAvatarModal()">
-      <div id="avatarInner" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#eef3fb"><svg viewBox="0 0 24 24" style="width:22px;height:22px;fill:#b8ccee"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
+      <div id="avatarInner"><svg viewBox="0 0 24 24"><path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/></svg></div>
     </div>
   </div>
   <div class="shop-open-row">
@@ -233,23 +232,9 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
       <input class="field-input" id="shopDeliveryTime" placeholder="20-30 นาที">
     </div>
   </div>
-  <div class="field" style="margin-bottom:12px">
+  <div class="field" style="margin-bottom:0">
     <div class="field-label">ที่อยู่ร้าน</div>
     <input class="field-input" id="shopAddress" placeholder="เยื้องการไฟฟ้า...">
-  </div>
-  <div class="field" style="margin-bottom:0">
-    <div class="field-label" style="display:flex;align-items:center;justify-content:space-between">
-      <span>ตำแหน่งร้าน (พิกัด GPS)</span>
-      <button onclick="getShopGPS()" style="font-size:12px;font-weight:700;color:var(--primary);background:var(--primary-light);border:none;border-radius:20px;padding:4px 12px;cursor:pointer">ใช้ตำแหน่งปัจจุบัน</button>
-    </div>
-    <div id="shopMapWrap" style="margin-top:8px;border-radius:14px;overflow:hidden;border:2px solid #e8eaf0;position:relative">
-      <div id="shopMap" style="height:200px;width:100%"></div>
-    </div>
-    <div id="shopCoordsBox" style="margin-top:8px;padding:8px 12px;background:var(--primary-light);border-radius:10px;font-size:12px;font-weight:700;color:var(--primary);display:none">
-      <span id="shopCoordsText"></span>
-    </div>
-    <input type="hidden" id="shopLat">
-    <input type="hidden" id="shopLng">
   </div>
 </div>
 
@@ -284,7 +269,7 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">รูปโปรไฟล์ร้าน</div>
-    <div class="url-preview" id="avatarPreviewEl" onclick="document.getElementById('avatarFileInput').click()" style="width:90px;height:90px;border-radius:50%;margin:0 auto 10px;cursor:pointer"></div>
+    <div class="url-preview" id="avatarPreviewEl" onclick="document.getElementById('avatarFileInput').click()" style="width:90px;height:90px;border-radius:20px;margin:0 auto 10px;cursor:pointer"></div>
     <input type="file" accept="image/*" id="avatarFileInput" style="display:none" onchange="onCropFileSelect(event,'circle','avatarPreviewEl','avatarUrlInput')">
     <button class="modal-save-btn" style="background:var(--primary-light);color:var(--primary);box-shadow:none;margin-bottom:10px" onclick="document.getElementById('avatarFileInput').click()">เลือกรูปจากเครื่อง</button>
     <div class="field-label" style="margin-bottom:6px">หรือวาง URL รูปโปรไฟล์</div>
@@ -316,11 +301,8 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, getDocs, deleteDoc, serverTimestamp, setDoc, increment} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-// local aliases for cross-scope calls
-const livePreview=(...a)=>window.livePreview(...a);
-const closeModal=(...a)=>window.closeModal(...a);
-const closeCrop=(...a)=>window.closeCrop(...a);
+import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, getDocs, deleteDoc, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -337,8 +319,7 @@ const params = new URLSearchParams(window.location.search);
 const shopId = params.get("id");
 let isOpen = false, bannerUrl = "", avatarUrl = "";
 let menus = [];
-let openMenuId = null;
-let shopMap = null, shopMarker = null;
+let openMenuId = null; // id ของเมนูที่กำลัง expand
 
 // ============ SHOP LOAD ============
 async function loadShop() {
@@ -355,44 +336,8 @@ async function loadShop() {
   document.getElementById("shopAddress").value = s.address||"";
   isOpen = s.isOpen||false; bannerUrl = s.bannerUrl||""; avatarUrl = s.avatarUrl||"";
   updateOpenToggle(); updateBanner(); updateAvatar();
-  // โหลดพิกัด
-  if(s.lat && s.lng){
-    document.getElementById("shopLat").value = s.lat;
-    document.getElementById("shopLng").value = s.lng;
-    document.getElementById("shopCoordsText").textContent = s.lat.toFixed(5)+", "+s.lng.toFixed(5);
-    document.getElementById("shopCoordsBox").style.display = "block";
-  }
-  initShopMap(s.lat||13.7563, s.lng||100.5018, !!(s.lat && s.lng));
   loadMenus();
 }
-
-function initShopMap(lat, lng, hasPin){
-  setTimeout(function(){
-    if(shopMap) return;
-    shopMap = L.map("shopMap").setView([lat, lng], hasPin ? 16 : 13);
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(shopMap);
-    if(hasPin) placeShopMarker(lat, lng);
-    shopMap.on("click", function(e){ placeShopMarker(e.latlng.lat, e.latlng.lng); });
-  }, 200);
-}
-
-function placeShopMarker(lat, lng){
-  if(shopMarker) shopMap.removeLayer(shopMarker);
-  shopMarker = L.marker([lat, lng]).addTo(shopMap);
-  shopMap.setView([lat, lng], 16);
-  document.getElementById("shopLat").value = lat;
-  document.getElementById("shopLng").value = lng;
-  document.getElementById("shopCoordsText").textContent = lat.toFixed(5)+", "+lng.toFixed(5);
-  document.getElementById("shopCoordsBox").style.display = "block";
-}
-
-window.getShopGPS = function(){
-  if(!navigator.geolocation){ alert("ไม่รองรับ GPS"); return; }
-  navigator.geolocation.getCurrentPosition(
-    function(pos){ placeShopMarker(pos.coords.latitude, pos.coords.longitude); },
-    function(){ alert("ไม่สามารถเข้าถึง GPS ได้"); }
-  );
-};
 
 function updateOpenToggle() {
   document.getElementById("openToggle").className = `toggle ${isOpen?'on':''}`;
@@ -401,12 +346,12 @@ function updateOpenToggle() {
 function updateBanner() {
   document.getElementById("bannerInner").innerHTML = bannerUrl
     ? `<img src="${bannerUrl}" style="width:100%;height:100%;object-fit:cover">`
-    : `<div style="width:100%;height:100%;background:#eef3fb;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px"><svg viewBox="0 0 24 24" style="width:36px;height:36px;fill:#b8ccee;opacity:0.7"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg><span style="font-size:12px;color:#b8ccee;font-weight:700">เพิ่มรูปปก</span></div>`;
+    : `<div style="width:100%;height:100%;background:linear-gradient(135deg,#dde8fa,#c2d4f5)"></div>`;
 }
 function updateAvatar() {
   document.getElementById("avatarInner").innerHTML = avatarUrl
     ? `<img src="${avatarUrl}" style="width:100%;height:100%;object-fit:cover">`
-    : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#eef3fb"><svg viewBox="0 0 24 24" style="width:22px;height:22px;fill:#b8ccee"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>`;
+    : `<svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:var(--primary)"><path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/></svg>`;
 }
 
 window.toggleOpen = function() { isOpen=!isOpen; updateOpenToggle(); }
@@ -432,7 +377,7 @@ function renderMenuCard(m) {
   <div class="menu-card ${isOpen?'open':''}" id="card-${m.id}">
     <div class="menu-card-header" onclick="toggleMenu('${m.id}')">
       <div class="menu-thumb">
-        ${m.imgUrl?`<img src="${m.imgUrl}">`:`<div style="display:flex;flex-direction:column;align-items:center;gap:6px"><svg viewBox="0 0 24 24" style="width:28px;height:28px;fill:#b8ccee;opacity:0.8"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg><span style="font-size:11px;color:#b8ccee;font-weight:700">เพิ่มรูปเมนู</span></div>`}
+        ${m.imgUrl?`<img src="${m.imgUrl}">`:`<svg viewBox="0 0 24 24"><path d="M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26 1.44 1.42 2.43 2.89 2.43 5.29v8.05zM1 21.99V21h15.03v.99c0 .55-.45 1-1.01 1H2.01c-.56 0-1.01-.45-1.01-1zm15.03-7c0-4.5-6.72-5-8.03-5-1.28 0-8 .5-8 5h16.03z"/></svg>`}
       </div>
       <div class="menu-meta">
         <div class="menu-meta-name">${m.name||'ไม่มีชื่อ'}</div>
@@ -482,7 +427,7 @@ function renderMenuForm(m) {
     <div class="form-field">
       <div class="form-label">รูปเมนู</div>
       <div class="form-img-preview" id="imgPreview-${m.id}" onclick="document.getElementById('imgFile-${m.id}').click()">
-        ${m.imgUrl?`<img src="${m.imgUrl}">`:`<div style="display:flex;flex-direction:column;align-items:center;gap:6px"><svg viewBox="0 0 24 24" style="width:28px;height:28px;fill:#b8ccee;opacity:0.8"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg><span style="font-size:11px;color:#b8ccee;font-weight:700">เพิ่มรูปเมนู</span></div>`}
+        ${m.imgUrl?`<img src="${m.imgUrl}">`:`<svg viewBox="0 0 24 24"><path d="M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26 1.44 1.42 2.43 2.89 2.43 5.29v8.05zM1 21.99V21h15.03v.99c0 .55-.45 1-1.01 1H2.01c-.56 0-1.01-.45-1.01-1zm15.03-7c0-4.5-6.72-5-8.03-5-1.28 0-8 .5-8 5h16.03z"/></svg>`}
       </div>
       <input type="file" accept="image/*" id="imgFile-${m.id}" style="display:none" onchange="onCropFileSelect(event,'menu','imgPreview-${m.id}','fi-img-${m.id}')">
       <input type="hidden" id="fi-img-${m.id}" value="${esc(m.imgUrl)}">
@@ -708,9 +653,7 @@ window.deleteMenu = async function(menuId) {
 window.saveShopInfo = async function() {
   if(!shopId) return;
   try {
-    const latVal = document.getElementById("shopLat").value;
-    const lngVal = document.getElementById("shopLng").value;
-    const updateData = {
+    await updateDoc(doc(db,"shops",shopId),{
       name:document.getElementById("shopName").value.trim(),
       desc:document.getElementById("shopDesc").value.trim(),
       phone:document.getElementById("shopPhone").value.trim(),
@@ -718,34 +661,29 @@ window.saveShopInfo = async function() {
       address:document.getElementById("shopAddress").value.trim(),
       isOpen, bannerUrl, avatarUrl,
       updatedAt:serverTimestamp()
-    };
-    if(latVal && lngVal){
-      updateData.lat = parseFloat(latVal);
-      updateData.lng = parseFloat(lngVal);
-    }
-    await updateDoc(doc(db,"shops",shopId), updateData);
-    alert("บันทึกสำเร็จ");
+    });
+    alert("บันทึกสำเร็จ ✅");
   } catch(e) { alert("เกิดข้อผิดพลาด"); }
 }
 
 // ============ BANNER / AVATAR ============
 window.openBannerModal = function() {
   document.getElementById("bannerUrlInput").value = bannerUrl;
-  window.livePreview('bannerPreviewEl','bannerUrlInput');
+  livePreview('bannerPreviewEl','bannerUrlInput');
   document.getElementById("bannerModal").classList.add("show");
 }
 window.openAvatarModal = function() {
   document.getElementById("avatarUrlInput").value = avatarUrl;
-  window.livePreview('avatarPreviewEl','avatarUrlInput');
+  livePreview('avatarPreviewEl','avatarUrlInput');
   document.getElementById("avatarModal").classList.add("show");
 }
 window.saveBanner = function() {
   bannerUrl = document.getElementById("bannerUrlInput").value.trim();
-  updateBanner(); window.closeModal("bannerModal");
+  updateBanner(); closeModal("bannerModal");
 }
 window.saveAvatar = function() {
   avatarUrl = document.getElementById("avatarUrlInput").value.trim();
-  updateAvatar(); window.closeModal("avatarModal");
+  updateAvatar(); closeModal("avatarModal");
 }
 window.livePreview = function(previewId,inputId) {
   const url = document.getElementById(inputId)?.value.trim();
@@ -876,9 +814,7 @@ window.confirmCrop = function() {
   if (cropShape === 'banner') { outW = 1200; outH = 675; }
   canvas.width = outW; canvas.height = outH;
   const ctx = canvas.getContext('2d');
-  if (cropShape === 'circle') { ctx.save(); ctx.beginPath(); ctx.arc(outW/2, outH/2, outW/2, 0, Math.PI*2); ctx.clip(); }
   ctx.drawImage(cropImgEl, cropX, cropY, cropW, cropH, 0, 0, outW, outH);
-  if (cropShape === 'circle') ctx.restore();
 
   const base64 = canvas.toDataURL('image/jpeg', 0.85);
 
@@ -887,12 +823,11 @@ window.confirmCrop = function() {
   const inputEl = document.getElementById(cropTargetInputId);
   if (inputEl) inputEl.value = base64;
 
-  window.closeCrop();
+  closeCrop();
 }
 window.closeCrop = function() { document.getElementById("cropOverlay").classList.remove("show"); }
 
 loadShop();
 </script>
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </body>
 </html>
