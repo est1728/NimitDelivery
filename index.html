@@ -137,13 +137,13 @@ window.nextPage = async function(){
     } else {
       sessionStorage.setItem("newCustomer","1");
       sessionStorage.setItem("addrBack","shops.html");
-      location.href="./address.html";
+      location.href="./register.html";
     }
   }catch(e){
-    // Firestore error → ถ้าไม่มีที่อยู่เลย ไป address.html
+    // Firestore error → ถ้าไม่มีที่อยู่เลย ไป register.html
     sessionStorage.setItem("newCustomer","1");
     sessionStorage.setItem("addrBack","shops.html");
-    location.href="./address.html";
+    location.href="./register.html";
   }
 }
 
