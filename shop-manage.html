@@ -252,6 +252,16 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
 
 <div id="menuGroups"><div class="empty-menu">ยังไม่มีหมวดหมู่ กด "+ เพิ่มหมวดหมู่" ด้านบน</div></div>
 
+<!-- MOVE TO CATEGORY POPUP -->
+<div class="modal-overlay" id="moveCatModal">
+  <div class="modal" style="padding-bottom:24px">
+    <div class="modal-handle"></div>
+    <div class="modal-title">ย้ายเมนูไปหมวดหมู่</div>
+    <div id="moveCatList"></div>
+    <button class="modal-cancel-btn" onclick="closeModal('moveCatModal')">ยกเลิก</button>
+  </div>
+</div>
+
 <!-- ADD-MODE CHOICE POPUP -->
 <div class="modal-overlay" id="addModeModal">
   <div class="modal" style="padding-bottom:24px">
@@ -496,6 +506,9 @@ function renderMenuCard(m,idx,total) {
         <button class="icon-btn" style="background:var(--gray)" onclick="moveMenuOrder('${m.id}',1)" ${idx===total-1?'disabled style="opacity:.3;background:var(--gray)"':''}>
           <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
         </button>
+        <button class="icon-btn" style="background:var(--primary-light)" onclick="openMoveCatFor('${m.id}')" title="ย้ายหมวดหมู่">
+          <svg viewBox="0 0 24 24" style="fill:var(--primary)"><path d="M9 3L5 6.99h3V14h2V6.99h3L9 3zm7 14.01V10h-2v7.01h-3L15 21l4-3.99h-3z"/></svg>
+        </button>
         <button class="icon-btn btn-del" onclick="deleteMenu('${m.id}')">
           <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
         </button>
@@ -708,6 +721,31 @@ function reRenderGroups(menuId,m) {
   const el = document.getElementById(`groups-${menuId}`);
   if(!el) return;
   el.innerHTML = (m.optionGroups||[]).map((g,gi)=>renderGroupCard(menuId,g,gi)).join('');
+}
+
+// ============ MOVE MENU TO CATEGORY ============
+let moveCatMenuId = null;
+window.openMoveCatFor = function(menuId) {
+  moveCatMenuId = menuId;
+  const m = menus.find(x=>x.id===menuId); if(!m) return;
+  const list = document.getElementById("moveCatList");
+  const opts = [{id:'',name:'ไม่มีหมวดหมู่'}, ...categories];
+  list.innerHTML = opts.map(c=>`
+    <button onclick="moveMenuToCategory('${c.id}')" style="width:100%;text-align:left;height:48px;border:2px solid ${ (m.categoryId||'')===c.id ? 'var(--primary)' : '#eef0f4'};border-radius:12px;background:${ (m.categoryId||'')===c.id ? 'var(--primary-light)' : '#fff'};color:var(--text);font-size:14px;font-weight:700;padding:0 14px;margin-bottom:8px;cursor:pointer">${esc(c.name)}${(m.categoryId||'')===c.id?' ✓':''}</button>`).join('');
+  document.getElementById("moveCatModal").classList.add("show");
+}
+window.moveMenuToCategory = async function(catId) {
+  const m = menus.find(x=>x.id===moveCatMenuId); if(!m) { closeModal('moveCatModal'); return; }
+  const group = menus.filter(x=>(x.categoryId||'')===catId);
+  const maxOrder = group.reduce((mx,x)=>Math.max(mx,x.order||0),-1);
+  m.categoryId = catId; m.category = catName(catId); m.order = maxOrder+1;
+  closeModal('moveCatModal');
+  openCatId = catId;
+  renderMenuGroups();
+  if(!m.id.startsWith('_new_')) {
+    try{ await updateDoc(doc(db,"shops",shopId,"menus",m.id),{categoryId:catId, category:m.category, order:m.order, updatedAt:serverTimestamp()}); }
+    catch(e){}
+  }
 }
 
 // ============ NEW MENU ============
