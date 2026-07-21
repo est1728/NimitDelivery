@@ -48,7 +48,52 @@ body{background:var(--gray);min-height:100vh;overscroll-behavior-y:none;}
 .tab-link{flex:1;padding:13px 0;text-align:center;font-size:14px;font-weight:700;color:var(--subtext);cursor:pointer;position:relative;background:none;border:none;}
 .tab-link.active{color:var(--primary);}
 .tab-link.active::after{content:'';position:absolute;bottom:-1px;left:20%;right:20%;height:3px;background:var(--primary);border-radius:3px 3px 0 0;}
-.container{padding:14px 16px 24px;}
+.container{padding:14px 16px 84px;}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-top:1px solid #f0f2f5;z-index:199;box-shadow:0 -2px 10px rgba(0,0,0,0.06);}
+.bnav-item{flex:1;padding:8px 0 10px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:none;background:none;}
+.bnav-item svg{width:22px;height:22px;fill:var(--subtext);}
+.bnav-item span{font-size:10px;font-weight:700;color:var(--subtext);}
+.bnav-item.active svg{fill:var(--primary);}
+.bnav-item.active span{color:var(--primary);}
+
+/* INCOME PAGE */
+.income-date-row{display:flex;align-items:center;justify-content:space-between;background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(15,23,42,0.05);cursor:pointer;}
+.income-summary-card{background:#fff;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(15,23,42,0.05);}
+.income-summary-title{font-size:13px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:12px;}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.summary-card{background:var(--gray);border-radius:12px;padding:12px 14px;}
+.summary-card-label{font-size:11px;color:var(--subtext);font-weight:700;margin-bottom:4px;}
+.summary-card-value{font-size:18px;font-weight:800;color:var(--text);}
+.summary-card-value.green{color:var(--green);}
+.summary-card-value.red{color:#dc2626;}
+.history-card{background:#fff;border-radius:14px;padding:14px 16px;box-shadow:0 1px 3px rgba(15,23,42,0.05);cursor:pointer;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.history-left{display:flex;flex-direction:column;gap:2px;}
+.history-id{font-size:14px;font-weight:800;color:var(--text);}
+.history-time{font-size:12px;color:var(--subtext);}
+.history-right{display:flex;align-items:center;gap:6px;}
+.history-earn{font-size:14px;font-weight:800;color:var(--green);}
+.history-earn.cancel{color:#dc2626;}
+.history-arrow svg{width:16px;height:16px;fill:var(--subtext);}
+.trend-chart-wrap{padding:10px 0 4px;}
+
+/* SCROLL DATE PICKER */
+.date-picker-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:500;display:none;align-items:flex-end;}
+.date-picker-overlay.show{display:flex;}
+.date-picker-sheet{background:#fff;width:100%;border-radius:22px 22px 0 0;padding-bottom:28px;}
+.date-picker-header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;}
+.dp-cancel{font-size:15px;color:var(--subtext);cursor:pointer;border:none;background:none;font-weight:600;}
+.dp-title{font-size:16px;font-weight:800;color:var(--text);}
+.dp-confirm{font-size:15px;color:var(--primary);cursor:pointer;border:none;background:none;font-weight:800;}
+.dp-columns{display:flex;height:200px;position:relative;}
+.dp-columns::before,.dp-columns::after{content:'';position:absolute;left:0;right:0;height:72px;z-index:1;pointer-events:none;}
+.dp-columns::before{top:0;background:linear-gradient(to bottom,rgba(255,255,255,0.85),rgba(255,255,255,0));}
+.dp-columns::after{bottom:0;background:linear-gradient(to top,rgba(255,255,255,0.85),rgba(255,255,255,0));}
+.dp-select-bar{position:absolute;left:16px;right:16px;top:50%;transform:translateY(-50%);height:44px;background:var(--gray);border-radius:12px;z-index:0;}
+.dp-col{flex:1;overflow-y:scroll;scrollbar-width:none;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;position:relative;z-index:2;}
+.dp-col::-webkit-scrollbar{display:none;}
+.dp-item{height:44px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;color:var(--subtext);scroll-snap-align:center;cursor:pointer;transition:all 0.15s;padding:0 4px;position:relative;z-index:2;}
+.dp-item.selected{color:var(--text);font-weight:800;font-size:17px;}
+.dp-pad{height:78px;flex-shrink:0;}
 
 /* ORDER CARDS */
 .order-card{background:#fff;border-radius:18px;margin-bottom:12px;box-shadow:var(--shadow-md);overflow:hidden;cursor:pointer;transition:transform 0.12s;}
@@ -229,6 +274,71 @@ body{background:var(--gray);min-height:100vh;overscroll-behavior-y:none;}
   <div id="historyTabContent" class="container" style="display:none"><div id="historyList"></div></div>
 </div>
 
+<!-- BOTTOM NAV -->
+<div class="bottom-nav" id="mainBottomNav">
+  <button class="bnav-item active" id="bnav-main" onclick="window.showMainTab()">
+    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    <span>หน้าหลัก</span>
+  </button>
+  <button class="bnav-item" id="bnav-income" onclick="window.showIncomeTab()">
+    <svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+    <span>รายได้</span>
+  </button>
+  <button class="bnav-item" id="bnav-more" onclick="openSidebar()">
+    <svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+    <span>เพิ่มเติม</span>
+  </button>
+</div>
+
+<!-- INCOME PAGE -->
+<div id="incomePage" class="page">
+  <div class="topbar">
+    <button class="menu-btn" onclick="window.showMainTab()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+    <div class="topbar-info"><div class="shop-name-top">รายได้ร้าน</div></div>
+    <div style="width:40px"></div>
+  </div>
+  <div class="container">
+    <div class="income-date-row" onclick="window.openDatePicker()">
+      <div>
+        <div style="font-size:12px;color:var(--subtext);font-weight:700">วันที่</div>
+        <div style="font-size:15px;font-weight:800;color:var(--text)" id="incomeDateDisplay">วันนี้</div>
+      </div>
+      <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:var(--subtext)"><path d="M7 10l5 5 5-5z"/></svg>
+    </div>
+    <div class="income-summary-card">
+      <div class="income-summary-title">สรุปรายได้ร้าน</div>
+      <div class="summary-grid">
+        <div class="summary-card"><div class="summary-card-label">ยอดขายรวม</div><div class="summary-card-value" id="shopHistGross">฿0</div></div>
+        <div class="summary-card"><div class="summary-card-label">รายได้ร้านสุทธิ</div><div class="summary-card-value green" id="shopHistNet">฿0</div></div>
+        <div class="summary-card"><div class="summary-card-label">สำเร็จ</div><div class="summary-card-value" id="shopHistSuccess">0</div></div>
+        <div class="summary-card"><div class="summary-card-label">ยกเลิก</div><div class="summary-card-value red" id="shopHistCancel">0</div></div>
+      </div>
+    </div>
+    <div class="income-summary-card">
+      <div class="income-summary-title">แนวโน้มรายได้ 7 วันล่าสุด</div>
+      <div class="trend-chart-wrap"><canvas id="shopTrendChart" style="width:100%"></canvas></div>
+    </div>
+    <div id="shopIncomeList"></div>
+  </div>
+</div>
+
+<!-- SCROLL DATE PICKER -->
+<div class="date-picker-overlay" id="dpOverlay">
+  <div class="date-picker-sheet">
+    <div class="date-picker-header">
+      <button class="dp-cancel" onclick="window.closeDatePicker()">ยกเลิก</button>
+      <div class="dp-title">เลือกวันที่</div>
+      <button class="dp-confirm" onclick="window.confirmDatePicker()">เสร็จสิ้น</button>
+    </div>
+    <div class="dp-columns">
+      <div class="dp-select-bar"></div>
+      <div class="dp-col" id="dp-day"></div>
+      <div class="dp-col" id="dp-month"></div>
+      <div class="dp-col" id="dp-year"></div>
+    </div>
+  </div>
+</div>
+
 <!-- SIDEBAR -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 <div class="sidebar" id="sidebar">
@@ -327,6 +437,24 @@ body{background:var(--gray);min-height:100vh;overscroll-behavior-y:none;}
     <div class="confirm-btns">
       <button class="confirm-cancel" onclick="window.closeConfirmAd()">ยกเลิก</button>
       <button class="confirm-ok" onclick="window.submitAd()">ยืนยัน</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLOSE SHOP REASON MODAL -->
+<div class="confirm-overlay" id="closeShopOverlay">
+  <div class="confirm-box">
+    <div class="confirm-icon-wrap">
+      <div class="confirm-icon-circle" style="background:#fee2e2">
+        <svg viewBox="0 0 24 24" style="fill:#dc2626"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>
+      </div>
+    </div>
+    <div class="confirm-title">ปิดร้าน</div>
+    <div class="confirm-sub">กรุณาระบุเหตุผลที่ปิดร้าน (บังคับ)</div>
+    <textarea id="closeShopReason" style="width:100%;height:70px;border:2px solid #eef0f4;border-radius:12px;padding:10px;font-size:14px;outline:none;resize:none;font-family:inherit;margin-top:6px" placeholder="เช่น ของหมด, พักร้าน, ปิดปรับปรุง..."></textarea>
+    <div class="confirm-btns">
+      <button class="confirm-cancel" onclick="window.closeCloseShopModal()">ยกเลิก</button>
+      <button class="confirm-ok" style="background:#dc2626" onclick="window.confirmCloseShop()">ยืนยันปิดร้าน</button>
     </div>
   </div>
 </div>
@@ -473,6 +601,8 @@ const ADMIN_PHONE="0832582353";
 const shopSlug=new URLSearchParams(window.location.search).get("id");
 window._shopSlug=shopSlug;
 let shopData=null,isOpen=false,detailUnsub=null;
+const thMonths=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+let dpDay=new Date().getDate(), dpMonth=new Date().getMonth()+1, dpYear=new Date().getFullYear();
 
 function viewMyReviews(){
   if(shopData && shopData.id){
@@ -485,7 +615,18 @@ function viewMyReviews(){
   }
 }
 window.viewMyReviews=viewMyReviews;
-function showPage(id){["loadingPage","notFoundPage","mainPage"].forEach(p=>document.getElementById(p).classList.toggle("active",p===id));}
+function showPage(id){["loadingPage","notFoundPage","mainPage","incomePage"].forEach(p=>document.getElementById(p).classList.toggle("active",p===id));}
+window.showMainTab=function(){
+  showPage("mainPage");
+  document.getElementById("bnav-main").classList.add("active");
+  document.getElementById("bnav-income").classList.remove("active");
+}
+window.showIncomeTab=function(){
+  showPage("incomePage");
+  document.getElementById("bnav-main").classList.remove("active");
+  document.getElementById("bnav-income").classList.add("active");
+  window.loadShopIncome();
+}
 
 async function initShop(){
   if(!shopSlug){showPage("notFoundPage");return;}
@@ -535,14 +676,44 @@ function updateOpenUI(){
   document.getElementById("openLabel").textContent=isOpen?"ร้านเปิดอยู่":"ร้านปิดอยู่";
 }
 window.toggleOpen=async function(){
-  isOpen=!isOpen; updateOpenUI();
-  try{await updateDoc(doc(db,"shops",shopData.id),{isOpen});showToast(isOpen?"เปิดร้านแล้ว":"ปิดร้านแล้ว","info");}catch(e){}
+  if(isOpen){
+    // ปิดร้าน: ต้องใส่เหตุผลก่อนเสมอ
+    document.getElementById("closeShopReason").value="";
+    document.getElementById("closeShopOverlay").classList.add("show");
+    return;
+  }
+  // เปิดร้าน: ไม่ต้องใส่เหตุผล
+  isOpen=true; updateOpenUI();
+  try{
+    await updateDoc(doc(db,"shops",shopData.id),{isOpen:true});
+    await addDoc(collection(db,"shops",shopData.id,"statusLogs"),{action:"open",reason:"",at:serverTimestamp()});
+    showToast("เปิดร้านแล้ว","info");
+  }catch(e){}
+}
+window.closeCloseShopModal=function(){
+  document.getElementById("closeShopOverlay").classList.remove("show");
+}
+window.confirmCloseShop=async function(){
+  const reason=document.getElementById("closeShopReason").value.trim();
+  if(!reason){
+    document.getElementById("closeShopReason").style.borderColor="#dc2626";
+    document.getElementById("closeShopReason").focus();
+    return;
+  }
+  document.getElementById("closeShopOverlay").classList.remove("show");
+  isOpen=false; updateOpenUI();
+  try{
+    await updateDoc(doc(db,"shops",shopData.id),{isOpen:false});
+    await addDoc(collection(db,"shops",shopData.id,"statusLogs"),{action:"close",reason,at:serverTimestamp()});
+    showToast("ปิดร้านแล้ว","info");
+  }catch(e){}
 }
 
 let allShopOrders=[];
-async function loadOrders(){
-  try{
-    const snap=await getDocs(collection(db,"orders"));
+let shopOrdersUnsub=null;
+function listenOrders(){
+  if(shopOrdersUnsub) shopOrdersUnsub();
+  shopOrdersUnsub=onSnapshot(collection(db,"orders"), snap=>{
     allShopOrders=[];
     if(!window._knownOrders) window._knownOrders=new Set();
     snap.forEach(d=>{
@@ -558,13 +729,9 @@ async function loadOrders(){
     });
     allShopOrders.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
     renderOrders();
-  }catch(err){
+  }, err=>{
     document.getElementById("ordersList").innerHTML="<div style='padding:20px;text-align:center;color:#888'>โหลดออเดอร์ไม่ได้: "+err.message+"</div>";
-  }
-}
-function listenOrders(){
-  loadOrders();
-  setInterval(loadOrders,15000);
+  });
 }
 function renderOrders(){
   const el=document.getElementById("ordersList");
@@ -972,6 +1139,154 @@ initShop();
 
 
 function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+// ============ DATE PICKER (สำหรับหน้ารายได้) ============
+function updateIncomeDateDisplay(){
+  document.getElementById("incomeDateDisplay").textContent=`${dpDay} ${thMonths[dpMonth-1]} ${dpYear+543}`;
+}
+window.openDatePicker=function(){
+  const thisYear=new Date().getFullYear();
+  const days=Array.from({length:31},(_,i)=>i+1);
+  const months=thMonths.map((m,i)=>({v:i+1,l:m}));
+  const years=Array.from({length:5},(_,i)=>thisYear-i);
+
+  function buildCol(elId,items,selected,isYear){
+    const el=document.getElementById(elId);
+    el.innerHTML=`<div class="dp-pad"></div>`+items.map(it=>{
+      const v=isYear?it:(typeof it==='object'?it.v:it);
+      const l=isYear?it:(typeof it==='object'?it.l:it);
+      const sel=v===selected;
+      return `<div class="dp-item${sel?' selected':''}" data-v="${v}">${l}</div>`;
+    }).join('')+`<div class="dp-pad"></div>`;
+    setTimeout(()=>{
+      const selEl=el.querySelector('.selected');
+      if(selEl) el.scrollTop=selEl.offsetTop-78;
+    },50);
+  }
+  buildCol('dp-day',days,dpDay,false);
+  buildCol('dp-month',months,dpMonth,false);
+  buildCol('dp-year',years,dpYear,true);
+
+  ['dp-day','dp-month','dp-year'].forEach(id=>{
+    const col=document.getElementById(id);
+    col.onscroll=()=>{
+      clearTimeout(col._st);
+      col._st=setTimeout(()=>{
+        const idx=Math.round(col.scrollTop/44);
+        const items=col.querySelectorAll('.dp-item');
+        items.forEach((el,i)=>el.classList.toggle('selected',i===idx));
+      },80);
+    };
+  });
+  document.getElementById("dpOverlay").classList.add("show");
+}
+window.closeDatePicker=function(){ document.getElementById("dpOverlay").classList.remove("show"); }
+window.confirmDatePicker=function(){
+  const getVal=(id)=>{
+    const sel=document.getElementById(id).querySelector('.selected');
+    return sel?parseInt(sel.dataset.v):null;
+  };
+  const d=getVal('dp-day'), m=getVal('dp-month'), y=getVal('dp-year');
+  if(d) dpDay=d; if(m) dpMonth=m; if(y) dpYear=y;
+  const sel=new Date(dpYear,dpMonth-1,dpDay);
+  const today=new Date();today.setHours(0,0,0,0);
+  if(sel>today){dpDay=today.getDate();dpMonth=today.getMonth()+1;dpYear=today.getFullYear();}
+  updateIncomeDateDisplay();
+  window.closeDatePicker();
+  window.loadShopIncome();
+}
+
+// ============ SHOP INCOME (รายได้ร้าน ใช้ baseCost = ราคาดิบที่ร้านได้รับ แทน riderEarn) ============
+window.loadShopIncome=async function(){
+  if(!shopData) return;
+  updateIncomeDateDisplay();
+  const dateStr=`${dpYear}-${String(dpMonth).padStart(2,'0')}-${String(dpDay).padStart(2,'0')}`;
+  const start=new Date(dateStr+"T00:00:00"), end=new Date(dateStr+"T23:59:59");
+  try{
+    const snap=await getDocs(query(collection(db,"orders"),where("shopId","==",shopData.id)));
+    const orders=[];
+    snap.forEach(d=>{
+      const data=d.data();
+      const t=data.createdAt?.toDate?.();
+      if(t&&t>=start&&t<=end) orders.push({docId:d.id,...data});
+    });
+    orders.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    const done=orders.filter(o=>o.status==='done');
+    const cancelled=orders.filter(o=>o.status==='rejected');
+    const gross=done.reduce((s,o)=>s+(o.subtotal||o.grandTotal||0),0);
+    const net=done.reduce((s,o)=>s+(o.baseCost||0),0);
+    document.getElementById("shopHistGross").textContent=`฿${gross.toLocaleString()}`;
+    document.getElementById("shopHistNet").textContent=`฿${net.toLocaleString()}`;
+    document.getElementById("shopHistSuccess").textContent=done.length;
+    document.getElementById("shopHistCancel").textContent=cancelled.length;
+    const display=[...done,...cancelled].sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    const listEl=document.getElementById("shopIncomeList");
+    if(!display.length){
+      listEl.innerHTML='<div class="empty-box"><div class="empty-title">ไม่มีประวัติวันนี้</div></div>';
+    } else {
+      listEl.innerHTML=display.map(o=>{
+        const time=o.createdAt?.toDate?o.createdAt.toDate().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):'-';
+        const isDone=o.status==='done';
+        return `<div class="history-card" onclick="window.openDetail('${o.docId}')">
+          <div class="history-left"><div class="history-id">${o.orderId||o.docId}</div><div class="history-time">${time}</div></div>
+          <div class="history-right"><span class="history-earn ${isDone?'':'cancel'}">${isDone?'+฿'+(o.baseCost||0):'ยกเลิก'}</span><div class="history-arrow"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div></div>
+        </div>`;
+      }).join('');
+    }
+    const trendData=await loadShop7dTrend();
+    renderShopTrendChart(trendData);
+  }catch(e){
+    document.getElementById("shopIncomeList").innerHTML=`<div class="empty-box"><div class="empty-title">โหลดไม่ได้: ${e.message}</div></div>`;
+  }
+}
+
+// โหลดยอดรายได้ร้านย้อนหลัง 7 วัน (นับถึงวันที่เลือกอยู่) สำหรับกราฟแนวโน้ม
+async function loadShop7dTrend(){
+  const selDate=new Date(dpYear,dpMonth-1,dpDay);
+  const days=[];
+  for(let i=6;i>=0;i--){ const d=new Date(selDate); d.setDate(d.getDate()-i); days.push(d); }
+  const snap=await getDocs(query(collection(db,"orders"),where("shopId","==",shopData.id),where("status","==","done")));
+  const byDay=days.map(d=>{
+    const start=new Date(d); start.setHours(0,0,0,0);
+    const end=new Date(d); end.setHours(23,59,59,999);
+    let sum=0;
+    snap.forEach(doc=>{
+      const o=doc.data();
+      const t=o.createdAt?.toDate?.();
+      if(t&&t>=start&&t<=end) sum+=(o.baseCost||0);
+    });
+    return {label:`${d.getDate()}/${d.getMonth()+1}`, value:sum};
+  });
+  return byDay;
+}
+function renderShopTrendChart(data){
+  const canvas=document.getElementById("shopTrendChart");
+  if(!canvas||!data) return;
+  const dpr=window.devicePixelRatio||1;
+  const w=canvas.clientWidth||300, h=140;
+  canvas.width=w*dpr; canvas.height=h*dpr;
+  canvas.style.height=h+'px';
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,w,h);
+  const max=Math.max(1,...data.map(d=>d.value));
+  const padL=8,padR=8,padT=10,padB=24;
+  const barW=(w-padL-padR)/data.length*0.6;
+  const gap=(w-padL-padR)/data.length;
+  data.forEach((d,i)=>{
+    const x=padL+i*gap+(gap-barW)/2;
+    const barH=(h-padT-padB)*(d.value/max);
+    const y=h-padB-barH;
+    ctx.fillStyle=i===data.length-1?'#0c4aa6':'#c7d7f5';
+    ctx.beginPath();
+    ctx.roundRect?ctx.roundRect(x,y,barW,barH,4):ctx.rect(x,y,barW,barH);
+    ctx.fill();
+    ctx.fillStyle='#64748b';
+    ctx.font='10px sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText(d.label,x+barW/2,h-8);
+  });
+}
 
 
 
