@@ -333,7 +333,7 @@ function shopBadge(s){
   return null;
 }
 function renderPop(){
-  const pop=[...allShops.filter(s=>s.isOpen!==false&&shopScore(s)>0)]
+  const pop=[...allShops.filter(s=>effectiveOpen(s)&&shopScore(s)>0)]
     .sort((a,b)=>shopScore(b)-shopScore(a))
     .slice(0,8);
   if(!pop.length) return;
@@ -346,6 +346,19 @@ function renderPop(){
     return `<div class="pop-card" onclick="window.pick('${s.id}','${sn}')"><div class="pop-img">${img}</div><div class="pop-body"><div class="pop-name">${esc(s.name)}</div><div class="pop-meta">⭐${popRating} · ${s.deliveryTime||'20-30'}นาที${popDist?' · '+popDist:''}</div></div></div>`;
   }).join("");
   window.Motion?.staggerIn(document.getElementById("popRow"), ".pop-card", 40);
+}
+
+// เช็คว่าตอนนี้อยู่ในช่วงเวลาเปิดร้าน (รองรับช่วงข้ามเที่ยงคืน เช่น 20:00-02:00)
+function isWithinSchedule(openTime, closeTime){
+  if(!openTime || !closeTime) return true;
+  const now=new Date();
+  const [oh,om]=openTime.split(':').map(Number), [ch,cm]=closeTime.split(':').map(Number);
+  const nowMin=now.getHours()*60+now.getMinutes(), openMin=oh*60+om, closeMin=ch*60+cm;
+  if(openMin===closeMin) return true;
+  return openMin<closeMin ? (nowMin>=openMin && nowMin<closeMin) : (nowMin>=openMin || nowMin<closeMin);
+}
+function effectiveOpen(s){
+  return s.autoSchedule ? isWithinSchedule(s.scheduleOpen,s.scheduleClose) : s.isOpen!==false;
 }
 
 function card(s){
@@ -365,9 +378,11 @@ function card(s){
   const shopBadgeType=shopBadge(s);
   const shopBadgeLabels={pop:'ยอดนิยม',top:'คะแนนสูงสุด',new:'เปิดใหม่',fast:'ส่งไว',promo:'โปรโมชัน'};
   const badgeEl=shopBadgeType?`<span class="sc-badge sc-badge-${shopBadgeType}">${shopBadgeLabels[shopBadgeType]}</span>`:'';
-  const badge=s.isOpen!==false?`<div class="sc-open">เปิด</div>`:`<div class="sc-close">ปิด</div>`;
-  const oc=s.isOpen!==false?`onclick="window.pick('${s.id}','${sn}')"` :"";
-  return `<div class="sc${s.isOpen!==false?"":" closed"}" ${oc}>
+  const openNow = effectiveOpen(s);
+  const badge=openNow?`<div class="sc-open">เปิด</div>`:`<div class="sc-close">ปิด</div>`;
+  const oc=openNow?`onclick="window.pick('${s.id}','${sn}')"` :"";
+  const schTxt = s.autoSchedule&&s.scheduleOpen&&s.scheduleClose?`<div class="mi"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>${s.scheduleOpen}-${s.scheduleClose} น.</div>`:'';
+  return `<div class="sc${openNow?"":" closed"}" ${oc}>
     <div class="sc-banner">${banner}${badgeEl}${badge}</div>
     <div class="sc-body" style="padding:0 14px 14px;position:relative">
       <div style="display:flex;align-items:flex-end;gap:12px;margin-bottom:10px">
@@ -378,12 +393,13 @@ function card(s){
         </div>
       </div>
       <div class="sc-meta">${time}${star}</div>
+      ${schTxt}
     </div>
   </div>`;
 }
 
 function renderShops(list){
-  const open=list.filter(s=>s.isOpen!==false), closed=list.filter(s=>s.isOpen===false);
+  const open=list.filter(s=>effectiveOpen(s)), closed=list.filter(s=>!effectiveOpen(s));
   document.getElementById("shopsHd").textContent=curQ?`ผลลัพธ์ ${list.length} ร้าน`:"ร้านทั้งหมด";
   if(!list.length){document.getElementById("shopsEl").innerHTML='<div class="lt">ไม่พบร้านค้า</div>';return;}
   document.getElementById("shopsEl").innerHTML=
