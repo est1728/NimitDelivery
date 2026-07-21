@@ -554,9 +554,19 @@ const firebaseConfig = {
   appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
 };
 // SOUND & NOTIFICATION
+let _sharedAudioCtx=null;
+function getAudioCtx(){
+  if(!_sharedAudioCtx){
+    try{ _sharedAudioCtx=new(window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; }
+  }
+  return _sharedAudioCtx;
+}
+['click','touchstart'].forEach(ev=>document.addEventListener(ev,()=>{ getAudioCtx()?.resume?.(); },{once:true,passive:true}));
 function playNotifSound(){
   try{
-    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const ctx=getAudioCtx();
+    if(!ctx)return;
+    if(ctx.state==='suspended') ctx.resume();
     [523,659,784].forEach((freq,i)=>{
       const osc=ctx.createOscillator(),gain=ctx.createGain();
       osc.connect(gain);gain.connect(ctx.destination);
