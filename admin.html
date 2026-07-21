@@ -94,6 +94,10 @@ body{background:var(--g);min-height:100vh;}
 .pi:focus{border-color:var(--p);}
 .pvw{background:var(--pl);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--p);font-weight:700;margin-top:12px;line-height:1.8;}
 .spbtn{width:100%;height:50px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;font-size:15px;font-weight:800;cursor:pointer;margin-top:14px;transition:transform .15s,opacity .15s,background .25s;}
+.toggle{border:none;border-radius:20px;background:#d1d5db;position:relative;cursor:pointer;transition:background .25s;padding:0;}
+.toggle.on{background:var(--p);}
+.toggle::after{content:'';position:absolute;width:18px;height:18px;top:3px;left:3px;background:#fff;border-radius:50%;transition:left .25s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.toggle.on::after{left:calc(100% - 21px);}
 
 /* BOTTOM NAV */
 .bnav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-top:1px solid #f0f2f5;z-index:199;box-shadow:0 -2px 10px rgba(0,0,0,.06);}
@@ -284,7 +288,7 @@ body{background:var(--g);min-height:100vh;}
           <div class="sc-l">ดูสถิติย้อนหลัง</div>
           <div class="sc-v" id="statDateLbl" style="font-size:13px">เลือกวันที่</div>
         </div>
-        <input type="date" id="statDate" max="2026-07-18" onchange="window.loadHistoricalStats(this.value)"
+        <input type="date" id="statDate" onchange="window.loadHistoricalStats(this.value)"
           style="height:36px;border:2px solid rgba(255,255,255,.3);border-radius:10px;background:rgba(255,255,255,.15);color:#fff;padding:0 10px;font-size:13px;font-weight:600;cursor:pointer;outline:none;color-scheme:dark;">
       </div>
     </div>
@@ -325,6 +329,25 @@ body{background:var(--g);min-height:100vh;}
     <svg width="22" height="22" viewBox="0 0 24 24" fill="var(--p)"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
     กระเป๋ากลาง
   </button>
+  <div class="scard">
+    <div class="sct" style="display:flex;align-items:center;justify-content:space-between">
+      <span>เปิด-ปิดแอพทั้งระบบ</span>
+      <button class="toggle" id="appOpenToggle" onclick="window.toggleAppOpen()" style="width:44px;height:24px"></button>
+    </div>
+    <div style="font-size:12px;font-weight:700;color:var(--s)" id="appOpenLabel">เปิดใช้งานอยู่</div>
+    <div style="border-top:1px solid #f0f2f5;margin:14px 0"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <span style="font-size:13px;font-weight:700;color:var(--t)">เปิด-ปิดอัตโนมัติตามเวลา</span>
+      <button class="toggle" id="appAutoSchTgl" onclick="window.toggleAppAutoSchedule()" style="width:44px;height:24px"></button>
+    </div>
+    <div id="appAutoSchFields" style="display:none;margin-top:10px">
+      <div style="display:flex;gap:10px">
+        <div style="flex:1"><span style="font-size:11px;color:var(--s)">เวลาเปิด</span><input class="pi" id="appSchOpen" type="time" style="width:100%"></div>
+        <div style="flex:1"><span style="font-size:11px;color:var(--s)">เวลาปิด</span><input class="pi" id="appSchClose" type="time" style="width:100%"></div>
+      </div>
+    </div>
+    <button class="spbtn" id="saveAppStatusBtn" onclick="window.saveAppSchedule()" style="margin-top:14px">บันทึกเวลาเปิด-ปิดแอพ</button>
+  </div>
   <div class="scard">
     <div class="sct" style="display:flex;align-items:center;justify-content:space-between">
       <span>GP ตามช่วงราคา (ระบบหลัก)</span>
@@ -376,6 +399,18 @@ body{background:var(--g);min-height:100vh;}
     <div class="cfm-btns" style="margin-top:12px">
       <button class="cfm-cancel" onclick="closeCancelOrder()">ปิด</button>
       <button class="cfm-ok" style="background:linear-gradient(135deg,#dc2626,#b91c1c)" onclick="confirmCancelOrder()">ยืนยันยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<div class="cfm-ov" id="appCloseOv">
+  <div class="cfm-box">
+    <div class="cfm-title">ปิดใช้งานแอพทั้งระบบ</div>
+    <div class="cfm-sub" style="margin-bottom:10px">กรุณาระบุเหตุผล (บังคับ)</div>
+    <textarea id="appCloseNote" style="width:100%;height:80px;border:2px solid #e2e8f0;border-radius:12px;padding:10px;font-size:14px;outline:none;resize:none;font-family:inherit" placeholder="เช่น ปิดปรับปรุงระบบ, พักระบบชั่วคราว..."></textarea>
+    <div class="cfm-btns" style="margin-top:12px">
+      <button class="cfm-cancel" onclick="window.closeAppCloseModal()">ปิด</button>
+      <button class="cfm-ok" style="background:linear-gradient(135deg,#dc2626,#b91c1c)" onclick="window.confirmAppClose()">ยืนยันปิดแอพ</button>
     </div>
   </div>
 </div>
@@ -814,7 +849,7 @@ function swPg(pg){
   if(pg==='shopsPage')loadShops();
   if(pg==='ridersPage')loadRiders();
   if(pg==='historyPage')loadHistory();
-  if(pg==='settingsPage')loadPricing();
+  if(pg==='settingsPage'){loadPricing();loadAppStatus();}
 }
 function updPrev(){
   const gp=parseFloat($('gpPercent').value)||34,wp=parseFloat($('walletPct').value)||30,rp=parseFloat($('riderPct').value)||70;
@@ -827,13 +862,10 @@ const adminChatUnreadMap={};
 const adminChatUnsubs={};
 
 let knownOrders=new Set(JSON.parse(sessionStorage.getItem('ka')||'[]'));
+let ordersUnsub=null;
 function listenOrders(){
-  window.loadOrders();
-  setInterval(loadOrders, 15000); // refresh ทุก 15 วิ
-}
-window.loadOrders=async function(){
-  try{
-    const snap=await getDocs(query(collection(db,'orders'),where('status','in',ACTIVE)));
+  if(ordersUnsub) ordersUnsub();
+  ordersUnsub=onSnapshot(query(collection(db,'orders'),where('status','in',ACTIVE)), snap=>{
     orders=[];
     snap.forEach(d=>orders.push({docId:d.id,...d.data()}));
     orders.sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
@@ -862,10 +894,11 @@ window.loadOrders=async function(){
         if(bdg){bdg.textContent='💬 '+unread;bdg.style.display=unread>0?'inline-flex':'none';}
       });
     });
-  }catch(e){
+  }, e=>{
     $('ordersEl').innerHTML=`<div class="lt">โหลดไม่ได้: ${e.message}<br><button onclick="window.loadOrders()" style="margin-top:8px;height:36px;padding:0 16px;border:none;border-radius:8px;background:var(--p);color:#fff;cursor:pointer;font-size:13px">ลองใหม่</button></div>`;
-  }
+  });
 }
+window.loadOrders=function(){ listenOrders(); }; // เผื่อปุ่ม "ลองใหม่" เดิมยังเรียกชื่อนี้อยู่ — เรียกซ้ำได้ปลอดภัย (unsubscribe ตัวเก่าก่อนเสมอ)
 
 window.loadHistoricalStats=async function(dateStr){
   if(!dateStr)return;
@@ -1105,6 +1138,8 @@ window.confirmCancelOrder=async function(){
   document.getElementById('cancelNote').style.borderColor='#e2e8f0';
   try{
     await updateDoc(doc(db,'orders',curDocId),{status:'rejected',cancelNote:note,updatedAt:serverTimestamp()});
+    orders=orders.filter(o=>o.docId!==curDocId); // เอาออกจากลิสต์ทันที ไม่ต้องรอ poll รอบถัดไป
+    renderOrders();
     window.closeCancelOrder();
     window.toast('ยกเลิกออเดอร์แล้ว','ok');
     showNotif('❌','ยกเลิกออเดอร์แล้ว',note,'linear-gradient(135deg,#dc2626,#b91c1c)');
@@ -1371,6 +1406,73 @@ async function loadPricing(){
   try{const snap=await getDoc(doc(db,'settings','pricing'));if(snap.exists()){const d=snap.data();$('gpPercent').value=d.gpPercent||34;$('gpSubPercent').value=d.gpSubPercent||0;$('walletPct').value=d.walletPercent||30;$('riderPct').value=d.riderPercent||70;$('freeDist').value=d.freeDistance||1.5;$('delFee').value=d.deliveryFee||9;gpTiers=Array.isArray(d.gpTiers)?d.gpTiers:[];}renderGpTiers();updPrev();}
   catch(e){renderGpTiers();}
 }
+
+// ============ APP-WIDE OPEN/CLOSE ============
+let appIsOpen=true, appAutoSchedule=false;
+async function loadAppStatus(){
+  try{
+    const snap=await getDoc(doc(db,'settings','appStatus'));
+    if(snap.exists()){
+      const d=snap.data();
+      appIsOpen=d.isOpen!==false;
+      appAutoSchedule=!!d.autoSchedule;
+      $('appSchOpen').value=d.scheduleOpen||'';
+      $('appSchClose').value=d.scheduleClose||'';
+    }
+    updateAppOpenUI();
+    updateAppAutoSchUI();
+  }catch(e){}
+}
+function updateAppOpenUI(){
+  $('appOpenToggle').className='toggle'+(appIsOpen?' on':'');
+  $('appOpenLabel').textContent=appIsOpen?'เปิดใช้งานอยู่':'ปิดใช้งานอยู่';
+}
+function updateAppAutoSchUI(){
+  $('appAutoSchTgl').className='toggle'+(appAutoSchedule?' on':'');
+  $('appAutoSchFields').style.display=appAutoSchedule?'block':'none';
+}
+window.toggleAppAutoSchedule=function(){
+  appAutoSchedule=!appAutoSchedule;
+  updateAppAutoSchUI();
+}
+window.toggleAppOpen=function(){
+  if(appIsOpen){
+    // ปิดแอพ: ต้องใส่เหตุผลก่อนเสมอ
+    $('appCloseNote').value='';
+    $('appCloseOv').classList.add('show');
+    return;
+  }
+  // เปิดแอพ: ไม่ต้องใส่เหตุผล
+  appIsOpen=true; updateAppOpenUI();
+  saveAppStatusOnly('open','');
+}
+window.closeAppCloseModal=function(){ $('appCloseOv').classList.remove('show'); }
+window.confirmAppClose=async function(){
+  const reason=$('appCloseNote').value.trim();
+  if(!reason){ $('appCloseNote').style.borderColor='#dc2626'; $('appCloseNote').focus(); window.toast('กรุณาใส่เหตุผล','er'); return; }
+  $('appCloseNote').style.borderColor='#e2e8f0';
+  $('appCloseOv').classList.remove('show');
+  appIsOpen=false; updateAppOpenUI();
+  await saveAppStatusOnly('close',reason);
+}
+async function saveAppStatusOnly(action,reason){
+  try{
+    await setDoc(doc(db,'settings','appStatus'),{isOpen:appIsOpen,updatedAt:serverTimestamp()},{merge:true});
+    await addDoc(collection(db,'appStatusLogs'),{action,reason,at:serverTimestamp(),by:'Admin'});
+    window.toast(appIsOpen?'เปิดใช้งานแอพแล้ว':'ปิดใช้งานแอพแล้ว','ok');
+  }catch(e){window.toast('บันทึกไม่สำเร็จ','er');}
+}
+window.saveAppSchedule=async function(){
+  try{
+    await setDoc(doc(db,'settings','appStatus'),{
+      autoSchedule:appAutoSchedule,
+      scheduleOpen:$('appSchOpen').value||'',
+      scheduleClose:$('appSchClose').value||'',
+      updatedAt:serverTimestamp()
+    },{merge:true});
+    window.toast('บันทึกเวลาเปิด-ปิดแอพแล้ว','ok');
+  }catch(e){window.toast('บันทึกไม่สำเร็จ','er');}
+}
 async function savePricing(){
   const btn=$('savePricingBtn');
   if(btn){btn.disabled=true;btn.dataset.txt=btn.textContent;btn.textContent='กำลังบันทึก...';btn.style.transform='scale(.97)';btn.style.opacity='.85';}
@@ -1449,7 +1551,7 @@ document.addEventListener('click', e => {
 
 ['gpPercent','walletPct','riderPct'].forEach(id=>$(id)?.addEventListener('input',updPrev));
 
-updPrev();
+updPrev();document.getElementById('statDate').max = new Date().toISOString().split('T')[0];
 listenOrders();
 
 // ===== ADS MANAGEMENT =====
