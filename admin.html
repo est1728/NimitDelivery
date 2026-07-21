@@ -326,22 +326,23 @@ body{background:var(--g);min-height:100vh;}
     กระเป๋ากลาง
   </button>
   <div class="scard">
-    <div class="sct">GP และค่าส่ง</div>
-    <div class="pr"><span>GP รวม (%)</span><input class="pi" id="gpPercent" type="number" value="34"></div>
+    <div class="sct" style="display:flex;align-items:center;justify-content:space-between">
+      <span>GP ตามช่วงราคา (ระบบหลัก)</span>
+      <button type="button" id="addGpTierBtn" style="border:none;background:var(--pl);color:var(--p);font-size:12px;font-weight:800;padding:6px 12px;border-radius:20px;cursor:pointer">+ เพิ่มช่วง</button>
+    </div>
+    <div id="gpTiersList"></div>
+    <div style="font-size:11px;color:var(--s);margin:8px 0 12px;line-height:1.6">กำหนด GP% ตามช่วงราคาสินค้า เช่น 0–100 บ. ใช้ GP 30%, 100–200 บ. ใช้ GP 20% ระบบจะเช็คว่าราคาอยู่ในช่วงไหนก่อนเสมอ</div>
+    <div class="pr"><span>GP สำรอง (%)</span><input class="pi" id="gpPercent" type="number" value="34"></div>
+    <div style="font-size:11px;color:var(--s);margin-top:6px;line-height:1.6">ใช้เฉพาะตอนราคาสินค้า "ไม่อยู่ในช่วงใดเลย" ที่ตั้งไว้ด้านบน (เช่น ตั้งช่วงไว้แค่ 0–200 แต่มีสินค้าราคา 500)</div>
+  </div>
+  <div class="scard">
+    <div class="sct">GP ย่อยและค่าส่ง</div>
     <div class="pr"><span>GP ย่อย (%)</span><input class="pi" id="gpSubPercent" type="number" value="0"></div>
     <div class="pr"><span>หักกระเป๋า (%)</span><input class="pi" id="walletPct" type="number" value="30"></div>
     <div class="pr"><span>รายได้ไรเดอร์ (%)</span><input class="pi" id="riderPct" type="number" value="70"></div>
     <div class="pr"><span>ระยะฟรีค่าส่ง (กม.)</span><input class="pi" id="freeDist" type="number" value="1.5" step="0.1"></div>
     <div class="pr"><span>ค่าส่ง (฿)</span><input class="pi" id="delFee" type="number" value="9"></div>
     <div class="pvw" id="pvw"></div>
-  </div>
-  <div class="scard">
-    <div class="sct" style="display:flex;align-items:center;justify-content:space-between">
-      <span>GP ตามช่วงราคา</span>
-      <button type="button" id="addGpTierBtn" style="border:none;background:var(--pl);color:var(--p);font-size:12px;font-weight:800;padding:6px 12px;border-radius:20px;cursor:pointer">+ เพิ่มช่วง</button>
-    </div>
-    <div id="gpTiersList"></div>
-    <div style="font-size:11px;color:var(--s);margin-top:8px;line-height:1.6">กำหนด GP% ตามช่วงราคาสินค้า เช่น 0–100 บ. ใช้ GP 30%, 100–200 บ. ใช้ GP 20% หากไม่ตั้งค่า ระบบจะใช้ "GP รวม (%)" ด้านบนแทน</div>
   </div>
   <div class="sw" style="padding:0 0 12px">
     <button class="spbtn" id="savePricingBtn">บันทึกการตั้งค่า</button>
