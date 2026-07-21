@@ -266,11 +266,12 @@ function calcSubPrice(optPrice){
   return Math.ceil(optPrice*(1+gpSubPercent/100));
 }
 
+let menuUnsub=null;
 async function loadMenu(){
   await loadSettings();
   await loadShopInfo();
-  try{
-    const snap=await getDocs(collection(db,"shops",shopId,"menus"));
+  if(menuUnsub) menuUnsub();
+  menuUnsub=onSnapshot(collection(db,"shops",shopId,"menus"), snap=>{
     allMenus=[]; snap.forEach(d=>allMenus.push({id:d.id,...d.data()}));
     if(shopCategories.length){
       categories=["ทั้งหมด",...shopCategories.map(c=>c.name)];
@@ -278,7 +279,8 @@ async function loadMenu(){
       categories=["ทั้งหมด",...new Set(allMenus.map(m=>m.category).filter(Boolean))];
     }
     renderCats(); applyFilter();
-  }catch(e){ document.getElementById("menuContainer").innerHTML='<div class="loading">โหลดไม่ได้</div>'; }}
+  }, e=>{ document.getElementById("menuContainer").innerHTML='<div class="loading">โหลดไม่ได้</div>'; });
+}
 
 function renderCats(){
   document.getElementById("catScroll").innerHTML=categories.map(c=>
