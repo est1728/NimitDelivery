@@ -27,7 +27,7 @@ body{background:var(--g);min-height:100vh;padding-bottom:28px;}
 
 /* ADS */
 .ads{background:#fff;}
-.ads-outer{overflow:hidden;touch-action:pan-x;width:100%;}
+.ads-outer{overflow:hidden;touch-action:pan-y;width:100%;}
 .ads-track{display:flex;will-change:transform;}
 .ad-slide{width:100%;flex:0 0 100%;flex-shrink:0;}
 .ad-img{width:100%;aspect-ratio:2/1;height:auto;display:block;object-fit:cover;}
@@ -148,8 +148,7 @@ body{background:var(--g);min-height:100vh;padding-bottom:28px;}
 <!-- ACTIVE ORDER -->
 <div class="ao" id="aoEl" onclick="window.Motion?window.Motion.navigate('track.html'):location.href='track.html'">
   <div class="ao-top"><div class="ao-id" id="aoId">-</div><div class="ao-badge">กำลังดำเนินการ</div></div>
-  <div class="ao-shop" id
-="aoShop"><span id="aoShop"></span><span class="ao-st" id="aoSt"></span></div>
+  <div class="ao-shop"><span id="aoShop"></span><span class="ao-st" id="aoSt"></span></div>
   <div class="ao-bar-wrap"><div class="ao-bar" id="aoBar"></div></div>
 </div>
 
