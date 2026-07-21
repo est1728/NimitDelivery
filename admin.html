@@ -93,7 +93,7 @@ body{background:var(--g);min-height:100vh;}
 .pi{width:80px;height:38px;border:2px solid #eef0f4;border-radius:10px;text-align:center;font-size:15px;font-weight:700;outline:none;}
 .pi:focus{border-color:var(--p);}
 .pvw{background:var(--pl);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--p);font-weight:700;margin-top:12px;line-height:1.8;}
-.spbtn{width:100%;height:50px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;font-size:15px;font-weight:800;cursor:pointer;margin-top:14px;}
+.spbtn{width:100%;height:50px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;font-size:15px;font-weight:800;cursor:pointer;margin-top:14px;transition:transform .15s,opacity .15s,background .25s;}
 
 /* BOTTOM NAV */
 .bnav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-top:1px solid #f0f2f5;z-index:199;box-shadow:0 -2px 10px rgba(0,0,0,.06);}
@@ -334,6 +334,16 @@ body{background:var(--g);min-height:100vh;}
     <div class="pr"><span>ระยะฟรีค่าส่ง (กม.)</span><input class="pi" id="freeDist" type="number" value="1.5" step="0.1"></div>
     <div class="pr"><span>ค่าส่ง (฿)</span><input class="pi" id="delFee" type="number" value="9"></div>
     <div class="pvw" id="pvw"></div>
+  </div>
+  <div class="scard">
+    <div class="sct" style="display:flex;align-items:center;justify-content:space-between">
+      <span>GP ตามช่วงราคา</span>
+      <button type="button" id="addGpTierBtn" style="border:none;background:var(--pl);color:var(--p);font-size:12px;font-weight:800;padding:6px 12px;border-radius:20px;cursor:pointer">+ เพิ่มช่วง</button>
+    </div>
+    <div id="gpTiersList"></div>
+    <div style="font-size:11px;color:var(--s);margin-top:8px;line-height:1.6">กำหนด GP% ตามช่วงราคาสินค้า เช่น 0–100 บ. ใช้ GP 30%, 100–200 บ. ใช้ GP 20% หากไม่ตั้งค่า ระบบจะใช้ "GP รวม (%)" ด้านบนแทน</div>
+  </div>
+  <div class="sw" style="padding:0 0 12px">
     <button class="spbtn" id="savePricingBtn">บันทึกการตั้งค่า</button>
   </div></div>
 </div>
@@ -1210,7 +1220,8 @@ async function loadShops(){
           </div>
           <div style="display:flex;gap:6px;align-items:center">
             <button class="ib ibv" data-ext="shop-admin.html?id=${slug}"><svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg></button>
-            <button class="ib ibm" data-edit-shop="${s.id}"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
+            <button class="ib ibm" data-goto="shop-manage.html?id=${slug}" title="จัดการเมนู/ร้าน"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2zm-4 4H7v-2h6v2zm4-8H7V7h10v2z"/></svg></button>
+            <button class="ib ibm" data-edit-shop="${s.id}" title="แก้ไขข้อมูลร้าน"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
             <button class="ib ibd" data-del-shop="${s.id}"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
           </div>
         </div>
@@ -1333,13 +1344,39 @@ async function doTopup(){
 }
 
 // PRICING
+let gpTiers=[];
+function renderGpTiers(){
+  const el=$('gpTiersList');if(!el)return;
+  if(!gpTiers.length){el.innerHTML='<div style="font-size:12px;color:var(--s);padding:10px 0">ยังไม่มีช่วงราคา กด "+ เพิ่มช่วง"</div>';return;}
+  el.innerHTML=gpTiers.map((t,i)=>`
+    <div style="display:flex;align-items:center;gap:6px;padding:10px 0;border-bottom:1px solid #f5f6f8">
+      <input class="pi" style="width:64px;height:38px;font-size:13px" type="number" placeholder="ต่ำสุด" value="${t.min}" oninput="window.updGpTier(${i},'min',this.value)">
+      <span style="color:var(--s);font-size:12px">–</span>
+      <input class="pi" style="width:64px;height:38px;font-size:13px" type="number" placeholder="สูงสุด" value="${t.max}" oninput="window.updGpTier(${i},'max',this.value)">
+      <span style="color:var(--s);font-size:12px">บ.</span>
+      <input class="pi" style="width:60px;height:38px;font-size:13px;margin-left:auto" type="number" placeholder="GP%" value="${t.gp}" oninput="window.updGpTier(${i},'gp',this.value)">
+      <span style="color:var(--s);font-size:12px">%</span>
+      <button type="button" onclick="window.delGpTier(${i})" style="width:34px;height:34px;border:none;border-radius:10px;background:var(--rl);color:var(--r);cursor:pointer;flex-shrink:0;font-size:16px;line-height:1">×</button>
+    </div>`).join('');
+}
+window.updGpTier=function(i,field,val){if(!gpTiers[i])return;gpTiers[i][field]=parseFloat(val)||0;};
+window.delGpTier=function(i){gpTiers.splice(i,1);renderGpTiers();};
+function addGpTier(){gpTiers.push({min:0,max:100,gp:30});renderGpTiers();}
 async function loadPricing(){
-  try{const snap=await getDoc(doc(db,'settings','pricing'));if(snap.exists()){const d=snap.data();$('gpPercent').value=d.gpPercent||34;$('gpSubPercent').value=d.gpSubPercent||0;$('walletPct').value=d.walletPercent||30;$('riderPct').value=d.riderPercent||70;$('freeDist').value=d.freeDistance||1.5;$('delFee').value=d.deliveryFee||9;}updPrev();}
-  catch(e){}
+  try{const snap=await getDoc(doc(db,'settings','pricing'));if(snap.exists()){const d=snap.data();$('gpPercent').value=d.gpPercent||34;$('gpSubPercent').value=d.gpSubPercent||0;$('walletPct').value=d.walletPercent||30;$('riderPct').value=d.riderPercent||70;$('freeDist').value=d.freeDistance||1.5;$('delFee').value=d.deliveryFee||9;gpTiers=Array.isArray(d.gpTiers)?d.gpTiers:[];}renderGpTiers();updPrev();}
+  catch(e){renderGpTiers();}
 }
 async function savePricing(){
-  try{await setDoc(doc(db,'settings','pricing'),{gpPercent:parseFloat($('gpPercent').value)||34,gpSubPercent:parseFloat($('gpSubPercent').value)||0,walletPercent:parseFloat($('walletPct').value)||30,riderPercent:parseFloat($('riderPct').value)||70,freeDistance:parseFloat($('freeDist').value)||1.5,deliveryFee:parseFloat($('delFee').value)||9,updatedAt:serverTimestamp()},{merge:true});window.toast('บันทึกการตั้งค่าสำเร็จ','ok');}
-  catch(e){window.toast('บันทึกไม่สำเร็จ','er');}
+  const btn=$('savePricingBtn');
+  if(btn){btn.disabled=true;btn.dataset.txt=btn.textContent;btn.textContent='กำลังบันทึก...';btn.style.transform='scale(.97)';btn.style.opacity='.85';}
+  try{
+    await setDoc(doc(db,'settings','pricing'),{gpPercent:parseFloat($('gpPercent').value)||34,gpSubPercent:parseFloat($('gpSubPercent').value)||0,walletPercent:parseFloat($('walletPct').value)||30,riderPercent:parseFloat($('riderPct').value)||70,freeDistance:parseFloat($('freeDist').value)||1.5,deliveryFee:parseFloat($('delFee').value)||9,gpTiers,updatedAt:serverTimestamp()},{merge:true});
+    window.toast('บันทึกการตั้งค่าสำเร็จ','ok');
+    if(btn){btn.textContent='✓ บันทึกแล้ว';btn.style.background='linear-gradient(135deg,var(--gn),#15803d)';}
+  }catch(e){window.toast('บันทึกไม่สำเร็จ','er');if(btn)btn.textContent=btn.dataset.txt||'บันทึกการตั้งค่า';}
+  finally{
+    setTimeout(()=>{if(btn){btn.disabled=false;btn.style.transform='';btn.style.opacity='';btn.style.background='';btn.textContent=btn.dataset.txt||'บันทึกการตั้งค่า';}},1100);
+  }
 }
 
 // ===== EVENT LISTENERS =====
@@ -1373,6 +1410,7 @@ document.addEventListener('click', e => {
   if (t.dataset.recall) { openRecall(t.dataset.recall,t.dataset.oid,t.dataset.sname);return; }
   const id=t.id;
   if (id==='tglBtn'){statsOpen=!statsOpen;$('statsGrid').classList.toggle('open',statsOpen);t.textContent=statsOpen?'▲ ซ่อนสถิติ':'▼ ดูสถิติ';}
+  else if(id==='addGpTierBtn')addGpTier();
   else if(id==='addShopBtn')openAddShop();
   else if(id==='addRiderBtn')window.openAddRider();
   else if(id==='savePricingBtn')savePricing();
