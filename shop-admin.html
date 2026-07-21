@@ -238,7 +238,7 @@ body{background:var(--gray);min-height:100vh;}
     <div class="sidebar-shop-sub" id="sbSub">จัดการข้อมูลร้าน</div>
   </div>
   <div class="sidebar-body">
-    <button class="sidebar-item" onclick="location.href='shop-manage.html?id='+shopSlug">
+    <button class="sidebar-item" onclick="location.href='shop-manage.html?id='+window._shopSlug">
       <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
       <div class="sidebar-item-text"><div class="sidebar-item-title">แก้ไขข้อมูลร้าน</div><div class="sidebar-item-sub">ชื่อ เบอร์ เวลา ที่อยู่</div></div>
       <div class="sidebar-arrow"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
@@ -460,6 +460,7 @@ const ACTIVE_STATUSES=["pending","accepted","picking","arrived","delivering"];
 const ADMIN_PHONE="0832582353";
 
 const shopSlug=new URLSearchParams(window.location.search).get("id");
+window._shopSlug=shopSlug;
 let shopData=null,isOpen=false,detailUnsub=null;
 
 function viewMyReviews(){
@@ -799,7 +800,7 @@ window.deleteAd=async function(id){
 // ===== CROP =====
 let cropImgSrc='', cropX=0, cropY=0, cropW=0, cropH=0;
 let isDragging=false, startX=0, startY=0, imgX=0, imgY=0, imgScale=1;
-const CROP_RATIO=16/9; // banner ratio
+const CROP_RATIO=2; // banner ratio 800x400 (ตรงกับขนาด export จริง ป้องกันภาพยืด/เบลอ)
 
 function openCrop(src){
   cropImgSrc=src;
@@ -854,18 +855,56 @@ document.addEventListener("DOMContentLoaded",function(){
   wrap.addEventListener("mousemove",function(e){if(!isDragging)return;imgX=e.clientX-startX;imgY=e.clientY-startY;applyImgTransform();});
   wrap.addEventListener("mouseup",function(){isDragging=false;});
 });
+// ===== RESIZE HANDLES =====
+(function(){
+  let _rz=false,_rzC='',_rzSX=0,_rzSY=0,_rzW=0,_rzH=0,_rzX=0,_rzY=0;
+
+  function startRz(e,corner){
+    e.stopPropagation();
+    _rz=true;_rzC=corner;
+    const pt=e.touches?e.touches[0]:e;
+    _rzSX=pt.clientX;_rzSY=pt.clientY;
+    _rzW=cropW;_rzH=cropH;_rzX=cropX;_rzY=cropY;
+  }
+  function doRz(e){
+    if(!_rz)return;
+    const pt=e.touches?e.touches[0]:e;
+    const dx=pt.clientX-_rzSX, dy=pt.clientY-_rzSY;
+    let nw=_rzW, nh=_rzH, nx=_rzX, ny=_rzY;
+    if(_rzC==='br'){nw=Math.max(80,_rzW+dx); nh=nw/CROP_RATIO;}
+    else if(_rzC==='bl'){nw=Math.max(80,_rzW-dx); nh=nw/CROP_RATIO; nx=_rzX+(_rzW-nw);}
+    else if(_rzC==='tr'){nw=Math.max(80,_rzW+dx); nh=nw/CROP_RATIO; ny=_rzY+(_rzH-nh);}
+    else if(_rzC==='tl'){nw=Math.max(80,_rzW-dx); nh=nw/CROP_RATIO; nx=_rzX+(_rzW-nw); ny=_rzY+(_rzH-nh);}
+    cropW=nw;cropH=nh;cropX=nx;cropY=ny;
+    const frame=document.getElementById('cropFrame');
+    if(frame){frame.style.left=cropX+'px';frame.style.top=cropY+'px';frame.style.width=cropW+'px';frame.style.height=cropH+'px';}
+    applyImgTransform();
+  }
+  function endRz(){_rz=false;}
+
+  document.addEventListener('mousedown',e=>{
+    const h=e.target.closest('[data-rz]');
+    if(h)startRz(e,h.dataset.rz);
+  });
+  document.addEventListener('mousemove',e=>{if(_rz)doRz(e);});
+  document.addEventListener('mouseup',endRz);
+  document.addEventListener('touchstart',e=>{
+    const h=e.target.closest('[data-rz]');
+    if(h)startRz(e,h.dataset.rz);
+  },{passive:true});
+  document.addEventListener('touchmove',e=>{if(_rz){e.preventDefault();doRz(e);}},{passive:false});
+  document.addEventListener('touchend',endRz);
+})();
 
 window.confirmCrop=function(){
   const img=document.getElementById("cropImg");
   const canvas=document.createElement("canvas");
-  // ลด resolution เป็น max 800px เพื่อลด base64 size
-  const maxW=800, scale=Math.min(1,maxW/cropW);
-  canvas.width=cropW*scale; canvas.height=cropH*scale;
+  // export ที่ 800×400 โดยตรงจากรูปต้นฉบับ — ไม่ upscale ไม่เบลอ
+  canvas.width=800; canvas.height=400;
   const ctx=canvas.getContext("2d");
-  // คำนวณ offset จาก left/top ของรูปกับกรอบ
   const offsetX=cropX-imgX, offsetY=cropY-imgY;
-  ctx.drawImage(img,offsetX/imgScale,offsetY/imgScale,cropW/imgScale,cropH/imgScale,0,0,canvas.width,canvas.height);
-  adImgBase64=canvas.toDataURL("image/jpeg",0.75);
+  ctx.drawImage(img,offsetX/imgScale,offsetY/imgScale,cropW/imgScale,cropH/imgScale,0,0,800,400);
+  adImgBase64=canvas.toDataURL("image/jpeg",0.92);
   const area=document.getElementById("adImgArea");
   area.innerHTML='<img src="'+adImgBase64+'" style="width:100%;height:100%;object-fit:cover">';
   area.onclick=()=>document.getElementById('adImgFile').click();
@@ -913,7 +952,12 @@ function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;")
   </div>
   <div class="crop-canvas-wrap" id="cropCanvasWrap">
     <img class="crop-img" id="cropImg" draggable="false">
-    <div class="crop-frame" id="cropFrame"></div>
+    <div class="crop-frame" id="cropFrame">
+      <div data-rz="tl" style="position:absolute;top:-9px;left:-9px;width:20px;height:20px;background:#fff;border-radius:50%;cursor:nw-resize;box-shadow:0 2px 6px rgba(0,0,0,.5);touch-action:none;z-index:10"></div>
+      <div data-rz="tr" style="position:absolute;top:-9px;right:-9px;width:20px;height:20px;background:#fff;border-radius:50%;cursor:ne-resize;box-shadow:0 2px 6px rgba(0,0,0,.5);touch-action:none;z-index:10"></div>
+      <div data-rz="bl" style="position:absolute;bottom:-9px;left:-9px;width:20px;height:20px;background:#fff;border-radius:50%;cursor:sw-resize;box-shadow:0 2px 6px rgba(0,0,0,.5);touch-action:none;z-index:10"></div>
+      <div data-rz="br" style="position:absolute;bottom:-9px;right:-9px;width:20px;height:20px;background:#fff;border-radius:50%;cursor:se-resize;box-shadow:0 2px 6px rgba(0,0,0,.5);touch-action:none;z-index:10"></div>
+    </div>
   </div>
   <div class="crop-hint">ลากเพื่อปรับตำแหน่งรูปภาพ</div>
 </div>
