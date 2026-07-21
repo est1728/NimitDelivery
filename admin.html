@@ -728,9 +728,20 @@ function showNotif(ico,title,sub,color){
   if(navigator.vibrate)navigator.vibrate([100,50,100]);
 }
 function showOSNotif(title,body){
-  if('Notification' in window&&Notification.permission==='granted'){
-    new Notification(title,{body,tag:'nimit-admin',renotify:true});
-  }
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  try{
+    if(navigator.serviceWorker&&navigator.serviceWorker.getRegistration){
+      navigator.serviceWorker.getRegistration().then(reg=>{
+        if(reg&&reg.showNotification){
+          reg.showNotification(title,{body,tag:'nimit-admin',renotify:true});
+        }else{
+          try{new Notification(title,{body,tag:'nimit-admin',renotify:true});}catch(e){}
+        }
+      }).catch(()=>{try{new Notification(title,{body,tag:'nimit-admin',renotify:true});}catch(e){}});
+    }else{
+      new Notification(title,{body,tag:'nimit-admin',renotify:true});
+    }
+  }catch(e){}
 }
 async function reqNotifPerm(){
   if('Notification' in window&&Notification.permission==='default')
@@ -1042,7 +1053,7 @@ async function confirmAssign(){
       await updateDoc(doc(db,'orders',asgDocId),{riderId:'',riderName:'',riderPhone:'',status:'pending',updatedAt:serverTimestamp()});
       // ป้องกันการแจ้งเตือนซ้ำ — เพิ่มเข้า known set
       knownOrders.add(asgDocId);sessionStorage.setItem('ka',JSON.stringify([...knownOrders]));
-      closeAssign();window.toast('ถอดไรเดอร์แล้ว','ok');
+      closeAssign();window.loadOrders();window.toast('ถอดไรเดอร์แล้ว','ok');
     }catch(e){window.toast('ไม่สำเร็จ','er');}
     btn2.disabled=false;btn2.textContent='ยืนยัน';
     return;
@@ -1058,6 +1069,7 @@ async function confirmAssign(){
     const asgOrder=orders.find(o=>o.docId===asgDocId)||curOrder;
     await updateDoc(doc(db,'orders',asgDocId),{riderId:r.id,riderName:r.name,riderPhone:r.phone||'',status:keepStatus,updatedAt:serverTimestamp()});
     closeAssign();
+    window.loadOrders(); // refresh ทันทีหลัง assign
     window.toast('โยนงานให้ '+r.name+' แล้ว','ok');
     sendPush(['rider'],'📦 ถูกมอบหมายงาน!','ออเดอร์ '+(asgOrder?.orderId||asgDocId),{url:'/rider.html'});
     sendPush(['customer'],'📦 ไรเดอร์รับงานแล้ว','ออเดอร์ '+(asgOrder?.orderId||asgDocId)+' · '+r.name,{url:'/track.html'});
@@ -1189,6 +1201,12 @@ async function loadShops(){
               <span class="r-switch-thumb"></span>
             </label>
             <span style="font-size:11px;color:var(--s);margin-left:4px;font-weight:600">${s.isOpen!==false?'เปิด':'ปิด'}</span>
+            <label class="r-switch" style="margin-left:14px" onclick="event.stopPropagation()">
+              <input type="checkbox" ${s.shopType==='proxy'?'checked':''} onchange="event.stopPropagation();window.toggleShopType('${s.id}',${s.shopType==='proxy'})">
+              <span class="r-switch-track"></span>
+              <span class="r-switch-thumb"></span>
+            </label>
+            <span style="font-size:11px;color:${s.shopType==='proxy'?'var(--p)':'var(--s)'};margin-left:4px;font-weight:600">ฝากซื้อ</span>
           </div>
           <div style="display:flex;gap:6px;align-items:center">
             <button class="ib ibv" data-ext="shop-admin.html?id=${slug}"><svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg></button>
@@ -1207,7 +1225,7 @@ async function loadShops(){
 // RIDERS
 function openEditShop(sid){
   const s=shops.find(x=>x.id===sid);if(!s)return;
-  location.href='shop-manage.html?id='+(s.slug||s.id);
+  editShopId=sid;
   $('shopMovT').textContent='แก้ไขร้านค้า';
   $('sName').value=s.name||'';
   $('sSlug').value=s.slug||'';
@@ -1273,6 +1291,14 @@ window.toggleShopOpen=async function(sid,currentOpen){
   try{
     await updateDoc(doc(db,'shops',sid),{isOpen:!currentOpen,updatedAt:serverTimestamp()});
     window.toast(!currentOpen?'เปิดร้านแล้ว':'ปิดร้านแล้ว','ok');
+    loadShops();
+  }catch(e){window.toast('ไม่สำเร็จ','er');}
+};
+window.toggleShopType=async function(sid,isCurrentlyProxy){
+  try{
+    const newType=isCurrentlyProxy?'normal':'proxy';
+    await updateDoc(doc(db,'shops',sid),{shopType:newType,updatedAt:serverTimestamp()});
+    window.toast(newType==='proxy'?'ตั้งเป็นร้านฝากซื้อแล้ว':'ตั้งเป็นร้านปกติแล้ว','ok');
     loadShops();
   }catch(e){window.toast('ไม่สำเร็จ','er');}
 };
@@ -1570,6 +1596,49 @@ window.openAdCrop=function(input){
   },{passive:false});
 })();
 
+// ===== RESIZE HANDLES =====
+(function(){
+  let _resizing=false, _resizeCorner='', _resizeStartX=0, _resizeStartY=0, _resizeStartScale=1;
+
+  function getHandles(){ return document.querySelectorAll('#cropCanvasWrap [data-corner]'); }
+
+  function startResize(e, corner){
+    e.stopPropagation();
+    _resizing=true; _resizeCorner=corner;
+    _resizeStartScale=_cropScale;
+    const pt = e.touches?e.touches[0]:e;
+    _resizeStartX=pt.clientX; _resizeStartY=pt.clientY;
+  }
+  function doResize(e){
+    if(!_resizing) return;
+    const pt=e.touches?e.touches[0]:e;
+    const dx=pt.clientX-_resizeStartX;
+    const dy=pt.clientY-_resizeStartY;
+    // ลากมุมขวาล่าง/ขวาบน = ขยาย; มุมซ้าย = หด
+    const sign=(_resizeCorner==='br'||_resizeCorner==='tr')?1:-1;
+    const delta=(dx*sign+dy*(_resizeCorner==='br'||_resizeCorner==='bl'?1:-1))/2;
+    const wrap=document.getElementById('cropCanvasWrap');
+    const W=wrap?wrap.clientWidth:320;
+    _cropScale=Math.max(0.3, _resizeStartScale*(1+delta/W));
+    drawCrop();
+  }
+  function endResize(){ _resizing=false; }
+
+  document.addEventListener('mousemove', doResize);
+  document.addEventListener('mouseup', endResize);
+  document.addEventListener('touchmove', e=>{ if(_resizing){e.preventDefault();doResize(e);} },{passive:false});
+  document.addEventListener('touchend', endResize);
+
+  document.addEventListener('mousedown', e=>{
+    const h=e.target.closest('[data-corner]');
+    if(h&&document.getElementById('cropCanvasWrap')?.contains(h)) startResize(e,h.dataset.corner);
+  });
+  document.addEventListener('touchstart', e=>{
+    const h=e.target.closest('[data-corner]');
+    if(h&&document.getElementById('cropCanvasWrap')?.contains(h)) startResize(e,h.dataset.corner);
+  },{passive:true});
+})();
+
 window.cancelCrop=function(){
   document.getElementById('cropOverlay').style.display='none';
   const fi=document.getElementById('adImgFile'); if(fi)fi.value='';
@@ -1578,13 +1647,22 @@ window.cancelCrop=function(){
   if(prev)prev.innerHTML='<span style="font-size:30px">🖼️</span><span style="font-size:12px;color:#94a3b8">กดเพื่อเลือกรูปภาพ</span><span style="font-size:10px;color:#c0cad8">JPG/PNG · แนะนำ 800×400px · ไม่เกิน 2MB</span>';
 };
 window.confirmCrop=function(){
-  const canvas=document.getElementById('cropCanvas');
-  if(!canvas)return;
-  // export 800×400
+  if(!_srcImg) return;
+  const wrap=document.getElementById('cropCanvasWrap');
+  if(!wrap) return;
+  const W=wrap.clientWidth||320;
+  const H=Math.round(W/2);
+  // export จาก _srcImg โดยตรงที่ 800x400 — ไม่ผ่าน display canvas (ไม่เบลอ)
   const out=document.createElement('canvas');
-  out.width=800;out.height=400;
-  out.getContext('2d').drawImage(canvas,0,0,800,400);
-  _cropBase64=out.toDataURL('image/jpeg',0.85);
+  out.width=800; out.height=400;
+  const ctx=out.getContext('2d');
+  // คำนวณ source rect จาก _cropX/_cropY/_cropScale
+  const sx = -_cropX/_cropScale;
+  const sy = -_cropY/_cropScale;
+  const sw = W/_cropScale;
+  const sh = H/_cropScale;
+  ctx.drawImage(_srcImg, sx, sy, sw, sh, 0, 0, 800, 400);
+  _cropBase64=out.toDataURL('image/jpeg',0.92);
   const prev=document.getElementById('adImgPreview');
   if(prev) prev.innerHTML='<img src="'+_cropBase64+'" style="width:100%;height:100%;object-fit:cover;border-radius:14px">';
   document.getElementById('cropOverlay').style.display='none';
@@ -1667,9 +1745,14 @@ window.confirmCrop=function(){
 <!-- CROP OVERLAY -->
 <div id="cropOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:300;flex-direction:column;align-items:center;justify-content:center;">
   <div style="color:#fff;font-size:14px;font-weight:700;margin-bottom:12px">ปรับขนาดรูปภาพ</div>
-  <div id="cropCanvasWrap" style="position:relative;width:90vw;max-width:360px;touch-action:none;cursor:move;border-radius:12px;overflow:hidden">
-    <canvas id="cropCanvas" style="display:block;width:100%;border-radius:12px"></canvas>
+  <div id="cropCanvasWrap" style="position:relative;width:90vw;max-width:360px;touch-action:none;cursor:move;border-radius:12px;overflow:visible">
+    <canvas id="cropCanvas" style="display:block;width:100%;border-radius:12px;overflow:hidden"></canvas>
     <img id="cropImg" style="display:none" draggable="false">
+    <!-- Resize handles -->
+    <div data-corner="tl" style="position:absolute;top:-8px;left:-8px;width:20px;height:20px;background:#fff;border-radius:50%;cursor:nw-resize;box-shadow:0 2px 6px rgba(0,0,0,.4);touch-action:none;z-index:10"></div>
+    <div data-corner="tr" style="position:absolute;top:-8px;right:-8px;width:20px;height:20px;background:#fff;border-radius:50%;cursor:ne-resize;box-shadow:0 2px 6px rgba(0,0,0,.4);touch-action:none;z-index:10"></div>
+    <div data-corner="bl" style="position:absolute;bottom:-8px;left:-8px;width:20px;height:20px;background:#fff;border-radius:50%;cursor:sw-resize;box-shadow:0 2px 6px rgba(0,0,0,.4);touch-action:none;z-index:10"></div>
+    <div data-corner="br" style="position:absolute;bottom:-8px;right:-8px;width:20px;height:20px;background:#fff;border-radius:50%;cursor:se-resize;box-shadow:0 2px 6px rgba(0,0,0,.4);touch-action:none;z-index:10"></div>
   </div>
   <div style="color:#94a3b8;font-size:11px;margin-top:8px">ลากเพื่อปรับตำแหน่ง · Pinch เพื่อซูม</div>
   <div style="display:flex;gap:12px;margin-top:16px">
