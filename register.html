@@ -93,6 +93,15 @@ const db = getFirestore(app);
 const map = L.map('map').setView([13.7563,100.5018],13);
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
 
+// บัค "แผนที่ลอย" ตอนเลื่อนหน้า: Leaflet จำตำแหน่ง container ไว้ตอนสร้างแผนที่ครั้งแรก
+// ถ้า layout ขยับหลังจากนั้น (ฟอนต์โหลดเสร็จ, แถบ URL ของมือถือหด/ขยาย) ตัวแผนที่จะเพี้ยนจากกรอบจริง
+// ต้องสั่ง invalidateSize() ซ้ำหลังโหลดเสร็จ และตอน resize/orientation เปลี่ยน
+setTimeout(()=>map.invalidateSize(),300);
+window.addEventListener('load',()=>map.invalidateSize());
+window.addEventListener('resize',()=>map.invalidateSize());
+window.addEventListener('orientationchange',()=>setTimeout(()=>map.invalidateSize(),300));
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) map.invalidateSize(); });
+
 let marker, selectedLat=null, selectedLng=null;
 
 function placeMarker(lat,lng){
@@ -129,6 +138,10 @@ window.saveData=async function(){
   try{
     await setDoc(doc(db,"customers",phone),customerData);
     localStorage.setItem("customerData",JSON.stringify(customerData));
+    // เติมลง address book ทันที ให้หน้า address.html แสดงเป็นรายการที่อยู่ (ไม่ใช่ฟอร์มเปล่า)
+    localStorage.setItem("addresses",JSON.stringify([{name,phone,address,lat:selectedLat,lng:selectedLng}]));
+    localStorage.setItem("defaultAddress","0");
+    sessionStorage.removeItem("newCustomer");
     window.location.href="address.html";
   }catch(e){ alert("เกิดข้อผิดพลาด กรุณาลองใหม่"); }
 }
