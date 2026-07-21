@@ -1207,7 +1207,7 @@ async function loadShops(){
 // RIDERS
 function openEditShop(sid){
   const s=shops.find(x=>x.id===sid);if(!s)return;
-  editShopId=sid;
+  location.href='shop-manage.html?id='+(s.slug||s.id);
   $('shopMovT').textContent='แก้ไขร้านค้า';
   $('sName').value=s.name||'';
   $('sSlug').value=s.slug||'';
