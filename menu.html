@@ -53,6 +53,11 @@ body{background:var(--bg);min-height:100vh;padding-bottom:120px;}
 
 /* MENU CARDS */
 .menu-list{display:flex;flex-direction:column;gap:12px;}
+.cat-bar{text-align:center;position:relative;padding:10px 0;border-top:2px solid #e2e8f0;border-bottom:2px solid #e2e8f0;margin:18px 0 4px;}
+.cat-bar:first-child{margin-top:0;}
+.cat-bar span{background:var(--bg);padding:0 14px;font-size:13px;font-weight:800;color:var(--primary);letter-spacing:.3px;}
+.menu-card.sold-out{opacity:.55;}
+.sold-out-pill{font-size:11px;font-weight:800;color:#dc2626;background:#fee2e2;padding:5px 12px;border-radius:20px;white-space:nowrap;}
 .menu-card{background:#fff;border-radius:16px;padding:12px;display:flex;gap:12px;align-items:center;box-shadow:var(--shadow-sm);cursor:pointer;transition:transform 0.12s;}
 .menu-card:active{transform:scale(0.98);}
 .menu-img{width:80px;height:80px;border-radius:12px;background:var(--bg);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;}
@@ -215,6 +220,7 @@ document.getElementById("shopNameTitle").textContent = shopName || "ร้าน
 
 let cart = JSON.parse(localStorage.getItem("cart") || "{}");
 let allMenus = [], filteredMenus = [], categories = [], currentCat = "ทั้งหมด";
+let shopCategories = []; // [{id,name}] จาก shop-manage.html ถ้ามี
 let gpPercent = 0, popupMenu = null, popupSelections = {};
 
 async function loadSettings(){
@@ -225,6 +231,7 @@ async function loadShopInfo(){
     const s=await getDoc(doc(db,"shops",shopId));
     if(s.exists()){
       const d=s.data();
+      shopCategories = Array.isArray(d.categories) ? d.categories : [];
       if(d.desc) document.getElementById("shopDescText").textContent=d.desc;
       if(!d.isOpen) document.getElementById("closedBanner").style.display="block";
       const avatar=document.getElementById("shopAvatar");
@@ -241,7 +248,11 @@ async function loadMenu(){
   try{
     const snap=await getDocs(collection(db,"shops",shopId,"menus"));
     allMenus=[]; snap.forEach(d=>allMenus.push({id:d.id,...d.data()}));
-    categories=["ทั้งหมด",...new Set(allMenus.map(m=>m.category).filter(Boolean))];
+    if(shopCategories.length){
+      categories=["ทั้งหมด",...shopCategories.map(c=>c.name)];
+    } else {
+      categories=["ทั้งหมด",...new Set(allMenus.map(m=>m.category).filter(Boolean))];
+    }
     renderCats(); applyFilter();
   }catch(e){ document.getElementById("menuContainer").innerHTML='<div class="loading">โหลดไม่ได้</div>'; }}
 
@@ -266,10 +277,30 @@ function qtyInCart(menuId){ return cart[shopId]?.items?.filter(i=>i.id===menuId)
 function renderMenus(){
   const el=document.getElementById("menuContainer");
   if(!filteredMenus.length){ el.innerHTML='<div class="loading">ไม่มีเมนู</div>'; return; }
-  el.innerHTML=`<div class="menu-list">${filteredMenus.map(m=>{
+  // จัดกลุ่มตามหมวดหมู่ ตามลำดับที่ตั้งไว้ใน shop-manage.html (ถ้ามี)
+  const groupNames = currentCat!=="ทั้งหมด" ? [currentCat] : (shopCategories.length ? shopCategories.map(c=>c.name) : [...new Set(filteredMenus.map(m=>m.category).filter(Boolean))]);
+  const seen = new Set();
+  let html = '<div class="menu-list">';
+  const renderGroup = (name, items) => {
+    if(!items.length) return '';
+    seen.add(name);
+    return `<div class="cat-bar"><span>${esc(name)}</span></div>` + items.map(m=>renderMenuCardHtml(m)).join('');
+  };
+  groupNames.forEach(name=>{
+    const items = filteredMenus.filter(m=>(m.category||'')===name).sort((a,b)=>(a.order||0)-(b.order||0));
+    html += renderGroup(name, items);
+  });
+  const rest = filteredMenus.filter(m=>!seen.has(m.category||'')).sort((a,b)=>(a.order||0)-(b.order||0));
+  if(rest.length) html += renderGroup('เมนูอื่นๆ', rest);
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function renderMenuCardHtml(m){
     const dp=calcPrice(m.price,m.gp);
     const qty=qtyInCart(m.id);
-    return `<div class="menu-card" onclick="openMenuPopup('${m.id}')">
+    const soldOut = m.available===false;
+    return `<div class="menu-card ${soldOut?'sold-out':''}" onclick="${soldOut?'':`openMenuPopup('${m.id}')`}">
       <div class="menu-img">
         ${m.imgUrl
           ?`<img src="${m.imgUrl}" onerror="this.parentElement.innerHTML='<div class=menu-img-placeholder><svg viewBox=\\'0 0 24 24\\'><path d=\\'M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26 1.44 1.42 2.43 2.89 2.43 5.29v8.05zM1 21.99V21h15.03v.99c0 .55-.45 1-1.01 1H2.01c-.56 0-1.01-.45-1.01-1zm15.03-7c0-4.5-6.72-5-8.03-5-1.28 0-8 .5-8 5h16.03z\\'/></svg></div>'">`
@@ -280,7 +311,7 @@ function renderMenus(){
         ${m.desc?`<div class="menu-desc">${m.desc}</div>`:''}
         <div class="menu-bottom">
           <div class="menu-price">฿${dp}</div>
-          ${qty>0
+          ${soldOut ? `<span class="sold-out-pill">สินค้าหมด</span>` : (qty>0
             ?`<div class="qty-ctrl" onclick="event.stopPropagation()">
                 <button class="qty-btn minus" onclick="quickRemove('${m.id}')">−</button>
                 <div class="qty-num">${qty}</div>
@@ -288,11 +319,11 @@ function renderMenus(){
               </div>`
             :`<button class="cart-add-btn" onclick="event.stopPropagation();openMenuPopup('${m.id}')">
                 <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg>
-              </button>`}
+              </button>`)}
         </div>
       </div>
     </div>`;
-  }).join('')}</div>`;}
+}
 
 // POPUP
 window.openMenuPopup=function(menuId){
