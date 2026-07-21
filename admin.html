@@ -1411,13 +1411,13 @@ window.saveAd=async function(){
   try{
     const data={type,caption,shopId,shopName,createdAt:serverTimestamp()};
     if(type==='image'){
-      if(__cropBase64){
+      if(_cropBase64){
         showUploadProgress('อัพโหลดรูปภาพ...');
-        const res=await fetch(__cropBase64);
+        const res=await fetch(_cropBase64);
         const blob=await res.blob();
         const f=new File([blob],'ad_'+Date.now()+'.jpg',{type:'image/jpeg'});
         data.imgUrl=await uploadFile(f,'ads/images');
-        __cropBase64='';
+        _cropBase64='';
       } else if(imgFile){
         showUploadProgress('อัพโหลดรูปภาพ...');
         data.imgUrl=await uploadFile(imgFile,'ads/images');
@@ -1591,99 +1591,6 @@ window.confirmCrop=function(){
   _srcImg=null;
 };
 
-window.openAdCrop=function(input){
-  const file=input.files[0]; if(!file)return;
-  _cropFile=file;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const img=document.getElementById('cropImg');
-    const wrap=document.getElementById('cropCanvasWrap');
-    img.onload=()=>{
-      const ww=wrap.clientWidth||320, wh=wrap.clientHeight||200;
-      cropScale=Math.max(ww/img.naturalWidth, wh/img.naturalHeight);
-      cropX=(ww-img.naturalWidth*cropScale)/2;
-      cropY=(wh-img.naturalHeight*cropScale)/2;
-      updateCropImg();
-    };
-    document.getElementById('cropOverlay').style.display='flex';
-    // รอ 1 frame ให้ overlay render ก่อน ค่อย set src
-    requestAnimationFrame(()=>{ img.src=e.target.result; });
-  };
-  reader.readAsDataURL(file);
-};
-
-function updateCropImg(){
-  const img=document.getElementById('cropImg');
-  const wrap=document.getElementById('cropCanvasWrap');
-  if(!img||!wrap||!img.naturalWidth)return;
-  const iw=img.naturalWidth*cropScale, ih=img.naturalHeight*cropScale;
-  const ww=wrap.clientWidth, wh=wrap.clientHeight;
-  // clamp: ไม่ให้รูปหลุดออกจาก wrap
-  cropX=Math.min(0, Math.max(cropX, ww-iw));
-  cropY=Math.min(0, Math.max(cropY, wh-ih));
-  img.style.width=iw+'px'; img.style.height=ih+'px';
-  img.style.left=cropX+'px'; img.style.top=cropY+'px';
-}
-
-(function setupCropEvents(){
-  document.addEventListener('mousedown',e=>{
-    const wrap=document.getElementById('cropCanvasWrap');
-    if(!wrap||!wrap.contains(e.target))return;
-    _dragging=true;_dragSX=e.clientX;_dragSY=e.clientY;
-    const img=document.getElementById('cropImg');
-    _dragIX=parseInt(img.style.left||0);_dragIY=parseInt(img.style.top||0);
-  });
-  document.addEventListener('mousemove',e=>{
-    if(!_dragging)return;
-    cropX=_dragIX+(e.clientX-_dragSX);cropY=_dragIY+(e.clientY-_dragSY);updateCropImg();
-  });
-  document.addEventListener('mouseup',()=>{_dragging=false;});
-  document.addEventListener('touchstart',e=>{
-    const wrap=document.getElementById('cropCanvasWrap');
-    if(!wrap||!wrap.contains(e.target))return;
-    if(e.touches.length===1){
-      _dragging=true;_dragSX=e.touches[0].clientX;_dragSY=e.touches[0].clientY;
-      const img=document.getElementById('cropImg');
-      _dragIX=parseInt(img.style.left||0);_dragIY=parseInt(img.style.top||0);
-    } else if(e.touches.length===2){
-      _lastDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-    }
-  },{passive:true});
-  document.addEventListener('touchmove',e=>{
-    const wrap=document.getElementById('cropCanvasWrap');
-    if(!wrap||!wrap.contains(e.target))return;
-    if(e.touches.length===1&&_dragging){
-      e.preventDefault();
-      cropX=_dragIX+(e.touches[0].clientX-_dragSX);cropY=_dragIY+(e.touches[0].clientY-_dragSY);updateCropImg();
-    } else if(e.touches.length===2&&_lastDist>0){
-      e.preventDefault();
-      const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-      cropScale*=d/_lastDist;_lastDist=d;updateCropImg();
-    }
-  },{passive:false});
-  document.addEventListener('touchend',()=>{_dragging=false;_lastDist=0;});
-})();
-
-window.cancelCrop=function(){
-  document.getElementById('cropOverlay').style.display='none';
-  const fi=document.getElementById('adImgFile'); if(fi)fi.value='';
-  _cropBase64='';
-};
-window.confirmCrop=function(){
-  const img=document.getElementById('cropImg');
-  const wrap=document.getElementById('cropCanvasWrap');
-  if(!img||!wrap)return;
-  const ww=wrap.clientWidth||320, wh=wrap.clientHeight||200;
-  const canvas=document.createElement('canvas');
-  canvas.width=800;canvas.height=400;
-  const ctx=canvas.getContext('2d');
-  const sx=(0-cropX)/cropScale, sy=(0-cropY)/cropScale;
-  ctx.drawImage(img,sx,sy,ww/cropScale,wh/cropScale,0,0,800,400);
-  _cropBase64=canvas.toDataURL('image/jpeg',0.85);
-  const prev=document.getElementById('adImgPreview');
-  if(prev) prev.innerHTML='<img src="'+_cropBase64+'" style="width:100%;height:100%;object-fit:cover">';
-  document.getElementById('cropOverlay').style.display='none';
-};
 </script>
 <script>window._fcmRole="admin";</script>
 <script src="fcm.js"></script>
