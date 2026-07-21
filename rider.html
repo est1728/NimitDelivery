@@ -425,6 +425,23 @@ body{background:var(--gray);min-height:100vh;}
   <div class="ep-note">ข้อมูลนี้แก้ไขได้โดยแอดมินเท่านั้น</div>
 </div>
 
+<!-- SCROLL DATE PICKER (เดิมมี CSS/JS ครบแล้วแต่ขาด HTML ทำให้กดแล้ว error) -->
+<div class="date-picker-overlay" id="dpOverlay">
+  <div class="date-picker-sheet">
+    <div class="date-picker-header">
+      <button class="dp-cancel" onclick="window.closeDatePicker()">ยกเลิก</button>
+      <div class="dp-title">เลือกวันที่</div>
+      <button class="dp-confirm" onclick="window.confirmDatePicker()">เสร็จสิ้น</button>
+    </div>
+    <div class="dp-columns">
+      <div class="dp-select-bar"></div>
+      <div class="dp-col" id="dp-day"></div>
+      <div class="dp-col" id="dp-month"></div>
+      <div class="dp-col" id="dp-year"></div>
+    </div>
+  </div>
+</div>
+
 <!-- DETAIL PAGE -->
 <div id="detailPage" class="page">
   <div class="detail-page-wrap">
@@ -568,7 +585,7 @@ body{background:var(--gray);min-height:100vh;}
   </button>
   <button class="bnav-item" id="bnav-messages" onclick="window.switchMainTab('messages')">
     <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-    <span>ข้อความ<span id="riderChatBdg" style="display:none;position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:50%;background:#ef4444;color:#fff;font-size:9px;font-weight:700;line-height:16px;text-align:center"></span></span>
+    <span>ข้อความ<span id="msgNavBdg" style="display:none;position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:50%;background:#ef4444;color:#fff;font-size:9px;font-weight:700;line-height:16px;text-align:center"></span></span>
   </button>
   <button class="bnav-item" id="bnav-more" onclick="window.openSidebar()">
     <svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
