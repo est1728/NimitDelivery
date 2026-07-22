@@ -365,47 +365,6 @@ body{background:var(--gray);min-height:100vh;overscroll-behavior-y:none;}
   </div>
 </div>
 
-<!-- PANEL แก้ไขร้าน -->
-<div class="extra-panel" id="panelEdit">
-  <div class="ep-topbar"><button class="ep-back" onclick="closeExtraPanel('panelEdit')"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button><div class="ep-title">แก้ไขข้อมูลร้าน</div></div>
-  <div class="ep-card">
-    <div class="ep-card-title">ข้อมูลทั่วไป</div>
-    <div class="ep-field"><div class="ep-label">ชื่อร้าน</div><input class="ep-input" id="edit-name" placeholder="ชื่อร้าน"></div>
-    <div class="ep-field"><div class="ep-label">คำอธิบาย</div><input class="ep-input" id="edit-desc" placeholder="อาหารตามสั่ง..."></div>
-    <div class="ep-field"><div class="ep-label">เบอร์โทร</div><input class="ep-input" id="edit-phone" type="tel" placeholder="08X-XXX-XXXX"></div>
-    <div class="ep-field"><div class="ep-label">เวลาส่ง</div><input class="ep-input" id="edit-deliveryTime" placeholder="20-30 นาที"></div>
-    <div class="ep-field"><div class="ep-label">เวลาเปิด-ปิดร้าน</div><input class="ep-input" id="edit-openHours" placeholder="08:00 - 20:00"></div>
-    <div class="ep-field"><div class="ep-label">ที่อยู่</div><input class="ep-input" id="edit-address" placeholder="ที่อยู่ร้าน"></div>
-    <div class="ep-field" style="margin-bottom:0">
-      <div class="ep-label">ปักหมุดตำแหน่งร้าน</div>
-      <div id="shopMap" style="height:200px;border-radius:14px;overflow:hidden;border:1.5px solid #e8eef5;margin-bottom:8px"></div>
-      <button onclick="useMyLocShop()" style="width:100%;height:38px;border:1.5px solid var(--primary);border-radius:12px;background:#fff;color:var(--primary);font-size:13px;font-weight:700;cursor:pointer;margin-bottom:4px">📍 ใช้ตำแหน่งปัจจุบัน</button>
-    </div>
-  </div>
-
-  <div class="ep-card">
-    <div class="ep-card-title">🖼️ รูปหน้าปกร้าน</div>
-    <input type="file" id="edit-bannerFile" accept="image/*" style="display:none" onchange="window.previewBannerFile(this)">
-    <div id="edit-banner-preview" onclick="document.getElementById('edit-bannerFile').click()" style="width:100%;height:130px;border-radius:12px;background:#f0f4ff;border:2px dashed #c7d7f5;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;flex-direction:column;gap:6px">
-      <span style="font-size:28px">🖼️</span>
-      <span style="font-size:12px;color:#94a3b8">กดเพื่อเลือกรูปหน้าปก</span>
-      <span style="font-size:10px;color:#c0cad8">JPG/PNG · แนะนำ 800×400px · ไม่เกิน 2MB</span>
-    </div>
-  </div>
-
-  <div class="ep-card">
-    <div class="ep-card-title">🎬 วิดีโอแนะนำร้าน</div>
-    <input type="file" id="edit-videoFile" accept="video/*" style="display:none" onchange="window.previewVideoFile(this)">
-    <div id="edit-video-preview" onclick="document.getElementById('edit-videoFile').click()" style="width:100%;height:130px;border-radius:12px;background:#f0f4ff;border:2px dashed #c7d7f5;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;flex-direction:column;gap:6px">
-      <span style="font-size:28px">🎬</span>
-      <span style="font-size:12px;color:#94a3b8">กดเพื่อเลือกวิดีโอ</span>
-      <span style="font-size:10px;color:#c0cad8">MP4/WebM · ไม่เกิน 30MB · ไม่เกิน 60 วิ</span>
-    </div>
-  </div>
-
-  <button class="ep-save-btn" onclick="saveShopInfo()">บันทึก</button>
-</div>
-
 <!-- PANEL โฆษณา -->
 <div class="extra-panel" id="panelAds">
   <div class="ep-topbar"><button class="ep-back" onclick="closeExtraPanel('panelAds')"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button><div class="ep-title">โฆษณา</div></div>
@@ -485,7 +444,7 @@ body{background:var(--gray);min-height:100vh;overscroll-behavior-y:none;}
   <div class="detail-section">
     <div class="detail-section-title"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg>รายการสินค้า</div>
     <div id="d-items"></div>
-    <div class="drow" style="margin-top:8px;padding-top:8px;border-top:1px solid #f5f6f8"><span class="drow-label" style="font-weight:800">ต้นทุนรวม</span><span class="drow-sep">:</span><span class="drow-val" id="d-baseCost" style="font-weight:800">-</span></div>
+    <div class="drow" style="margin-top:8px;padding-top:8px;border-top:1px solid #f5f6f8"><span class="drow-label" style="font-weight:800;color:var(--green)">ร้านค้ารับเงิน</span><span class="drow-sep">:</span><span class="drow-val" id="d-shopPay" style="font-weight:800;color:var(--green)">-</span></div>
   </div>
 </div>
 
@@ -659,15 +618,6 @@ async function initShop(){
       document.getElementById("shopAvatar").innerHTML='<img src="'+shopData.avatarUrl+'">';
       document.getElementById("sbAvatar").innerHTML='<img src="'+shopData.avatarUrl+'">';
     }
-    document.getElementById("edit-name").value=shopData.name||"";
-    document.getElementById("edit-desc").value=shopData.desc||"";
-    document.getElementById("edit-phone").value=shopData.phone||"";
-    document.getElementById("edit-deliveryTime").value=shopData.deliveryTime||"";
-    document.getElementById("edit-address").value=shopData.address||"";
-    // หมายเหตุ: แผนที่ #shopMap จะถูกสร้างตอนเปิดแผง "แก้ไขร้าน" จริงๆ (ดู openExtraPanel)
-    // ไม่ init ตรงนี้ เพราะตอนนี้แผงยัง display:none อยู่ (container ขนาด 0 → แผนที่เพี้ยน/ลอย)
-    window._shopMapLat=shopData.lat||13.7563; window._shopMapLng=shopData.lng||100.5018;
-    document.getElementById("edit-openHours").value=shopData.openHours||"";
     isOpen=shopData.isOpen||false; updateOpenUI();
     showPage("mainPage"); listenOrders();
   }catch(e){
@@ -794,9 +744,10 @@ function renderDetail(o){
   document.getElementById("callAdminBtn").onclick=()=>window.location.href='tel:'+ADMIN_PHONE;
   document.getElementById("d-items").innerHTML=(o.items||[]).map(function(i){
     var opts=i.options&&i.options.length?i.options.map(function(op){return '<div>• '+esc(op.name)+(op.price?'  +฿'+op.price:'')+'</div>';}).join(''):'';
-    return '<div class="ditem-row"><div><div style="font-weight:700">'+esc(i.name)+'</div>'+(opts?'<div class="ditem-opt">'+opts+'</div>':'')+'</div><div>x'+i.qty+'</div><div>฿'+(i.basePrice*i.qty)+'</div></div>';
+    return '<div class="ditem-row"><div><div style="font-weight:700">'+esc(i.name)+'</div>'+(opts?'<div class="ditem-opt">'+opts+'</div>':'')+'</div><div>x'+i.qty+'</div><div>฿'+(i.price*i.qty)+'</div></div>';
   }).join('');
-  document.getElementById("d-baseCost").textContent='฿'+(o.baseCost||0);
+  const shopPayEl=document.getElementById("d-shopPay");
+  if(shopPayEl) shopPayEl.textContent='฿'+(o.baseCost||0);
 }
 
 window.switchTab=function(tab){
@@ -822,101 +773,8 @@ window.openSidebar=function(){document.getElementById("sidebar").classList.add("
 window.closeSidebar=function(){document.getElementById("sidebar").classList.remove("open");document.getElementById("sidebarOverlay").classList.remove("show");}
 window.openExtraPanel=function(id){
   document.getElementById(id)?.classList.add('show');
-  if(id==='panelEdit'){
-    // โหลดค่าเดิมใส่ฟอร์ม
-    if(shopData){
-      // แสดงรูป/วิดีโอปัจจุบัน
-      if(shopData.bannerUrl){
-        const bEl=document.getElementById('edit-banner-preview');
-        if(bEl) bEl.innerHTML='<img src="'+shopData.bannerUrl+'" style="width:100%;height:100%;object-fit:cover"><div style=\"position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 8px;border-radius:20px\">กดเพื่อเปลี่ยน</div>';
-      }
-      if(shopData.videoUrl){
-        const vEl=document.getElementById('edit-video-preview');
-        if(vEl) vEl.innerHTML='<video src="'+shopData.videoUrl+'" controls style="width:100%;max-height:130px;object-fit:contain"></video>';
-      }
-    }
-    // init map หลัง panel visible
-    setTimeout(()=>{
-      if(window._shopMap){try{window._shopMap.remove();}catch(e){} window._shopMap=null;}
-      const mapEl=document.getElementById('shopMap');
-      if(!mapEl||!window.L)return;
-      const lat=shopData?.lat||13.7563, lng=shopData?.lng||100.5018;
-      window._shopMapLat=lat; window._shopMapLng=lng;
-      window._shopMap=L.map(mapEl).setView([lat,lng],15);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(window._shopMap);
-      window._shopMarker=L.marker([lat,lng],{draggable:true}).addTo(window._shopMap);
-      window._shopMarker.on('dragend',e=>{window._shopMapLat=e.target.getLatLng().lat;window._shopMapLng=e.target.getLatLng().lng;});
-      window._shopMap.on('click',e=>{window._shopMapLat=e.latlng.lat;window._shopMapLng=e.latlng.lng;window._shopMarker.setLatLng(e.latlng);});
-      setTimeout(()=>window._shopMap?.invalidateSize(),100);
-      window.addEventListener('resize',()=>window._shopMap?.invalidateSize());
-      window.addEventListener('orientationchange',()=>setTimeout(()=>window._shopMap?.invalidateSize(),300));
-    },250);
-  }
 };
 window.closeExtraPanel=function(id){document.getElementById(id)?.classList.remove('show');}
-
-window.useMyLocShop=function(){
-  navigator.geolocation.getCurrentPosition(p=>{
-    window._shopMapLat=p.coords.latitude;window._shopMapLng=p.coords.longitude;
-    window._shopMap?.setView([window._shopMapLat,window._shopMapLng],16);
-    window._shopMarker?.setLatLng([window._shopMapLat,window._shopMapLng]);
-  },()=>alert('ไม่สามารถเข้าถึง GPS'));
-};
-window.previewBannerFile=function(input){
-  const file=input.files[0]; if(!file)return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const el=document.getElementById('edit-banner-preview');
-    if(el) el.innerHTML='<img src="'+e.target.result+'" style="width:100%;height:100%;object-fit:cover">';
-  };
-  reader.readAsDataURL(file);
-};
-window.previewVideoFile=function(input){
-  const file=input.files[0]; if(!file)return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const el=document.getElementById('edit-video-preview');
-    if(el) el.innerHTML='<video src="'+e.target.result+'" controls style="width:100%;max-height:130px;object-fit:contain"></video>';
-  };
-  reader.readAsDataURL(file);
-};
-window.saveShopInfo=async function(){
-  try{
-    const bannerFile=document.getElementById("edit-bannerFile")?.files[0];
-    const videoFile=document.getElementById("edit-videoFile")?.files[0];
-    const data={
-      name:document.getElementById("edit-name").value.trim(),
-      desc:document.getElementById("edit-desc").value.trim(),
-      phone:document.getElementById("edit-phone").value.trim(),
-      deliveryTime:document.getElementById("edit-deliveryTime").value.trim(),
-      address:document.getElementById("edit-address").value.trim(),
-      openHours:document.getElementById("edit-openHours").value.trim(),
-      lat:window._shopMapLat||null,
-      lng:window._shopMapLng||null,
-      updatedAt:serverTimestamp()
-    };
-    if(bannerFile){
-      showUploadProgress('อัพโหลดรูปหน้าปก...');
-      data.bannerUrl=await uploadFile(bannerFile,'shops/banners');
-      hideUploadProgress();
-    }
-    if(videoFile){
-      showUploadProgress('อัพโหลดวิดีโอร้าน (รอสักครู่)...');
-      data.videoUrl=await uploadFile(videoFile,'shops/videos');
-      hideUploadProgress();
-    }
-    await updateDoc(doc(db,"shops",shopData.id),data);
-    document.getElementById("shopNameTop").textContent=data.name;
-    document.getElementById("sbName").textContent=data.name;
-    // อัพเดต banner ถ้ามี
-    if(data.bannerUrl){
-      const bEl=document.getElementById('shopBanner');
-      if(bEl) bEl.innerHTML='<img src="'+data.bannerUrl+'" style="width:100%;height:100%;object-fit:cover">';
-    }
-    showToast("บันทึกสำเร็จ","success");
-    window.closeExtraPanel('panelEdit');
-  }catch(e){showToast("เกิดข้อผิดพลาด","error");}
-}
 
 // ===== ADS =====
 let adImgBase64='';
