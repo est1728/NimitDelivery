@@ -144,8 +144,8 @@ window.nextPage = async function(){
   // ไม่มีใน localStorage → เช็ค Firestore
   try{
     const snap = await getDoc(doc(db,"customers",phone));
-    if(snap.exists()){
-      const d=snap.data();
+    const d = snap.exists() ? snap.data() : null;
+    if(d && d.registered){
       localStorage.setItem("customerData", JSON.stringify(d));
       if(d.address){
         localStorage.setItem("addresses",JSON.stringify([{name:d.name||"",phone,address:d.address,lat:d.lat||null,lng:d.lng||null}]));
@@ -153,7 +153,8 @@ window.nextPage = async function(){
       }
       location.href="./shops.html";
     } else {
-      // ลูกค้าใหม่: บันทึกข้อมูลเบื้องต้น (แค่เบอร์โทร) ลง Firestore ทันทีตั้งแต่ล็อกอินครั้งแรก
+      // ลูกค้าใหม่ หรือเคยเริ่มกรอกไว้แต่ยังไม่กดบันทึกจบ (ยังไม่มี registered:true):
+      // บันทึกข้อมูลเบื้องต้น (แค่เบอร์โทร) ลง Firestore ทันทีตั้งแต่ล็อกอินครั้งแรก ไม่ทับข้อมูลที่เคยกรอกไว้บางส่วน (merge)
       // ไม่ต้องรอให้กรอกฟอร์ม register.html จนครบก่อน — กันกรณีเขากรอกไม่จบแล้วข้อมูลไม่ขึ้นที่หน้าลูกค้าของแอดมินเลย
       try{ await setDoc(doc(db,"customers",phone),{phone,createdAt:new Date().toISOString()},{merge:true}); }catch(e2){}
       sessionStorage.setItem("newCustomer","1");
