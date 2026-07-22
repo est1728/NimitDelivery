@@ -290,6 +290,30 @@ document.getElementById('showId').textContent=orderId;
 getDoc(doc(db,'settings','pricing')).then(d=>{if(d.exists())Object.assign(settings,d.data());}).catch(()=>{});
 getDocs(collection(db,'shops')).then(snap=>{snap.forEach(d=>allShops.push({id:d.id,...d.data()}));}).catch(()=>{});
 
+// เรียงลำดับช่วงราคาจากน้อยไปมากก่อนเช็ค — ช่วงแรกสุดรวมจุดเริ่มต้น ช่วงถัดไปตัดจุดเริ่มต้นออก
+// (ให้ตรงกับ menu.html/shop-manage.html เป๊ะๆ ไม่งั้นราคาที่แอดมินสร้างออเดอร์ให้ลูกค้าทางโทรศัพท์จะไม่ตรงกับที่ลูกค้าเห็นในแอพเอง)
+function tierGpPercent(base){
+  if(Array.isArray(settings.gpTiers) && settings.gpTiers.length){
+    const sorted=[...settings.gpTiers].sort((a,b)=>(a.min??0)-(b.min??0));
+    for(let i=0;i<sorted.length;i++){
+      const t=sorted[i];
+      const inRange = i===0
+        ? (base>=(t.min??0) && base<=(t.max??Infinity))
+        : (base>(t.min??0) && base<=(t.max??Infinity));
+      if(inRange) return t.gp||0;
+    }
+  }
+  return settings.gpPercent||0;
+}
+function calcPrice(base,menuGp){
+  if(selShop && selShop.shopType==='proxy') return Math.ceil(base||0);
+  return Math.ceil((base||0)*(1+(tierGpPercent(base||0)+(menuGp||0))/100));
+}
+function calcSubPrice(optPrice){
+  if(selShop && selShop.shopType==='proxy') return Math.ceil(optPrice||0);
+  return Math.ceil((optPrice||0)*(1+(settings.gpSubPercent||0)/100));
+}
+
 // ========== SHOP ==========
 window.openShopSheet=function(){
   document.getElementById('shT').textContent='เลือกร้านค้า';
@@ -330,7 +354,7 @@ window.openMenuSheet=function(){
     if(!menus.length){body.innerHTML='<div class="lt">ร้านนี้ยังไม่มีเมนู</div>';return;}
     window._menus = {};
     body.innerHTML=menus.map(m=>{
-      var dp=Math.ceil((m.price||0)*(1+settings.gpPercent/100));
+      var dp=calcPrice(m.price||0, m.gp||0);
       window._menus[m.id]={id:m.id,name:m.name,price:m.price||0,gp:m.gp||0,optionGroups:m.optionGroups||[]};
       var qty=Object.keys(selItems).filter(k=>k===m.id||k.startsWith(m.id+'_')).reduce((s,k)=>s+(selItems[k]?.qty||0),0);
       return `<div class="m-row">
@@ -353,7 +377,7 @@ window.openMenuPopup=function(menuId){
   popupMenu=m; popupSelections={};
 
   document.getElementById("popupName").textContent=m.name;
-  document.getElementById("popupPrice").textContent=`฿${Math.ceil((m.price||0)*(1+settings.gpPercent/100))}`;
+  document.getElementById("popupPrice").textContent=`฿${calcPrice(m.price||0, m.gp||0)}`;
   renderPopupBody(); window.updatePopupTotal();
   document.getElementById("optionPopup").classList.add("show");
   document.getElementById("optionPopup").querySelector('.popup-box').scrollTop=0;
@@ -395,10 +419,10 @@ window.selectOption=function(gi,optName,optPrice,isSingle){
 
 window.updatePopupTotal=function(){
   const m=popupMenu; if(!m) return;
-  const base=Math.ceil((m.price||0)*(1+settings.gpPercent/100)); let extra=0;
+  const base=calcPrice(m.price||0, m.gp||0); let extra=0;
   (m.optionGroups||[]).forEach((g,gi)=>{
-    if(g.required&&popupSelections[gi]){ const opt=g.options.find(o=>o.name===popupSelections[gi]); extra+=opt?.price||0; }
-    else if(!g.required&&popupSelections[gi] instanceof Set){ popupSelections[gi].forEach(name=>{ const opt=g.options.find(o=>o.name===name); extra+=opt?.price||0; }); }
+    if(g.required&&popupSelections[gi]){ const opt=g.options.find(o=>o.name===popupSelections[gi]); extra+=calcSubPrice(opt?.price||0); }
+    else if(!g.required&&popupSelections[gi] instanceof Set){ popupSelections[gi].forEach(name=>{ const opt=g.options.find(o=>o.name===name); extra+=calcSubPrice(opt?.price||0); }); }
   });
   document.getElementById("popupTotal").textContent=base+extra;
 }
@@ -413,8 +437,8 @@ window.addToOrderFromPopup=function(){
     if(g.required&&popupSelections[gi]){ const opt=g.options.find(o=>o.name===popupSelections[gi]); selectedOptions.push({groupTitle:g.title,name:popupSelections[gi],price:opt?.price||0}); }
     else if(!g.required&&popupSelections[gi] instanceof Set){ popupSelections[gi].forEach(name=>{ const opt=g.options.find(o=>o.name===name); selectedOptions.push({groupTitle:g.title,name,price:opt?.price||0}); }); }
   });
-  const base=Math.ceil((m.price||0)*(1+settings.gpPercent/100));
-  const extra=selectedOptions.reduce((s,o)=>s+o.price,0);
+  const base=calcPrice(m.price||0, m.gp||0);
+  const extra=selectedOptions.reduce((s,o)=>s+calcSubPrice(o.price),0);
   const note=document.getElementById("popupNote")?.value||'';
   const key=m.id+'_'+selectedOptions.map(o=>o.name).join('_')+'_'+Date.now();
   selItems[key]={name:m.name,subOptions:selectedOptions.map(o=>o.name),basePrice:m.price,price:base+extra,qty:1,note,options:selectedOptions};
@@ -474,8 +498,15 @@ window.pickCus=function(phone){
 function calcRev(){
   var items=Object.values(selItems);
   if(!items.length){['rTotal','rBase','rWallet','rDel','rEarn'].forEach(id=>document.getElementById(id).textContent='-');window._rev=null;return;}
-  var td=items.reduce((s,i)=>s+i.price*i.qty,0),tb=items.reduce((s,i)=>s+i.basePrice*i.qty,0);
-  var del=settings.deliveryFee||0,diff=td-tb;
+  var td=items.reduce((s,i)=>s+i.price*i.qty,0);
+  // ต้นทุนรวมต้องบวกราคาดิบของตัวเลือกย่อยด้วย ไม่ใช่แค่ราคาดิบเมนูหลัก (เหมือนที่แก้ไว้ใน checkout.html)
+  var tb=items.reduce((s,i)=>{
+    var optBase=(i.options||[]).reduce((os,o)=>os+(o.price||0),0);
+    return s+(i.basePrice+optBase)*i.qty;
+  },0);
+  var del=settings.deliveryFee||0;
+  var isProxy=selShop&&selShop.shopType==='proxy';
+  var diff=isProxy?(td+del):((td-tb)+del);
   var wallet=Math.round(diff*settings.walletPercent/100),rider=Math.round(diff*settings.riderPercent/100);
   document.getElementById('rTotal').textContent='฿'+(td+del);
   document.getElementById('rBase').textContent='฿'+tb;
@@ -484,6 +515,7 @@ function calcRev(){
   document.getElementById('rEarn').textContent='฿'+rider;
   window._rev={total:td+del,base:tb,wallet,rider,delivery:del};
 }
+function genGroupId(){ return "GRP-"+Date.now().toString(36)+Math.random().toString(36).substring(2,6); }
 function checkCreate(){document.getElementById('createBtn').disabled=!(selShop&&Object.keys(selItems).length&&selCus);}
 window.createOrder=async function(){
   var btn=document.getElementById('createBtn');btn.disabled=true;btn.textContent='กำลังสร้าง...';
@@ -493,22 +525,29 @@ window.createOrder=async function(){
       price:Number(it.price)||0,
       basePrice:Number(it.basePrice)||0,
       qty:Number(it.qty)||1,
-      options:(it.subOptions||[]).filter(Boolean).map(function(s){return {name:s,price:0};}),
+      options:(it.options||[]).filter(Boolean).map(function(o){return {groupTitle:o.groupTitle||'',name:o.name,price:Number(o.price)||0};}),
       note:String(it.note||''),
       imgUrl:''
     };
   });
   var subtotal=items.reduce(function(s,i){return s+i.price*i.qty;},0);
-  var baseCost=items.reduce(function(s,i){return s+i.basePrice*i.qty;},0);
+  // ต้นทุนรวมต้องบวกราคาดิบของตัวเลือกย่อยด้วย (เหมือนกับ calcRev ด้านบน และเหมือนที่แก้ไว้ใน checkout.html)
+  var baseCost=items.reduce(function(s,i){
+    var optBase=(i.options||[]).reduce(function(os,o){return os+(o.price||0);},0);
+    return s+(i.basePrice+optBase)*i.qty;
+  },0);
   var deliveryFee=Number(settings.deliveryFee)||0;
   var grandTotal=subtotal+deliveryFee;
-  var totalDiff=subtotal-baseCost;
+  var isProxy=selShop&&selShop.shopType==='proxy';
+  // ร้านฝากซื้อ: ไม่มี GP ราคาลูกค้า = ราคาดิบ ใช้ราคาดิบทั้งหมดเป็นยอดหักแบ่งแทนส่วนต่าง GP (เหมือน checkout.html)
+  var totalDiff=isProxy?(subtotal+deliveryFee):((subtotal-baseCost)+deliveryFee);
   var walletCut=Math.round(totalDiff*(settings.walletPercent||10)/100);
   var riderEarn=Math.round(totalDiff*(settings.riderPercent||16)/100);
+  var groupId=genGroupId();
   var orderData={
-    orderId:orderId,
+    orderId:orderId,groupId:groupId,
     shopId:selShop.id,shopName:selShop.name,
-    shopPhone:selShop.phone||'',shopAddress:selShop.address||'',
+    shopPhone:selShop.phone||'',shopAddress:selShop.address||'',shopLat:selShop.lat||null,shopLng:selShop.lng||null,
     customer:{name:selCus.name||'',phone:selCus.phone||'',address:selCus.address||'',lat:selCus.lat||null,lng:selCus.lng||null},
     items:items,
     subtotal:subtotal,baseCost:baseCost,deliveryFee:deliveryFee,
