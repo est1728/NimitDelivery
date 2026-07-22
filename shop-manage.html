@@ -94,7 +94,8 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
 .expand-btn svg { width:16px; height:16px; fill:var(--subtext); }
 
 /* MENU FORM */
-.menu-form { padding:14px; border-top:2px solid var(--gray); background:#fafbfc; }
+.menu-form { padding:14px; border-top:2px solid var(--gray); background:#fafbfc; animation:menuFormIn .18s ease-out; }
+@keyframes menuFormIn { from{opacity:0; transform:translateY(-6px);} to{opacity:1; transform:translateY(0);} }
 .form-field { margin-bottom:12px; }
 .form-label { font-size:13px; font-weight:700; color:var(--subtext); margin-bottom:5px; }
 .form-input { width:100%; height:46px; border:2px solid #eef0f4; border-radius:12px; padding:0 14px; font-size:15px; outline:none; background:#fff; transition:border 0.2s; }
@@ -572,6 +573,7 @@ window.toggleOpen = function() { isOpen=!isOpen; updateOpenToggle(); }
 
 // ============ MENU LOAD (เรียลไทม์) ============
 let menusUnsub = null;
+let menuRenderDebounce = null;
 function loadMenus() {
   if(menusUnsub) menusUnsub();
   menusUnsub = onSnapshot(collection(db,"shops",shopId,"menus"), snap => {
@@ -586,8 +588,14 @@ function loadMenus() {
       if(idx>=0 && localVer) remote[idx] = localVer;
     }
     menus = [...remote, ...temp];
-    renderCatStrip();
-    renderMenuGroups();
+    // Firestore ยิง onSnapshot 2 รอบต่อ 1 การบันทึก (รอบ optimistic ทันที + รอบยืนยันจากเซิร์ฟเวอร์ ซึ่งค่า
+    // serverTimestamp() จะเปลี่ยนจริงระหว่าง 2 รอบ ทำให้นับเป็นข้อมูลเปลี่ยนทั้งคู่) ถ้า render ทั้งลิสต์ทุกรอบ
+    // จะเห็นเป็นการกระพริบซ้อนกัน 2 ครั้งทุกครั้งที่กดอะไรสักอย่าง — หน่วงเวลาสั้นๆ รวบให้เหลือ render ครั้งเดียว
+    clearTimeout(menuRenderDebounce);
+    menuRenderDebounce = setTimeout(()=>{
+      renderCatStrip();
+      renderMenuGroups();
+    }, 80);
   }, err => {
     const el = document.getElementById("menuGroups");
     if(el) el.innerHTML = `<div class="empty-menu">โหลดเมนูไม่ได้: ${err.message}<br>เมนูที่เคยบันทึกไว้ยังอยู่ในระบบ ลองรีเฟรชหน้าอีกครั้ง</div>`;
@@ -703,6 +711,22 @@ function renderMenuCard(m,idx,total) {
     </div>
     ${isOpen ? renderMenuForm(m) : ''}
   </div>`;
+}
+
+// อัปเดตแค่การ์ดเดียวในหน้าจอ แทนที่จะรื้อสร้างทั้งลิสต์ใหม่ (renderMenuGroups) ทุกครั้งที่มีแค่การ์ดเดียวเปลี่ยน
+// ถ้าหาการ์ดในหน้าจอไม่เจอ (เช่น หมวดที่การ์ดนี้อยู่ถูกยุบไปแล้ว) จะ fallback ไป render ทั้งลิสต์แทนอย่างปลอดภัย
+function updateCardInPlace(menuId){
+  const cardEl = document.getElementById(`card-${menuId}`);
+  if(!cardEl){ renderMenuGroups(); return; }
+  const m = menus.find(x=>x.id===menuId);
+  if(!m){ renderMenuGroups(); return; }
+  const group = menus.filter(x=>(x.categoryId||'')===(m.categoryId||'') && !x.id.startsWith('_bulk_')).sort((a,b)=>(a.order||0)-(b.order||0));
+  const idx = group.findIndex(x=>x.id===menuId);
+  const temp = document.createElement('div');
+  temp.innerHTML = renderMenuCard(m, idx, group.length).trim();
+  const newCardEl = temp.firstElementChild;
+  if(newCardEl) cardEl.replaceWith(newCardEl);
+  else renderMenuGroups();
 }
 
 function renderMenuForm(m, hideSaveBtn) {
@@ -826,8 +850,11 @@ window.updateOptGpPreview = function(menuId,gi,oi){
 window.toggleMenu = function(menuId) {
   // บันทึก state form ก่อน toggle
   saveFormState(openMenuId);
+  const prevOpenId = openMenuId;
   openMenuId = openMenuId===menuId ? null : menuId;
-  renderMenuGroups();
+  // อัปเดตเฉพาะการ์ดที่เปลี่ยนสถานะจริง (การ์ดเดิมที่ต้องยุบ + การ์ดใหม่ที่ต้องขยาย) แทนที่จะรื้อทั้งลิสต์
+  if(prevOpenId && prevOpenId!==menuId) updateCardInPlace(prevOpenId);
+  updateCardInPlace(menuId);
   if (openMenuId) {
     setTimeout(()=>{
       const el = document.getElementById(`card-${openMenuId}`);
@@ -1011,10 +1038,10 @@ window.deleteMenu = async function(menuId) {
 window.toggleAvailable = async function(menuId, cur) {
   const m = menus.find(x=>x.id===menuId); if(!m) return;
   m.available = !cur;
-  renderMenuGroups();
+  updateCardInPlace(menuId);
   if(!menuId.startsWith('_new_')) {
     try{ await updateDoc(doc(db,"shops",shopId,"menus",menuId),{available:m.available,updatedAt:serverTimestamp()}); }
-    catch(e){ m.available=cur; renderMenuGroups(); }
+    catch(e){ m.available=cur; updateCardInPlace(menuId); }
   }
 }
 
