@@ -252,7 +252,14 @@ async function loadShopInfo(){
       const avatar=document.getElementById("shopAvatar");
       if(d.avatarUrl) avatar.innerHTML=`<img src="${d.avatarUrl}">`;
       const banner=document.getElementById("bannerArea");
-      if(d.bannerUrl) banner.innerHTML=`<img src="${d.bannerUrl}"><div class="banner-top-btns"><button class="back-btn" onclick="history.back()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button><button class="cart-top-btn" onclick="window.location.href='cart.html'"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg><span class="cart-badge" id="topCartBadge">0</span></button></div>`;}
+      if(d.bannerUrl){
+        banner.innerHTML=`<img src="${d.bannerUrl}"><div class="banner-top-btns"><button class="back-btn" onclick="history.back()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button><button class="cart-top-btn" onclick="window.location.href='cart.html'"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg><span class="cart-badge" id="topCartBadge">0</span></button></div>`;
+        // banner.innerHTML แทนที่ topCartBadge ตัวเดิมทั้งก้อนด้วยอันใหม่ที่ตั้งค่าเริ่มต้นเป็น "0" เสมอ
+        // ถ้าลูกค้ามีของในตะกร้าอยู่ก่อนแล้ว (จากการเข้าซ้ำ/มาจากร้านอื่น) เลขจะโดนรีเซ็ตเป็น 0 ทั้งที่ของยังอยู่จริง
+        // ต้องเรียก updateCartBar() ซ้ำอีกครั้งหลังแทนที่ ให้เลขตรงกับตะกร้าจริง
+        updateCartBar();
+      }
+      }
   }catch(e){}}
 
 // หาค่า GP% ตามช่วงราคา (gpTiers) — ถ้าไม่มีช่วงที่ตรง ใช้ gpPercent (GP รวม) แทน
