@@ -181,6 +181,8 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
 .crop-confirm { background:var(--primary); color:#fff; }
 .crop-cancel { background:rgba(255,255,255,0.15); color:#fff; }
 </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 
@@ -237,6 +239,17 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
     <div class="field-label">ที่อยู่ร้าน</div>
     <input class="field-input" id="shopAddress" placeholder="เยื้องการไฟฟ้า...">
   </div>
+</div>
+
+<div class="section">
+  <div class="section-title">ปักหมุดตำแหน่งร้าน</div>
+  <div style="position:relative">
+    <div id="shopLocMap" style="height:220px;border-radius:14px;overflow:hidden;border:1.5px solid #e8eef5"></div>
+    <button type="button" onclick="useShopMyLocation()" style="position:absolute;bottom:10px;right:10px;z-index:400;width:40px;height:40px;border-radius:50%;border:none;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;cursor:pointer">
+      <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:var(--primary)"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 17.93V18a1 1 0 0 0-2 0v1.93A8 8 0 0 1 4.07 13H6a1 1 0 0 0 0-2H4.07A8 8 0 0 1 11 4.07V6a1 1 0 0 0 2 0V4.07A8 8 0 0 1 19.93 11H18a1 1 0 0 0 0 2h1.93A8 8 0 0 1 13 19.93zM12 9a3 3 0 1 0 3 3 3 3 0 0 0-3-3z"/></svg>
+    </button>
+  </div>
+  <div style="font-size:11px;color:var(--subtext);margin-top:8px">แตะแผนที่เพื่อปักหมุด หรือลากหมุดเพื่อขยับตำแหน่งร้าน</div>
 </div>
 
 <div class="section">
@@ -393,6 +406,7 @@ const db = getFirestore(app);
 const params = new URLSearchParams(window.location.search);
 let shopId = params.get("id");
 let isOpen = false, bannerUrl = "", avatarUrl = "";
+let shopLocMap = null, shopLocMarker = null, shopLocLat = 13.7563, shopLocLng = 100.5018;
 let autoSchedule = false;
 let everyDay = true;
 let openDays = [0,1,2,3,4,5,6]; // ค่าเริ่มต้น: เปิดทุกวัน (0=อาทิตย์ ... 6=เสาร์ ตาม Date.getDay())
@@ -453,6 +467,9 @@ async function loadShop() {
   document.getElementById("shopPhone").value = s.phone||"";
   document.getElementById("shopDeliveryTime").value = s.deliveryTime||"";
   document.getElementById("shopAddress").value = s.address||"";
+  shopLocLat = s.lat || 13.7563;
+  shopLocLng = s.lng || 100.5018;
+  initShopLocMap();
   isOpen = s.isOpen||false; bannerUrl = s.bannerUrl||""; avatarUrl = s.avatarUrl||"";
   autoSchedule = !!s.autoSchedule;
   document.getElementById("schOpenTime").value = s.scheduleOpen||"";
@@ -464,6 +481,34 @@ async function loadShop() {
   shopType = s.shopType==='proxy' ? 'proxy' : 'normal';
   updateOpenToggle(); updateBanner(); updateAvatar();
   loadMenus();
+}
+
+function initShopLocMap(){
+  if(shopLocMap){ try{ shopLocMap.remove(); }catch(e){} shopLocMap=null; }
+  const el = document.getElementById('shopLocMap');
+  if(!el) return;
+  shopLocMap = L.map(el).setView([shopLocLat, shopLocLng], 15);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(shopLocMap);
+  shopLocMarker = L.marker([shopLocLat, shopLocLng], {draggable:true}).addTo(shopLocMap);
+  shopLocMarker.on('dragend', e=>{
+    shopLocLat = e.target.getLatLng().lat;
+    shopLocLng = e.target.getLatLng().lng;
+  });
+  // ใช้ click แตะปักหมุด (ไม่ใช้ contextmenu — บนมือถือแตะจอธรรมดาจะไม่ตรงกับตำแหน่งที่แตะจริง กดค้างถึงจะติด กดครั้งเดียวจะไม่ขยับหมุดเลย)
+  shopLocMap.on('click', e=>{
+    shopLocLat = e.latlng.lat; shopLocLng = e.latlng.lng;
+    shopLocMarker.setLatLng(e.latlng);
+  });
+  setTimeout(()=>shopLocMap?.invalidateSize(),300);
+  window.addEventListener('resize',()=>shopLocMap?.invalidateSize());
+  window.addEventListener('orientationchange',()=>setTimeout(()=>shopLocMap?.invalidateSize(),300));
+}
+window.useShopMyLocation = function(){
+  navigator.geolocation?.getCurrentPosition(p=>{
+    shopLocLat = p.coords.latitude; shopLocLng = p.coords.longitude;
+    shopLocMap?.setView([shopLocLat,shopLocLng],16);
+    shopLocMarker?.setLatLng([shopLocLat,shopLocLng]);
+  }, ()=>alert('ไม่สามารถเข้าถึง GPS ได้'));
 }
 
 function updateOpenToggle() {
@@ -1115,6 +1160,7 @@ window.saveShopInfo = async function() {
       phone:document.getElementById("shopPhone").value.trim(),
       deliveryTime:document.getElementById("shopDeliveryTime").value.trim(),
       address:document.getElementById("shopAddress").value.trim(),
+      lat:shopLocLat, lng:shopLocLng,
       isOpen, bannerUrl, avatarUrl,
       autoSchedule, scheduleOpen:document.getElementById("schOpenTime").value||"", scheduleClose:document.getElementById("schCloseTime").value||"",
       openDays,
