@@ -488,7 +488,9 @@ function initShopLocMap(){
   const el = document.getElementById('shopLocMap');
   if(!el) return;
   shopLocMap = L.map(el).setView([shopLocLat, shopLocLng], 15);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(shopLocMap);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{
+    attribution:'Tiles &copy; Esri', maxZoom:19
+  }).addTo(shopLocMap);
   shopLocMarker = L.marker([shopLocLat, shopLocLng], {draggable:true}).addTo(shopLocMap);
   shopLocMarker.on('dragend', e=>{
     shopLocLat = e.target.getLatLng().lat;
@@ -500,6 +502,7 @@ function initShopLocMap(){
     shopLocMarker.setLatLng(e.latlng);
   });
   setTimeout(()=>shopLocMap?.invalidateSize(),300);
+  setTimeout(()=>shopLocMap?.invalidateSize(),1000);
   window.addEventListener('resize',()=>shopLocMap?.invalidateSize());
   window.addEventListener('orientationchange',()=>setTimeout(()=>shopLocMap?.invalidateSize(),300));
 }
