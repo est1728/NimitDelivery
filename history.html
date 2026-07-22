@@ -697,11 +697,26 @@ window.openResetSheet=function(){
   document.getElementById('shBody').innerHTML=`
     <div class="sh-pill"></div>
     <div class="sh-t">รีเซ็ตระบบ</div>
-    <div style="background:#fff8f0;border:1px solid #fde68a;border-radius:12px;padding:12px;margin-bottom:14px;font-size:12px;color:#92400e">⚠️ จะเก็บ snapshot ข้อมูลทั้งหมดเป็นไฟล์ก่อนรีเซ็ต</div>
+    <div style="background:#fff8f0;border:1px solid #fde68a;border-radius:12px;padding:12px;margin-bottom:14px;font-size:12px;color:#92400e">⚠️ จะเก็บ snapshot ข้อมูลที่เลือกเป็นไฟล์ก่อน แล้วลบข้อมูลนั้นออกจากระบบจริง กู้คืนทีหลังได้จากหน้า "กู้คืนข้อมูล"</div>
+    <div class="sh-lbl">เลือกหัวข้อที่จะรีเซ็ต *</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+      <label style="display:flex;align-items:center;gap:10px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:12px 14px;cursor:pointer">
+        <input type="checkbox" id="shRstOrders" checked style="width:18px;height:18px">
+        <span style="font-size:13px;font-weight:700;color:var(--t)">ออเดอร์ (orders)</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:12px 14px;cursor:pointer">
+        <input type="checkbox" id="shRstWallet" style="width:18px;height:18px">
+        <span style="font-size:13px;font-weight:700;color:var(--t)">ธุรกรรมกระเป๋าเงิน (walletTx)</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:12px 14px;cursor:pointer">
+        <input type="checkbox" id="shRstReviews" style="width:18px;height:18px">
+        <span style="font-size:13px;font-weight:700;color:var(--t)">รีวิว (reviews)</span>
+      </label>
+    </div>
     <div class="sh-lbl">วันเวลา (อัตโนมัติ)</div>
     <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:var(--t)">${dtStr}</div>
     <div class="sh-lbl">เหตุผล *</div>
-    <input class="sh-in" id="shRstReason" placeholder="เช่น สิ้นเดือน, ปิดรอบบัญชี">
+    <input class="sh-in" id="shRstReason" placeholder="เช่น สิ้นเดือน, ปิดรอบบัญชี, ล้างข้อมูลทดสอบ">
     <div class="sh-lbl">ชื่อไฟล์ *</div>
     <input class="sh-in" id="shRstName" placeholder="เช่น รายงานเดือนมกราคม">
     <button class="sh-ok" id="shRstOk" onclick="window.doReset()">ยืนยันรีเซ็ต</button>
@@ -712,22 +727,38 @@ window.openResetSheet=function(){
 window.doReset=async function(){
   const reason=document.getElementById('shRstReason')?.value.trim();
   const name=document.getElementById('shRstName')?.value.trim();
+  const wantOrders=document.getElementById('shRstOrders')?.checked;
+  const wantWallet=document.getElementById('shRstWallet')?.checked;
+  const wantReviews=document.getElementById('shRstReviews')?.checked;
   if(!reason||!name){alert('กรุณากรอกให้ครบ');return;}
+  if(!wantOrders&&!wantWallet&&!wantReviews){alert('กรุณาเลือกหัวข้อที่จะรีเซ็ตอย่างน้อย 1 อย่าง');return;}
+  const topics=[wantOrders?'ออเดอร์':null,wantWallet?'ธุรกรรมกระเป๋าเงิน':null,wantReviews?'รีวิว':null].filter(Boolean).join(', ');
+  if(!confirm(`ยืนยันรีเซ็ต: ${topics}\n\nข้อมูลจะถูกเก็บสำรองไว้ก่อน แล้วลบออกจากระบบจริง การกระทำนี้จะกู้คืนได้จากหน้า "กู้คืนข้อมูล" เท่านั้น\n\nดำเนินการต่อ?`)) return;
+
   const btn=document.getElementById('shRstOk');btn.disabled=true;
   try{
     btn.textContent='โหลดข้อมูล...';
-    const [o,w,r]=await Promise.all([getDocs(collection(db,'orders')),getDocs(collection(db,'walletTx')),getDocs(collection(db,'reviews'))]);
     const orders=[],walletTx=[],reviews=[];
-    o.forEach(d=>orders.push({id:d.id,...d.data()}));
-    w.forEach(d=>walletTx.push({id:d.id,...d.data()}));
-    r.forEach(d=>reviews.push({id:d.id,...d.data()}));
-    const stats={orderCount:orders.length,doneCount:orders.filter(x=>x.status==='done').length,totalRevenue:orders.filter(x=>x.status==='done').reduce((s,x)=>s+(x.grandTotal||0),0),walletTxCount:walletTx.length};
+    let orderDocs=[],walletDocs=[],reviewDocs=[];
+    if(wantOrders){ const o=await getDocs(collection(db,'orders')); o.forEach(d=>{orders.push({id:d.id,...d.data()});orderDocs.push(d.ref);}); }
+    if(wantWallet){ const w=await getDocs(collection(db,'walletTx')); w.forEach(d=>{walletTx.push({id:d.id,...d.data()});walletDocs.push(d.ref);}); }
+    if(wantReviews){ const r=await getDocs(collection(db,'reviews')); r.forEach(d=>{reviews.push({id:d.id,...d.data()});reviewDocs.push(d.ref);}); }
+
+    const stats={orderCount:orders.length,doneCount:orders.filter(x=>x.status==='done').length,totalRevenue:orders.filter(x=>x.status==='done').reduce((s,x)=>s+(x.grandTotal||0),0),walletTxCount:walletTx.length,reviewCount:reviews.length,topics};
     const filename=name+'_'+fmtFileTs()+'.json';
-    btn.textContent='บันทึก...';
+
+    btn.textContent='สำรองข้อมูล...';
     await addDoc(collection(db,'archives'),{filename,reason,stats,resetBy:'Admin',createdAt:serverTimestamp(),data:{orders,walletTx,reviews}});
     const blob=new Blob([JSON.stringify({filename,reason,createdAt:new Date().toISOString(),stats,data:{orders,walletTx,reviews}},null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob);const el=document.createElement('a');el.href=url;el.download=filename;el.click();URL.revokeObjectURL(url);
-    hideMask();alert('รีเซ็ตเสร็จ บันทึกไฟล์ '+filename+' แล้ว');loadCounts();
+
+    btn.textContent='กำลังลบข้อมูล...';
+    const allDocs=[...orderDocs,...walletDocs,...reviewDocs];
+    for(let i=0;i<allDocs.length;i+=20){
+      await Promise.all(allDocs.slice(i,i+20).map(ref=>deleteDoc(ref)));
+    }
+
+    hideMask();alert(`รีเซ็ตเสร็จ (${topics})\nสำรองไว้ในไฟล์ ${filename} แล้ว`);loadCounts();
   }catch(e){alert('ผิดพลาด: '+e.message);btn.disabled=false;}
 };
 
