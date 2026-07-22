@@ -226,6 +226,19 @@ let gpPercent = 0, gpSubPercent = 0, gpTiers = [], shopType = "normal", popupMen
 async function loadSettings(){
   try{ const s=await getDoc(doc(db,"settings","pricing")); if(s.exists()){ const d=s.data(); gpPercent=d.gpPercent||0; gpSubPercent=d.gpSubPercent||0; gpTiers=Array.isArray(d.gpTiers)?d.gpTiers:[]; } }catch(e){}}
 
+// เช็คว่าตอนนี้อยู่ในวัน+ช่วงเวลาที่ร้านตั้งเปิดไว้มั้ย (รองรับข้ามเที่ยงคืน เช่น 20:00-02:00)
+function isShopWithinSchedule(d){
+  const days = Array.isArray(d.openDays) && d.openDays.length ? d.openDays : [0,1,2,3,4,5,6];
+  if(!days.includes(new Date().getDay())) return false;
+  const openTime=d.scheduleOpen, closeTime=d.scheduleClose;
+  if(!openTime || !closeTime) return true;
+  const now=new Date();
+  const [oh,om]=openTime.split(':').map(Number), [ch,cm]=closeTime.split(':').map(Number);
+  const nowMin=now.getHours()*60+now.getMinutes(), openMin=oh*60+om, closeMin=ch*60+cm;
+  if(openMin===closeMin) return true;
+  return openMin<closeMin ? (nowMin>=openMin && nowMin<closeMin) : (nowMin>=openMin || nowMin<closeMin);
+}
+
 async function loadShopInfo(){
   try{
     const s=await getDoc(doc(db,"shops",shopId));
@@ -234,7 +247,8 @@ async function loadShopInfo(){
       shopCategories = Array.isArray(d.categories) ? d.categories : [];
       shopType = d.shopType || "normal";
       if(d.desc) document.getElementById("shopDescText").textContent=d.desc;
-      if(!d.isOpen) document.getElementById("closedBanner").style.display="block";
+      const shopOpenNow = d.autoSchedule ? isShopWithinSchedule(d) : d.isOpen!==false;
+      if(!shopOpenNow) document.getElementById("closedBanner").style.display="block";
       const avatar=document.getElementById("shopAvatar");
       if(d.avatarUrl) avatar.innerHTML=`<img src="${d.avatarUrl}">`;
       const banner=document.getElementById("bannerArea");
