@@ -233,7 +233,7 @@ function saveAddr(){
 function initMap(){
   if(map){ map.remove(); map=null; }
   map = L.map('mapBox').setView([curLat, curLng], 15);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles &copy; Esri',maxZoom:19}).addTo(map);
   marker = L.marker([curLat, curLng], {draggable:true}).addTo(map);
   marker.on('dragend', function(e){
     curLat = e.target.getLatLng().lat;
