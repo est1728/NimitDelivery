@@ -119,9 +119,36 @@ function hl(text, q) {
 }
 
 let allShops = [], allMenus = [], searchTimer = null;
+let priceSettings = {gpPercent:0, gpTiers:[]};
+
+// ราคาที่โชว์ในผลค้นหาต้องตรงกับราคาที่ลูกค้าเห็นจริงในหน้าเมนู (menu.html) เป๊ะๆ
+// เดิมใช้ตัวคูณ 1.38 ตายตัว ไม่เชื่อมกับระบบ GP ตามช่วงราคา/GP ต่อเมนู/ร้านฝากซื้อเลย
+// ทำให้ราคาที่เห็นตอนค้นหา กับราคาจริงตอนเปิดเข้าไปดูเมนู ไม่ตรงกัน
+function tierGpPercent(base){
+  if(Array.isArray(priceSettings.gpTiers) && priceSettings.gpTiers.length){
+    const sorted=[...priceSettings.gpTiers].sort((a,b)=>(a.min??0)-(b.min??0));
+    for(let i=0;i<sorted.length;i++){
+      const t=sorted[i];
+      const inRange = i===0
+        ? (base>=(t.min??0) && base<=(t.max??Infinity))
+        : (base>(t.min??0) && base<=(t.max??Infinity));
+      if(inRange) return t.gp||0;
+    }
+  }
+  return priceSettings.gpPercent||0;
+}
+function calcPrice(base, menuGp, shopType){
+  if(shopType==='proxy') return Math.ceil(base||0);
+  return Math.ceil((base||0)*(1+(tierGpPercent(base||0)+(menuGp||0))/100));
+}
 
 // โหลดข้อมูล
 async function loadData(){
+  // โหลดค่าตั้งราคา (GP ตามช่วงราคา) ให้ตรงกับที่ menu.html ใช้จริง
+  try{
+    const s = await getDoc(doc(db,'settings','pricing'));
+    if(s.exists()){ const d=s.data(); priceSettings.gpPercent=d.gpPercent||0; priceSettings.gpTiers=Array.isArray(d.gpTiers)?d.gpTiers:[]; }
+  }catch(e){}
   // โหลด shops
   try{
     const snap = await getDocs(collection(db,'shops'));
@@ -263,7 +290,7 @@ function doSearch(q){
     html += menuRes.slice(0,10).map(m=>{
       const shop = allShops.find(s=>s.id===m.shopId);
       const ico = m.imageUrl?`<img src="${m.imageUrl}">`:'🍽';
-      const price = Math.ceil((m.price||0)*1.38);
+      const price = calcPrice(m.price||0, m.gp||0, shop?.shopType);
       return `<div class="menu-row" onclick="pickMenu('${m.shopId||''}','${esc(shop?.name||'').replace(/'/g,"\\'")}','${esc(q)}')">
         <div class="menu-ico">${ico}</div>
         <div class="menu-info">
