@@ -488,9 +488,16 @@ function initShopLocMap(){
   const el = document.getElementById('shopLocMap');
   if(!el) return;
   shopLocMap = L.map(el).setView([shopLocLat, shopLocLng], 15);
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{
-    attribution:'Tiles &copy; Esri', maxZoom:19
-  }).addTo(shopLocMap);
+  const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{
+    attribution:'Tiles &copy; Esri', maxZoom:19, maxNativeZoom:19
+  });
+  const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'&copy; OpenStreetMap', maxZoom:19
+  });
+  satelliteLayer.addTo(shopLocMap);
+  // สลับดาวเทียม/แผนที่ถนนได้ — กันปัญหาซูมเข้าเยอะๆแล้วภาพดาวเทียมไม่มีข้อมูลในบางพื้นที่ (ขึ้น "Map data not yet available")
+  // และแผนที่ถนนจะมีชื่อถนน/สถานที่ให้อ้างอิงด้วย ซึ่งภาพดาวเทียมอย่างเดียวไม่มีเลย
+  L.control.layers({'ดาวเทียม':satelliteLayer, 'แผนที่ถนน':streetLayer}, null, {position:'topright'}).addTo(shopLocMap);
   shopLocMarker = L.marker([shopLocLat, shopLocLng], {draggable:true}).addTo(shopLocMap);
   shopLocMarker.on('dragend', e=>{
     shopLocLat = e.target.getLatLng().lat;
