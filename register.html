@@ -128,6 +128,27 @@ window.checkForm=function(){
   const name=document.getElementById("name").value.trim();
   const address=document.getElementById("address").value.trim();
   document.getElementById("saveBtn").disabled=!(name&&address&&selectedLat);
+  scheduleAutoSave();
+}
+
+// บันทึกความคืบหน้าแบบเรียลไทม์ระหว่างกรอกฟอร์ม (debounce กันยิง Firestore ถี่เกินไปตอนพิมพ์เร็วๆ)
+// เผื่อลูกค้ากรอกไม่จบ/ปิดแอพไปกลางทาง อย่างน้อยแอดมินจะเห็นข้อมูลเท่าที่กรอกไว้แล้ว ไม่ใช่ต้องรอกด "บันทึกข้อมูล" เท่านั้น
+let autoSaveTimer=null;
+function scheduleAutoSave(){
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer=setTimeout(saveProgress,1000);
+}
+async function saveProgress(){
+  const phone=localStorage.getItem("customerPhone");
+  if(!phone) return;
+  const name=document.getElementById("name").value.trim();
+  const address=document.getElementById("address").value.trim();
+  const partial={phone};
+  if(name) partial.name=name;
+  if(address) partial.address=address;
+  if(selectedLat){ partial.lat=selectedLat; partial.lng=selectedLng; }
+  if(Object.keys(partial).length<=1) return; // ยังไม่มีอะไรให้บันทึกเพิ่มจากเบอร์โทร
+  try{ await setDoc(doc(db,"customers",phone),partial,{merge:true}); }catch(e){}
 }
 
 window.saveData=async function(){
