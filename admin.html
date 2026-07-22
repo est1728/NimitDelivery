@@ -1498,6 +1498,29 @@ async function savePricing(){
   }
 }
 
+function copyToClipboard(text, btn){
+  function ok(){
+    window.toast('คัดลอกแล้ว ✓','ok');
+    if(btn){ btn.style.transform='scale(.92)';btn.style.background='#dcfce7';btn.style.color='#16a34a';
+      setTimeout(()=>{btn.style.transform='';btn.style.background='';btn.style.color='';},800); }
+  }
+  function fallback(){
+    try{
+      const ta=document.createElement('textarea');
+      ta.value=text; ta.style.position='fixed'; ta.style.left='-9999px'; ta.style.top='0';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      const success=document.execCommand('copy');
+      document.body.removeChild(ta);
+      if(success) ok(); else window.toast('คัดลอกไม่สำเร็จ ลองกดค้างที่ลิงก์แล้วคัดลอกเอง','er');
+    }catch(e){ window.toast('คัดลอกไม่สำเร็จ ลองกดค้างที่ลิงก์แล้วคัดลอกเอง','er'); }
+  }
+  if(navigator.clipboard?.writeText){
+    navigator.clipboard.writeText(text).then(ok).catch(fallback);
+  } else {
+    fallback();
+  }
+}
+
 // ===== EVENT LISTENERS =====
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-pg],[data-f],[data-close],[data-copy],[data-ext],[data-goto],[data-docid],[data-rid],[data-del-shop],[data-del-rider],[data-topup],[data-edit-rider],[data-edit-shop],[data-recall],[id]');
@@ -1510,11 +1533,7 @@ document.addEventListener('click', e => {
   }
   if (t.dataset.close) { closeMov(t.dataset.close); return; }
   if (t.dataset.copy) {
-    navigator.clipboard.writeText(t.dataset.copy).then(()=>{
-      window.toast('คัดลอกแล้ว ✓','ok');
-      t.style.transform='scale(.92)';t.style.background='#dcfce7';t.style.color='#16a34a';
-      setTimeout(()=>{t.style.transform='';t.style.background='';t.style.color='';},800);
-    });
+    copyToClipboard(t.dataset.copy, t);
     return;
   }
   if (t.dataset.ext) { window.open(t.dataset.ext,'_blank'); return; }
