@@ -233,7 +233,10 @@ function saveAddr(){
 function initMap(){
   if(map){ map.remove(); map=null; }
   map = L.map('mapBox').setView([curLat, curLng], 15);
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles &copy; Esri',maxZoom:19}).addTo(map);
+  const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles &copy; Esri',maxZoom:19,maxNativeZoom:19});
+  const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap',maxZoom:19});
+  satelliteLayer.addTo(map);
+  L.control.layers({'ดาวเทียม':satelliteLayer,'แผนที่ถนน':streetLayer}, null, {position:'topright'}).addTo(map);
   marker = L.marker([curLat, curLng], {draggable:true}).addTo(map);
   marker.on('dragend', function(e){
     curLat = e.target.getLatLng().lat;
