@@ -57,7 +57,7 @@ body{background:#fff;min-height:100vh;display:flex;flex-direction:column;}
     <span class="saved-badge-clear" onclick="window.clearSaved()">เปลี่ยน</span>
   </div>
 
-  <div id="error" class="error-msg">กรุณากรอกเบอร์โทรให้ถูกต้อง (6 หลักขึ้นไป)</div>
+  <div id="error" class="error-msg">กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (10 หลัก ขึ้นต้นด้วย 0)</div>
 
   <button class="next-btn" id="nextBtn" onclick="window.nextPage()" disabled>ถัดไป</button>
 
@@ -112,15 +112,33 @@ window.nextPage = async function(){
   if(phone==="KJNFY63ESTC_C"){ location.href="./admin.html"; return; }
   if(phone==="KJNFY63ESTC_CUI"){ location.href="./developer.html"; return; }
 
+  // เช็ครูปแบบเบอร์โทรไทยจริงๆ (10 หลัก ขึ้นต้นด้วย 0) ก่อนจะถือว่าเป็นเบอร์ลูกค้า
+  // กันเคสพิมพ์รหัสลับผิดไปตัวเดียวแล้วดันหลุดมาเป็น "ลูกค้าใหม่" สร้างข้อมูลขยะในระบบลูกค้า
+  if(!/^0[0-9]{9}$/.test(phone)){
+    document.getElementById("error").style.display="block";
+    return;
+  }
+  document.getElementById("error").style.display="none";
+
   const btn=document.getElementById("nextBtn");
   btn.disabled=true; btn.textContent="กำลังเข้า...";
-  localStorage.setItem("customerPhone", phone);
 
-  // ถ้ามีที่อยู่ใน localStorage อยู่แล้ว → ไป shops เลย
+  const prevPhone = localStorage.getItem("customerPhone");
   const localAddrs = JSON.parse(localStorage.getItem("addresses")||"[]");
-  if(localAddrs.length > 0){
+  // เช็คที่อยู่ที่แคชไว้ใน localStorage ได้เฉพาะตอนเป็นเบอร์เดิมที่เคยล็อกอินค้างไว้เท่านั้น
+  // ถ้าเป็นคนละเบอร์กับที่แคชไว้ (สลับเบอร์ทดสอบ/ใช้เครื่องเดียวกันคนละคน) ต้องเช็ค Firestore ใหม่เสมอ
+  // ไม่งั้นจะข้ามการเช็ค/สร้างข้อมูลลูกค้าใหม่ไปเลย เหมือนสวมรอยใช้ข้อมูลเบอร์เดิมที่แคชไว้ผิดคน
+  // (นี่คือสาเหตุจริงที่เบอร์รองไม่เคยขึ้นในหน้า customers.html — โค้ดไม่เคยแตะ Firestore ให้เบอร์นั้นเลย)
+  if(localAddrs.length > 0 && prevPhone===phone){
+    localStorage.setItem("customerPhone", phone);
     location.href="./shops.html";
     return;
+  }
+  localStorage.setItem("customerPhone", phone);
+  if(prevPhone && prevPhone!==phone){
+    localStorage.removeItem("addresses");
+    localStorage.removeItem("customerData");
+    localStorage.removeItem("defaultAddress");
   }
 
   // ไม่มีใน localStorage → เช็ค Firestore
