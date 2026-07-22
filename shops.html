@@ -358,7 +358,10 @@ function isWithinSchedule(openTime, closeTime){
   return openMin<closeMin ? (nowMin>=openMin && nowMin<closeMin) : (nowMin>=openMin || nowMin<closeMin);
 }
 function effectiveOpen(s){
-  return s.autoSchedule ? isWithinSchedule(s.scheduleOpen,s.scheduleClose) : s.isOpen!==false;
+  if(!s.autoSchedule) return s.isOpen!==false;
+  const days = Array.isArray(s.openDays) && s.openDays.length ? s.openDays : [0,1,2,3,4,5,6];
+  if(!days.includes(new Date().getDay())) return false;
+  return isWithinSchedule(s.scheduleOpen,s.scheduleClose);
 }
 
 function card(s){
@@ -381,7 +384,10 @@ function card(s){
   const openNow = effectiveOpen(s);
   const badge=openNow?`<div class="sc-open">เปิด</div>`:`<div class="sc-close">ปิด</div>`;
   const oc=openNow?`onclick="window.pick('${s.id}','${sn}')"` :"";
-  const schTxt = s.autoSchedule&&s.scheduleOpen&&s.scheduleClose?`<div class="mi"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>${s.scheduleOpen}-${s.scheduleClose} น.</div>`:'';
+  const dayLabels=['อา','จ','อ','พ','พฤ','ศ','ส'];
+  const sDays = Array.isArray(s.openDays)&&s.openDays.length ? s.openDays : [0,1,2,3,4,5,6];
+  const daysTxt = sDays.length===7 ? 'ทุกวัน' : [...sDays].sort((a,b)=>a-b).map(d=>dayLabels[d]).join(' ');
+  const schTxt = s.autoSchedule&&s.scheduleOpen&&s.scheduleClose?`<div class="mi"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>${daysTxt} · ${s.scheduleOpen}-${s.scheduleClose} น.</div>`:'';
   return `<div class="sc${openNow?"":" closed"}" ${oc}>
     <div class="sc-banner">${banner}${badgeEl}${badge}</div>
     <div class="sc-body" style="padding:0 14px 14px;position:relative">
