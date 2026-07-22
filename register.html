@@ -91,7 +91,10 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const map = L.map('map').setView([13.7563,100.5018],13);
-L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles &copy; Esri',maxZoom:19}).addTo(map);
+const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles &copy; Esri',maxZoom:19,maxNativeZoom:19});
+const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap',maxZoom:19});
+satelliteLayer.addTo(map);
+L.control.layers({'ดาวเทียม':satelliteLayer,'แผนที่ถนน':streetLayer}, null, {position:'topleft'}).addTo(map);
 
 // บัค "แผนที่ลอย" ตอนเลื่อนหน้า: Leaflet จำตำแหน่ง container ไว้ตอนสร้างแผนที่ครั้งแรก
 // ถ้า layout ขยับหลังจากนั้น (ฟอนต์โหลดเสร็จ, แถบ URL ของมือถือหด/ขยาย) ตัวแผนที่จะเพี้ยนจากกรอบจริง
