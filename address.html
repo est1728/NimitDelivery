@@ -239,7 +239,7 @@ function initMap(){
     curLat = e.target.getLatLng().lat;
     curLng = e.target.getLatLng().lng;
   });
-  map.on('contextmenu', function(e){
+  map.on('click', function(e){
     curLat = e.latlng.lat; curLng = e.latlng.lng;
     marker.setLatLng(e.latlng);
   });
