@@ -147,7 +147,7 @@ body{background:var(--gray);min-height:100vh;padding-bottom:120px;}
 </div>
 
 <div class="bottom-bar">
-  <button class="order-btn" id="orderBtn" onclick="window.placeOrder()">ยืนยันสั่งซื้อ</button>
+  <button class="order-btn" id="orderBtn" onclick="window.placeOrder()" disabled>กำลังโหลด...</button>
 </div>
 
 <!-- ADDRESS SHEET -->
@@ -217,11 +217,13 @@ function renderAddress(){
   if(!addresses.length){
     el.innerHTML='<div class="no-address"><div class="no-address-text">ยังไม่มีที่อยู่จัดส่ง</div><button class="add-address-btn" onclick="window.location.href=\'address.html\'">เพิ่มที่อยู่</button></div>';
     document.getElementById("orderBtn").disabled=true;
+    document.getElementById("orderBtn").textContent="ยืนยันสั่งซื้อ";
     return;
   }
   const addr=addresses[selectedAddrIdx]||addresses[0];
   el.innerHTML='<div class="address-card"><div class="address-icon"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg></div><div class="address-info"><div class="address-name">'+addr.name+'</div><div class="address-phone">'+addr.phone+'</div><div class="address-text">'+addr.address+'</div></div></div>';
   document.getElementById("orderBtn").disabled=false;
+  document.getElementById("orderBtn").textContent="ยืนยันสั่งซื้อ";
 }
 
 function renderItems(){
