@@ -613,7 +613,23 @@ async function sndChat(){
 }
 function addB(role,text){var d=document.createElement('div');d.className='mw '+role;var b=document.createElement('div');b.className='bb';b.textContent=text;d.appendChild(b);document.getElementById('cmw').appendChild(d);}
 function addTk(id){var d=document.createElement('div');d.className='mw a';d.id='w'+id;d.innerHTML='<div class="tw"><div class="td"></div><div class="td"></div><div class="td"></div></div>';document.getElementById('cmw').appendChild(d);}
-function rpTk(id,text){var w=document.getElementById('w'+id);if(!w)return;w.innerHTML='';var b=document.createElement('div');b.className='bb';b.textContent=text;w.appendChild(b);var cb=document.createElement('button');cb.className='cpb';cb.textContent='คัดลอก';cb.onclick=function(){navigator.clipboard.writeText(text);toast('คัดลอกแล้ว','ok');};w.appendChild(cb);}
+function rpTk(id,text){var w=document.getElementById('w'+id);if(!w)return;w.innerHTML='';var b=document.createElement('div');b.className='bb';b.textContent=text;w.appendChild(b);var cb=document.createElement('button');cb.className='cpb';cb.textContent='คัดลอก';cb.onclick=function(){copyTextRobust(text);};w.appendChild(cb);}
+function copyTextRobust(text){
+  function ok(){toast('คัดลอกแล้ว','ok');}
+  function fallback(){
+    try{
+      var ta=document.createElement('textarea');
+      ta.value=text; ta.style.position='fixed'; ta.style.left='-9999px';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      var success=document.execCommand('copy');
+      document.body.removeChild(ta);
+      if(success) ok(); else toast('คัดลอกไม่สำเร็จ','er');
+    }catch(e){ toast('คัดลอกไม่สำเร็จ','er'); }
+  }
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(ok).catch(fallback);
+  } else { fallback(); }
+}
 function scrl(){var el=document.getElementById('cmw');if(el)el.scrollTop=el.scrollHeight;}
 
 // ===== HISTORY =====
