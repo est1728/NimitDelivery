@@ -219,6 +219,7 @@ function phoneVariants(raw){
 
 let listUnsubs = [];
 let ordersByVariant = {};
+let docIdOrders = []; // ออเดอร์ที่รู้ docId ตรงๆจาก checkout.html — เชื่อถือได้ 100% ไม่ต้องพึ่งการจับคู่เบอร์โทรเลย
 function loadOrderList(){
   const phone = JSON.parse(localStorage.getItem("customerData")||"{}").phone
              || localStorage.getItem("customerPhone");
@@ -227,6 +228,35 @@ function loadOrderList(){
   listUnsubs.forEach(u=>u());
   listUnsubs = [];
   ordersByVariant = {};
+  docIdOrders = [];
+
+  function mergeAndRender(){
+    const merged = new Map();
+    Object.values(ordersByVariant).forEach(list=>list.forEach(o=>merged.set(o.docId,o)));
+    docIdOrders.forEach(o=>merged.set(o.docId,o));
+    const orders = [...merged.values()];
+    orders.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    renderOrderList(orders);
+  }
+
+  // วิธีหลัก (แม่นยำ 100% ไม่พึ่งเบอร์โทรเลย): ถ้าเพิ่งสั่งจาก checkout.html มา จะมี docId ตรงๆ อยู่แล้ว
+  // กันปัญหาเบอร์โทรผู้รับปลายทาง (ที่อยู่จัดส่ง) ไม่ตรงกับเบอร์บัญชีลูกค้า เช่น สั่งให้เพื่อน/ครอบครัว
+  try{
+    const savedDocs = JSON.parse(localStorage.getItem("currentOrderDocs")||"[]");
+    savedDocs.forEach(sd=>{
+      const unsub = onSnapshot(doc(db,"orders",sd.docId), snap=>{
+        if(snap.exists()){
+          const idx = docIdOrders.findIndex(o=>o.docId===sd.docId);
+          const data = {docId:snap.id,...snap.data()};
+          if(idx>=0) docIdOrders[idx]=data; else docIdOrders.push(data);
+        } else {
+          docIdOrders = docIdOrders.filter(o=>o.docId!==sd.docId);
+        }
+        mergeAndRender();
+      });
+      listUnsubs.push(unsub);
+    });
+  }catch(e){}
 
   const variants = phoneVariants(phone);
   variants.forEach(v=>{
@@ -235,12 +265,7 @@ function loadOrderList(){
       snap => {
         ordersByVariant[v] = [];
         snap.forEach(d => ordersByVariant[v].push({docId:d.id,...d.data()}));
-        // รวมออเดอร์จากทุกรูปแบบเบอร์ ตัด docId ซ้ำ
-        const merged = new Map();
-        Object.values(ordersByVariant).forEach(list=>list.forEach(o=>merged.set(o.docId,o)));
-        const orders = [...merged.values()];
-        orders.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-        renderOrderList(orders);
+        mergeAndRender();
       }
     );
     listUnsubs.push(unsub);
