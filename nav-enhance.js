@@ -37,28 +37,7 @@
   document.addEventListener('touchstart', onHoverLike, {capture:true, passive:true});
   document.addEventListener('focus', onHoverLike, true); // เผื่อกด tab ด้วยคีย์บอร์ด
 
-  // ===== 2) VIEW TRANSITIONS (CROSS-DOCUMENT) =====
-  // Chrome/Edge รุ่นใหม่รองรับเอฟเฟกต์เปลี่ยนหน้าแบบ native สำหรับเว็บหลายหน้าธรรมดาแบบนี้โดยตรง
-  // ไม่รองรับก็แค่เปลี่ยนหน้าปกติเหมือนเดิมทุกอย่าง ไม่มีอะไรพัง ไม่ต้องพึ่ง React/framework ใดๆเลย
-  if(!document.querySelector('meta[name="view-transition"]')){
-    var meta = document.createElement('meta');
-    meta.name = 'view-transition';
-    meta.content = 'same-origin';
-    document.head.appendChild(meta);
-  }
-  if(!document.getElementById('nav-enhance-vt-style')){
-    var style = document.createElement('style');
-    style.id = 'nav-enhance-vt-style';
-    style.textContent =
-      '@media (prefers-reduced-motion: no-preference){' +
-      '::view-transition-old(root){animation:220ms ease both nav-fade-out;}' +
-      '::view-transition-new(root){animation:220ms ease both nav-fade-in;}' +
-      '@keyframes nav-fade-out{from{opacity:1;transform:translateY(0);}to{opacity:0;transform:translateY(-6px);}}' +
-      '@keyframes nav-fade-in{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}' +
-      '}' +
-      '@media (prefers-reduced-motion: reduce){' + // เคารพผู้ใช้ที่ปิด animation ไว้ในเครื่อง
-      '::view-transition-old(root),::view-transition-new(root){animation:none;}' +
-      '}';
-    document.head.appendChild(style);
-  }
+  // หมายเหตุ: ส่วน View Transitions (@view-transition{navigation:auto}) ย้ายไปใส่เป็น <style> แบบ static
+  // ในแต่ละหน้าโดยตรงแล้ว (ไม่ใช้ JS ใส่ตรงนี้อีกต่อไป) เพราะเบราว์เซอร์ต้องเห็นค่านี้ตั้งแต่ต้นตอน parse หน้า
+  // ถ้าใส่ผ่าน JS ท้ายหน้าอาจช้าเกินไปจนเบราว์เซอร์ไม่รับรู้ว่าเพจนี้ opt-in เอฟเฟกต์ไว้
 })();
