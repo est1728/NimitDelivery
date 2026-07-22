@@ -66,7 +66,7 @@ body{background:#fff;min-height:100vh;display:flex;flex-direction:column;}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const db = getFirestore(initializeApp({
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -135,6 +135,9 @@ window.nextPage = async function(){
       }
       location.href="./shops.html";
     } else {
+      // ลูกค้าใหม่: บันทึกข้อมูลเบื้องต้น (แค่เบอร์โทร) ลง Firestore ทันทีตั้งแต่ล็อกอินครั้งแรก
+      // ไม่ต้องรอให้กรอกฟอร์ม register.html จนครบก่อน — กันกรณีเขากรอกไม่จบแล้วข้อมูลไม่ขึ้นที่หน้าลูกค้าของแอดมินเลย
+      try{ await setDoc(doc(db,"customers",phone),{phone,createdAt:new Date().toISOString()},{merge:true}); }catch(e2){}
       sessionStorage.setItem("newCustomer","1");
       sessionStorage.setItem("addrBack","shops.html");
       location.href="./register.html";
