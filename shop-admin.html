@@ -846,7 +846,7 @@ window.openExtraPanel=function(id){
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(window._shopMap);
       window._shopMarker=L.marker([lat,lng],{draggable:true}).addTo(window._shopMap);
       window._shopMarker.on('dragend',e=>{window._shopMapLat=e.target.getLatLng().lat;window._shopMapLng=e.target.getLatLng().lng;});
-      window._shopMap.on('contextmenu',e=>{window._shopMapLat=e.latlng.lat;window._shopMapLng=e.latlng.lng;window._shopMarker.setLatLng(e.latlng);});
+      window._shopMap.on('click',e=>{window._shopMapLat=e.latlng.lat;window._shopMapLng=e.latlng.lng;window._shopMarker.setLatLng(e.latlng);});
       setTimeout(()=>window._shopMap?.invalidateSize(),100);
       window.addEventListener('resize',()=>window._shopMap?.invalidateSize());
       window.addEventListener('orientationchange',()=>setTimeout(()=>window._shopMap?.invalidateSize(),300));
