@@ -158,7 +158,7 @@ window.saveData=async function(){
   const phone=localStorage.getItem("customerPhone");
   const name=document.getElementById("name").value.trim();
   const address=document.getElementById("address").value.trim();
-  const customerData={phone,name,address,lat:selectedLat,lng:selectedLng,createdAt:new Date().toISOString()};
+  const customerData={phone,name,address,lat:selectedLat,lng:selectedLng,createdAt:new Date().toISOString(),registered:true};
   try{
     await setDoc(doc(db,"customers",phone),customerData);
     localStorage.setItem("customerData",JSON.stringify(customerData));
