@@ -100,15 +100,20 @@ body{background:var(--g);min-height:100vh;}
     </div>
     <div class="mbtns">
       <button class="btn-s" id="detCloseBtn">ปิด</button>
-      <button class="btn-p" id="orderBtn">+ สร้างออเดอร์</button>
+      <button class="btn-p" id="editCusBtn">แก้ไขข้อมูล</button>
     </div>
+    <button class="btn-p" id="orderBtn" style="width:100%;margin-top:10px">+ สร้างออเดอร์</button>
+    <button id="delCusBtn" style="width:100%;height:44px;margin-top:10px;border:none;border-radius:12px;background:#fee2e2;color:#dc2626;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+      <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:#dc2626"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+      ลบข้อมูลลูกค้า
+    </button>
   </div>
 </div>
 
 <!-- ADD -->
 <div class="mask" id="addMask">
   <div class="modal">
-    <div class="mhd"><div class="mt">เพิ่มลูกค้าใหม่</div><button class="mx" id="addClose">✕</button></div>
+    <div class="mhd"><div class="mt" id="addMaskTitle">เพิ่มลูกค้าใหม่</div><button class="mx" id="addClose">✕</button></div>
     <div class="fs">
       <div class="fl">ชื่อ-นามสกุล</div><input class="fi" id="fName" placeholder="ชื่อ-นามสกุล">
       <div class="fl">เบอร์โทร <span style="color:#dc2626">*</span></div><input class="fi" id="fPhone" type="tel" placeholder="08X-XXX-XXXX">
@@ -124,11 +129,11 @@ body{background:var(--g);min-height:100vh;}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import{getFirestore,collection,onSnapshot,doc,setDoc}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import{getFirestore,collection,onSnapshot,doc,setDoc,deleteDoc}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const db=getFirestore(initializeApp({apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",authDomain:"nimit-delivery.firebaseapp.com",projectId:"nimit-delivery",storageBucket:"nimit-delivery.firebasestorage.app",messagingSenderId:"233476256130",appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"}));
 
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-let allCus=[],curQ='',selCus=null,fMap=null,fMarker=null,fLat=13.7563,fLng=100.5018;
+let allCus=[],curQ='',selCus=null,fMap=null,fMarker=null,fLat=13.7563,fLng=100.5018,editMode=false;
 const today=new Date().toDateString();
 
 // รองรับ timestamp ได้หลายแบบ: ISO string, Firestore Timestamp object ({seconds,...} หรือมี .toDate()), หรือไม่มีค่า
@@ -188,28 +193,60 @@ function openDet(phone){
 document.getElementById('detClose').onclick=()=>document.getElementById('detMask').classList.remove('show');
 document.getElementById('detCloseBtn').onclick=()=>document.getElementById('detMask').classList.remove('show');
 document.getElementById('orderBtn').onclick=()=>{if(selCus){sessionStorage.setItem('preselCus',JSON.stringify(selCus));location.href='order-create.html';}};
+document.getElementById('delCusBtn').onclick=async()=>{
+  if(!selCus) return;
+  if(!confirm(`ลบข้อมูลลูกค้า "${selCus.name||selCus.phone}" (${selCus.phone}) ออกจากระบบถาวร?\n\nใช้สำหรับกรณีข้อมูลผิดพลาด/ทดสอบ กู้คืนไม่ได้`)) return;
+  try{
+    await deleteDoc(doc(db,'customers',selCus.phone));
+    document.getElementById('detMask').classList.remove('show');
+  }catch(e){ alert('ลบไม่สำเร็จ: '+e.message); }
+};
 
 // ADD
+function initFormMap(){
+  if(fMap){fMap.remove();fMap=null;}
+  fMap=L.map('fMap').setView([fLat,fLng],15);
+  const satelliteLayer=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles &copy; Esri',maxZoom:19,maxNativeZoom:19});
+  const streetLayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap',maxZoom:19});
+  satelliteLayer.addTo(fMap);
+  L.control.layers({'ดาวเทียม':satelliteLayer,'แผนที่ถนน':streetLayer}, null, {position:'topright'}).addTo(fMap);
+  fMarker=L.marker([fLat,fLng],{draggable:true}).addTo(fMap);
+  fMarker.on('dragend',e=>{fLat=e.target.getLatLng().lat;fLng=e.target.getLatLng().lng;});
+  // ใช้ click แตะปักหมุด (ไม่ใช้ contextmenu — บนมือถือแตะจอธรรมดาจะไม่ตรงกับตำแหน่งที่แตะจริง)
+  fMap.on('click',e=>{fLat=e.latlng.lat;fLng=e.latlng.lng;fMarker.setLatLng(e.latlng);});
+  setTimeout(()=>fMap?.invalidateSize(),300);
+  setTimeout(()=>fMap?.invalidateSize(),1000);
+}
 document.getElementById('addBtn').onclick=()=>{
+  editMode=false;
+  document.getElementById('addMaskTitle').textContent='เพิ่มลูกค้าใหม่';
+  document.getElementById('saveBtn').textContent='บันทึกลูกค้า';
   document.getElementById('fName').value='';
   document.getElementById('fPhone').value='';
+  document.getElementById('fPhone').readOnly=false;
+  document.getElementById('fPhone').style.background='';
   document.getElementById('fAddr').value='';
+  fLat=13.7563; fLng=100.5018;
   document.getElementById('addMask').classList.add('show');
   setTimeout(()=>{
     document.getElementById('fPhone').focus();
-    if(fMap){fMap.remove();fMap=null;}
-    fMap=L.map('fMap').setView([fLat,fLng],15);
-    const satelliteLayer=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles &copy; Esri',maxZoom:19,maxNativeZoom:19});
-    const streetLayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap',maxZoom:19});
-    satelliteLayer.addTo(fMap);
-    L.control.layers({'ดาวเทียม':satelliteLayer,'แผนที่ถนน':streetLayer}, null, {position:'topright'}).addTo(fMap);
-    fMarker=L.marker([fLat,fLng],{draggable:true}).addTo(fMap);
-    fMarker.on('dragend',e=>{fLat=e.target.getLatLng().lat;fLng=e.target.getLatLng().lng;});
-    // ใช้ click แตะปักหมุด (ไม่ใช้ contextmenu — บนมือถือแตะจอธรรมดาจะไม่ตรงกับตำแหน่งที่แตะจริง)
-    fMap.on('click',e=>{fLat=e.latlng.lat;fLng=e.latlng.lng;fMarker.setLatLng(e.latlng);});
-    setTimeout(()=>fMap?.invalidateSize(),300);
-    setTimeout(()=>fMap?.invalidateSize(),1000);
+    initFormMap();
   },300);
+};
+document.getElementById('editCusBtn').onclick=()=>{
+  if(!selCus) return;
+  editMode=true;
+  document.getElementById('detMask').classList.remove('show');
+  document.getElementById('addMaskTitle').textContent='แก้ไขข้อมูลลูกค้า';
+  document.getElementById('saveBtn').textContent='บันทึกการแก้ไข';
+  document.getElementById('fName').value=selCus.name||'';
+  document.getElementById('fPhone').value=selCus.phone||'';
+  document.getElementById('fPhone').readOnly=true; // เปลี่ยนเบอร์ไม่ได้ตรงนี้ เพราะเบอร์คือ id ของเอกสาร
+  document.getElementById('fPhone').style.background='var(--gray,#f1f5f9)';
+  document.getElementById('fAddr').value=selCus.address||'';
+  fLat=selCus.lat||13.7563; fLng=selCus.lng||100.5018;
+  document.getElementById('addMask').classList.add('show');
+  setTimeout(()=>{ initFormMap(); },300);
 };
 document.getElementById('addClose').onclick=()=>document.getElementById('addMask').classList.remove('show');
 document.getElementById('locBtn').onclick=()=>{
@@ -219,9 +256,18 @@ document.getElementById('locBtn').onclick=()=>{
   },()=>alert('ไม่สามารถเข้าถึง GPS'));
 };
 document.getElementById('saveBtn').onclick=async()=>{
-  const phone=document.getElementById('fPhone').value.trim().replace(/\D/g,'');
   const name=document.getElementById('fName').value.trim();
   const addr=document.getElementById('fAddr').value.trim();
+  if(editMode){
+    if(!selCus) return;
+    try{
+      await setDoc(doc(db,'customers',selCus.phone),{name:name||'',address:addr||'',lat:fLat||null,lng:fLng||null,updatedAt:new Date().toISOString()},{merge:true});
+      document.getElementById('addMask').classList.remove('show');
+      alert('บันทึกการแก้ไขแล้ว');
+    }catch(e){alert('เกิดข้อผิดพลาด: '+e.message);}
+    return;
+  }
+  const phone=document.getElementById('fPhone').value.trim().replace(/\D/g,'');
   if(!phone||phone.length<8){alert('กรุณากรอกเบอร์โทรให้ถูกต้อง');return;}
   try{
     await setDoc(doc(db,'customers',phone),{name:name||'',address:addr||'',lat:fLat||null,lng:fLng||null,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),createdBy:'admin'},{merge:true});
