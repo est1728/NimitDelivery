@@ -199,10 +199,16 @@ document.getElementById('addBtn').onclick=()=>{
     document.getElementById('fPhone').focus();
     if(fMap){fMap.remove();fMap=null;}
     fMap=L.map('fMap').setView([fLat,fLng],15);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(fMap);
+    const satelliteLayer=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles &copy; Esri',maxZoom:19,maxNativeZoom:19});
+    const streetLayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap',maxZoom:19});
+    satelliteLayer.addTo(fMap);
+    L.control.layers({'ดาวเทียม':satelliteLayer,'แผนที่ถนน':streetLayer}, null, {position:'topright'}).addTo(fMap);
     fMarker=L.marker([fLat,fLng],{draggable:true}).addTo(fMap);
     fMarker.on('dragend',e=>{fLat=e.target.getLatLng().lat;fLng=e.target.getLatLng().lng;});
-    fMap.on('contextmenu',e=>{fLat=e.latlng.lat;fLng=e.latlng.lng;fMarker.setLatLng(e.latlng);});
+    // ใช้ click แตะปักหมุด (ไม่ใช้ contextmenu — บนมือถือแตะจอธรรมดาจะไม่ตรงกับตำแหน่งที่แตะจริง)
+    fMap.on('click',e=>{fLat=e.latlng.lat;fLng=e.latlng.lng;fMarker.setLatLng(e.latlng);});
+    setTimeout(()=>fMap?.invalidateSize(),300);
+    setTimeout(()=>fMap?.invalidateSize(),1000);
   },300);
 };
 document.getElementById('addClose').onclick=()=>document.getElementById('addMask').classList.remove('show');
