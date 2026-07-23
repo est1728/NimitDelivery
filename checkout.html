@@ -299,9 +299,11 @@ window.placeOrder=async function(){
       const grp=cart[shopId]; if(!grp) continue;
       const meta=shopMeta[shopId]||{};
       const subtotal=grp.items.reduce((s,i)=>s+i.price*i.qty,0);
-      // baseCost ต้องรวมราคาดิบของตัวเลือกย่อยด้วย ไม่ใช่แค่ราคาดิบเมนูหลัก
+      const isProxy = meta.shopType==='proxy';
+      // ร้านฝากซื้อ: ไม่มีต้นทุนที่ต้องจ่ายคืนร้านเลย (จ่ายร้าน = 0 เสมอ) ทั้งยอดไปเป็นส่วนแบ่งไรเดอร์/แอดมินหมด
+      // baseCost ต้องรวมราคาดิบของตัวเลือกย่อยด้วย ไม่ใช่แค่ราคาดิบเมนูหลัก (ร้านปกติเท่านั้น)
       // (ไม่งั้น subtotal-baseCost จะรวมราคาดิบของตัวเลือกทั้งก้อนเข้ามาด้วย ไม่ใช่แค่ส่วนต่าง GP ย่อย)
-      const baseCost=grp.items.reduce((s,i)=>{
+      const baseCost=isProxy?0:grp.items.reduce((s,i)=>{
         const optBase=(i.options||[]).reduce((os,o)=>os+(o.price||0),0);
         return s+(i.basePrice+optBase)*i.qty;
       },0);
@@ -309,7 +311,6 @@ window.placeOrder=async function(){
       const grandTotal=subtotal+deliveryFee;
       // ร้านฝากซื้อ (proxy): ไม่มี GP ราคาลูกค้า = ราคาดิบ ดังนั้น subtotal-baseCost จะเท่ากับ 0 เสมอ
       // ให้ใช้ราคาดิบ (subtotal) ทั้งหมดเป็นยอดหักแบ่งไรเดอร์/แอดมินแทน ไม่ใช่ส่วนต่าง GP
-      const isProxy = meta.shopType==='proxy';
       const totalDiff = isProxy ? (subtotal+deliveryFee) : ((subtotal-baseCost)+deliveryFee);
       const walletCut=Math.round(totalDiff*walletPercent/100);
       const riderEarn=Math.round(totalDiff*riderPercent/100);
