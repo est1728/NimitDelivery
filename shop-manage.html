@@ -779,7 +779,7 @@ function renderMenuForm(m, hideSaveBtn) {
         </button>
       </div>
       <div id="groups-${m.id}">
-        ${groups.map((g,gi) => renderGroupCard(m.id,g,gi)).join('')}
+        ${groups.map((g,gi) => renderGroupCard(m.id,g,gi,groups.length)).join('')}
       </div>
     </div>
 
@@ -787,11 +787,13 @@ function renderMenuForm(m, hideSaveBtn) {
   </div>`;
 }
 
-function renderGroupCard(menuId, g, gi) {
+function renderGroupCard(menuId, g, gi, total) {
   const opts = g.options||[];
   return `
   <div class="group-card" id="gc-${menuId}-${gi}">
     <div class="group-header">
+      <button onclick="moveGroup('${menuId}',${gi},-1)" ${gi===0?'disabled':''} style="width:26px;height:26px;border:none;background:#fff;border-radius:8px;cursor:pointer;opacity:${gi===0?'.35':'1'};flex-shrink:0">▲</button>
+      <button onclick="moveGroup('${menuId}',${gi},1)" ${gi===total-1?'disabled':''} style="width:26px;height:26px;border:none;background:#fff;border-radius:8px;cursor:pointer;opacity:${gi===total-1?'.35':'1'};flex-shrink:0">▼</button>
       <input class="group-title-input" id="gt-${menuId}-${gi}" value="${esc(g.title)}" placeholder="ชื่อกลุ่ม เช่น ระดับเผ็ด">
       <button class="del-group-btn" onclick="delGroup('${menuId}',${gi})">
         <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
@@ -809,6 +811,15 @@ function renderGroupCard(menuId, g, gi) {
       เพิ่มตัวเลือก
     </button>
   </div>`;
+}
+window.moveGroup = function(menuId,gi,dir){
+  const m = menus.find(x=>x.id===menuId);
+  if(!m||!m.optionGroups) return;
+  const target = gi+dir;
+  if(target<0||target>=m.optionGroups.length) return;
+  saveFormState(menuId); // เก็บค่าที่พิมพ์ค้างไว้ในช่องต่างๆก่อน ไม่ให้หายตอน re-render
+  [m.optionGroups[gi],m.optionGroups[target]] = [m.optionGroups[target],m.optionGroups[gi]];
+  reRenderGroups(menuId,m);
 }
 
 function renderOptionRow(menuId,gi,oi,o) {
@@ -950,7 +961,7 @@ window.delOption = function(menuId,gi,oi) {
 function reRenderGroups(menuId,m) {
   const el = document.getElementById(`groups-${menuId}`);
   if(!el) return;
-  el.innerHTML = (m.optionGroups||[]).map((g,gi)=>renderGroupCard(menuId,g,gi)).join('');
+  el.innerHTML = (m.optionGroups||[]).map((g,gi,arr)=>renderGroupCard(menuId,g,gi,arr.length)).join('');
 }
 
 // ============ MOVE MENU TO CATEGORY ============
@@ -1016,11 +1027,15 @@ window.saveMenu = async function(menuId) {
       const ref = await addDoc(collection(db,"shops",shopId,"menus"),data);
       // replace temp id
       m.id = ref.id;
+      openMenuId = null;
+      renderMenuGroups(); // เมนูใหม่เปลี่ยน id จริง ต้อง render ทั้งลิสต์เพื่อให้การ์ดอ้างอิง id ใหม่ถูกต้อง
     } else {
       await updateDoc(doc(db,"shops",shopId,"menus",menuId),data);
+      openMenuId = null;
+      // ไม่ต้องเรียก loadMenus() ใหม่ทั้งหมด (ของเดิม) — มันไปสร้าง listener ใหม่ + รื้อทั้งลิสต์ทุกครั้งที่บันทึก
+      // ทำให้หน้าสูงขึ้น/สั้นลงกะทันหันจนตำแหน่งที่เลื่อนดูอยู่กระโดดไปมา อัปเดตแค่การ์ดนี้ใบเดียวพอ
+      updateCardInPlace(menuId);
     }
-    openMenuId = null;
-    loadMenus();
   } catch(e) { alert("เกิดข้อผิดพลาด: "+e.message); }
 }
 
