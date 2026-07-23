@@ -131,7 +131,7 @@ window.nextPage = async function(){
   // (นี่คือสาเหตุจริงที่เบอร์รองไม่เคยขึ้นในหน้า customers.html — โค้ดไม่เคยแตะ Firestore ให้เบอร์นั้นเลย)
   if(localAddrs.length > 0 && prevPhone===phone){
     localStorage.setItem("customerPhone", phone);
-    location.href="./shops.html";
+    location.replace("./shops.html"); // ถือว่าล็อกอินสำเร็จแล้ว ไม่ควรย้อนกลับมาหน้ากรอกเบอร์ได้อีก
     return;
   }
   localStorage.setItem("customerPhone", phone);
@@ -151,7 +151,7 @@ window.nextPage = async function(){
         localStorage.setItem("addresses",JSON.stringify([{name:d.name||"",phone,address:d.address,lat:d.lat||null,lng:d.lng||null}]));
         localStorage.setItem("defaultAddress","0");
       }
-      location.href="./shops.html";
+      location.replace("./shops.html"); // ถือว่าล็อกอินสำเร็จแล้ว ไม่ควรย้อนกลับมาหน้ากรอกเบอร์ได้อีก
     } else {
       // ลูกค้าใหม่ หรือเคยเริ่มกรอกไว้แต่ยังไม่กดบันทึกจบ (ยังไม่มี registered:true):
       // บันทึกข้อมูลเบื้องต้น (แค่เบอร์โทร) ลง Firestore ทันทีตั้งแต่ล็อกอินครั้งแรก ไม่ทับข้อมูลที่เคยกรอกไว้บางส่วน (merge)
