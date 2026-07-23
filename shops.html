@@ -116,15 +116,6 @@ body{background:var(--g);min-height:100vh;padding-bottom:28px;}
 .ad-zoom{position:absolute;bottom:8px;right:8px;width:32px;height:32px;border:none;border-radius:8px;background:rgba(0,0,0,.55);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:3;}
 .ad-zoom:active{opacity:.8;}
 </style>
-<style>
-@view-transition{navigation:auto;}
-@media (prefers-reduced-motion: no-preference){
-  ::view-transition-old(root){animation:220ms ease both nav-fade-out;}
-  ::view-transition-new(root){animation:220ms ease both nav-fade-in;}
-  @keyframes nav-fade-out{from{opacity:1;transform:translateY(0);}to{opacity:0;transform:translateY(-6px);}}
-  @keyframes nav-fade-in{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
-}
-</style>
 </head>
 <body>
 
@@ -367,7 +358,8 @@ function isWithinSchedule(openTime, closeTime){
   return openMin<closeMin ? (nowMin>=openMin && nowMin<closeMin) : (nowMin>=openMin || nowMin<closeMin);
 }
 function effectiveOpen(s){
-  if(!s.autoSchedule) return s.isOpen!==false;
+  if(s.isOpen===false) return false; // ปิดฉุกเฉินเองต้องปิดจริงเสมอ ไม่ว่าจะอยู่ในช่วงเวลาที่ตั้งอัตโนมัติไว้หรือไม่
+  if(!s.autoSchedule) return true;
   const days = Array.isArray(s.openDays) && s.openDays.length ? s.openDays : [0,1,2,3,4,5,6];
   if(!days.includes(new Date().getDay())) return false;
   return isWithinSchedule(s.scheduleOpen,s.scheduleClose);
@@ -461,28 +453,7 @@ window.pick=function(id,name){
   if(!id) return;
   localStorage.setItem("selectedShopId",id);
   localStorage.setItem("selectedShopName",name);
-  window.Motion?window.Motion.navigate("menu.html"):location.href="menu.html";
-};
-
-window.loadShops=loadShops;
-loadAds();
-loadShops();
-
-
-
-
-
-window.doSearch=function(q){
-  curQ=q.toLowerCase();
-  const f=curQ?allShops.filter(s=>s.name.toLowerCase().includes(curQ)||(s.desc||"").toLowerCase().includes(curQ)):allShops;
-  renderShops(f);
-};
-
-window.pick=function(id,name){
-  if(!id) return;
-  localStorage.setItem("selectedShopId",id);
-  localStorage.setItem("selectedShopName",name);
-  window.Motion?window.Motion.navigate("menu.html"):location.href="menu.html";
+  location.href="menu.html";
 };
 
 window.loadShops=loadShops;
@@ -503,7 +474,6 @@ window.openAdVideo=function(url){
 </script>
 
 <script src="motion.js"></script>
-<script src="nav-enhance.js"></script>
 <script>window._fcmRole="customer";</script>
 <script src="fcm.js"></script>
 </body>
