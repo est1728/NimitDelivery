@@ -166,7 +166,7 @@ window.saveData=async function(){
     localStorage.setItem("addresses",JSON.stringify([{name,phone,address,lat:selectedLat,lng:selectedLng}]));
     localStorage.setItem("defaultAddress","0");
     sessionStorage.removeItem("newCustomer");
-    window.location.href="address.html";
+    window.location.replace("address.html"); // ลงทะเบียนเสร็จแล้ว ไม่ควรย้อนกลับมาฟอร์มลงทะเบียนที่จบไปแล้ว
   }catch(e){ alert("เกิดข้อผิดพลาด กรุณาลองใหม่"); }
 }
 </script>
