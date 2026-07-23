@@ -330,7 +330,7 @@ window.placeOrder=async function(){
     localStorage.setItem("cart",JSON.stringify(remaining));
     localStorage.setItem("currentGroupId",groupId);
     localStorage.setItem("currentOrderDocs",JSON.stringify(orderDocs));
-    window.location.href="track.html";
+    window.location.replace("track.html");
   }catch(e){ btn.disabled=false; btn.textContent="ยืนยันสั่งซื้อ"; alert("เกิดข้อผิดพลาด"); }
 }
 
