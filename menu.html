@@ -214,25 +214,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let shopId = null;
+const shopId = localStorage.getItem("selectedShopId");
 const shopName = localStorage.getItem("selectedShopName");
 document.getElementById("shopNameTitle").textContent = shopName || "ร้านค้า";
-
-// เดิม menu.html รู้ว่าจะโชว์ร้านไหนจาก localStorage เท่านั้น (ตั้งค่าตอนกดผ่านหน้า shops.html)
-// ถ้าลูกค้าเปิดจากลิงก์ที่แชร์ตรงๆ (เช่น ร้านแชร์ลิงก์เมนูตัวเองในไลน์) จะเปิดหน้านี้มาแบบไม่มีข้อมูลใน localStorage เลย
-// เมนูเลยไม่ขึ้นเลยไม่ว่าเบราว์เซอร์ไหน — แก้ให้เช็คจาก URL ก่อนเป็นหลัก (รองรับทั้ง doc id และ slug) แล้วค่อย fallback ไป localStorage
-async function resolveShopId(){
-  const urlId = new URLSearchParams(window.location.search).get("id");
-  if(urlId){
-    try{
-      const direct = await getDoc(doc(db,"shops",urlId));
-      if(direct.exists()) return urlId;
-      const q = await getDocs(query(collection(db,"shops"),where("slug","==",urlId)));
-      if(!q.empty) return q.docs[0].id;
-    }catch(e){}
-  }
-  return localStorage.getItem("selectedShopId");
-}
 
 let cart = JSON.parse(localStorage.getItem("cart") || "{}");
 let allMenus = [], filteredMenus = [], categories = [], currentCat = "ทั้งหมด";
@@ -476,16 +460,7 @@ function updateCartBar(){
   badge.textContent=qty; badge.style.display=qty>0?"flex":"none";}
 
 updateCartBar();
-(async function boot(){
-  shopId = await resolveShopId();
-  if(!shopId){
-    document.getElementById("menuContainer").innerHTML = '<div class="loading">ไม่พบร้านค้าที่ต้องการ กรุณาเข้าจากหน้ารายชื่อร้านค้าอีกครั้ง</div>';
-    return;
-  }
-  // เก็บไว้ให้หน้าอื่น (ตะกร้า/เช็คเอาท์) ใช้ shopId เดียวกันต่อได้ ไม่ว่าจะเข้ามาทาง URL หรือทาง localStorage เดิม
-  localStorage.setItem("selectedShopId", shopId);
-  loadMenu();
-})();
+loadMenu();
 
 function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 </script>
