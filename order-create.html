@@ -499,13 +499,14 @@ function calcRev(){
   var items=Object.values(selItems);
   if(!items.length){['rTotal','rBase','rWallet','rDel','rEarn'].forEach(id=>document.getElementById(id).textContent='-');window._rev=null;return;}
   var td=items.reduce((s,i)=>s+i.price*i.qty,0);
+  var isProxy=selShop&&selShop.shopType==='proxy';
+  // ร้านฝากซื้อ: ไม่มีต้นทุนที่ต้องจ่ายคืนร้านเลย ทั้งยอดไปเป็นส่วนแบ่งไรเดอร์/แอดมินหมด (จ่ายร้าน = 0 เสมอ)
   // ต้นทุนรวมต้องบวกราคาดิบของตัวเลือกย่อยด้วย ไม่ใช่แค่ราคาดิบเมนูหลัก (เหมือนที่แก้ไว้ใน checkout.html)
-  var tb=items.reduce((s,i)=>{
+  var tb=isProxy?0:items.reduce((s,i)=>{
     var optBase=(i.options||[]).reduce((os,o)=>os+(o.price||0),0);
     return s+(i.basePrice+optBase)*i.qty;
   },0);
   var del=settings.deliveryFee||0;
-  var isProxy=selShop&&selShop.shopType==='proxy';
   var diff=isProxy?(td+del):((td-tb)+del);
   var wallet=Math.round(diff*settings.walletPercent/100),rider=Math.round(diff*settings.riderPercent/100);
   document.getElementById('rTotal').textContent='฿'+(td+del);
@@ -531,14 +532,15 @@ window.createOrder=async function(){
     };
   });
   var subtotal=items.reduce(function(s,i){return s+i.price*i.qty;},0);
+  var isProxy=selShop&&selShop.shopType==='proxy';
+  // ร้านฝากซื้อ: ไม่มีต้นทุนที่ต้องจ่ายคืนร้านเลย (จ่ายร้าน = 0 เสมอ) ทั้งยอดไปเป็นส่วนแบ่งไรเดอร์/แอดมินหมด
   // ต้นทุนรวมต้องบวกราคาดิบของตัวเลือกย่อยด้วย (เหมือนกับ calcRev ด้านบน และเหมือนที่แก้ไว้ใน checkout.html)
-  var baseCost=items.reduce(function(s,i){
+  var baseCost=isProxy?0:items.reduce(function(s,i){
     var optBase=(i.options||[]).reduce(function(os,o){return os+(o.price||0);},0);
     return s+(i.basePrice+optBase)*i.qty;
   },0);
   var deliveryFee=Number(settings.deliveryFee)||0;
   var grandTotal=subtotal+deliveryFee;
-  var isProxy=selShop&&selShop.shopType==='proxy';
   // ร้านฝากซื้อ: ไม่มี GP ราคาลูกค้า = ราคาดิบ ใช้ราคาดิบทั้งหมดเป็นยอดหักแบ่งแทนส่วนต่าง GP (เหมือน checkout.html)
   var totalDiff=isProxy?(subtotal+deliveryFee):((subtotal-baseCost)+deliveryFee);
   var walletCut=Math.round(totalDiff*(settings.walletPercent||10)/100);
