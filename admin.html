@@ -919,7 +919,11 @@ window.loadHistoricalStats=async function(dateStr){
   try{
     const snap=await getDocs(query(collection(db,'orders'),where('createdAt','>=',d),where('createdAt','<',d2)));
     let cnt=0,rev=0;
-    snap.forEach(o=>{const od=o.data();cnt++;rev+=od.grandTotal||0;});
+    snap.forEach(o=>{
+      const od=o.data();
+      if(od.status==='rejected') return; // ออเดอร์ที่ยกเลิกไม่ควรนับเป็นรายได้/จำนวนออเดอร์
+      cnt++;rev+=od.grandTotal||0;
+    });
     $('stTod').textContent=cnt;$('stRev').textContent=rev.toLocaleString();
     $('dash-ti-lbl')?$('dash-ti-lbl').textContent='วัน '+d.toLocaleDateString('th-TH',{day:'numeric',month:'short'}):null;
     const lbl=$('statDateLbl');if(lbl)lbl.textContent=d.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'})+' · '+cnt+' ออเดอร์';
