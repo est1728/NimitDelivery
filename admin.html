@@ -415,6 +415,18 @@ body{background:var(--g);min-height:100vh;}
   </div>
 </div>
 
+<div class="cfm-ov" id="shopCloseOv">
+  <div class="cfm-box">
+    <div class="cfm-title">ปิดร้าน</div>
+    <div class="cfm-sub" style="margin-bottom:10px">กรุณาระบุเหตุผลที่ปิดร้าน (บังคับ)</div>
+    <textarea id="shopCloseReason" style="width:100%;height:80px;border:2px solid #e2e8f0;border-radius:12px;padding:10px;font-size:14px;outline:none;resize:none;font-family:inherit" placeholder="เช่น ของหมด, พักร้าน, ปิดปรับปรุง..."></textarea>
+    <div class="cfm-btns" style="margin-top:12px">
+      <button class="cfm-cancel" onclick="window.closeShopCloseModal()">ยกเลิก</button>
+      <button class="cfm-ok" style="background:linear-gradient(135deg,#dc2626,#b91c1c)" onclick="window.confirmShopClose()">ยืนยันปิดร้าน</button>
+    </div>
+  </div>
+</div>
+
 <!-- DETAIL PAGE -->
 <div class="dp" id="detailPage">
   <div class="dtb">
@@ -1258,7 +1270,7 @@ async function loadShops(){
         <div class="lr-mid">
           <div class="lr-actions">
             <label class="r-switch" onclick="event.stopPropagation()">
-              <input type="checkbox" ${s.isOpen!==false?'checked':''} onchange="event.stopPropagation();window.toggleShopOpen('${s.id}',${s.isOpen!==false})">
+              <input type="checkbox" ${s.isOpen!==false?'checked':''} onchange="event.stopPropagation();window.toggleShopOpen('${s.id}',${s.isOpen!==false},this)">
               <span class="r-switch-track"></span>
               <span class="r-switch-thumb"></span>
             </label>
@@ -1350,13 +1362,42 @@ async function loadRiders(){
     }).join('')+'</div>';
   }catch(e){window.toast('โหลดไรเดอร์ไม่ได้','er');}
 }
-window.toggleShopOpen=async function(sid,currentOpen){
+let shopCloseTargetId=null, shopCloseTargetCb=null;
+window.toggleShopOpen=async function(sid,currentOpen,cb){
+  if(currentOpen){
+    // ปิดร้าน: ต้องใส่เหตุผลก่อนเสมอ (เหมือนฝั่งร้านค้าเอง)
+    shopCloseTargetId=sid; shopCloseTargetCb=cb;
+    $('shopCloseReason').value='';
+    $('shopCloseReason').style.borderColor='#e2e8f0';
+    $('shopCloseOv').classList.add('show');
+    return;
+  }
+  // เปิดร้าน: ไม่ต้องใส่เหตุผล
   try{
-    await updateDoc(doc(db,'shops',sid),{isOpen:!currentOpen,updatedAt:serverTimestamp()});
-    window.toast(!currentOpen?'เปิดร้านแล้ว':'ปิดร้านแล้ว','ok');
+    await updateDoc(doc(db,'shops',sid),{isOpen:true,updatedAt:serverTimestamp()});
+    await addDoc(collection(db,'shops',sid,'statusLogs'),{action:'open',reason:'',at:serverTimestamp(),by:'Admin'});
+    window.toast('เปิดร้านแล้ว','ok');
     loadShops();
-  }catch(e){window.toast('ไม่สำเร็จ','er');}
+  }catch(e){window.toast('ไม่สำเร็จ','er'); if(cb) cb.checked=true;}
 };
+window.closeShopCloseModal=function(){
+  $('shopCloseOv').classList.remove('show');
+  if(shopCloseTargetCb) shopCloseTargetCb.checked=true; // ยกเลิก คืนสวิตช์กลับเป็นเปิด
+  shopCloseTargetId=null; shopCloseTargetCb=null;
+}
+window.confirmShopClose=async function(){
+  const reason=$('shopCloseReason').value.trim();
+  if(!reason){ $('shopCloseReason').style.borderColor='#dc2626'; $('shopCloseReason').focus(); window.toast('กรุณาใส่เหตุผล','er'); return; }
+  const sid=shopCloseTargetId;
+  $('shopCloseOv').classList.remove('show');
+  try{
+    await updateDoc(doc(db,'shops',sid),{isOpen:false,updatedAt:serverTimestamp()});
+    await addDoc(collection(db,'shops',sid,'statusLogs'),{action:'close',reason,at:serverTimestamp(),by:'Admin'});
+    window.toast('ปิดร้านแล้ว','ok');
+    loadShops();
+  }catch(e){window.toast('ไม่สำเร็จ','er'); if(shopCloseTargetCb) shopCloseTargetCb.checked=true;}
+  shopCloseTargetId=null; shopCloseTargetCb=null;
+}
 window.toggleShopType=async function(sid,isCurrentlyProxy,cb){
   const newType=isCurrentlyProxy?'normal':'proxy';
   const msg=newType==='proxy'
