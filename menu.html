@@ -247,7 +247,7 @@ async function loadShopInfo(){
       shopCategories = Array.isArray(d.categories) ? d.categories : [];
       shopType = d.shopType || "normal";
       if(d.desc) document.getElementById("shopDescText").textContent=d.desc;
-      const shopOpenNow = d.autoSchedule ? isShopWithinSchedule(d) : d.isOpen!==false;
+      const shopOpenNow = d.isOpen===false ? false : (d.autoSchedule ? isShopWithinSchedule(d) : true);
       if(!shopOpenNow) document.getElementById("closedBanner").style.display="block";
       const avatar=document.getElementById("shopAvatar");
       if(d.avatarUrl) avatar.innerHTML=`<img src="${d.avatarUrl}">`;
