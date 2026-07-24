@@ -353,6 +353,11 @@ body{background:var(--gray);min-height:100vh;overscroll-behavior-y:none;}
       <div class="sidebar-item-text"><div class="sidebar-item-title">แก้ไขข้อมูลร้าน</div><div class="sidebar-item-sub">ชื่อ เบอร์ เวลา ที่อยู่</div></div>
       <div class="sidebar-arrow"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
     </button>
+    <button class="sidebar-item" onclick="window.shareMenuLink()">
+      <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L7.04 9.81C6.5 9.31 5.79 9 5 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+      <div class="sidebar-item-text"><div class="sidebar-item-title">แชร์ลิงก์เมนู</div><div class="sidebar-item-sub">คัดลอกลิงก์ให้ลูกค้าสั่งได้ตรงร้านนี้เลย</div></div>
+      <div class="sidebar-arrow"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
+    </button>
     <button class="sidebar-item" onclick="openExtraPanel('panelAds');closeSidebar();loadAds()">
       <svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zm-9-7l-3 3.72L7 13l-4 5h18l-5-6.28z"/></svg>
       <div class="sidebar-item-text"><div class="sidebar-item-title">โฆษณา</div><div class="sidebar-item-sub">เพิ่มและจัดการโฆษณา</div></div>
@@ -775,6 +780,31 @@ window.openExtraPanel=function(id){
   document.getElementById(id)?.classList.add('show');
 };
 window.closeExtraPanel=function(id){document.getElementById(id)?.classList.remove('show');}
+
+window.shareMenuLink=function(){
+  const slug = window._shopSlug || (shopData && shopData.id);
+  if(!slug){ showToast('ไม่พบข้อมูลร้าน','error'); return; }
+  // เติม openExternalBrowser=1 เป็นพารามิเตอร์ทางการของ LINE เอง — ทำให้กดลิงก์จากแชท/บรอดแคสต์ใน LINE
+  // แล้วเปิดด้วยเบราว์เซอร์เครื่อง (Chrome/Safari) โดยตรง แทนที่จะเปิดในเบราว์เซอร์ในตัว LINE ที่มีข้อจำกัดหลายอย่าง
+  const link = location.origin + '/menu.html?id=' + encodeURIComponent(slug) + '&openExternalBrowser=1';
+  copyToClipboard(link);
+};
+function copyToClipboard(text){
+  function ok(){ showToast('คัดลอกลิงก์แล้ว','success'); }
+  function fallback(){
+    try{
+      const ta=document.createElement('textarea');
+      ta.value=text; ta.style.position='fixed'; ta.style.left='-9999px';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      const success=document.execCommand('copy');
+      document.body.removeChild(ta);
+      if(success) ok(); else showToast('คัดลอกไม่สำเร็จ ลองกดค้างที่ลิงก์แล้วคัดลอกเอง','error');
+    }catch(e){ showToast('คัดลอกไม่สำเร็จ ลองกดค้างที่ลิงก์แล้วคัดลอกเอง','error'); }
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(ok).catch(fallback);
+  } else { fallback(); }
+}
 
 // ===== ADS =====
 let adImgBase64='';
