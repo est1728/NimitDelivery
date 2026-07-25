@@ -57,6 +57,8 @@ body{background:var(--g);min-height:100vh;}
 .empty-box{text-align:center;padding:48px 20px;color:var(--s);}
 .empty-box svg{width:48px;height:48px;fill:#cbd5e1;display:block;margin:0 auto 12px;}
 .empty-box p{font-size:15px;font-weight:700;color:var(--t);margin-bottom:6px;}
+/* แก้บัคแมพซ้อน UI อื่น: Leaflet ตั้งค่า z-index ปุ่มซูม/เลเยอร์สูงมากโดยดีฟอลต์ ทำให้ลอยทับแถบหัวข้อ/ป๊อบอัพที่ z-index ต่ำกว่า */
+.leaflet-top, .leaflet-bottom { z-index: 50 !important; }
 </style>
 </head>
 <body>
