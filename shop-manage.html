@@ -183,7 +183,7 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
 .crop-cancel { background:rgba(255,255,255,0.15); color:#fff; }
 
 /* แก้บัคแมพซ้อน UI อื่น: ปุ่มซูม/เลเยอร์ของ leaflet ค่าเริ่มต้น z-index สูงมาก (1000) ทำให้ลอยทับ modal/ป๊อบอัพทุกอันที่ z-index ต่ำกว่า */
-.leaflet-top, .leaflet-bottom { z-index: 450 !important; }
+.leaflet-top, .leaflet-bottom { z-index: 50 !important; }
 
 /* GROUP TYPE PICKER MODAL */
 .gtype-btn { width:100%; text-align:left; padding:14px; border:2px solid #eef0f4; border-radius:12px; background:#fff; cursor:pointer; margin-bottom:10px; display:flex; flex-direction:column; gap:2px; }
@@ -231,6 +231,25 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
     <button class="gtype-btn" onclick="chooseGroupType('price')"><b>เมนูแบบตั้งราคา</b><span>ลูกค้าเลือกราคาเองในช่วงที่ร้านกำหนด (ปรับทีละขั้น)</span></button>
     <button class="gtype-btn" onclick="chooseGroupType('kg')"><b>เมนูแบบตั้งตามกิโลกรัม</b><span>ลูกค้าใส่จำนวนกิโล/ขีด ระบบคำนวณราคาให้อัตโนมัติ</span></button>
     <button class="modal-cancel-btn" style="margin-top:2px" onclick="closeModal('gtypeModal')">ยกเลิก</button>
+  </div>
+</div>
+
+<!-- COPY GROUP TO MULTIPLE MENUS MODAL -->
+<div class="modal-overlay" id="copyGroupModal" onclick="if(event.target===this) closeModal('copyGroupModal')">
+  <div class="modal" style="max-height:88vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div class="modal-title">คัดลอกกลุ่มตัวเลือก</div>
+    <div class="field-label">ชื่อกลุ่ม</div>
+    <input class="field-input" id="cgTitle" placeholder="ชื่อกลุ่ม">
+    <div id="cgOptionsWrap" style="margin-top:10px">
+      <div class="field-label">ตัวเลือก (แก้ไข/ตรวจคำผิดได้ก่อนนำไปใช้)</div>
+      <div id="cgOptionsList"></div>
+      <button type="button" onclick="addCgOption()" style="width:100%;height:36px;border:1.5px dashed #cbd5e1;border-radius:10px;background:none;color:var(--subtext);font-size:12px;font-weight:700;cursor:pointer;margin-top:2px">+ เพิ่มตัวเลือก</button>
+    </div>
+    <div class="field-label" style="margin-top:14px">เลือกเมนูที่จะนำกลุ่มนี้ไปใช้</div>
+    <div id="cgMenuList" style="max-height:220px;overflow-y:auto;border:1.5px solid #eef0f4;border-radius:12px;padding:4px 8px"></div>
+    <button class="modal-cancel-btn" style="margin-top:12px;background:var(--primary);color:#fff" onclick="confirmCopyApply()">ตกลง</button>
+    <button class="modal-cancel-btn" onclick="closeModal('copyGroupModal')">ยกเลิก</button>
   </div>
 </div>
 
@@ -442,6 +461,19 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+// ล็อกการเลื่อนพื้นหลังตอนมีป๊อบอัพเปิดอยู่ (กันปัญหาเลื่อนข้างหลังได้ตอนป๊อบอัพเปิด ที่เจอทั่วทั้งระบบ)
+// ใช้วิธีสังเกตการเปลี่ยนแปลง DOM แทนการไปแก้ทุกจุดที่เปิด/ปิดป๊อบอัพเอง (มีหลายจุดมาก เสี่ยงพลาดถ้าไปแก้ทีละจุด)
+(function(){
+  function anyModalOpen(){
+    return Array.from(document.querySelectorAll('.modal-overlay, #bulkModal, #cropOverlay')).some(el => getComputedStyle(el).display !== 'none');
+  }
+  function updateBodyScrollLock(){
+    document.body.style.overflow = anyModalOpen() ? 'hidden' : '';
+  }
+  new MutationObserver(updateBodyScrollLock).observe(document.body, {attributes:true, attributeFilter:['class','style'], subtree:true});
+  updateBodyScrollLock();
+})();
 
 const params = new URLSearchParams(window.location.search);
 let shopId = params.get("id");
@@ -877,6 +909,9 @@ function renderGroupCard(menuId, g, gi, total) {
       <button onclick="moveGroup('${menuId}',${gi},1)" ${gi===total-1?'disabled':''} style="width:26px;height:26px;border:none;background:#fff;border-radius:8px;cursor:pointer;opacity:${gi===total-1?'.35':'1'};flex-shrink:0">▼</button>
       <input class="group-title-input" id="gt-${menuId}-${gi}" value="${esc(g.title)}" placeholder="ชื่อกลุ่ม เช่น ระดับเผ็ด">
       ${typeLabel?`<span class="gtype-badge">${typeLabel}</span>`:''}
+      <button onclick="copyGroup('${menuId}',${gi})" title="คัดลอกกลุ่มนี้" style="width:26px;height:26px;border:none;background:var(--primary-light);border-radius:8px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">
+        <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:var(--primary)"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+      </button>
       <button class="del-group-btn" onclick="delGroup('${menuId}',${gi})">
         <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
       </button>
@@ -1053,6 +1088,71 @@ window.toggleReq = function(menuId,gi) {
 }
 
 let gtypeMenuId = null;
+let cgWorkingGroup = null;
+let cgSelectedMenuIds = new Set();
+window.copyGroup = function(menuId, gi){
+  const m = menus.find(x=>x.id===menuId); if(!m) return;
+  saveFormState(menuId); // เก็บค่าที่พิมพ์ค้างไว้ก่อน กันคัดลอกค่าเก่าที่ยังไม่ได้ sync เข้า memory
+  const g = m.optionGroups?.[gi]; if(!g) return;
+  cgWorkingGroup = JSON.parse(JSON.stringify(g)); // ก็อปปี้แบบลึก ตัดการอ้างอิงกับต้นฉบับออกให้หมด
+  cgSelectedMenuIds = new Set();
+  renderCgModal();
+  document.getElementById('copyGroupModal').classList.add('show');
+}
+function renderCgModal(){
+  const type = cgWorkingGroup.type||'normal';
+  document.getElementById('cgTitle').value = cgWorkingGroup.title||'';
+  const optWrap = document.getElementById('cgOptionsWrap');
+  if(type==='normal'){
+    optWrap.style.display='';
+    document.getElementById('cgOptionsList').innerHTML = (cgWorkingGroup.options||[]).map((o,oi)=>`
+      <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
+        <input value="${esc(o.name)}" oninput="updateCgOption(${oi},'name',this.value)" placeholder="ชื่อตัวเลือก" style="flex:1;height:38px;border:1.5px solid #eef0f4;border-radius:10px;padding:0 10px;font-size:13px;outline:none">
+        <span style="font-size:12px;color:var(--subtext)">+฿</span>
+        <input type="number" value="${o.price||0}" oninput="updateCgOption(${oi},'price',this.value)" style="width:64px;height:38px;border:1.5px solid #eef0f4;border-radius:10px;padding:0 8px;font-size:13px;outline:none">
+        <button type="button" onclick="delCgOption(${oi})" style="width:32px;height:32px;border:none;background:#fee2e2;color:#dc2626;border-radius:8px;cursor:pointer;flex-shrink:0">✕</button>
+      </div>`).join('');
+  } else {
+    optWrap.style.display='none';
+  }
+  const list = menus.filter(m2=>!m2.id.startsWith('_new_') && !m2.id.startsWith('_bulk_'));
+  document.getElementById('cgMenuList').innerHTML = list.length ? list.map(m2=>`
+    <label style="display:flex;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid #f5f6f8;cursor:pointer">
+      <input type="checkbox" ${cgSelectedMenuIds.has(m2.id)?'checked':''} onchange="toggleCgMenu('${m2.id}',this.checked)" style="width:18px;height:18px;flex-shrink:0">
+      <span style="font-size:13px;color:var(--text)">${esc(m2.name||'(ยังไม่ตั้งชื่อ)')}</span>
+    </label>`).join('') : '<div style="padding:14px;text-align:center;color:var(--subtext);font-size:13px">ยังไม่มีเมนูอื่นในร้าน</div>';
+}
+window.updateCgOption = function(oi,field,value){
+  if(!cgWorkingGroup?.options?.[oi]) return;
+  cgWorkingGroup.options[oi][field] = field==='price' ? (parseFloat(value)||0) : value;
+}
+window.addCgOption = function(){
+  if(!cgWorkingGroup.options) cgWorkingGroup.options=[];
+  cgWorkingGroup.options.push({name:'',price:0});
+  renderCgModal();
+}
+window.delCgOption = function(oi){
+  cgWorkingGroup.options.splice(oi,1);
+  renderCgModal();
+}
+window.toggleCgMenu = function(menuId,checked){
+  if(checked) cgSelectedMenuIds.add(menuId); else cgSelectedMenuIds.delete(menuId);
+}
+window.confirmCopyApply = function(){
+  cgWorkingGroup.title = document.getElementById('cgTitle').value.trim();
+  if(!cgWorkingGroup.title){ alert('กรุณาใส่ชื่อกลุ่ม'); return; }
+  if(cgSelectedMenuIds.size===0){ alert('กรุณาเลือกอย่างน้อย 1 เมนูที่จะนำกลุ่มนี้ไปใช้'); return; }
+  cgSelectedMenuIds.forEach(menuId=>{
+    const m = menus.find(x=>x.id===menuId); if(!m) return;
+    if(!m.optionGroups) m.optionGroups=[];
+    m.optionGroups.push(JSON.parse(JSON.stringify(cgWorkingGroup))); // ก็อปปี้แยกให้แต่ละเมนู ไม่ให้อ้างอิง object เดียวกัน
+    markMenuDirty(menuId);
+    if(menuId===openMenuId) updateCardInPlace(menuId);
+  });
+  const count = cgSelectedMenuIds.size;
+  closeModal('copyGroupModal');
+  alert(`เพิ่มกลุ่ม "${cgWorkingGroup.title}" ให้ ${count} เมนูแล้ว\nอย่าลืมกดปุ่ม "บันทึก" ด้านบนเพื่อบันทึกจริงด้วยนะครับ`);
+}
 window.addGroup = function(menuId) {
   saveFormState(menuId);
   gtypeMenuId = menuId;
