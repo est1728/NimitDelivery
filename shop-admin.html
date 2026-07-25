@@ -242,6 +242,8 @@ body{background:var(--gray);min-height:100vh;overscroll-behavior-y:none;}
 .toast.error{background:var(--red);}
 @keyframes toastIn{from{transform:translateY(-12px);opacity:0}to{transform:translateY(0);opacity:1}}
 @keyframes toastOut{from{opacity:1}to{opacity:0}}
+/* แก้บัคแมพซ้อน UI อื่น: Leaflet ตั้งค่า z-index ปุ่มซูม/เลเยอร์สูงมากโดยดีฟอลต์ ทำให้ลอยทับแถบหัวข้อ/ป๊อบอัพที่ z-index ต่ำกว่า */
+.leaflet-top, .leaflet-bottom { z-index: 50 !important; }
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
