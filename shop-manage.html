@@ -528,14 +528,26 @@ window.unsavedConfirmSave = async function(){
 
 // ============ SHOP LOAD ============
 async function loadShop() {
-  if (!shopId) return;
-  let snap = await getDoc(doc(db,"shops",shopId));
-  if (!snap.exists()) {
-    // ลองค้นหาด้วย slug แทน (กรณีลิงก์ใช้ slug ไม่ใช่ doc id)
-    const q = await getDocs(query(collection(db,"shops"),where("slug","==",shopId)));
-    if (!q.empty) { const d = q.docs[0]; shopId = d.id; snap = d; }
+  if (!shopId) {
+    document.body.innerHTML = '<div style="padding:40px 20px;text-align:center;font-family:sans-serif"><div style="font-size:40px;margin-bottom:12px">⚠️</div><div style="font-size:16px;font-weight:800;color:#dc2626;margin-bottom:8px">ไม่พบรหัสร้านค้าในลิงก์</div><div style="font-size:13px;color:#64748b">ลิงก์นี้ไม่มี ?id=... ต่อท้าย กรุณากลับไปกดจากหน้ารายชื่อร้านค้าใหม่</div></div>';
+    return;
   }
-  if (!snap.exists()) return;
+  let snap;
+  try{
+    snap = await getDoc(doc(db,"shops",shopId));
+    if (!snap.exists()) {
+      // ลองค้นหาด้วย slug แทน (กรณีลิงก์ใช้ slug ไม่ใช่ doc id)
+      const q = await getDocs(query(collection(db,"shops"),where("slug","==",shopId)));
+      if (!q.empty) { const d = q.docs[0]; shopId = d.id; snap = d; }
+    }
+  }catch(e){
+    document.body.innerHTML = `<div style="padding:40px 20px;text-align:center;font-family:sans-serif"><div style="font-size:40px;margin-bottom:12px">⚠️</div><div style="font-size:16px;font-weight:800;color:#dc2626;margin-bottom:8px">โหลดข้อมูลร้านไม่สำเร็จ</div><div style="font-size:13px;color:#64748b">${e.message}<br>ข้อมูลร้านยังปลอดภัยอยู่ในระบบแน่นอน ลองรีเฟรชหน้าใหม่ หรือเช็คสัญญาณอินเทอร์เน็ต</div></div>`;
+    return;
+  }
+  if (!snap.exists()) {
+    document.body.innerHTML = `<div style="padding:40px 20px;text-align:center;font-family:sans-serif"><div style="font-size:40px;margin-bottom:12px">⚠️</div><div style="font-size:16px;font-weight:800;color:#dc2626;margin-bottom:8px">ไม่พบร้านค้านี้ในระบบ</div><div style="font-size:13px;color:#64748b">รหัสที่ใช้ค้นหา: <b>${shopId}</b><br>ข้อมูลร้านยังปลอดภัยอยู่ในระบบแน่นอน — ลิงก์นี้แค่หารหัสไม่เจอเท่านั้น กรุณากลับไปกดจากหน้ารายชื่อร้านค้าใหม่</div></div>`;
+    return;
+  }
   const s = snap.data();
   categories = Array.isArray(s.categories) ? s.categories : [];
   document.getElementById("pageTitle").textContent = s.name||"จัดการร้านค้า";
