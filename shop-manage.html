@@ -181,6 +181,21 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
 .crop-btn { flex:1; height:48px; border:none; border-radius:12px; font-size:15px; font-weight:800; cursor:pointer; }
 .crop-confirm { background:var(--primary); color:#fff; }
 .crop-cancel { background:rgba(255,255,255,0.15); color:#fff; }
+
+/* แก้บัคแมพซ้อน UI อื่น: ปุ่มซูม/เลเยอร์ของ leaflet ค่าเริ่มต้น z-index สูงมาก (1000) ทำให้ลอยทับ modal/ป๊อบอัพทุกอันที่ z-index ต่ำกว่า */
+.leaflet-top, .leaflet-bottom { z-index: 450 !important; }
+
+/* GROUP TYPE PICKER MODAL */
+.gtype-btn { width:100%; text-align:left; padding:14px; border:2px solid #eef0f4; border-radius:12px; background:#fff; cursor:pointer; margin-bottom:10px; display:flex; flex-direction:column; gap:2px; }
+.gtype-btn b { font-size:14px; color:var(--text); }
+.gtype-btn span { font-size:12px; color:var(--subtext); }
+
+/* กลุ่มตัวเลือกแบบตั้งราคา / กิโลกรัม */
+.gtype-badge { font-size:10px; font-weight:700; padding:2px 7px; border-radius:20px; background:var(--primary-light); color:var(--primary); white-space:nowrap; flex-shrink:0; }
+.price-kg-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+.price-kg-row .form-field { flex:1; margin-bottom:0; }
+.maxsel-row { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.maxsel-input { width:64px; height:34px; border:2px solid #eef0f4; border-radius:10px; text-align:center; font-size:13px; outline:none; }
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -188,11 +203,34 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
 <body>
 
 <div class="topbar">
-  <button class="back-btn" onclick="history.back()">
+  <button class="back-btn" onclick="attemptBack()">
     <svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
   </button>
   <div class="topbar-title" id="pageTitle">จัดการร้านค้า</div>
   <button class="save-btn" onclick="saveShopInfo()">บันทึก</button>
+</div>
+
+<!-- UNSAVED CHANGES MODAL -->
+<div class="modal-overlay" id="unsavedModal" style="z-index:700">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">ยังไม่ได้บันทึกการเปลี่ยนแปลง</div>
+    <div style="font-size:13px;color:var(--subtext);margin-bottom:16px">มีข้อมูลที่แก้ไขแล้วแต่ยังไม่ได้บันทึก ต้องการทำอะไรต่อ?</div>
+    <button class="modal-cancel-btn" style="background:var(--red-light);color:var(--red);margin-top:0" onclick="unsavedDiscardExit()">ออกเลย</button>
+    <button class="modal-cancel-btn" onclick="closeModal('unsavedModal')">แก้ไขต่อ</button>
+    <button class="modal-save-btn" onclick="unsavedConfirmSave()">บันทึก</button>
+  </div>
+</div>
+
+<!-- GROUP TYPE PICKER MODAL -->
+<div class="modal-overlay" id="gtypeModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">เลือกประเภทกลุ่มตัวเลือก</div>
+    <button class="gtype-btn" onclick="chooseGroupType('normal')"><b>เมนูเพิ่มเติมธรรมดา</b><span>ให้ลูกค้าติ๊กเลือกตัวเลือกที่ตั้งไว้ (เลือกได้หลายอันหรือกำหนดจำนวนสูงสุดได้)</span></button>
+    <button class="gtype-btn" onclick="chooseGroupType('price')"><b>เมนูแบบตั้งราคา</b><span>ลูกค้าเลือกราคาเองในช่วงที่ร้านกำหนด (ปรับทีละขั้น)</span></button>
+    <button class="gtype-btn" onclick="chooseGroupType('kg')" style="margin-bottom:0"><b>เมนูแบบตั้งตามกิโลกรัม</b><span>ลูกค้าใส่จำนวนกิโล/ขีด ระบบคำนวณราคาให้อัตโนมัติ</span></button>
+  </div>
 </div>
 
 <div class="shop-header">
@@ -449,6 +487,45 @@ function previewSubPrice(optPrice){
 let categories = []; // [{id,name}]
 let openCatId = null; // หมวดหมู่ที่กำลัง expand
 
+// ============ UNSAVED-CHANGES TRACKING ============
+let shopInfoDirty = false;
+let dirtyMenuIds = new Set();
+let guardPushed = false;      // เคยดัน history state กันย้อนกลับไว้ไหม
+let suppressNextPopstate = false; // เรากด history.back() เองเพื่อลบ guard ออก ไม่ต้องเด้ง popup
+function anyDirty(){ return shopInfoDirty || dirtyMenuIds.size>0; }
+function ensureGuard(){
+  if(!guardPushed){ history.pushState({nimitGuard:true}, '', location.href); guardPushed = true; }
+}
+function releaseGuard(){
+  if(guardPushed){ guardPushed = false; suppressNextPopstate = true; history.back(); }
+}
+function markShopDirty(){ shopInfoDirty = true; ensureGuard(); }
+function markMenuDirty(menuId){ if(!menuId || menuId.startsWith('_bulk_')) return; dirtyMenuIds.add(menuId); ensureGuard(); }
+window.addEventListener('popstate', function(){
+  if(anyDirty()){
+    history.pushState({nimitGuard:true}, '', location.href); // กันไว้ ยังไม่ให้ออก
+    document.getElementById('unsavedModal')?.classList.add('show');
+  } else if(suppressNextPopstate){
+    suppressNextPopstate = false; // popstate นี้เกิดจากเรากด releaseGuard() เอง ไม่ต้องทำอะไรต่อ
+  }
+});
+window.attemptBack = function(){
+  if(anyDirty()){ document.getElementById('unsavedModal')?.classList.add('show'); return; }
+  history.back();
+}
+window.unsavedDiscardExit = function(){
+  shopInfoDirty = false; dirtyMenuIds.clear();
+  document.getElementById('unsavedModal')?.classList.remove('show');
+  history.go(guardPushed ? -2 : -1);
+}
+window.unsavedConfirmSave = async function(){
+  try{
+    await saveEverything();
+    document.getElementById('unsavedModal')?.classList.remove('show');
+    history.go(guardPushed ? -2 : -1);
+  }catch(e){ alert('บันทึกไม่สำเร็จ: '+e.message); }
+}
+
 // ============ SHOP LOAD ============
 async function loadShop() {
   if (!shopId) return;
@@ -503,11 +580,13 @@ function initShopLocMap(){
   shopLocMarker.on('dragend', e=>{
     shopLocLat = e.target.getLatLng().lat;
     shopLocLng = e.target.getLatLng().lng;
+    markShopDirty();
   });
   // ใช้ click แตะปักหมุด (ไม่ใช้ contextmenu — บนมือถือแตะจอธรรมดาจะไม่ตรงกับตำแหน่งที่แตะจริง กดค้างถึงจะติด กดครั้งเดียวจะไม่ขยับหมุดเลย)
   shopLocMap.on('click', e=>{
     shopLocLat = e.latlng.lat; shopLocLng = e.latlng.lng;
     shopLocMarker.setLatLng(e.latlng);
+    markShopDirty();
   });
   setTimeout(()=>shopLocMap?.invalidateSize(),300);
   setTimeout(()=>shopLocMap?.invalidateSize(),1000);
@@ -529,6 +608,7 @@ function updateOpenToggle() {
 window.toggleAutoSchedule = function(){
   autoSchedule = !autoSchedule;
   updateAutoScheduleUI();
+  markShopDirty();
 }
 function updateAutoScheduleUI(){
   document.getElementById("autoSchTgl").className = `toggle ${autoSchedule?'on':''}`;
@@ -539,12 +619,14 @@ window.toggleEveryDay = function(){
   everyDay = !everyDay;
   if(everyDay) openDays = [0,1,2,3,4,5,6];
   updateDayPickerUI();
+  markShopDirty();
 }
 window.toggleDay = function(i){
   if(everyDay) return;
   const idx = openDays.indexOf(i);
   if(idx>=0) openDays.splice(idx,1); else openDays.push(i);
   updateDayPickerUI();
+  markShopDirty();
 }
 function updateDayPickerUI(){
   document.getElementById("everyDayTgl").className = `toggle ${everyDay?'on':''}`;
@@ -569,7 +651,7 @@ function updateAvatar() {
     : `<svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:var(--primary)"><path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/></svg>`;
 }
 
-window.toggleOpen = function() { isOpen=!isOpen; updateOpenToggle(); }
+window.toggleOpen = function() { isOpen=!isOpen; updateOpenToggle(); markShopDirty(); }
 
 // ============ MENU LOAD (เรียลไทม์) ============
 let menusUnsub = null;
@@ -732,7 +814,7 @@ function updateCardInPlace(menuId){
 function renderMenuForm(m, hideSaveBtn) {
   const groups = m.optionGroups||[];
   return `
-  <div class="menu-form" id="form-${m.id}">
+  <div class="menu-form" id="form-${m.id}" oninput="${hideSaveBtn?'':`markMenuDirty('${m.id}')`}" onchange="${hideSaveBtn?'':`markMenuDirty('${m.id}')`}">
     <div class="form-row">
       <div class="form-field">
         <div class="form-label">ชื่อเมนู</div>
@@ -782,27 +864,62 @@ function renderMenuForm(m, hideSaveBtn) {
         ${groups.map((g,gi) => renderGroupCard(m.id,g,gi,groups.length)).join('')}
       </div>
     </div>
-
-    ${hideSaveBtn ? '' : `<button class="save-menu-btn" onclick="saveMenu('${m.id}')">บันทึกเมนูนี้</button>`}
   </div>`;
 }
 
 function renderGroupCard(menuId, g, gi, total) {
-  const opts = g.options||[];
-  return `
-  <div class="group-card" id="gc-${menuId}-${gi}">
+  const type = g.type||'normal';
+  const typeLabel = type==='price'?'ตั้งราคา':type==='kg'?'กิโลกรัม':'';
+  const head = `
     <div class="group-header">
       <button onclick="moveGroup('${menuId}',${gi},-1)" ${gi===0?'disabled':''} style="width:26px;height:26px;border:none;background:#fff;border-radius:8px;cursor:pointer;opacity:${gi===0?'.35':'1'};flex-shrink:0">▲</button>
       <button onclick="moveGroup('${menuId}',${gi},1)" ${gi===total-1?'disabled':''} style="width:26px;height:26px;border:none;background:#fff;border-radius:8px;cursor:pointer;opacity:${gi===total-1?'.35':'1'};flex-shrink:0">▼</button>
       <input class="group-title-input" id="gt-${menuId}-${gi}" value="${esc(g.title)}" placeholder="ชื่อกลุ่ม เช่น ระดับเผ็ด">
+      ${typeLabel?`<span class="gtype-badge">${typeLabel}</span>`:''}
       <button class="del-group-btn" onclick="delGroup('${menuId}',${gi})">
         <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
       </button>
-    </div>
+    </div>`;
+
+  if(type==='price'){
+    return `
+    <div class="group-card" id="gc-${menuId}-${gi}">
+      ${head}
+      <div class="price-kg-row">
+        <div class="form-field"><div class="form-label" style="font-size:11px">ราคาต่ำสุด (฿)</div><input class="form-input" id="pmin-${menuId}-${gi}" type="number" value="${g.priceMin??0}" style="height:38px"></div>
+        <div class="form-field"><div class="form-label" style="font-size:11px">ราคาสูงสุด (฿)</div><input class="form-input" id="pmax-${menuId}-${gi}" type="number" value="${g.priceMax??0}" style="height:38px"></div>
+        <div class="form-field"><div class="form-label" style="font-size:11px">ปรับทีละ (฿)</div><input class="form-input" id="pstep-${menuId}-${gi}" type="number" value="${g.priceStep||5}" style="height:38px"></div>
+      </div>
+      <div style="font-size:11px;color:var(--subtext)">ลูกค้าจะเห็นช่วงราคาพร้อม GP บวกแล้ว เช่น ราคาร้าน ${g.priceMin||0}฿ ${shopType==='proxy'?'':`→ ลูกค้าจ่าย ${previewCustomerPrice(g.priceMin||0,0)}฿`}</div>
+    </div>`;
+  }
+  if(type==='kg'){
+    return `
+    <div class="group-card" id="gc-${menuId}-${gi}">
+      ${head}
+      <div class="required-row">
+        <button class="mini-toggle ${g.required?'on':''}" id="greq-${menuId}-${gi}" onclick="toggleReq('${menuId}',${gi})"></button>
+        <span class="req-badge ${g.required?'on':'off'}" id="greq-badge-${menuId}-${gi}">${g.required?'บังคับ':'ไม่บังคับ'}</span>
+      </div>
+      <div class="form-field"><div class="form-label" style="font-size:11px">ราคาต่อขีด (฿)</div><input class="form-input" id="kgrate-${menuId}-${gi}" type="number" value="${g.kgRate||0}" style="height:38px"></div>
+      <div style="font-size:11px;color:var(--subtext)">ลูกค้าจะกรอกจำนวนกิโลกรัม/ขีดเอง ระบบคำนวณราคาอัตโนมัติ</div>
+    </div>`;
+  }
+  // normal
+  const opts = g.options||[];
+  return `
+  <div class="group-card" id="gc-${menuId}-${gi}">
+    ${head}
     <div class="required-row">
       <button class="mini-toggle ${g.required?'on':''}" id="greq-${menuId}-${gi}" onclick="toggleReq('${menuId}',${gi})"></button>
       <span class="req-badge ${g.required?'on':'off'}" id="greq-badge-${menuId}-${gi}">${g.required?'บังคับ':'ไม่บังคับ'}</span>
     </div>
+    ${!g.required?`
+    <div class="maxsel-row">
+      <span style="font-size:12px;color:var(--subtext)">จำนวนที่เลือกได้:</span>
+      <input class="maxsel-input" id="gmax-${menuId}-${gi}" type="number" min="0" value="${g.maxSelect||''}" placeholder="ทุกอัน">
+      <span style="font-size:11px;color:var(--subtext)">(เว้นว่าง = เลือกได้ทุกอัน)</span>
+    </div>`:''}
     <div class="option-list" id="opts-${menuId}-${gi}">
       ${opts.map((o,oi) => renderOptionRow(menuId,gi,oi,o)).join('')}
     </div>
@@ -820,9 +937,12 @@ window.moveGroup = function(menuId,gi,dir){
   saveFormState(menuId); // เก็บค่าที่พิมพ์ค้างไว้ในช่องต่างๆก่อน ไม่ให้หายตอน re-render
   [m.optionGroups[gi],m.optionGroups[target]] = [m.optionGroups[target],m.optionGroups[gi]];
   reRenderGroups(menuId,m);
+  markMenuDirty(menuId);
 }
 
 function renderOptionRow(menuId,gi,oi,o) {
+  const subGroups = o.subGroups||[];
+  const isExp = expandedSubOpts.has(`${gi}-${oi}`);
   return `
   <div class="option-row" id="opt-${menuId}-${gi}-${oi}" style="flex-wrap:wrap">
     <input class="opt-name" id="on-${menuId}-${gi}-${oi}" value="${esc(o.name)}" placeholder="ชื่อตัวเลือก">
@@ -834,7 +954,72 @@ function renderOptionRow(menuId,gi,oi,o) {
       <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
     </button>
     <div style="width:100%;font-size:10px;color:var(--primary);font-weight:700" id="opt-preview-${menuId}-${gi}-${oi}">${(shopType!=='proxy'&&o.price)?`${o.price} → ${previewSubPrice(o.price)}`:''}</div>
+    <button type="button" onclick="toggleSubGroups('${menuId}',${gi},${oi})" style="width:100%;text-align:left;background:none;border:none;padding:6px 0 2px;font-size:11px;font-weight:700;color:var(--primary);cursor:pointer;display:flex;align-items:center;gap:4px">
+      <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:var(--primary);transform:rotate(${isExp?90:0}deg);transition:transform .15s"><path d="M8 5v14l11-7z"/></svg>
+      ตัวเลือกเพิ่ม${subGroups.length?` (${subGroups.length})`:''}
+    </button>
+    ${isExp?`<div style="width:100%;background:#f8fafc;border-radius:10px;padding:10px;margin-top:2px" id="subgroups-${menuId}-${gi}-${oi}">
+      ${subGroups.map((sg,sgi)=>renderSubGroupCard(menuId,gi,oi,sgi,sg)).join('')}
+      <button type="button" onclick="addSubGroup('${menuId}',${gi},${oi})" style="width:100%;height:32px;border:1.5px dashed #cbd5e1;border-radius:8px;background:none;color:var(--subtext);font-size:11px;font-weight:700;cursor:pointer">+ เพิ่มกลุ่มตัวเลือกย่อยสำหรับ "${esc(o.name)||'ตัวเลือกนี้'}"</button>
+    </div>`:''}
   </div>`;
+}
+
+function renderSubGroupCard(menuId,gi,oi,sgi,sg) {
+  const opts = sg.options||[];
+  return `
+  <div style="background:#fff;border:1.5px solid #eef0f4;border-radius:10px;padding:8px;margin-bottom:8px" id="sgc-${menuId}-${gi}-${oi}-${sgi}">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+      <input value="${esc(sg.title)}" id="sgt-${menuId}-${gi}-${oi}-${sgi}" placeholder="ชื่อกลุ่มย่อย เช่น เพิ่มชีส" style="flex:1;height:32px;border:1.5px solid #eef0f4;border-radius:8px;padding:0 8px;font-size:12px;outline:none">
+      <button type="button" onclick="delSubGroup('${menuId}',${gi},${oi},${sgi})" style="width:28px;height:28px;border:none;background:#fee2e2;border-radius:8px;color:#dc2626;cursor:pointer;flex-shrink:0">✕</button>
+    </div>
+    ${opts.map((so,soi)=>`
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+      <input value="${esc(so.name)}" id="son-${menuId}-${gi}-${oi}-${sgi}-${soi}" placeholder="ชื่อตัวเลือกย่อย" style="flex:1;height:30px;border:1.5px solid #eef0f4;border-radius:8px;padding:0 8px;font-size:12px;outline:none">
+      <span style="font-size:11px;color:var(--subtext)">+฿</span>
+      <input type="number" value="${so.price||0}" id="sop-${menuId}-${gi}-${oi}-${sgi}-${soi}" style="width:56px;height:30px;border:1.5px solid #eef0f4;border-radius:8px;padding:0 6px;font-size:12px;outline:none">
+      <button type="button" onclick="delSubOption('${menuId}',${gi},${oi},${sgi},${soi})" style="width:26px;height:26px;border:none;background:none;color:var(--subtext);cursor:pointer;flex-shrink:0">✕</button>
+    </div>`).join('')}
+    <button type="button" onclick="addSubOption('${menuId}',${gi},${oi},${sgi})" style="width:100%;height:28px;border:none;background:var(--primary-light);color:var(--primary);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;margin-top:2px">+ ตัวเลือกย่อย</button>
+  </div>`;
+}
+
+let expandedSubOpts = new Set();
+window.toggleSubGroups = function(menuId,gi,oi){
+  saveFormState(menuId);
+  const key = `${gi}-${oi}`;
+  if(expandedSubOpts.has(key)) expandedSubOpts.delete(key); else expandedSubOpts.add(key);
+  updateCardInPlace(menuId);
+}
+window.addSubGroup = function(menuId,gi,oi){
+  saveFormState(menuId);
+  const m = menus.find(x=>x.id===menuId); if(!m) return;
+  const o = m.optionGroups?.[gi]?.options?.[oi]; if(!o) return;
+  if(!o.subGroups) o.subGroups=[];
+  o.subGroups.push({title:'',options:[]});
+  updateCardInPlace(menuId);
+}
+window.delSubGroup = function(menuId,gi,oi,sgi){
+  const m = menus.find(x=>x.id===menuId); if(!m) return;
+  const o = m.optionGroups?.[gi]?.options?.[oi]; if(!o?.subGroups) return;
+  saveFormState(menuId);
+  o.subGroups.splice(sgi,1);
+  updateCardInPlace(menuId);
+}
+window.addSubOption = function(menuId,gi,oi,sgi){
+  saveFormState(menuId);
+  const m = menus.find(x=>x.id===menuId); if(!m) return;
+  const sg = m.optionGroups?.[gi]?.options?.[oi]?.subGroups?.[sgi]; if(!sg) return;
+  if(!sg.options) sg.options=[];
+  sg.options.push({name:'',price:0});
+  updateCardInPlace(menuId);
+}
+window.delSubOption = function(menuId,gi,oi,sgi,soi){
+  saveFormState(menuId);
+  const m = menus.find(x=>x.id===menuId); if(!m) return;
+  const sg = m.optionGroups?.[gi]?.options?.[oi]?.subGroups?.[sgi]; if(!sg?.options) return;
+  sg.options.splice(soi,1);
+  updateCardInPlace(menuId);
 }
 
 function esc(v) { return (v||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
@@ -895,12 +1080,38 @@ function saveFormState(menuId) {
   (m.optionGroups||[]).forEach((g,gi)=>{
     const title = document.getElementById(`gt-${menuId}-${gi}`)?.value;
     if (title !== undefined) g.title = title;
-    (g.options||[]).forEach((o,oi)=>{
-      const oname = document.getElementById(`on-${menuId}-${gi}-${oi}`)?.value;
-      const oprice = document.getElementById(`op-${menuId}-${gi}-${oi}`)?.value;
-      if (oname !== undefined) o.name = oname;
-      if (oprice !== undefined) o.price = parseFloat(oprice)||0;
-    });
+    const type = g.type||'normal';
+    if(type==='price'){
+      const pmin = document.getElementById(`pmin-${menuId}-${gi}`)?.value;
+      const pmax = document.getElementById(`pmax-${menuId}-${gi}`)?.value;
+      const pstep = document.getElementById(`pstep-${menuId}-${gi}`)?.value;
+      if(pmin!==undefined) g.priceMin = parseFloat(pmin)||0;
+      if(pmax!==undefined) g.priceMax = parseFloat(pmax)||0;
+      if(pstep!==undefined) g.priceStep = parseFloat(pstep)||5;
+    } else if(type==='kg'){
+      const rate = document.getElementById(`kgrate-${menuId}-${gi}`)?.value;
+      if(rate!==undefined) g.kgRate = parseFloat(rate)||0;
+    } else {
+      const maxSel = document.getElementById(`gmax-${menuId}-${gi}`)?.value;
+      if(maxSel!==undefined) g.maxSelect = parseInt(maxSel)||0;
+      (g.options||[]).forEach((o,oi)=>{
+        const oname = document.getElementById(`on-${menuId}-${gi}-${oi}`)?.value;
+        const oprice = document.getElementById(`op-${menuId}-${gi}-${oi}`)?.value;
+        if (oname !== undefined) o.name = oname;
+        if (oprice !== undefined) o.price = parseFloat(oprice)||0;
+        // กลุ่มตัวเลือกย่อยที่ผูกกับตัวเลือกนี้ (ถ้ากำลังเปิดอยู่)
+        (o.subGroups||[]).forEach((sg,sgi)=>{
+          const sgt = document.getElementById(`sgt-${menuId}-${gi}-${oi}-${sgi}`)?.value;
+          if(sgt !== undefined) sg.title = sgt;
+          (sg.options||[]).forEach((so,soi)=>{
+            const son = document.getElementById(`son-${menuId}-${gi}-${oi}-${sgi}-${soi}`)?.value;
+            const sop = document.getElementById(`sop-${menuId}-${gi}-${oi}-${sgi}-${soi}`)?.value;
+            if(son !== undefined) so.name = son;
+            if(sop !== undefined) so.price = parseFloat(sop)||0;
+          });
+        });
+      });
+    }
   });
 }
 
@@ -915,16 +1126,27 @@ window.toggleReq = function(menuId,gi) {
   const isR = m.optionGroups[gi].required;
   if(btn) btn.className=`mini-toggle ${isR?'on':''}`;
   if(badge) { badge.className=`req-badge ${isR?'on':'off'}`; badge.textContent=isR?'บังคับ':'ไม่บังคับ'; }
+  markMenuDirty(menuId);
 }
 
+let gtypeMenuId = null;
 window.addGroup = function(menuId) {
   saveFormState(menuId);
+  gtypeMenuId = menuId;
+  document.getElementById('gtypeModal')?.classList.add('show');
+}
+window.chooseGroupType = function(type){
+  const menuId = gtypeMenuId;
+  closeModal('gtypeModal');
+  if(!menuId) return;
   const m = menus.find(x=>x.id===menuId);
   if(!m) return;
   if(!m.optionGroups) m.optionGroups=[];
-  m.optionGroups.push({title:'',required:false,options:[{name:'',price:0}]});
-  // re-render เฉพาะ groups
+  if(type==='price') m.optionGroups.push({type:'price', title:'', priceMin:10, priceMax:50, priceStep:5});
+  else if(type==='kg') m.optionGroups.push({type:'kg', title:'', required:false, kgRate:0});
+  else m.optionGroups.push({type:'normal', title:'', required:false, maxSelect:0, options:[{name:'',price:0}]});
   reRenderGroups(menuId,m);
+  markMenuDirty(menuId);
 }
 
 window.delGroup = function(menuId,gi) {
@@ -933,6 +1155,7 @@ window.delGroup = function(menuId,gi) {
   if(!m) return;
   m.optionGroups.splice(gi,1);
   reRenderGroups(menuId,m);
+  markMenuDirty(menuId);
 }
 
 window.addOption = function(menuId,gi) {
@@ -948,6 +1171,7 @@ window.addOption = function(menuId,gi) {
     div.innerHTML = renderOptionRow(menuId,gi,oi,{name:'',price:0});
     optsEl.appendChild(div.firstElementChild);
   }
+  markMenuDirty(menuId);
 }
 
 window.delOption = function(menuId,gi,oi) {
@@ -956,6 +1180,7 @@ window.delOption = function(menuId,gi,oi) {
   if(!m||!m.optionGroups[gi]) return;
   m.optionGroups[gi].options.splice(oi,1);
   reRenderGroups(menuId,m);
+  markMenuDirty(menuId);
 }
 
 function reRenderGroups(menuId,m) {
@@ -1000,43 +1225,62 @@ window.openNewMenuForm = function(catId) {
   openMenuId = tmpId;
   openCatId = cid;
   renderMenuGroups();
+  markMenuDirty(tmpId);
   window.scrollTo({top:document.getElementById('menuGroups').offsetTop-20,behavior:'smooth'});
 }
 
 // ============ SAVE MENU ============
-window.saveMenu = async function(menuId) {
-  saveFormState(menuId);
-  const m = menus.find(x=>x.id===menuId);
-  if(!m) return;
-  if(!m.name) { alert("กรุณากรอกชื่อเมนู"); return; }
-
-  const data = {
+function buildMenuSaveData(m){
+  return {
     name:m.name, price:m.price||0, category:m.category||'', categoryId:m.categoryId||'',
     available:m.available!==false, order:m.order||0,
     gp:m.gp||0, gpIsMain:shopType==='proxy', desc:m.desc||'', imgUrl:m.imgUrl||'',
-    optionGroups: (m.optionGroups||[]).filter(g=>g.title).map(g=>({
-      title:g.title, required:!!g.required,
-      options:(g.options||[]).filter(o=>o.name)
-    })),
+    optionGroups: (m.optionGroups||[]).filter(g=>g.title).map(g=>{
+      const type=g.type||'normal';
+      if(type==='price') return {type:'price', title:g.title, priceMin:g.priceMin||0, priceMax:g.priceMax||0, priceStep:g.priceStep||5};
+      if(type==='kg') return {type:'kg', title:g.title, required:!!g.required, kgRate:g.kgRate||0};
+      return {type:'normal', title:g.title, required:!!g.required, maxSelect:g.maxSelect||0, options:(g.options||[]).filter(o=>o.name).map(o=>({
+        name:o.name, price:o.price||0,
+        subGroups:(o.subGroups||[]).filter(sg=>sg.title).map(sg=>({title:sg.title,options:(sg.options||[]).filter(so=>so.name)}))
+      }))};
+    }),
     updatedAt:serverTimestamp()
   };
+}
 
-  try {
-    if(menuId.startsWith('_new_')) {
+// บันทึกทั้งข้อมูลร้าน + ทุกเมนูที่มีการแก้ไขค้างไว้ในครั้งเดียว (แทนปุ่มบันทึกแยกรายเมนูที่เอาออกไปแล้ว)
+async function saveEverything(){
+  if(!shopId) return;
+  saveFormState(openMenuId);
+  const namelessId = Array.from(dirtyMenuIds).find(id=>{ const m=menus.find(x=>x.id===id); return m && !m.name; });
+  if(namelessId){ throw new Error("กรุณากรอกชื่อเมนูให้ครบก่อนบันทึก"); }
+  await updateDoc(doc(db,"shops",shopId),{
+    name:document.getElementById("shopName").value.trim(),
+    desc:document.getElementById("shopDesc").value.trim(),
+    phone:document.getElementById("shopPhone").value.trim(),
+    deliveryTime:document.getElementById("shopDeliveryTime").value.trim(),
+    address:document.getElementById("shopAddress").value.trim(),
+    lat:shopLocLat, lng:shopLocLng,
+    isOpen, bannerUrl, avatarUrl,
+    autoSchedule, scheduleOpen:document.getElementById("schOpenTime").value||"", scheduleClose:document.getElementById("schCloseTime").value||"",
+    openDays,
+    updatedAt:serverTimestamp()
+  });
+  for(const menuId of Array.from(dirtyMenuIds)){
+    const m = menus.find(x=>x.id===menuId);
+    if(!m) continue;
+    const data = buildMenuSaveData(m);
+    if(menuId.startsWith('_new_')){
       data.createdAt = serverTimestamp();
       const ref = await addDoc(collection(db,"shops",shopId,"menus"),data);
-      // replace temp id
       m.id = ref.id;
-      openMenuId = null;
-      renderMenuGroups(); // เมนูใหม่เปลี่ยน id จริง ต้อง render ทั้งลิสต์เพื่อให้การ์ดอ้างอิง id ใหม่ถูกต้อง
     } else {
       await updateDoc(doc(db,"shops",shopId,"menus",menuId),data);
-      openMenuId = null;
-      // ไม่ต้องเรียก loadMenus() ใหม่ทั้งหมด (ของเดิม) — มันไปสร้าง listener ใหม่ + รื้อทั้งลิสต์ทุกครั้งที่บันทึก
-      // ทำให้หน้าสูงขึ้น/สั้นลงกะทันหันจนตำแหน่งที่เลื่อนดูอยู่กระโดดไปมา อัปเดตแค่การ์ดนี้ใบเดียวพอ
-      updateCardInPlace(menuId);
     }
-  } catch(e) { alert("เกิดข้อผิดพลาด: "+e.message); }
+  }
+  shopInfoDirty=false; dirtyMenuIds.clear();
+  openMenuId=null;
+  renderMenuGroups();
 }
 
 window.deleteMenu = async function(menuId) {
@@ -1046,6 +1290,7 @@ window.deleteMenu = async function(menuId) {
   }
   menus = menus.filter(m=>m.id!==menuId);
   if(openMenuId===menuId) openMenuId=null;
+  dirtyMenuIds.delete(menuId);
   renderMenuGroups();
 }
 
@@ -1186,7 +1431,15 @@ async function saveBulk() {
       name:m.name.trim(), price:m.price||0, category:m.category||'', categoryId:m.categoryId||'',
       available:true, order:m.order||0,
       gp:m.gp||0, gpIsMain:shopType==='proxy', desc:m.desc||'', imgUrl:m.imgUrl||'',
-      optionGroups:(m.optionGroups||[]).filter(g=>g.title).map(g=>({title:g.title,required:!!g.required,options:(g.options||[]).filter(o=>o.name)})),
+      optionGroups:(m.optionGroups||[]).filter(g=>g.title).map(g=>{
+        const type=g.type||'normal';
+        if(type==='price') return {type:'price', title:g.title, priceMin:g.priceMin||0, priceMax:g.priceMax||0, priceStep:g.priceStep||5};
+        if(type==='kg') return {type:'kg', title:g.title, required:!!g.required, kgRate:g.kgRate||0};
+        return {type:'normal', title:g.title, required:!!g.required, maxSelect:g.maxSelect||0, options:(g.options||[]).filter(o=>o.name).map(o=>({
+          name:o.name, price:o.price||0,
+          subGroups:(o.subGroups||[]).filter(sg=>sg.title).map(sg=>({title:sg.title,options:(sg.options||[]).filter(so=>so.name)}))
+        }))};
+      }),
       createdAt:serverTimestamp(), updatedAt:serverTimestamp()
     };
     try{ await addDoc(collection(db,"shops",shopId,"menus"),data); }
@@ -1206,20 +1459,10 @@ async function saveBulk() {
 window.saveShopInfo = async function() {
   if(!shopId) return;
   try {
-    await updateDoc(doc(db,"shops",shopId),{
-      name:document.getElementById("shopName").value.trim(),
-      desc:document.getElementById("shopDesc").value.trim(),
-      phone:document.getElementById("shopPhone").value.trim(),
-      deliveryTime:document.getElementById("shopDeliveryTime").value.trim(),
-      address:document.getElementById("shopAddress").value.trim(),
-      lat:shopLocLat, lng:shopLocLng,
-      isOpen, bannerUrl, avatarUrl,
-      autoSchedule, scheduleOpen:document.getElementById("schOpenTime").value||"", scheduleClose:document.getElementById("schCloseTime").value||"",
-      openDays,
-      updatedAt:serverTimestamp()
-    });
+    await saveEverything();
+    releaseGuard();
     alert("บันทึกสำเร็จ ✅");
-  } catch(e) { alert("เกิดข้อผิดพลาด"); }
+  } catch(e) { alert("เกิดข้อผิดพลาด: "+e.message); }
 }
 
 // ============ BANNER / AVATAR ============
@@ -1235,11 +1478,11 @@ window.openAvatarModal = function() {
 }
 window.saveBanner = function() {
   bannerUrl = document.getElementById("bannerUrlInput").value.trim();
-  updateBanner(); closeModal("bannerModal");
+  updateBanner(); closeModal("bannerModal"); markShopDirty();
 }
 window.saveAvatar = function() {
   avatarUrl = document.getElementById("avatarUrlInput").value.trim();
-  updateAvatar(); closeModal("avatarModal");
+  updateAvatar(); closeModal("avatarModal"); markShopDirty();
 }
 window.livePreview = function(previewId,inputId) {
   const url = document.getElementById(inputId)?.value.trim();
@@ -1383,6 +1626,10 @@ window.confirmCrop = function() {
 }
 window.closeCrop = function() { document.getElementById("cropOverlay").classList.remove("show"); }
 
+['shopName','shopDesc','shopPhone','shopDeliveryTime','shopAddress','schOpenTime','schCloseTime'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el){ el.addEventListener('input', markShopDirty); el.addEventListener('change', markShopDirty); }
+});
 loadGpSettings();
 loadShop();
 </script>
