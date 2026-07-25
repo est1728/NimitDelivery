@@ -427,20 +427,6 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
 <canvas id="cropCanvas" style="display:none"></canvas>
 
 <script type="module">
-window.addEventListener('error', function(e){
-  const box = document.createElement('div');
-  box.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#dc2626;color:#fff;padding:14px;font-size:13px;font-family:monospace;white-space:pre-wrap;word-break:break-word;max-height:50vh;overflow:auto';
-  box.textContent = '⚠️ JS ERROR: ' + e.message + '\n(บรรทัด ' + e.lineno + ')\n' + (e.error && e.error.stack ? e.error.stack : '');
-  document.body.prepend(box);
-});
-window.addEventListener('unhandledrejection', function(e){
-  const box = document.createElement('div');
-  box.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#ea580c;color:#fff;padding:14px;font-size:13px;font-family:monospace;white-space:pre-wrap;word-break:break-word;max-height:50vh;overflow:auto';
-  box.textContent = '⚠️ PROMISE ERROR: ' + (e.reason && e.reason.message ? e.reason.message : e.reason);
-  document.body.prepend(box);
-});
-</script>
-<script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, getDocs, deleteDoc, serverTimestamp, query, where, onSnapshot }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -513,8 +499,8 @@ function ensureGuard(){
 function releaseGuard(){
   if(guardPushed){ guardPushed = false; suppressNextPopstate = true; history.back(); }
 }
-function markShopDirty(){ shopInfoDirty = true; ensureGuard(); }
-function markMenuDirty(menuId){ if(!menuId || menuId.startsWith('_bulk_')) return; dirtyMenuIds.add(menuId); ensureGuard(); }
+window.markShopDirty = function(){ shopInfoDirty = true; ensureGuard(); }
+window.markMenuDirty = function(menuId){ if(!menuId || menuId.startsWith('_bulk_')) return; dirtyMenuIds.add(menuId); ensureGuard(); }
 window.addEventListener('popstate', function(){
   if(anyDirty()){
     history.pushState({nimitGuard:true}, '', location.href); // กันไว้ ยังไม่ให้ออก
@@ -542,26 +528,14 @@ window.unsavedConfirmSave = async function(){
 
 // ============ SHOP LOAD ============
 async function loadShop() {
-  if (!shopId) {
-    document.body.innerHTML = '<div style="padding:40px 20px;text-align:center;font-family:sans-serif"><div style="font-size:40px;margin-bottom:12px">⚠️</div><div style="font-size:16px;font-weight:800;color:#dc2626;margin-bottom:8px">ไม่พบรหัสร้านค้าในลิงก์</div><div style="font-size:13px;color:#64748b">ลิงก์นี้ไม่มี ?id=... ต่อท้าย กรุณากลับไปกดจากหน้ารายชื่อร้านค้าใหม่</div></div>';
-    return;
-  }
-  let snap;
-  try{
-    snap = await getDoc(doc(db,"shops",shopId));
-    if (!snap.exists()) {
-      // ลองค้นหาด้วย slug แทน (กรณีลิงก์ใช้ slug ไม่ใช่ doc id)
-      const q = await getDocs(query(collection(db,"shops"),where("slug","==",shopId)));
-      if (!q.empty) { const d = q.docs[0]; shopId = d.id; snap = d; }
-    }
-  }catch(e){
-    document.body.innerHTML = `<div style="padding:40px 20px;text-align:center;font-family:sans-serif"><div style="font-size:40px;margin-bottom:12px">⚠️</div><div style="font-size:16px;font-weight:800;color:#dc2626;margin-bottom:8px">โหลดข้อมูลร้านไม่สำเร็จ</div><div style="font-size:13px;color:#64748b">${e.message}<br>ข้อมูลร้านยังปลอดภัยอยู่ในระบบแน่นอน ลองรีเฟรชหน้าใหม่ หรือเช็คสัญญาณอินเทอร์เน็ต</div></div>`;
-    return;
-  }
+  if (!shopId) return;
+  let snap = await getDoc(doc(db,"shops",shopId));
   if (!snap.exists()) {
-    document.body.innerHTML = `<div style="padding:40px 20px;text-align:center;font-family:sans-serif"><div style="font-size:40px;margin-bottom:12px">⚠️</div><div style="font-size:16px;font-weight:800;color:#dc2626;margin-bottom:8px">ไม่พบร้านค้านี้ในระบบ</div><div style="font-size:13px;color:#64748b">รหัสที่ใช้ค้นหา: <b>${shopId}</b><br>ข้อมูลร้านยังปลอดภัยอยู่ในระบบแน่นอน — ลิงก์นี้แค่หารหัสไม่เจอเท่านั้น กรุณากลับไปกดจากหน้ารายชื่อร้านค้าใหม่</div></div>`;
-    return;
+    // ลองค้นหาด้วย slug แทน (กรณีลิงก์ใช้ slug ไม่ใช่ doc id)
+    const q = await getDocs(query(collection(db,"shops"),where("slug","==",shopId)));
+    if (!q.empty) { const d = q.docs[0]; shopId = d.id; snap = d; }
   }
+  if (!snap.exists()) return;
   const s = snap.data();
   categories = Array.isArray(s.categories) ? s.categories : [];
   document.getElementById("pageTitle").textContent = s.name||"จัดการร้านค้า";
@@ -685,9 +659,6 @@ let menuRenderDebounce = null;
 function loadMenus() {
   if(menusUnsub) menusUnsub();
   menusUnsub = onSnapshot(collection(db,"shops",shopId,"menus"), snap => {
-    // ดึงค่าที่พิมพ์ค้างอยู่ในช่องกรอกตอนนี้เข้า memory ก่อนเสมอ กัน snapshot มาตัดตอนกลางคันขณะพิมพ์
-    if(openMenuId) saveFormState(openMenuId);
-    if(typeof bulkOpenId!=='undefined' && bulkOpenId) saveFormState(bulkOpenId);
     const remote = [];
     snap.forEach(d => remote.push({id:d.id,...d.data()}));
     // คงแถวชั่วคราว (กำลังเพิ่มเมนูใหม่/เพิ่มจำนวนมากค้างอยู่) ไว้ ไม่ให้ข้อมูลที่ยังไม่บันทึกหายเวลา snapshot อัปเดต
@@ -1564,7 +1535,7 @@ window.confirmCrop = function() {
 
   closeCrop();
 }
-window.closeCrop = function() { document.getElementById("cropOverlay").classList.remove("show"); };
+window.closeCrop = function() { document.getElementById("cropOverlay").classList.remove("show"); }
 
 ['shopName','shopDesc','shopPhone','shopDeliveryTime','shopAddress','schOpenTime','schCloseTime'].forEach(id=>{
   const el = document.getElementById(id);
