@@ -223,13 +223,14 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
 </div>
 
 <!-- GROUP TYPE PICKER MODAL -->
-<div class="modal-overlay" id="gtypeModal">
+<div class="modal-overlay" id="gtypeModal" onclick="if(event.target===this) closeModal('gtypeModal')">
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">เลือกประเภทกลุ่มตัวเลือก</div>
     <button class="gtype-btn" onclick="chooseGroupType('normal')"><b>เมนูเพิ่มเติมธรรมดา</b><span>ให้ลูกค้าติ๊กเลือกตัวเลือกที่ตั้งไว้ (เลือกได้หลายอันหรือกำหนดจำนวนสูงสุดได้)</span></button>
     <button class="gtype-btn" onclick="chooseGroupType('price')"><b>เมนูแบบตั้งราคา</b><span>ลูกค้าเลือกราคาเองในช่วงที่ร้านกำหนด (ปรับทีละขั้น)</span></button>
-    <button class="gtype-btn" onclick="chooseGroupType('kg')" style="margin-bottom:0"><b>เมนูแบบตั้งตามกิโลกรัม</b><span>ลูกค้าใส่จำนวนกิโล/ขีด ระบบคำนวณราคาให้อัตโนมัติ</span></button>
+    <button class="gtype-btn" onclick="chooseGroupType('kg')"><b>เมนูแบบตั้งตามกิโลกรัม</b><span>ลูกค้าใส่จำนวนกิโล/ขีด ระบบคำนวณราคาให้อัตโนมัติ</span></button>
+    <button class="modal-cancel-btn" style="margin-top:2px" onclick="closeModal('gtypeModal')">ยกเลิก</button>
   </div>
 </div>
 
