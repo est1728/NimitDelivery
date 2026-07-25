@@ -302,7 +302,7 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
 
 <div class="section">
   <div class="section-title">ปักหมุดตำแหน่งร้าน</div>
-  <div style="position:relative">
+  <div style="position:relative;isolation:isolate;z-index:0">
     <div id="shopLocMap" style="height:220px;border-radius:14px;overflow:hidden;border:1.5px solid #e8eef5"></div>
     <button type="button" onclick="useShopMyLocation()" style="position:absolute;bottom:10px;right:10px;z-index:400;width:40px;height:40px;border-radius:50%;border:none;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;cursor:pointer">
       <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:var(--primary)"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 17.93V18a1 1 0 0 0-2 0v1.93A8 8 0 0 1 4.07 13H6a1 1 0 0 0 0-2H4.07A8 8 0 0 1 11 4.07V6a1 1 0 0 0 2 0V4.07A8 8 0 0 1 19.93 11H18a1 1 0 0 0 0 2h1.93A8 8 0 0 1 13 19.93zM12 9a3 3 0 1 0 3 3 3 3 0 0 0-3-3z"/></svg>
