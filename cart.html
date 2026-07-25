@@ -133,6 +133,27 @@ body { background:var(--gray); min-height:100vh; padding-bottom:120px; }
 .option-radio.filled::after { content:''; width:7px; height:7px; border-radius:50%; background:#fff; }
 .option-name { font-size:14px; font-weight:600; color:var(--text); }
 .option-extra-price { font-size:13px; font-weight:700; color:var(--primary); }
+.og-title-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.og-title{font-size:15px;font-weight:800;color:var(--text);}
+.og-required-badge{font-size:10px;font-weight:700;background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:20px;}
+.og-optional-badge{font-size:10px;font-weight:700;background:var(--primary-light);color:var(--primary);padding:2px 8px;border-radius:20px;}
+.og-select-hint{font-size:12px;color:var(--subtext);margin-left:auto;}
+.price-picker{display:flex;align-items:center;justify-content:center;gap:16px;padding:14px;border-radius:12px;border:2px solid #f0f2f5;background:#fafbfc;}
+.price-step-btn{width:40px;height:40px;border-radius:50%;border:none;background:var(--primary);color:#fff;font-size:20px;font-weight:800;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.price-step-btn:disabled{background:#cbd5e1;cursor:not-allowed;}
+.price-val-wrap{text-align:center;min-width:110px;}
+.price-val{font-size:20px;font-weight:800;color:var(--text);}
+.price-val-sub{font-size:12px;color:var(--subtext);margin-top:2px;}
+.price-range-hint{font-size:12px;color:var(--subtext);text-align:center;margin-top:8px;}
+.kg-input-row{display:flex;align-items:center;gap:8px;}
+.kg-input-field{flex:1;text-align:center;}
+.kg-input-field input{width:100%;height:46px;border:2px solid #eef0f4;border-radius:12px;text-align:center;font-size:16px;font-weight:700;outline:none;}
+.kg-input-field input:focus{border-color:var(--primary);}
+.kg-input-label{font-size:11px;color:var(--subtext);text-align:center;margin-top:4px;}
+.kg-price-hint{font-size:12px;color:var(--subtext);text-align:center;margin-top:10px;}
+.kg-price-hint b{color:var(--primary);}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.error-shake{animation:shake 0.4s ease;}
 .note-input-modal { width:100%; border:2px solid #e8eaf0; border-radius:12px; padding:12px 14px; font-size:14px; outline:none; resize:none; height:70px; margin-top:4px; font-family:inherit; }
 .note-input-modal:focus { border-color:var(--primary); }
 .modal-footer { display:flex; gap:10px; margin-top:16px; }
@@ -228,11 +249,12 @@ const db = getFirestore(app);
 let cart = JSON.parse(localStorage.getItem("cart") || "{}");
 let customerData = JSON.parse(localStorage.getItem("customerData") || "{}");
 let walletPercent=30, riderPercent=70, freeDistance=1.5, baseDeliveryFee=9;
+let gpPercent=0, gpSubPercent=0, gpTiers=[];
 let shopMeta = {};
 let shopDeliveryFees = {};
 
 // modal state
-let modalShopId = null, modalItem = null, modalSelectedOptions = {};
+let modalShopId = null, modalItem = null, modalSelections = {}, modalSubSelections = {};
 
 function distanceKm(lat1,lng1,lat2,lng2){
   const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLng=(lng2-lng1)*Math.PI/180;
@@ -243,7 +265,7 @@ function distanceKm(lat1,lng1,lat2,lng2){
 async function loadSettings(){
   try{
     const snap=await getDoc(doc(db,"settings","pricing"));
-    if(snap.exists()){const d=snap.data();walletPercent=d.walletPercent??30;riderPercent=d.riderPercent??70;freeDistance=d.freeDistance??1.5;baseDeliveryFee=d.deliveryFee??9;}
+    if(snap.exists()){const d=snap.data();walletPercent=d.walletPercent??30;riderPercent=d.riderPercent??70;freeDistance=d.freeDistance??1.5;baseDeliveryFee=d.deliveryFee??9;gpPercent=d.gpPercent||0;gpSubPercent=d.gpSubPercent||0;gpTiers=Array.isArray(d.gpTiers)?d.gpTiers:[];}
   }catch(e){}
 }
 
@@ -253,7 +275,7 @@ async function loadShopMeta(){
       const snap=await getDoc(doc(db,"shops",shopId));
       if(snap.exists()){
         const s=snap.data();
-        shopMeta[shopId]={phone:s.phone||'',address:s.address||'',lat:s.lat,lng:s.lng};
+        shopMeta[shopId]={phone:s.phone||'',address:s.address||'',lat:s.lat,lng:s.lng,shopType:s.shopType||'normal'};
         shopDeliveryFees[shopId]=(s.lat&&customerData.lat&&distanceKm(s.lat,s.lng,customerData.lat,customerData.lng)>freeDistance)?baseDeliveryFee:0;
       }
     }catch(e){shopDeliveryFees[shopId]=0;}
@@ -261,6 +283,28 @@ async function loadShopMeta(){
 }
 
 function cleanCart(){ Object.keys(cart).forEach(id=>{ if(!cart[id].items?.length) delete cart[id]; }); }
+
+function tierGpPercent(base){
+  if(Array.isArray(gpTiers) && gpTiers.length){
+    const sorted=[...gpTiers].sort((a,b)=>(a.min??0)-(b.min??0));
+    for(let i=0;i<sorted.length;i++){
+      const t=sorted[i];
+      const inRange = i===0
+        ? (base>=(t.min??0) && base<=(t.max??Infinity))
+        : (base>(t.min??0) && base<=(t.max??Infinity));
+      if(inRange) return t.gp||0;
+    }
+  }
+  return gpPercent||0;
+}
+function calcPrice(base,menuGp,shopType){
+  if(shopType==='proxy') return Math.ceil(base||0);
+  return Math.ceil((base||0)*(1+(tierGpPercent(base||0)+(menuGp||0))/100));
+}
+function calcSubPrice(optPrice,shopType){
+  if(shopType==='proxy') return Math.ceil(optPrice||0);
+  return Math.ceil((optPrice||0)*(1+(gpSubPercent||0)/100));
+}
 
 function calcTotal(){
   return Object.keys(cart).reduce((s,sid)=>s+cart[sid].items.reduce((ss,i)=>ss+i.price*i.qty,0),0);
@@ -401,7 +445,7 @@ window.switchTab=function(tab){
 }
 
 // CHECKOUT
-function genOrderId(){ return "AMJ-"+String(Math.floor(1000+Math.random()*9000)); }
+function genOrderId(){ return "NM-"+String(Math.floor(1000+Math.random()*9000)); }
 function genGroupId(){ return "GRP-"+Date.now().toString(36)+Math.random().toString(36).substring(2,6); }
 
 window.toggleShop=function(shopId){
@@ -430,62 +474,239 @@ window.goCheckout=async function(){
 }
 
 // MODAL (for editing options in cart)
+function reconstructSubSelections(item,g,gi,oi){
+  const o=g.options[oi]; if(!o||!(o.subGroups||[]).length) return;
+  o.subGroups.forEach((sg,sgi)=>{
+    const key=`${gi}-${oi}-${sgi}`;
+    const wantTitle=`${g.title} → ${sg.title}`;
+    const set=new Set();
+    (item.options||[]).filter(mo=>mo.groupTitle===wantTitle).forEach(mo=>{
+      const soi=(sg.options||[]).findIndex(so=>so.name===mo.name);
+      if(soi>=0) set.add(soi);
+    });
+    modalSubSelections[key]=set;
+  });
+}
 window.openEditModal=function(shopId,idx){
   const item=cart[shopId].items[idx];
   modalShopId=shopId; modalItem={...item,_idx:idx};
-  modalSelectedOptions={};
-  (item.options||[]).forEach(o=>{ modalSelectedOptions[o.groupTitle]=o.name; });
+  modalSelections={}; modalSubSelections={};
+  // ย้อนสร้างค่าที่เคยเลือกไว้จาก item.options (ค่าสุดท้ายที่บันทึกไว้) กลับมาเป็นรูปแบบที่ใช้แก้ไขได้
+  const groups=modalItem.optionGroups||[];
+  groups.forEach((g,gi)=>{
+    const type=g.type||'normal';
+    const matches=(item.options||[]).filter(o=>o.groupTitle===g.title);
+    if(type==='price'){
+      if(matches[0]) modalSelections[gi]=matches[0].price;
+    } else if(type==='kg'){
+      if(matches[0]){
+        const m2=matches[0].name.match(/^(\d+)\s*กก\.\s*(\d+)\s*ขีด$/);
+        if(m2) modalSelections[gi]={kg:parseInt(m2[1])||0,kheed:parseInt(m2[2])||0};
+      }
+    } else if(g.required){
+      if(matches[0]){ const oi=(g.options||[]).findIndex(o=>o.name===matches[0].name); if(oi>=0){ modalSelections[gi]=oi; reconstructSubSelections(item,g,gi,oi); } }
+    } else {
+      const set=new Set();
+      matches.forEach(mo=>{ const oi=(g.options||[]).findIndex(o=>o.name===mo.name); if(oi>=0){ set.add(oi); reconstructSubSelections(item,g,gi,oi); } });
+      modalSelections[gi]=set;
+    }
+  });
   document.getElementById("modal-item-name").textContent=item.name;
   document.getElementById("modal-item-price").textContent=`฿${item.price}`;
   document.getElementById("modal-note").value=item.note||"";
-
-  // render option groups from item.optionGroups
-  const groups=item.optionGroups||[];
-  document.getElementById("modal-option-groups").innerHTML=groups.map(g=>`
-    <div class="option-group">
-      <div class="option-group-title">
-        ${g.title}
-        ${g.required?`<span class="required-badge">บังคับ</span>`:""}
-      </div>
-      ${g.options.map(opt=>{
-        const sel=modalSelectedOptions[g.title]===opt.name;
-        return `<div class="option-item ${sel?"selected":""}" onclick="window.selectModalOption('${g.title}','${opt.name}',${opt.price||0})">
-          <div class="option-item-left">
-            <div class="option-radio ${sel?"filled":""}"></div>
-            <div class="option-name">${opt.name}</div>
-          </div>
-          ${opt.price?`<div class="option-extra-price">+฿${opt.price}</div>`:""}
-        </div>`;
-      }).join('')}
-    </div>
-  `).join('');
+  renderModalBody();
   updateModalBtn();
   document.getElementById("optionModal").classList.add("show");
 }
 
-window.selectModalOption=function(groupTitle,optName,optPrice){
-  modalSelectedOptions[groupTitle]=optName;
-  // re-render
-  if(modalItem) openEditModal(modalShopId,modalItem._idx);
+function modalShopType(){ return shopMeta[modalShopId]?.shopType||'normal'; }
+
+function renderModalBody(){
+  const groups=modalItem?.optionGroups||[];
+  let html='';
+  groups.forEach((g,gi)=>{
+    const type=g.type||'normal';
+    if(type==='price'){
+      const min=g.priceMin||0, max=g.priceMax||0, step=g.priceStep||5;
+      if(modalSelections[gi]==null) modalSelections[gi]=min;
+      const val=modalSelections[gi];
+      const custVal=calcPrice(val,modalItem.gp,modalShopType());
+      html+=`<div class="option-group" id="mog-${gi}">
+        <div class="og-title-row"><div class="og-title">${esc(g.title)}</div></div>
+        <div class="price-picker">
+          <button type="button" class="price-step-btn" ${val<=min?'disabled':''} onclick="window.adjustModalPrice(${gi},${-step})">−</button>
+          <div class="price-val-wrap"><div class="price-val">฿${custVal}</div><div class="price-val-sub">ร้านได้ ฿${val}</div></div>
+          <button type="button" class="price-step-btn" ${val>=max?'disabled':''} onclick="window.adjustModalPrice(${gi},${step})">+</button>
+        </div>
+        <div class="price-range-hint">เลือกได้ตั้งแต่ ฿${min} - ฿${max}</div>
+      </div>`;
+    } else if(type==='kg'){
+      if(!modalSelections[gi]) modalSelections[gi]={kg:0,kheed:0};
+      const cur=modalSelections[gi];
+      const totalKheed=(cur.kg||0)*10+(cur.kheed||0);
+      const baseAmt=totalKheed*(g.kgRate||0);
+      const custAmt=baseAmt?calcPrice(baseAmt,modalItem.gp,modalShopType()):0;
+      html+=`<div class="option-group" id="mog-${gi}">
+        <div class="og-title-row"><div class="og-title">${esc(g.title)}</div>
+        ${g.required?`<div class="og-required-badge">บังคับ</div>`:`<div class="og-optional-badge">ไม่บังคับ</div>`}</div>
+        <div class="kg-input-row">
+          <div class="kg-input-field"><input type="number" min="0" value="${cur.kg||0}" oninput="window.setModalKg(${gi},'kg',this.value)"><div class="kg-input-label">กิโลกรัม</div></div>
+          <div class="kg-input-field"><input type="number" min="0" max="9" value="${cur.kheed||0}" oninput="window.setModalKg(${gi},'kheed',this.value)"><div class="kg-input-label">ขีด</div></div>
+        </div>
+        <div class="kg-price-hint">฿${g.kgRate||0}/ขีด ${totalKheed?` · ราคาที่ต้องจ่าย <b>฿${custAmt}</b>`:''}</div>
+      </div>`;
+    } else {
+      html+=`<div class="option-group" id="mog-${gi}">
+        <div class="og-title-row"><div class="og-title">${esc(g.title)}</div>
+        ${g.required?`<span class="required-badge">บังคับ</span>`:`<span class="og-optional-badge">ไม่บังคับ</span>`}
+        <div class="og-select-hint">${g.required?'เลือก 1':(g.maxSelect?`เลือกได้สูงสุด ${g.maxSelect} อัน`:'เลือกได้หลายอย่าง')}</div></div>`;
+      (g.options||[]).forEach((opt,oi)=>{
+        const sel=g.required?modalSelections[gi]===oi:(modalSelections[gi] instanceof Set&&modalSelections[gi].has(oi));
+        const shownPrice=opt.price?calcSubPrice(opt.price,modalShopType()):0;
+        html+=`<div class="option-item ${sel?"selected":""}" onclick="window.selectModalOption(${gi},${oi},${g.required})">
+          <div class="option-item-left">
+            <div class="option-radio ${sel?"filled":""}"></div>
+            <div class="option-name">${esc(opt.name)}</div>
+          </div>
+          ${shownPrice?`<div class="option-extra-price">+฿${shownPrice}</div>`:""}
+        </div>`;
+        if(sel && (opt.subGroups||[]).length){
+          opt.subGroups.forEach((sg,sgi)=>{
+            const key=`${gi}-${oi}-${sgi}`;
+            if(!(modalSubSelections[key] instanceof Set)) modalSubSelections[key]=new Set();
+            html+=`<div class="option-group" style="margin-left:16px;margin-top:6px;padding:10px;background:#f8fafc" id="mog-sub-${key}">
+              <div class="og-title-row"><div class="og-title" style="font-size:13px">${esc(sg.title)}</div>
+              <div class="og-optional-badge">ไม่บังคับ</div></div>`;
+            (sg.options||[]).forEach((so,soi)=>{
+              const ssel=modalSubSelections[key].has(soi);
+              const sShownPrice=so.price?calcSubPrice(so.price,modalShopType()):0;
+              html+=`<div class="option-item ${ssel?"selected":""}" onclick="window.selectModalSubOption('${key}',${soi})">
+                <div class="option-item-left">
+                  <div class="option-radio ${ssel?"filled":""}"></div>
+                  <div class="option-name">${esc(so.name)}</div>
+                </div>
+                ${sShownPrice?`<div class="option-extra-price">+฿${sShownPrice}</div>`:""}
+              </div>`;
+            });
+            html+=`</div>`;
+          });
+        }
+      });
+      html+=`</div>`;
+    }
+  });
+  document.getElementById("modal-option-groups").innerHTML=html;
+}
+
+window.selectModalOption=function(gi,oi,isSingle){
+  const g=(modalItem?.optionGroups||[])[gi]; if(!g) return;
+  if(isSingle){
+    const prevOi=modalSelections[gi];
+    modalSelections[gi]=modalSelections[gi]===oi?null:oi;
+    if(prevOi!=null && prevOi!==modalSelections[gi]) clearModalSubSelectionsFor(gi,prevOi);
+  }
+  else{
+    if(!(modalSelections[gi] instanceof Set)) modalSelections[gi]=new Set();
+    if(modalSelections[gi].has(oi)){ modalSelections[gi].delete(oi); clearModalSubSelectionsFor(gi,oi); }
+    else{ if(g.maxSelect && modalSelections[gi].size>=g.maxSelect) return; modalSelections[gi].add(oi); }
+  }
+  renderModalBody(); updateModalBtn();
+}
+function clearModalSubSelectionsFor(gi,oi){
+  Object.keys(modalSubSelections).forEach(key=>{ if(key.startsWith(`${gi}-${oi}-`)) delete modalSubSelections[key]; });
+}
+window.selectModalSubOption=function(key,soi){
+  if(!(modalSubSelections[key] instanceof Set)) modalSubSelections[key]=new Set();
+  if(modalSubSelections[key].has(soi)) modalSubSelections[key].delete(soi); else modalSubSelections[key].add(soi);
+  renderModalBody(); updateModalBtn();
+}
+window.adjustModalPrice=function(gi,delta){
+  const g=(modalItem?.optionGroups||[])[gi]; if(!g) return;
+  const min=g.priceMin||0, max=g.priceMax||0;
+  let val=(modalSelections[gi]==null?min:modalSelections[gi])+delta;
+  val=Math.max(min,Math.min(max,val));
+  modalSelections[gi]=val;
+  renderModalBody(); updateModalBtn();
+}
+window.setModalKg=function(gi,field,value){
+  if(!modalSelections[gi]) modalSelections[gi]={kg:0,kheed:0};
+  let v=Math.max(0,parseInt(value)||0);
+  if(field==='kheed') v=Math.min(9,v);
+  modalSelections[gi][field]=v;
+  updateModalBtn();
+  const hint=document.querySelector(`#mog-${gi} .kg-price-hint`);
+  if(hint){
+    const g=(modalItem?.optionGroups||[])[gi];
+    const cur=modalSelections[gi]; const totalKheed=(cur.kg||0)*10+(cur.kheed||0);
+    const baseAmt=totalKheed*(g.kgRate||0);
+    const custAmt=baseAmt?calcPrice(baseAmt,modalItem.gp,modalShopType()):0;
+    hint.innerHTML=`฿${g.kgRate||0}/ขีด ${totalKheed?` · ราคาที่ต้องจ่าย <b>฿${custAmt}</b>`:''}`;
+  }
+}
+
+function modalSubGroupExtraFor(g,gi,oi,shopType){
+  const o=g.options[oi]; if(!o||!(o.subGroups||[]).length) return 0;
+  let s=0;
+  o.subGroups.forEach((sg,sgi)=>{
+    const key=`${gi}-${oi}-${sgi}`;
+    if(modalSubSelections[key] instanceof Set) modalSubSelections[key].forEach(soi=>{ const so=sg.options[soi]; s+=calcSubPrice(so?.price||0,shopType); });
+  });
+  return s;
+}
+function modalSubGroupSelectedOptionsFor(g,gi,oi){
+  const o=g.options[oi]; const out=[]; if(!o||!(o.subGroups||[]).length) return out;
+  o.subGroups.forEach((sg,sgi)=>{
+    const key=`${gi}-${oi}-${sgi}`;
+    if(modalSubSelections[key] instanceof Set) modalSubSelections[key].forEach(soi=>{
+      const so=sg.options[soi]; if(so) out.push({groupTitle:`${g.title} → ${sg.title}`,name:so.name,price:so.price||0});
+    });
+  });
+  return out;
+}
+function modalGroupExtra(g,gi){
+  const type=g.type||'normal';
+  const shopType=modalShopType();
+  if(type==='price'){ const val=modalSelections[gi]; return val==null?0:calcPrice(val,modalItem.gp,shopType); }
+  if(type==='kg'){ const cur=modalSelections[gi]; if(!cur) return 0; const totalKheed=(cur.kg||0)*10+(cur.kheed||0); const baseAmt=totalKheed*(g.kgRate||0); return baseAmt?calcPrice(baseAmt,modalItem.gp,shopType):0; }
+  if(g.required&&modalSelections[gi]!=null){ const opt=g.options[modalSelections[gi]]; return calcSubPrice(opt?.price||0,shopType)+modalSubGroupExtraFor(g,gi,modalSelections[gi],shopType); }
+  if(!g.required&&modalSelections[gi] instanceof Set){ let s=0; modalSelections[gi].forEach(oi=>{ const opt=g.options[oi]; s+=calcSubPrice(opt?.price||0,shopType)+modalSubGroupExtraFor(g,gi,oi,shopType); }); return s; }
+  return 0;
+}
+function modalGroupSelectedOptions(g,gi){
+  const type=g.type||'normal';
+  const out=[];
+  if(type==='price'){ const val=modalSelections[gi]; if(val!=null) out.push({groupTitle:g.title,name:`${g.title} ฿${val}`,price:val}); return out; }
+  if(type==='kg'){ const cur=modalSelections[gi]; if(cur){ const totalKheed=(cur.kg||0)*10+(cur.kheed||0); if(totalKheed>0) out.push({groupTitle:g.title,name:`${cur.kg||0} กก. ${cur.kheed||0} ขีด`,price:totalKheed*(g.kgRate||0)}); } return out; }
+  if(g.required&&modalSelections[gi]!=null){ const opt=g.options[modalSelections[gi]]; out.push({groupTitle:g.title,name:opt?.name||'',price:opt?.price||0}); out.push(...modalSubGroupSelectedOptionsFor(g,gi,modalSelections[gi])); return out; }
+  if(!g.required&&modalSelections[gi] instanceof Set){ modalSelections[gi].forEach(oi=>{ const opt=g.options[oi]; out.push({groupTitle:g.title,name:opt?.name||'',price:opt?.price||0}); out.push(...modalSubGroupSelectedOptionsFor(g,gi,oi)); }); }
+  return out;
 }
 
 function updateModalBtn(){
-  const base=modalItem?modalItem.basePrice:0;
-  const extra=Object.entries(modalSelectedOptions).reduce((s,[gt,on])=>{
-    const g=(modalItem?.optionGroups||[]).find(g=>g.title===gt);
-    if(!g) return s;
-    const opt=g.options.find(o=>o.name===on);
-    return s+(opt?.price||0);
-  },0);
-  const total=base+extra;
-  document.getElementById("modal-add-btn").textContent=`อัปเดต ฿${total}`;
+  if(!modalItem) return;
+  const base=calcPrice(modalItem.basePrice,modalItem.gp,modalShopType());
+  let extra=0;
+  (modalItem.optionGroups||[]).forEach((g,gi)=>{ extra+=modalGroupExtra(g,gi); });
+  document.getElementById("modal-add-btn").textContent=`อัปเดต ฿${base+extra}`;
 }
 
 window.addToCartFromModal=function(){
   if(!modalShopId||!modalItem) return;
   const idx=modalItem._idx;
-  const options=Object.entries(modalSelectedOptions).map(([gt,on])=>({groupTitle:gt,name:on}));
+  let missing=false;
+  (modalItem.optionGroups||[]).forEach((g,gi)=>{
+    const type=g.type||'normal';
+    const isMissing = type==='price' ? false
+      : type==='kg' ? (g.required && (!modalSelections[gi] || ((modalSelections[gi].kg||0)*10+(modalSelections[gi].kheed||0))===0))
+      : (g.required && modalSelections[gi]==null);
+    if(isMissing){ missing=true; const el=document.getElementById(`mog-${gi}`); if(el){el.classList.remove('error-shake');void el.offsetWidth;el.classList.add('error-shake');} }
+  });
+  if(missing) return;
+  const options=[]; let extra=0;
+  (modalItem.optionGroups||[]).forEach((g,gi)=>{ options.push(...modalGroupSelectedOptions(g,gi)); extra+=modalGroupExtra(g,gi); });
+  const base=calcPrice(modalItem.basePrice,modalItem.gp,modalShopType());
   cart[modalShopId].items[idx].options=options;
+  cart[modalShopId].items[idx].price=base+extra;
   cart[modalShopId].items[idx].note=document.getElementById("modal-note").value;
   localStorage.setItem("cart",JSON.stringify(cart));
   closeModal();
