@@ -977,6 +977,8 @@ window.moveGroup = function(menuId,gi,dir){
 }
 
 function renderOptionRow(menuId,gi,oi,o) {
+  const subGroups = o.subGroups||[];
+  const isExp = expandedSubOpts.has(`${gi}-${oi}`);
   return `
   <div class="option-row" id="opt-${menuId}-${gi}-${oi}" style="flex-wrap:wrap">
     <input class="opt-name" id="on-${menuId}-${gi}-${oi}" value="${esc(o.name)}" placeholder="ชื่อตัวเลือก">
@@ -988,7 +990,72 @@ function renderOptionRow(menuId,gi,oi,o) {
       <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
     </button>
     <div style="width:100%;font-size:10px;color:var(--primary);font-weight:700" id="opt-preview-${menuId}-${gi}-${oi}">${(shopType!=='proxy'&&o.price)?`${o.price} → ${previewSubPrice(o.price)}`:''}</div>
+    <button type="button" onclick="toggleSubGroups('${menuId}',${gi},${oi})" style="width:100%;text-align:left;background:none;border:none;padding:6px 0 2px;font-size:11px;font-weight:700;color:var(--primary);cursor:pointer;display:flex;align-items:center;gap:4px">
+      <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:var(--primary);transform:rotate(${isExp?90:0}deg);transition:transform .15s"><path d="M8 5v14l11-7z"/></svg>
+      ตัวเลือกเพิ่ม${subGroups.length?` (${subGroups.length})`:''}
+    </button>
+    ${isExp?`<div style="width:100%;background:#f8fafc;border-radius:10px;padding:10px;margin-top:2px" id="subgroups-${menuId}-${gi}-${oi}">
+      ${subGroups.map((sg,sgi)=>renderSubGroupCard(menuId,gi,oi,sgi,sg)).join('')}
+      <button type="button" onclick="addSubGroup('${menuId}',${gi},${oi})" style="width:100%;height:32px;border:1.5px dashed #cbd5e1;border-radius:8px;background:none;color:var(--subtext);font-size:11px;font-weight:700;cursor:pointer">+ เพิ่มกลุ่มตัวเลือกย่อยสำหรับ "${esc(o.name)||'ตัวเลือกนี้'}"</button>
+    </div>`:''}
   </div>`;
+}
+
+function renderSubGroupCard(menuId,gi,oi,sgi,sg) {
+  const opts = sg.options||[];
+  return `
+  <div style="background:#fff;border:1.5px solid #eef0f4;border-radius:10px;padding:8px;margin-bottom:8px" id="sgc-${menuId}-${gi}-${oi}-${sgi}">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+      <input value="${esc(sg.title)}" id="sgt-${menuId}-${gi}-${oi}-${sgi}" placeholder="ชื่อกลุ่มย่อย เช่น เพิ่มชีส" style="flex:1;height:32px;border:1.5px solid #eef0f4;border-radius:8px;padding:0 8px;font-size:12px;outline:none">
+      <button type="button" onclick="delSubGroup('${menuId}',${gi},${oi},${sgi})" style="width:28px;height:28px;border:none;background:#fee2e2;border-radius:8px;color:#dc2626;cursor:pointer;flex-shrink:0">✕</button>
+    </div>
+    ${opts.map((so,soi)=>`
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+      <input value="${esc(so.name)}" id="son-${menuId}-${gi}-${oi}-${sgi}-${soi}" placeholder="ชื่อตัวเลือกย่อย" style="flex:1;height:30px;border:1.5px solid #eef0f4;border-radius:8px;padding:0 8px;font-size:12px;outline:none">
+      <span style="font-size:11px;color:var(--subtext)">+฿</span>
+      <input type="number" value="${so.price||0}" id="sop-${menuId}-${gi}-${oi}-${sgi}-${soi}" style="width:56px;height:30px;border:1.5px solid #eef0f4;border-radius:8px;padding:0 6px;font-size:12px;outline:none">
+      <button type="button" onclick="delSubOption('${menuId}',${gi},${oi},${sgi},${soi})" style="width:26px;height:26px;border:none;background:none;color:var(--subtext);cursor:pointer;flex-shrink:0">✕</button>
+    </div>`).join('')}
+    <button type="button" onclick="addSubOption('${menuId}',${gi},${oi},${sgi})" style="width:100%;height:28px;border:none;background:var(--primary-light);color:var(--primary);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;margin-top:2px">+ ตัวเลือกย่อย</button>
+  </div>`;
+}
+
+let expandedSubOpts = new Set();
+window.toggleSubGroups = function(menuId,gi,oi){
+  saveFormState(menuId);
+  const key = `${gi}-${oi}`;
+  if(expandedSubOpts.has(key)) expandedSubOpts.delete(key); else expandedSubOpts.add(key);
+  updateCardInPlace(menuId);
+}
+window.addSubGroup = function(menuId,gi,oi){
+  saveFormState(menuId);
+  const m = menus.find(x=>x.id===menuId); if(!m) return;
+  const o = m.optionGroups?.[gi]?.options?.[oi]; if(!o) return;
+  if(!o.subGroups) o.subGroups=[];
+  o.subGroups.push({title:'',options:[]});
+  updateCardInPlace(menuId);
+}
+window.delSubGroup = function(menuId,gi,oi,sgi){
+  const m = menus.find(x=>x.id===menuId); if(!m) return;
+  const o = m.optionGroups?.[gi]?.options?.[oi]; if(!o?.subGroups) return;
+  saveFormState(menuId);
+  o.subGroups.splice(sgi,1);
+  updateCardInPlace(menuId);
+}
+window.addSubOption = function(menuId,gi,oi,sgi){
+  saveFormState(menuId);
+  const m = menus.find(x=>x.id===menuId); if(!m) return;
+  const sg = m.optionGroups?.[gi]?.options?.[oi]?.subGroups?.[sgi]; if(!sg) return;
+  if(!sg.options) sg.options=[];
+  sg.options.push({name:'',price:0});
+  updateCardInPlace(menuId);
+}
+window.delSubOption = function(menuId,gi,oi,sgi,soi){
+  saveFormState(menuId);
+  const m = menus.find(x=>x.id===menuId); if(!m) return;
+  const sg = m.optionGroups?.[gi]?.options?.[oi]?.subGroups?.[sgi]; if(!sg?.options) return;
+  sg.options.splice(soi,1);
+  updateCardInPlace(menuId);
 }
 
 function esc(v) { return (v||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
@@ -1068,6 +1135,17 @@ function saveFormState(menuId) {
         const oprice = document.getElementById(`op-${menuId}-${gi}-${oi}`)?.value;
         if (oname !== undefined) o.name = oname;
         if (oprice !== undefined) o.price = parseFloat(oprice)||0;
+        // กลุ่มตัวเลือกย่อยที่ผูกกับตัวเลือกนี้ (ถ้ากำลังเปิดอยู่)
+        (o.subGroups||[]).forEach((sg,sgi)=>{
+          const sgt = document.getElementById(`sgt-${menuId}-${gi}-${oi}-${sgi}`)?.value;
+          if(sgt !== undefined) sg.title = sgt;
+          (sg.options||[]).forEach((so,soi)=>{
+            const son = document.getElementById(`son-${menuId}-${gi}-${oi}-${sgi}-${soi}`)?.value;
+            const sop = document.getElementById(`sop-${menuId}-${gi}-${oi}-${sgi}-${soi}`)?.value;
+            if(son !== undefined) so.name = son;
+            if(sop !== undefined) so.price = parseFloat(sop)||0;
+          });
+        });
       });
     }
   });
@@ -1262,7 +1340,10 @@ function buildMenuSaveData(m){
       const type=g.type||'normal';
       if(type==='price') return {type:'price', title:g.title, priceMin:g.priceMin||0, priceMax:g.priceMax||0, priceStep:g.priceStep||5};
       if(type==='kg') return {type:'kg', title:g.title, required:!!g.required, kgRate:g.kgRate||0};
-      return {type:'normal', title:g.title, required:!!g.required, maxSelect:g.maxSelect||0, options:(g.options||[]).filter(o=>o.name)};
+      return {type:'normal', title:g.title, required:!!g.required, maxSelect:g.maxSelect||0, options:(g.options||[]).filter(o=>o.name).map(o=>({
+        name:o.name, price:o.price||0,
+        subGroups:(o.subGroups||[]).filter(sg=>sg.title).map(sg=>({title:sg.title,options:(sg.options||[]).filter(so=>so.name)}))
+      }))};
     }),
     updatedAt:serverTimestamp()
   };
@@ -1451,7 +1532,15 @@ async function saveBulk() {
       name:m.name.trim(), price:m.price||0, category:m.category||'', categoryId:m.categoryId||'',
       available:true, order:m.order||0,
       gp:m.gp||0, gpIsMain:shopType==='proxy', desc:m.desc||'', imgUrl:m.imgUrl||'',
-      optionGroups:(m.optionGroups||[]).filter(g=>g.title).map(g=>({title:g.title,required:!!g.required,options:(g.options||[]).filter(o=>o.name)})),
+      optionGroups:(m.optionGroups||[]).filter(g=>g.title).map(g=>{
+        const type=g.type||'normal';
+        if(type==='price') return {type:'price', title:g.title, priceMin:g.priceMin||0, priceMax:g.priceMax||0, priceStep:g.priceStep||5};
+        if(type==='kg') return {type:'kg', title:g.title, required:!!g.required, kgRate:g.kgRate||0};
+        return {type:'normal', title:g.title, required:!!g.required, maxSelect:g.maxSelect||0, options:(g.options||[]).filter(o=>o.name).map(o=>({
+          name:o.name, price:o.price||0,
+          subGroups:(o.subGroups||[]).filter(sg=>sg.title).map(sg=>({title:sg.title,options:(sg.options||[]).filter(so=>so.name)}))
+        }))};
+      }),
       createdAt:serverTimestamp(), updatedAt:serverTimestamp()
     };
     try{ await addDoc(collection(db,"shops",shopId,"menus"),data); }
