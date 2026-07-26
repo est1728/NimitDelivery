@@ -1414,29 +1414,37 @@ async function saveEverything(){
   saveFormState(openMenuId);
   const namelessId = Array.from(dirtyMenuIds).find(id=>{ const m=menus.find(x=>x.id===id); return m && !m.name; });
   if(namelessId){ throw new Error("กรุณากรอกชื่อเมนูให้ครบก่อนบันทึก"); }
-  await updateDoc(doc(db,"shops",shopId),{
-    name:document.getElementById("shopName").value.trim(),
-    desc:document.getElementById("shopDesc").value.trim(),
-    phone:document.getElementById("shopPhone").value.trim(),
-    deliveryTime:document.getElementById("shopDeliveryTime").value.trim(),
-    address:document.getElementById("shopAddress").value.trim(),
-    lat:shopLocLat, lng:shopLocLng,
-    isOpen, bannerUrl, avatarUrl,
-    autoSchedule, scheduleOpen:document.getElementById("schOpenTime").value||"", scheduleClose:document.getElementById("schCloseTime").value||"",
-    openDays,
-    updatedAt:serverTimestamp()
-  });
-  for(const menuId of Array.from(dirtyMenuIds)){
-    const m = menus.find(x=>x.id===menuId);
-    if(!m) continue;
-    const data = buildMenuSaveData(m);
-    if(menuId.startsWith('_new_')){
-      data.createdAt = serverTimestamp();
-      const ref = await addDoc(collection(db,"shops",shopId,"menus"),data);
-      m.id = ref.id;
-    } else {
-      await updateDoc(doc(db,"shops",shopId,"menus",menuId),data);
+  // สำคัญมาก: ต้องปิดตัวรับข้อมูลเรียลไทม์ไว้ตลอดช่วงบันทึก ไม่งั้นพอบันทึกเมนูแรกเสร็จ Firestore จะยิงข้อมูลกลับมาทันที
+  // แล้วไปเขียนทับข้อมูลเมนูอื่นที่ยังรอบันทึกอยู่ในลูปเดียวกัน (เมนูที่ไม่ได้เปิดฟอร์มอยู่ ณ ตอนนั้นจะโดนข้อมูลเก่าทับ
+  // ก่อนที่จะได้บันทึกค่าที่เพิ่งแก้ไปด้วยซ้ำ) ทำให้เจอบัค "บันทึกแล้วรูป/ตัวเลือกที่เพิ่งตั้งหายไป" ตามที่เจอ
+  if(menusUnsub){ menusUnsub(); menusUnsub=null; }
+  try{
+    await updateDoc(doc(db,"shops",shopId),{
+      name:document.getElementById("shopName").value.trim(),
+      desc:document.getElementById("shopDesc").value.trim(),
+      phone:document.getElementById("shopPhone").value.trim(),
+      deliveryTime:document.getElementById("shopDeliveryTime").value.trim(),
+      address:document.getElementById("shopAddress").value.trim(),
+      lat:shopLocLat, lng:shopLocLng,
+      isOpen, bannerUrl, avatarUrl,
+      autoSchedule, scheduleOpen:document.getElementById("schOpenTime").value||"", scheduleClose:document.getElementById("schCloseTime").value||"",
+      openDays,
+      updatedAt:serverTimestamp()
+    });
+    for(const menuId of Array.from(dirtyMenuIds)){
+      const m = menus.find(x=>x.id===menuId);
+      if(!m) continue;
+      const data = buildMenuSaveData(m);
+      if(menuId.startsWith('_new_')){
+        data.createdAt = serverTimestamp();
+        const ref = await addDoc(collection(db,"shops",shopId,"menus"),data);
+        m.id = ref.id;
+      } else {
+        await updateDoc(doc(db,"shops",shopId,"menus",menuId),data);
+      }
     }
+  } finally {
+    loadMenus(); // เปิดตัวรับข้อมูลเรียลไทม์กลับมาใหม่เสมอ ไม่ว่าบันทึกสำเร็จหรือพังระหว่างทาง
   }
   shopInfoDirty=false; dirtyMenuIds.clear();
   openMenuId=null;
