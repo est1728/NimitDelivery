@@ -276,6 +276,9 @@ body{background:var(--gray);min-height:100vh;overscroll-behavior-y:none;}
   <div id="historyTabContent" class="container" style="display:none"><div id="historyList"></div></div>
 </div>
 
+<!-- แถบแจ้งเหตุผลที่ปิดร้าน (โผล่เหนือแถบเมนูล่างพอดี) -->
+<div id="closeReasonBanner" style="display:none;position:fixed;left:0;right:0;background:#fee2e2;color:#dc2626;padding:10px 16px;font-size:13px;font-weight:700;text-align:center;z-index:198;box-shadow:0 -2px 8px rgba(0,0,0,0.05)"></div>
+
 <!-- BOTTOM NAV -->
 <div class="bottom-nav" id="mainBottomNav">
   <button class="bnav-item active" id="bnav-main" onclick="window.showMainTab()">
@@ -641,6 +644,17 @@ async function initShop(){
 function updateOpenUI(){
   document.getElementById("openSwitch").className="open-switch"+(isOpen?" on":"");
   document.getElementById("openLabel").textContent=isOpen?"ร้านเปิดอยู่":"ร้านปิดอยู่";
+  const banner=document.getElementById("closeReasonBanner");
+  const nav=document.getElementById("mainBottomNav");
+  if(banner){
+    if(!isOpen && shopData?.closeReason){
+      banner.textContent="ร้านปิดอยู่ เหตุผล: "+shopData.closeReason;
+      banner.style.bottom=(nav?nav.offsetHeight:60)+"px";
+      banner.style.display="block";
+    } else {
+      banner.style.display="none";
+    }
+  }
 }
 window.toggleOpen=async function(){
   if(isOpen){
@@ -652,7 +666,7 @@ window.toggleOpen=async function(){
   // เปิดร้าน: ไม่ต้องใส่เหตุผล
   isOpen=true; updateOpenUI();
   try{
-    await updateDoc(doc(db,"shops",shopData.id),{isOpen:true});
+    await updateDoc(doc(db,"shops",shopData.id),{isOpen:true,closeReason:""});
     await addDoc(collection(db,"shops",shopData.id,"statusLogs"),{action:"open",reason:"",at:serverTimestamp()});
     showToast("เปิดร้านแล้ว","info");
   }catch(e){}
@@ -670,7 +684,7 @@ window.confirmCloseShop=async function(){
   document.getElementById("closeShopOverlay").classList.remove("show");
   isOpen=false; updateOpenUI();
   try{
-    await updateDoc(doc(db,"shops",shopData.id),{isOpen:false});
+    await updateDoc(doc(db,"shops",shopData.id),{isOpen:false,closeReason:reason});
     await addDoc(collection(db,"shops",shopData.id,"statusLogs"),{action:"close",reason,at:serverTimestamp()});
     showToast("ปิดร้านแล้ว","info");
   }catch(e){}
