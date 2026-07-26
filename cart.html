@@ -515,7 +515,7 @@ function reconstructSubSelections(item,g,gi,oi){
         const m2=matches[0].name.match(/^(\d+(?:\.\d+)?)\s*กก\.\s*(\d+(?:\.\d+)?)\s*ขีด$/);
         if(m2) modalSubSelections[key]={kg:parseFloat(m2[1])||0,kheed:parseFloat(m2[2])||0};
       }
-    } else {
+    } else if(sg.multiSelect){
       const set=new Set();
       matches.forEach(mo=>{
         const qm=mo.name.match(/^(.*) x(\d+)$/);
@@ -525,6 +525,11 @@ function reconstructSubSelections(item,g,gi,oi){
         if(soi>=0){ set.add(soi); modalSubQty[`${key}-${soi}`]=qty; }
       });
       modalSubSelections[key]=set;
+    } else {
+      if(matches[0]){
+        const soi=(sg.options||[]).findIndex(so=>so.name===matches[0].name);
+        if(soi>=0) modalSubSelections[key]=soi;
+      }
     }
   });
 }
@@ -659,7 +664,7 @@ function renderModalBody(){
                 <div class="kg-price-hint">฿${sg.kgRate||0}/ขีด ${totalKheed?` · ราคาที่ต้องจ่าย <b>฿${custAmt}</b>`:''}</div>`;
               }
               html+=`</div>`;
-            } else {
+            } else if(sg.multiSelect){
               if(!(modalSubSelections[key] instanceof Set)) modalSubSelections[key]=new Set();
               html+=`<div class="option-group" style="margin-left:16px;margin-top:6px;padding:10px;background:#f8fafc" id="mog-sub-${key}">
                 <div class="og-title-row"><div class="og-title" style="font-size:13px">${esc(sg.title)}</div>${badge}</div>`;
@@ -678,6 +683,22 @@ function renderModalBody(){
                     <button type="button" onclick="window.adjustModalSubOptQty('${key}',${soi},1)" style="width:24px;height:24px;border:none;border-radius:6px;background:var(--primary);color:#fff;font-weight:800;font-size:14px;cursor:pointer">+</button>
                   </div>`:""}
                   ${sShownPrice?`<div class="option-extra-price">+฿${sShownPrice*(ssel?qty:1)}</div>`:""}
+                </div>`;
+              });
+              html+=`</div>`;
+            } else {
+              const selIdx = modalSubSelections[key];
+              html+=`<div class="option-group" style="margin-left:16px;margin-top:6px;padding:10px;background:#f8fafc" id="mog-sub-${key}">
+                <div class="og-title-row"><div class="og-title" style="font-size:13px">${esc(sg.title)}</div>${badge}</div>`;
+              (sg.options||[]).forEach((so,soi)=>{
+                const ssel=selIdx===soi;
+                const sShownPrice=so.price?calcSubPrice(so.price,modalShopType()):0;
+                html+=`<div class="option-item ${ssel?"selected":""}" onclick="window.selectModalSubOptionSingle('${key}',${soi})">
+                  <div class="option-item-left">
+                    <div class="option-radio ${ssel?"filled":""}"></div>
+                    <div class="option-name">${esc(so.name)}</div>
+                  </div>
+                  ${sShownPrice?`<div class="option-extra-price">+฿${sShownPrice}</div>`:""}
                 </div>`;
               });
               html+=`</div>`;
@@ -708,6 +729,10 @@ window.selectModalOption=function(gi,oi,isSingle){
 function clearModalSubSelectionsFor(gi,oi){
   Object.keys(modalSubSelections).forEach(key=>{ if(key.startsWith(`${gi}-${oi}-`)) delete modalSubSelections[key]; });
   Object.keys(modalSubQty).forEach(qkey=>{ if(qkey.startsWith(`${gi}-${oi}-`)) delete modalSubQty[qkey]; });
+}
+window.selectModalSubOptionSingle=function(key,soi){
+  modalSubSelections[key] = modalSubSelections[key]===soi ? null : soi;
+  renderModalBody(); updateModalBtn();
 }
 window.selectModalSubOption=function(key,soi){
   if(!(modalSubSelections[key] instanceof Set)) modalSubSelections[key]=new Set();
@@ -786,6 +811,7 @@ function modalSubGroupExtraFor(g,gi,oi,shopType){
     if(sgType==='price'){ if(sel!=null) s+=calcSubPrice(sel,shopType); }
     else if(sgType==='kg'){ if(sel){ const totalKheed=(sel.kg||0)*10+(sel.kheed||0); const baseAmt=totalKheed*(sg.kgRate||0); if(baseAmt) s+=calcSubPrice(baseAmt,shopType); } }
     else if(sel instanceof Set){ sel.forEach(soi=>{ const so=sg.options[soi]; const qty=modalSubQty[`${key}-${soi}`]||1; s+=calcSubPrice(so?.price||0,shopType)*qty; }); }
+    else if(typeof sel==='number'){ const so=sg.options[sel]; if(so) s+=calcSubPrice(so.price||0,shopType); }
   });
   return s;
 }
@@ -798,6 +824,7 @@ function modalSubGroupSelectedOptionsFor(g,gi,oi){
     if(sgType==='price'){ if(sel!=null) out.push({groupTitle:`${g.title} → ${sg.title}`,name:`${sg.title} ฿${sel}`,price:sel}); }
     else if(sgType==='kg'){ if(sel){ const totalKheed=(sel.kg||0)*10+(sel.kheed||0); if(totalKheed>0) out.push({groupTitle:`${g.title} → ${sg.title}`,name:`${sel.kg||0} กก. ${sel.kheed||0} ขีด`,price:totalKheed*(sg.kgRate||0)}); } }
     else if(sel instanceof Set){ sel.forEach(soi=>{ const so=sg.options[soi]; if(so){ const qty=modalSubQty[`${key}-${soi}`]||1; out.push({groupTitle:`${g.title} → ${sg.title}`,name:qty>1?`${so.name} x${qty}`:so.name,price:(so.price||0)*qty}); } }); }
+    else if(typeof sel==='number'){ const so=sg.options[sel]; if(so) out.push({groupTitle:`${g.title} → ${sg.title}`,name:so.name,price:so.price||0}); }
   });
   return out;
 }
@@ -841,7 +868,8 @@ window.addToCartFromModal=function(){
       const sel=modalSubSelections[key];
       const sgMissing = sgType==='price' ? (sel==null)
         : sgType==='kg' ? (!sel || ((sel.kg||0)*10+(sel.kheed||0))===0)
-        : (!(sel instanceof Set) || sel.size===0);
+        : sg.multiSelect ? (!(sel instanceof Set) || sel.size===0)
+        : (typeof sel!=='number');
       if(sgMissing){ missing=true; const el=document.getElementById(`mog-sub-${key}`); if(el){el.classList.remove('error-shake');void el.offsetWidth;el.classList.add('error-shake');} }
     });
   }
