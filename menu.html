@@ -235,10 +235,10 @@ document.getElementById("shopNameTitle").textContent = shopName || "ร้าน
 let cart = JSON.parse(localStorage.getItem("cart") || "{}");
 let allMenus = [], filteredMenus = [], categories = [], currentCat = "ทั้งหมด";
 let shopCategories = []; // [{id,name}] จาก shop-manage.html ถ้ามี
-let gpPercent = 0, gpSubPercent = 0, gpTiers = [], shopType = "normal", popupMenu = null, popupSelections = {}, popupSubSelections = {};
+let gpPercent = 0, gpSubPercent = 0, gpTiers = [], gpSubTiers = [], shopType = "normal", popupMenu = null, popupSelections = {}, popupSubSelections = {}, popupSubQty = {};
 
 async function loadSettings(){
-  try{ const s=await getDoc(doc(db,"settings","pricing")); if(s.exists()){ const d=s.data(); gpPercent=d.gpPercent||0; gpSubPercent=d.gpSubPercent||0; gpTiers=Array.isArray(d.gpTiers)?d.gpTiers:[]; } }catch(e){}}
+  try{ const s=await getDoc(doc(db,"settings","pricing")); if(s.exists()){ const d=s.data(); gpPercent=d.gpPercent||0; gpSubPercent=d.gpSubPercent||0; gpTiers=Array.isArray(d.gpTiers)?d.gpTiers:[]; gpSubTiers=Array.isArray(d.gpSubTiers)?d.gpSubTiers:[]; } }catch(e){}}
 
 // เช็คว่าตอนนี้อยู่ในวัน+ช่วงเวลาที่ร้านตั้งเปิดไว้มั้ย (รองรับข้ามเที่ยงคืน เช่น 20:00-02:00)
 function isShopWithinSchedule(d){
@@ -290,15 +290,29 @@ function tierGpPercent(base){
   }
   return gpPercent;
 }
+// เหมือน tierGpPercent เป๊ะ แต่ใช้กับราคาตัวเลือกเสริม/เมนูย่อย (GP ย่อยตามช่วงราคา แยกจาก GP หลัก)
+function tierGpSubPercent(base){
+  if(Array.isArray(gpSubTiers) && gpSubTiers.length){
+    const sorted=[...gpSubTiers].sort((a,b)=>(a.min??0)-(b.min??0));
+    for(let i=0;i<sorted.length;i++){
+      const t=sorted[i];
+      const inRange = i===0
+        ? (base>=(t.min??0) && base<=(t.max??Infinity))
+        : (base>(t.min??0) && base<=(t.max??Infinity));
+      if(inRange) return t.gp||0;
+    }
+  }
+  return gpSubPercent;
+}
 
 function calcPrice(base,menuGp){
   if(shopType==='proxy') return Math.ceil(base); // ร้านฝากซื้อ: ราคาดิบ ไม่บวก GP
   return Math.ceil(base*(1+(tierGpPercent(base)+(menuGp||0))/100));
 }
-// ราคาเมนูย่อย (ตัวเลือกเสริม) ใช้ "GP ย่อย (%)" จากตั้งค่า แยกจาก GP ของเมนูหลัก
+// ราคาเมนูย่อย (ตัวเลือกเสริม) ใช้ "GP ย่อย (%)" ตามช่วงราคาของตัวเลือกนั้นเอง แยกจาก GP ของเมนูหลัก
 function calcSubPrice(optPrice){
   if(shopType==='proxy') return Math.ceil(optPrice); // ร้านฝากซื้อ: ราคาดิบ ไม่บวก GP เช่นกัน
-  return Math.ceil(optPrice*(1+gpSubPercent/100));
+  return Math.ceil(optPrice*(1+tierGpSubPercent(optPrice)/100));
 }
 
 let menuUnsub=null;
@@ -389,7 +403,7 @@ function renderMenuCardHtml(m){
 // POPUP
 window.openMenuPopup=function(menuId){
   const m=allMenus.find(x=>x.id===menuId); if(!m) return;
-  popupMenu=m; popupSelections={}; popupSubSelections={};
+  popupMenu=m; popupSelections={}; popupSubSelections={}; popupSubQty={};
   document.getElementById("popupImgWrap").innerHTML=m.imgUrl
     ?`<img src="${m.imgUrl}">`
     :`<div class="popup-img-placeholder"><svg viewBox="0 0 24 24"><path d="M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26 1.44 1.42 2.43 2.89 2.43 5.29v8.05zM1 21.99V21h15.03v.99c0 .55-.45 1-1.01 1H2.01c-.56 0-1.01-.45-1.01-1zm15.03-7c0-4.5-6.72-5-8.03-5-1.28 0-8 .5-8 5h16.03z"/></svg></div>`;
@@ -507,11 +521,17 @@ function renderPopupBody(){
                 <div class="og-title-row"><div class="og-title" style="font-size:13px">${sg.title}</div>${badge}</div>`;
               (sg.options||[]).forEach((so,soi)=>{
                 const ssel=popupSubSelections[key].has(soi);
+                const qty=popupSubQty[`${key}-${soi}`]||1;
                 const sShownPrice=so.price?calcSubPrice(so.price):0;
                 html+=`<div class="option-item ${ssel?'selected-multi':''}" onclick="selectSubOption('${key}',${soi})">
                   <div class="opt-checkbox ${ssel?'checked':''}"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
                   <div class="opt-name-text">${so.name}</div>
-                  ${so.price?`<div class="opt-price-text">+฿${sShownPrice}</div>`:''}</div>`;
+                  ${ssel?`<div style="display:flex;align-items:center;gap:6px;margin:0 6px" onclick="event.stopPropagation()">
+                    <button type="button" onclick="adjustSubOptQty('${key}',${soi},-1)" style="width:24px;height:24px;border:none;border-radius:6px;background:var(--primary);color:#fff;font-weight:800;font-size:14px;cursor:pointer">−</button>
+                    <span style="font-size:13px;font-weight:700;min-width:16px;text-align:center">${qty}</span>
+                    <button type="button" onclick="adjustSubOptQty('${key}',${soi},1)" style="width:24px;height:24px;border:none;border-radius:6px;background:var(--primary);color:#fff;font-weight:800;font-size:14px;cursor:pointer">+</button>
+                  </div>`:''}
+                  ${so.price?`<div class="opt-price-text">+฿${sShownPrice*(ssel?qty:1)}</div>`:''}</div>`;
               });
               html+=`</div>`;
             }
@@ -541,10 +561,18 @@ window.selectOption=function(gi,oi,optPrice,isSingle){
 
 function clearSubSelectionsFor(gi,oi){
   Object.keys(popupSubSelections).forEach(key=>{ if(key.startsWith(`${gi}-${oi}-`)) delete popupSubSelections[key]; });
+  Object.keys(popupSubQty).forEach(qkey=>{ if(qkey.startsWith(`${gi}-${oi}-`)) delete popupSubQty[qkey]; });
 }
 window.selectSubOption=function(key,soi){
   if(!(popupSubSelections[key] instanceof Set)) popupSubSelections[key]=new Set();
-  if(popupSubSelections[key].has(soi)) popupSubSelections[key].delete(soi); else popupSubSelections[key].add(soi);
+  if(popupSubSelections[key].has(soi)){ popupSubSelections[key].delete(soi); delete popupSubQty[`${key}-${soi}`]; }
+  else{ popupSubSelections[key].add(soi); popupSubQty[`${key}-${soi}`]=1; }
+  renderPopupBody(); updatePopupTotal();
+}
+window.adjustSubOptQty=function(key,soi,delta){
+  const qkey=`${key}-${soi}`;
+  const cur=popupSubQty[qkey]||1;
+  popupSubQty[qkey]=Math.max(1,cur+delta);
   renderPopupBody(); updatePopupTotal();
 }
 window.toggleSubPriceEnabled=function(key,defaultVal,checked){
@@ -612,7 +640,7 @@ function subGroupExtraFor(g,gi,oi){
     const sel=popupSubSelections[key];
     if(sgType==='price'){ if(sel!=null) s+=calcSubPrice(sel); }
     else if(sgType==='kg'){ if(sel){ const totalKheed=(sel.kg||0)*10+(sel.kheed||0); const baseAmt=totalKheed*(sg.kgRate||0); if(baseAmt) s+=calcSubPrice(baseAmt); } }
-    else if(sel instanceof Set){ sel.forEach(soi=>{ const so=sg.options[soi]; s+=calcSubPrice(so?.price||0); }); }
+    else if(sel instanceof Set){ sel.forEach(soi=>{ const so=sg.options[soi]; const qty=popupSubQty[`${key}-${soi}`]||1; s+=calcSubPrice(so?.price||0)*qty; }); }
   });
   return s;
 }
@@ -624,7 +652,7 @@ function subGroupSelectedOptionsFor(g,gi,oi){
     const sel=popupSubSelections[key];
     if(sgType==='price'){ if(sel!=null) out.push({groupTitle:`${g.title} → ${sg.title}`,name:`${sg.title} ฿${sel}`,price:sel}); }
     else if(sgType==='kg'){ if(sel){ const totalKheed=(sel.kg||0)*10+(sel.kheed||0); if(totalKheed>0) out.push({groupTitle:`${g.title} → ${sg.title}`,name:`${sel.kg||0} กก. ${sel.kheed||0} ขีด`,price:totalKheed*(sg.kgRate||0)}); } }
-    else if(sel instanceof Set){ sel.forEach(soi=>{ const so=sg.options[soi]; if(so) out.push({groupTitle:`${g.title} → ${sg.title}`,name:so.name,price:so.price||0}); }); }
+    else if(sel instanceof Set){ sel.forEach(soi=>{ const so=sg.options[soi]; if(so){ const qty=popupSubQty[`${key}-${soi}`]||1; out.push({groupTitle:`${g.title} → ${sg.title}`,name:qty>1?`${so.name} x${qty}`:so.name,price:(so.price||0)*qty}); } }); }
   });
   return out;
 }
@@ -699,7 +727,7 @@ window.quickRemove=function(menuId){
   localStorage.setItem("cart",JSON.stringify(cart));
   renderMenus(); updateCartBar();}
 
-window.closePopup=function(){ document.getElementById("optionPopup").classList.remove("show"); popupMenu=null; popupSelections={}; popupSubSelections={}; }
+window.closePopup=function(){ document.getElementById("optionPopup").classList.remove("show"); popupMenu=null; popupSelections={}; popupSubSelections={}; popupSubQty={}; }
 document.getElementById("optionPopup").addEventListener('click',function(e){ if(e.target===this) window.closePopup(); });
 
 function updateCartBar(){
