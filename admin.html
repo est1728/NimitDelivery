@@ -26,6 +26,22 @@ body{background:var(--g);min-height:100vh;}
 
 /* DASH */
 .dash-top{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;}
+.sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:400;display:none;}
+.sidebar-overlay.show{display:block;}
+.sidebar{position:fixed;top:0;right:-300px;width:280px;height:100%;background:#fff;z-index:401;transition:right 0.25s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.15);display:flex;flex-direction:column;}
+.sidebar.open{right:0;}
+.sidebar-header{background:linear-gradient(135deg,var(--p),var(--pd));padding:24px 20px;color:#fff;}
+.sidebar-avatar{width:56px;height:56px;border-radius:16px;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
+.sidebar-avatar svg{width:28px;height:28px;fill:#fff;}
+.sidebar-name{font-size:16px;font-weight:800;}
+.sidebar-sub{font-size:12px;opacity:0.8;margin-top:2px;}
+.sidebar-body{flex:1;padding:8px 0;overflow-y:auto;}
+.sidebar-item{display:flex;align-items:center;gap:14px;padding:16px 20px;cursor:pointer;border:none;background:none;width:100%;text-align:left;border-bottom:1px solid #f5f6f8;}
+.sidebar-item svg{width:20px;height:20px;fill:var(--s);flex-shrink:0;}
+.sidebar-item-text{flex:1;}
+.sidebar-item-title{font-size:14px;font-weight:700;color:var(--t);}
+.sidebar-item-sub{font-size:12px;color:var(--s);margin-top:2px;}
+.sidebar-arrow svg{width:16px;height:16px;fill:var(--s);}
 .dash-hd{padding:16px 16px 0;}
 .dash-gr{font-size:13px;opacity:.8;}
 .dash-ti{font-size:20px;font-weight:800;}
@@ -265,15 +281,9 @@ body{background:var(--g);min-height:100vh;}
   <div class="dash-top">
     <div class="dash-hd" style="display:flex;align-items:center;justify-content:space-between">
     <div><div class="dash-gr">จัดการระบบ</div><div class="dash-ti">ออเดอร์วันนี้</div></div>
-    <div style="display:flex;gap:8px">
-      <button onclick="location.href='history.html'" style="height:34px;width:34px;border:none;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center" title="ประวัติระบบ">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M13 3a9 9 0 10.001 18.001A9 9 0 0013 3zm0 16c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7zm.5-11H12v6l4.75 2.85.75-1.23-4-2.37V8z"/></svg>
-      </button>
-      <button onclick="window.openAdCreate();window.loadAdsList()" style="height:34px;width:34px;border:none;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center" title="จัดการโฆษณา">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M20 6h-1V4c0-1.1-.9-2-2-2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h1v2c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-9 11H3V4h14v2H6c-1.1 0-2 .9-2 2v9zm9 2H6V8h14v11z"/></svg>
-      </button>
-      <button onclick="location.href='wallet.html'" style="height:34px;width:34px;border:none;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center" title="กระเป๋ากลาง">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button onclick="window.openSidebar()" style="height:34px;width:34px;border:none;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
       </button>
       <button onclick="location.href='order-create.html'" style="height:34px;padding:0 14px;border:none;border-radius:20px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 2px 8px rgba(22,163,74,.3);white-space:nowrap">+ สร้างออเดอร์</button>
     </div>
@@ -359,8 +369,17 @@ body{background:var(--g);min-height:100vh;}
     <div style="font-size:11px;color:var(--s);margin-top:6px;line-height:1.6">ใช้เฉพาะตอนราคาสินค้า "ไม่อยู่ในช่วงใดเลย" ที่ตั้งไว้ด้านบน (เช่น ตั้งช่วงไว้แค่ 0–200 แต่มีสินค้าราคา 500)</div>
   </div>
   <div class="scard">
-    <div class="sct">GP ย่อยและค่าส่ง</div>
-    <div class="pr"><span>GP ย่อย (%)</span><input class="pi" id="gpSubPercent" type="number" value="0"></div>
+    <div class="sct" style="display:flex;align-items:center;justify-content:space-between">
+      <span>GP ย่อยตามช่วงราคา (ตัวเลือก/เมนูเสริม)</span>
+      <button type="button" id="addGpSubTierBtn" style="border:none;background:var(--pl);color:var(--p);font-size:12px;font-weight:800;padding:6px 12px;border-radius:20px;cursor:pointer">+ เพิ่มช่วง</button>
+    </div>
+    <div id="gpSubTiersList"></div>
+    <div style="font-size:11px;color:var(--s);margin:8px 0 12px;line-height:1.6">กำหนด GP% ของตัวเลือก/เมนูเสริมตามช่วงราคาของตัวเลือกนั้นๆ เอง (แยกจาก GP หลักของสินค้าด้านบน) ระบบจะเช็คว่าราคาตัวเลือกอยู่ในช่วงไหนก่อนเสมอ</div>
+    <div class="pr"><span>GP ย่อยสำรอง (%)</span><input class="pi" id="gpSubPercent" type="number" value="0"></div>
+    <div style="font-size:11px;color:var(--s);margin-top:6px;line-height:1.6">ใช้เฉพาะตอนราคาตัวเลือก "ไม่อยู่ในช่วงใดเลย" ที่ตั้งไว้ด้านบน</div>
+  </div>
+  <div class="scard">
+    <div class="sct">ค่าส่ง</div>
     <div class="pr"><span>หักกระเป๋า (%)</span><input class="pi" id="walletPct" type="number" value="30"></div>
     <div class="pr"><span>รายได้ไรเดอร์ (%)</span><input class="pi" id="riderPct" type="number" value="70"></div>
     <div class="pr"><span>ระยะฟรีค่าส่ง (กม.)</span><input class="pi" id="freeDist" type="number" value="1.5" step="0.1"></div>
@@ -532,6 +551,7 @@ body{background:var(--g);min-height:100vh;}
   <div class="mb">
     <div class="mh"><div class="mt">แก้ไขออเดอร์</div><button class="mc" data-close="editOrderMov"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>
     <div class="mbd">
+      <button class="mxb" style="background:var(--pl);color:var(--p);font-weight:800;margin-bottom:10px" onclick="if(curDocId) location.href='order-create.html?editOrderId='+curDocId">✎ แก้ไขเมนูที่สั่ง</button>
       <div class="mf"><div class="ml">ค่าส่ง (฿)</div><input class="mi" id="editDel" type="number"></div>
       <div class="mf"><div class="ml">หมายเหตุ</div><textarea class="mta" id="editNote"></textarea></div>
       <button class="msb" id="saveEditBtn">บันทึก</button>
@@ -1311,9 +1331,13 @@ function openEditShop(sid){
 async function openAddShop(){editShopId=null;$('shopMovT').textContent='เพิ่มร้านค้า';['sName','sSlug','sDesc','sPh'].forEach(id=>$(id).value='');$('shopMov').classList.add('show');}
 async function saveShop(){
   const name=$('sName').value.trim();if(!name){window.toast('กรุณากรอกชื่อร้าน','er');return;}
+  const btn=$('saveShopBtn');
+  if(btn.disabled) return; // กันกดซ้ำระหว่างกำลังบันทึกอยู่ (เคยทำให้สร้างร้านซ้ำ 2 รายการถ้ากดรัว)
+  btn.disabled=true; btn.textContent='กำลังบันทึก...';
   const data={name,slug:$('sSlug').value.trim(),desc:$('sDesc').value.trim(),phone:$('sPh').value.trim(),isOpen:true,updatedAt:serverTimestamp()};
   try{editShopId?await updateDoc(doc(db,'shops',editShopId),data):await addDoc(collection(db,'shops'),{...data,createdAt:serverTimestamp()});closeMov('shopMov');loadShops();window.toast('บันทึกสำเร็จ','ok');}
   catch(e){window.toast('บันทึกไม่สำเร็จ','er');}
+  finally{ btn.disabled=false; btn.textContent='บันทึก'; }
 }
 
 // RIDERS
@@ -1459,9 +1483,27 @@ function renderGpTiers(){
 window.updGpTier=function(i,field,val){if(!gpTiers[i])return;gpTiers[i][field]=parseFloat(val)||0;};
 window.delGpTier=function(i){gpTiers.splice(i,1);renderGpTiers();};
 function addGpTier(){gpTiers.push({min:0,max:100,gp:30});renderGpTiers();}
+let gpSubTiers=[];
+function renderGpSubTiers(){
+  const el=$('gpSubTiersList');if(!el)return;
+  if(!gpSubTiers.length){el.innerHTML='<div style="font-size:12px;color:var(--s);padding:10px 0">ยังไม่มีช่วงราคา กด "+ เพิ่มช่วง"</div>';return;}
+  el.innerHTML=gpSubTiers.map((t,i)=>`
+    <div style="display:flex;align-items:center;gap:6px;padding:10px 0;border-bottom:1px solid #f5f6f8">
+      <input class="pi" style="width:64px;height:38px;font-size:13px" type="number" placeholder="ต่ำสุด" value="${t.min}" oninput="window.updGpSubTier(${i},'min',this.value)">
+      <span style="color:var(--s);font-size:12px">–</span>
+      <input class="pi" style="width:64px;height:38px;font-size:13px" type="number" placeholder="สูงสุด" value="${t.max}" oninput="window.updGpSubTier(${i},'max',this.value)">
+      <span style="color:var(--s);font-size:12px">บ.</span>
+      <input class="pi" style="width:60px;height:38px;font-size:13px;margin-left:auto" type="number" placeholder="GP%" value="${t.gp}" oninput="window.updGpSubTier(${i},'gp',this.value)">
+      <span style="color:var(--s);font-size:12px">%</span>
+      <button type="button" onclick="window.delGpSubTier(${i})" style="width:34px;height:34px;border:none;border-radius:10px;background:var(--rl);color:var(--r);cursor:pointer;flex-shrink:0;font-size:16px;line-height:1">×</button>
+    </div>`).join('');
+}
+window.updGpSubTier=function(i,field,val){if(!gpSubTiers[i])return;gpSubTiers[i][field]=parseFloat(val)||0;};
+window.delGpSubTier=function(i){gpSubTiers.splice(i,1);renderGpSubTiers();};
+function addGpSubTier(){gpSubTiers.push({min:0,max:100,gp:0});renderGpSubTiers();}
 async function loadPricing(){
-  try{const snap=await getDoc(doc(db,'settings','pricing'));if(snap.exists()){const d=snap.data();$('gpPercent').value=d.gpPercent||34;$('gpSubPercent').value=d.gpSubPercent||0;$('walletPct').value=d.walletPercent||30;$('riderPct').value=d.riderPercent||70;$('freeDist').value=d.freeDistance||1.5;$('delFee').value=d.deliveryFee||9;gpTiers=Array.isArray(d.gpTiers)?d.gpTiers:[];}renderGpTiers();updPrev();}
-  catch(e){renderGpTiers();}
+  try{const snap=await getDoc(doc(db,'settings','pricing'));if(snap.exists()){const d=snap.data();$('gpPercent').value=d.gpPercent||34;$('gpSubPercent').value=d.gpSubPercent||0;$('walletPct').value=d.walletPercent||30;$('riderPct').value=d.riderPercent||70;$('freeDist').value=d.freeDistance||1.5;$('delFee').value=d.deliveryFee||9;gpTiers=Array.isArray(d.gpTiers)?d.gpTiers:[];gpSubTiers=Array.isArray(d.gpSubTiers)?d.gpSubTiers:[];}renderGpTiers();renderGpSubTiers();updPrev();}
+  catch(e){renderGpTiers();renderGpSubTiers();}
 }
 
 // ============ APP-WIDE OPEN/CLOSE ============
@@ -1534,7 +1576,7 @@ async function savePricing(){
   const btn=$('savePricingBtn');
   if(btn){btn.disabled=true;btn.dataset.txt=btn.textContent;btn.textContent='กำลังบันทึก...';btn.style.transform='scale(.97)';btn.style.opacity='.85';}
   try{
-    await setDoc(doc(db,'settings','pricing'),{gpPercent:parseFloat($('gpPercent').value)||34,gpSubPercent:parseFloat($('gpSubPercent').value)||0,walletPercent:parseFloat($('walletPct').value)||30,riderPercent:parseFloat($('riderPct').value)||70,freeDistance:parseFloat($('freeDist').value)||1.5,deliveryFee:parseFloat($('delFee').value)||9,gpTiers,updatedAt:serverTimestamp()},{merge:true});
+    await setDoc(doc(db,'settings','pricing'),{gpPercent:parseFloat($('gpPercent').value)||34,gpSubPercent:parseFloat($('gpSubPercent').value)||0,walletPercent:parseFloat($('walletPct').value)||30,riderPercent:parseFloat($('riderPct').value)||70,freeDistance:parseFloat($('freeDist').value)||1.5,deliveryFee:parseFloat($('delFee').value)||9,gpTiers,gpSubTiers,updatedAt:serverTimestamp()},{merge:true});
     window.toast('บันทึกการตั้งค่าสำเร็จ','ok');
     if(btn){btn.textContent='✓ บันทึกแล้ว';btn.style.background='linear-gradient(135deg,var(--gn),#15803d)';}
   }catch(e){window.toast('บันทึกไม่สำเร็จ','er');if(btn)btn.textContent=btn.dataset.txt||'บันทึกการตั้งค่า';}
@@ -1594,6 +1636,7 @@ document.addEventListener('click', e => {
   const id=t.id;
   if (id==='tglBtn'){statsOpen=!statsOpen;$('statsGrid').classList.toggle('open',statsOpen);t.textContent=statsOpen?'▲ ซ่อนสถิติ':'▼ ดูสถิติ';}
   else if(id==='addGpTierBtn')addGpTier();
+  else if(id==='addGpSubTierBtn')addGpSubTier();
   else if(id==='addShopBtn')openAddShop();
   else if(id==='addRiderBtn')window.openAddRider();
   else if(id==='savePricingBtn')savePricing();
