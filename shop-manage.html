@@ -1883,8 +1883,10 @@ window.closeCrop = function() { document.getElementById("cropOverlay").classList
   const el = document.getElementById(id);
   if(el){ el.addEventListener('input', markShopDirty); el.addEventListener('change', markShopDirty); }
 });
-loadGpSettings();
-loadShop();
+(async function(){
+  await loadGpSettings(); // ต้องรอโหลดค่า GP/ช่วงราคาให้เสร็จก่อน ไม่งั้นเมนูอาจ render เสร็จก่อนแล้วใช้ค่าเก่า/ว่างเปล่าไปคำนวณราคาผิด
+  loadShop();
+})();
 </script>
 </body>
 </html>
