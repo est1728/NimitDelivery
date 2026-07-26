@@ -234,19 +234,26 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
   </div>
 </div>
 
-<!-- COPY GROUP TO MULTIPLE MENUS MODAL -->
+<!-- SUBGROUP TYPE CHOOSER MODAL -->
+<div class="modal-overlay" id="sgtypeModal" onclick="if(event.target===this) closeModal('sgtypeModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">เลือกประเภทกลุ่มตัวเลือกย่อย</div>
+    <button class="gtype-btn" onclick="chooseSubGroupType('normal')"><b>เมนูเพิ่มเติมธรรมดา</b><span>ให้ลูกค้าติ๊กเลือกตัวเลือกที่ตั้งไว้</span></button>
+    <button class="gtype-btn" onclick="chooseSubGroupType('price')"><b>เมนูแบบตั้งราคา</b><span>ลูกค้าเลือกราคาเองในช่วงที่ร้านกำหนด (ปรับทีละขั้น)</span></button>
+    <button class="gtype-btn" onclick="chooseSubGroupType('kg')"><b>เมนูแบบตั้งตามกิโลกรัม</b><span>ลูกค้าใส่จำนวนกิโล/ขีด ระบบคำนวณราคาให้อัตโนมัติ</span></button>
+    <button class="modal-cancel-btn" style="margin-top:2px" onclick="closeModal('sgtypeModal')">ยกเลิก</button>
+  </div>
+</div>
+
+<!-- COPY GROUPS TO MULTIPLE MENUS MODAL -->
 <div class="modal-overlay" id="copyGroupModal" onclick="if(event.target===this) closeModal('copyGroupModal')">
   <div class="modal" style="max-height:88vh;overflow-y:auto">
     <div class="modal-handle"></div>
     <div class="modal-title">คัดลอกกลุ่มตัวเลือก</div>
-    <div class="field-label">ชื่อกลุ่ม</div>
-    <input class="field-input" id="cgTitle" placeholder="ชื่อกลุ่ม">
-    <div id="cgOptionsWrap" style="margin-top:10px">
-      <div class="field-label">ตัวเลือก (แก้ไข/ตรวจคำผิดได้ก่อนนำไปใช้)</div>
-      <div id="cgOptionsList"></div>
-      <button type="button" onclick="addCgOption()" style="width:100%;height:36px;border:1.5px dashed #cbd5e1;border-radius:10px;background:none;color:var(--subtext);font-size:12px;font-weight:700;cursor:pointer;margin-top:2px">+ เพิ่มตัวเลือก</button>
-    </div>
-    <div class="field-label" style="margin-top:14px">เลือกเมนูที่จะนำกลุ่มนี้ไปใช้</div>
+    <div class="field-label">เลือกกลุ่มตัวเลือกที่จะคัดลอก (จากเมนูนี้)</div>
+    <div id="cgGroupList" style="max-height:180px;overflow-y:auto;border:1.5px solid #eef0f4;border-radius:12px;padding:4px 8px;margin-bottom:14px"></div>
+    <div class="field-label">เลือกเมนูปลายทางที่จะนำไปใช้</div>
     <div id="cgMenuList" style="max-height:220px;overflow-y:auto;border:1.5px solid #eef0f4;border-radius:12px;padding:4px 8px"></div>
     <button class="modal-cancel-btn" style="margin-top:12px;background:var(--primary);color:#fff" onclick="confirmCopyApply()">ตกลง</button>
     <button class="modal-cancel-btn" onclick="closeModal('copyGroupModal')">ยกเลิก</button>
@@ -1002,13 +1009,40 @@ function renderOptionRow(menuId,gi,oi,o) {
 }
 
 function renderSubGroupCard(menuId,gi,oi,sgi,sg) {
+  const type = sg.type||'normal';
+  const typeLabel = type==='price'?'ตั้งราคา':type==='kg'?'กิโลกรัม':'';
+  const reqId = `sgreq-${menuId}-${gi}-${oi}-${sgi}`;
+  const head = `
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+      <input value="${esc(sg.title)}" id="sgt-${menuId}-${gi}-${oi}-${sgi}" placeholder="ชื่อกลุ่มย่อย เช่น เพิ่มชีส" style="flex:1;min-width:100px;height:32px;border:1.5px solid #eef0f4;border-radius:8px;padding:0 8px;font-size:12px;outline:none">
+      ${typeLabel?`<span class="gtype-badge" style="font-size:10px">${typeLabel}</span>`:''}
+      <button type="button" onclick="delSubGroup('${menuId}',${gi},${oi},${sgi})" style="width:28px;height:28px;border:none;background:#fee2e2;border-radius:8px;color:#dc2626;cursor:pointer;flex-shrink:0">✕</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <button class="mini-toggle ${sg.required?'on':''}" id="${reqId}" onclick="toggleSubGroupReq('${menuId}',${gi},${oi},${sgi})" style="transform:scale(0.85)"></button>
+      <span class="req-badge ${sg.required?'on':'off'}" id="${reqId}-badge">${sg.required?'บังคับ':'ไม่บังคับ'}</span>
+    </div>`;
+  if(type==='price'){
+    return `<div style="background:#fff;border:1.5px solid #eef0f4;border-radius:10px;padding:8px;margin-bottom:8px" id="sgc-${menuId}-${gi}-${oi}-${sgi}">
+      ${head}
+      <div style="display:flex;gap:6px">
+        <div style="flex:1"><div style="font-size:10px;color:var(--subtext);margin-bottom:2px">ต่ำสุด (฿)</div><input type="number" value="${sg.priceMin??0}" id="sgpmin-${menuId}-${gi}-${oi}-${sgi}" style="width:100%;height:32px;border:1.5px solid #eef0f4;border-radius:8px;padding:0 6px;font-size:12px;outline:none"></div>
+        <div style="flex:1"><div style="font-size:10px;color:var(--subtext);margin-bottom:2px">สูงสุด (฿)</div><input type="number" value="${sg.priceMax??0}" id="sgpmax-${menuId}-${gi}-${oi}-${sgi}" style="width:100%;height:32px;border:1.5px solid #eef0f4;border-radius:8px;padding:0 6px;font-size:12px;outline:none"></div>
+        <div style="flex:1"><div style="font-size:10px;color:var(--subtext);margin-bottom:2px">ทีละ (฿)</div><input type="number" value="${sg.priceStep||5}" id="sgpstep-${menuId}-${gi}-${oi}-${sgi}" style="width:100%;height:32px;border:1.5px solid #eef0f4;border-radius:8px;padding:0 6px;font-size:12px;outline:none"></div>
+      </div>
+    </div>`;
+  }
+  if(type==='kg'){
+    return `<div style="background:#fff;border:1.5px solid #eef0f4;border-radius:10px;padding:8px;margin-bottom:8px" id="sgc-${menuId}-${gi}-${oi}-${sgi}">
+      ${head}
+      <div style="font-size:10px;color:var(--subtext);margin-bottom:2px">ราคาต่อขีด (฿)</div>
+      <input type="number" value="${sg.kgRate||0}" id="sgkgrate-${menuId}-${gi}-${oi}-${sgi}" style="width:100%;height:32px;border:1.5px solid #eef0f4;border-radius:8px;padding:0 8px;font-size:12px;outline:none">
+    </div>`;
+  }
   const opts = sg.options||[];
   return `
   <div style="background:#fff;border:1.5px solid #eef0f4;border-radius:10px;padding:8px;margin-bottom:8px" id="sgc-${menuId}-${gi}-${oi}-${sgi}">
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
-      <input value="${esc(sg.title)}" id="sgt-${menuId}-${gi}-${oi}-${sgi}" placeholder="ชื่อกลุ่มย่อย เช่น เพิ่มชีส" style="flex:1;height:32px;border:1.5px solid #eef0f4;border-radius:8px;padding:0 8px;font-size:12px;outline:none">
-      <button type="button" onclick="delSubGroup('${menuId}',${gi},${oi},${sgi})" style="width:28px;height:28px;border:none;background:#fee2e2;border-radius:8px;color:#dc2626;cursor:pointer;flex-shrink:0">✕</button>
-    </div>
+    ${head}
     ${opts.map((so,soi)=>`
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
       <input value="${esc(so.name)}" id="son-${menuId}-${gi}-${oi}-${sgi}-${soi}" placeholder="ชื่อตัวเลือกย่อย" style="flex:1;height:30px;border:1.5px solid #eef0f4;border-radius:8px;padding:0 8px;font-size:12px;outline:none">
@@ -1027,12 +1061,30 @@ window.toggleSubGroups = function(menuId,gi,oi){
   if(expandedSubOpts.has(key)) expandedSubOpts.delete(key); else expandedSubOpts.add(key);
   updateCardInPlace(menuId);
 }
+let sgtypeMenuId=null, sgtypeGi=null, sgtypeOi=null;
 window.addSubGroup = function(menuId,gi,oi){
   saveFormState(menuId);
+  sgtypeMenuId=menuId; sgtypeGi=gi; sgtypeOi=oi;
+  document.getElementById('sgtypeModal')?.classList.add('show');
+}
+window.chooseSubGroupType = function(type){
+  const menuId=sgtypeMenuId, gi=sgtypeGi, oi=sgtypeOi;
+  closeModal('sgtypeModal');
+  if(!menuId) return;
   const m = menus.find(x=>x.id===menuId); if(!m) return;
   const o = m.optionGroups?.[gi]?.options?.[oi]; if(!o) return;
   if(!o.subGroups) o.subGroups=[];
-  o.subGroups.push({title:'',options:[]});
+  if(type==='price') o.subGroups.push({type:'price', title:'', required:false, priceMin:10, priceMax:50, priceStep:5});
+  else if(type==='kg') o.subGroups.push({type:'kg', title:'', required:false, kgRate:0});
+  else o.subGroups.push({type:'normal', title:'', required:false, options:[{name:'',price:0}]});
+  expandedSubOpts.add(`${gi}-${oi}`); // เปิดโชว์ให้เห็นกลุ่มที่เพิ่งเพิ่มเลย
+  updateCardInPlace(menuId);
+}
+window.toggleSubGroupReq = function(menuId,gi,oi,sgi){
+  saveFormState(menuId);
+  const m = menus.find(x=>x.id===menuId); if(!m) return;
+  const sg = m.optionGroups?.[gi]?.options?.[oi]?.subGroups?.[sgi]; if(!sg) return;
+  sg.required = !sg.required;
   updateCardInPlace(menuId);
 }
 window.delSubGroup = function(menuId,gi,oi,sgi){
@@ -1059,6 +1111,13 @@ window.delSubOption = function(menuId,gi,oi,sgi,soi){
 }
 
 function esc(v) { return (v||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+function mapSubGroupForSave(sg){
+  const type = sg.type||'normal';
+  if(type==='price') return {type:'price', title:sg.title, required:!!sg.required, priceMin:sg.priceMin||0, priceMax:sg.priceMax||0, priceStep:sg.priceStep||5};
+  if(type==='kg') return {type:'kg', title:sg.title, required:!!sg.required, kgRate:sg.kgRate||0};
+  return {type:'normal', title:sg.title, required:!!sg.required, options:(sg.options||[]).filter(so=>so.name)};
+}
 
 window.updateGpPreview = function(menuId){
   const priceEl = document.getElementById(`fi-price-${menuId}`);
@@ -1139,12 +1198,25 @@ function saveFormState(menuId) {
         (o.subGroups||[]).forEach((sg,sgi)=>{
           const sgt = document.getElementById(`sgt-${menuId}-${gi}-${oi}-${sgi}`)?.value;
           if(sgt !== undefined) sg.title = sgt;
-          (sg.options||[]).forEach((so,soi)=>{
-            const son = document.getElementById(`son-${menuId}-${gi}-${oi}-${sgi}-${soi}`)?.value;
-            const sop = document.getElementById(`sop-${menuId}-${gi}-${oi}-${sgi}-${soi}`)?.value;
-            if(son !== undefined) so.name = son;
-            if(sop !== undefined) so.price = parseFloat(sop)||0;
-          });
+          const sgType = sg.type||'normal';
+          if(sgType==='price'){
+            const pmin = document.getElementById(`sgpmin-${menuId}-${gi}-${oi}-${sgi}`)?.value;
+            const pmax = document.getElementById(`sgpmax-${menuId}-${gi}-${oi}-${sgi}`)?.value;
+            const pstep = document.getElementById(`sgpstep-${menuId}-${gi}-${oi}-${sgi}`)?.value;
+            if(pmin!==undefined) sg.priceMin = parseFloat(pmin)||0;
+            if(pmax!==undefined) sg.priceMax = parseFloat(pmax)||0;
+            if(pstep!==undefined) sg.priceStep = parseFloat(pstep)||5;
+          } else if(sgType==='kg'){
+            const rate = document.getElementById(`sgkgrate-${menuId}-${gi}-${oi}-${sgi}`)?.value;
+            if(rate!==undefined) sg.kgRate = parseFloat(rate)||0;
+          } else {
+            (sg.options||[]).forEach((so,soi)=>{
+              const son = document.getElementById(`son-${menuId}-${gi}-${oi}-${sgi}-${soi}`)?.value;
+              const sop = document.getElementById(`sop-${menuId}-${gi}-${oi}-${sgi}-${soi}`)?.value;
+              if(son !== undefined) so.name = son;
+              if(sop !== undefined) so.price = parseFloat(sop)||0;
+            });
+          }
         });
       });
     }
@@ -1166,70 +1238,57 @@ window.toggleReq = function(menuId,gi) {
 }
 
 let gtypeMenuId = null;
-let cgWorkingGroup = null;
+let cgSourceMenuId = null;
+let cgSelectedGroupIndices = new Set();
 let cgSelectedMenuIds = new Set();
 window.copyGroup = function(menuId, gi){
   const m = menus.find(x=>x.id===menuId); if(!m) return;
   saveFormState(menuId); // เก็บค่าที่พิมพ์ค้างไว้ก่อน กันคัดลอกค่าเก่าที่ยังไม่ได้ sync เข้า memory
-  const g = m.optionGroups?.[gi]; if(!g) return;
-  cgWorkingGroup = JSON.parse(JSON.stringify(g)); // ก็อปปี้แบบลึก ตัดการอ้างอิงกับต้นฉบับออกให้หมด
+  if(!(m.optionGroups||[])[gi]) return;
+  cgSourceMenuId = menuId;
+  cgSelectedGroupIndices = new Set([gi]); // ติ๊กกลุ่มที่กดคัดลอกมาให้ก่อนเลย เลือกกลุ่มอื่นเพิ่มได้
   cgSelectedMenuIds = new Set();
   renderCgModal();
   document.getElementById('copyGroupModal').classList.add('show');
 }
 function renderCgModal(){
-  const type = cgWorkingGroup.type||'normal';
-  document.getElementById('cgTitle').value = cgWorkingGroup.title||'';
-  const optWrap = document.getElementById('cgOptionsWrap');
-  if(type==='normal'){
-    optWrap.style.display='';
-    document.getElementById('cgOptionsList').innerHTML = (cgWorkingGroup.options||[]).map((o,oi)=>`
-      <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
-        <input value="${esc(o.name)}" oninput="updateCgOption(${oi},'name',this.value)" placeholder="ชื่อตัวเลือก" style="flex:1;height:38px;border:1.5px solid #eef0f4;border-radius:10px;padding:0 10px;font-size:13px;outline:none">
-        <span style="font-size:12px;color:var(--subtext)">+฿</span>
-        <input type="number" value="${o.price||0}" oninput="updateCgOption(${oi},'price',this.value)" style="width:64px;height:38px;border:1.5px solid #eef0f4;border-radius:10px;padding:0 8px;font-size:13px;outline:none">
-        <button type="button" onclick="delCgOption(${oi})" style="width:32px;height:32px;border:none;background:#fee2e2;color:#dc2626;border-radius:8px;cursor:pointer;flex-shrink:0">✕</button>
-      </div>`).join('');
-  } else {
-    optWrap.style.display='none';
-  }
-  const list = menus.filter(m2=>!m2.id.startsWith('_new_') && !m2.id.startsWith('_bulk_'));
+  const m = menus.find(x=>x.id===cgSourceMenuId); if(!m) return;
+  const groups = m.optionGroups||[];
+  const typeLabel = t => t==='price'?'ตั้งราคา':t==='kg'?'กิโลกรัม':'ธรรมดา';
+  document.getElementById('cgGroupList').innerHTML = groups.length ? groups.map((g,gi)=>`
+    <label style="display:flex;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid #f5f6f8;cursor:pointer">
+      <input type="checkbox" ${cgSelectedGroupIndices.has(gi)?'checked':''} onchange="toggleCgGroup(${gi},this.checked)" style="width:18px;height:18px;flex-shrink:0">
+      <span style="font-size:13px;color:var(--text);flex:1">${esc(g.title||'(ยังไม่ตั้งชื่อ)')}</span>
+      <span class="gtype-badge" style="font-size:10px">${typeLabel(g.type||'normal')}</span>
+    </label>`).join('') : '<div style="padding:14px;text-align:center;color:var(--subtext);font-size:13px">เมนูนี้ยังไม่มีกลุ่มตัวเลือก</div>';
+  const list = menus.filter(m2=>!m2.id.startsWith('_new_') && !m2.id.startsWith('_bulk_') && m2.id!==cgSourceMenuId);
   document.getElementById('cgMenuList').innerHTML = list.length ? list.map(m2=>`
     <label style="display:flex;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid #f5f6f8;cursor:pointer">
       <input type="checkbox" ${cgSelectedMenuIds.has(m2.id)?'checked':''} onchange="toggleCgMenu('${m2.id}',this.checked)" style="width:18px;height:18px;flex-shrink:0">
       <span style="font-size:13px;color:var(--text)">${esc(m2.name||'(ยังไม่ตั้งชื่อ)')}</span>
     </label>`).join('') : '<div style="padding:14px;text-align:center;color:var(--subtext);font-size:13px">ยังไม่มีเมนูอื่นในร้าน</div>';
 }
-window.updateCgOption = function(oi,field,value){
-  if(!cgWorkingGroup?.options?.[oi]) return;
-  cgWorkingGroup.options[oi][field] = field==='price' ? (parseFloat(value)||0) : value;
-}
-window.addCgOption = function(){
-  if(!cgWorkingGroup.options) cgWorkingGroup.options=[];
-  cgWorkingGroup.options.push({name:'',price:0});
-  renderCgModal();
-}
-window.delCgOption = function(oi){
-  cgWorkingGroup.options.splice(oi,1);
-  renderCgModal();
+window.toggleCgGroup = function(gi,checked){
+  if(checked) cgSelectedGroupIndices.add(gi); else cgSelectedGroupIndices.delete(gi);
 }
 window.toggleCgMenu = function(menuId,checked){
   if(checked) cgSelectedMenuIds.add(menuId); else cgSelectedMenuIds.delete(menuId);
 }
 window.confirmCopyApply = function(){
-  cgWorkingGroup.title = document.getElementById('cgTitle').value.trim();
-  if(!cgWorkingGroup.title){ alert('กรุณาใส่ชื่อกลุ่ม'); return; }
-  if(cgSelectedMenuIds.size===0){ alert('กรุณาเลือกอย่างน้อย 1 เมนูที่จะนำกลุ่มนี้ไปใช้'); return; }
+  const m = menus.find(x=>x.id===cgSourceMenuId); if(!m) return;
+  if(cgSelectedGroupIndices.size===0){ alert('กรุณาเลือกอย่างน้อย 1 กลุ่มตัวเลือกที่จะคัดลอก'); return; }
+  if(cgSelectedMenuIds.size===0){ alert('กรุณาเลือกอย่างน้อย 1 เมนูปลายทางที่จะนำไปใช้'); return; }
+  const groupsToCopy = [...cgSelectedGroupIndices].map(gi=>m.optionGroups[gi]).filter(Boolean);
   cgSelectedMenuIds.forEach(menuId=>{
-    const m = menus.find(x=>x.id===menuId); if(!m) return;
-    if(!m.optionGroups) m.optionGroups=[];
-    m.optionGroups.push(JSON.parse(JSON.stringify(cgWorkingGroup))); // ก็อปปี้แยกให้แต่ละเมนู ไม่ให้อ้างอิง object เดียวกัน
+    const target = menus.find(x=>x.id===menuId); if(!target) return;
+    if(!target.optionGroups) target.optionGroups=[];
+    groupsToCopy.forEach(g=>target.optionGroups.push(JSON.parse(JSON.stringify(g)))); // ก็อปปี้แยกให้แต่ละเมนู ไม่ให้อ้างอิง object เดียวกัน
     markMenuDirty(menuId);
     if(menuId===openMenuId) updateCardInPlace(menuId);
   });
-  const count = cgSelectedMenuIds.size;
+  const groupCount = groupsToCopy.length, menuCount = cgSelectedMenuIds.size;
   closeModal('copyGroupModal');
-  alert(`เพิ่มกลุ่ม "${cgWorkingGroup.title}" ให้ ${count} เมนูแล้ว\nอย่าลืมกดปุ่ม "บันทึก" ด้านบนเพื่อบันทึกจริงด้วยนะครับ`);
+  alert(`เพิ่ม ${groupCount} กลุ่มตัวเลือกให้ ${menuCount} เมนูแล้ว\nอย่าลืมกดปุ่ม "บันทึก" ด้านบนเพื่อบันทึกจริงด้วยนะครับ`);
 }
 window.addGroup = function(menuId) {
   saveFormState(menuId);
@@ -1342,7 +1401,7 @@ function buildMenuSaveData(m){
       if(type==='kg') return {type:'kg', title:g.title, required:!!g.required, kgRate:g.kgRate||0};
       return {type:'normal', title:g.title, required:!!g.required, maxSelect:g.maxSelect||0, options:(g.options||[]).filter(o=>o.name).map(o=>({
         name:o.name, price:o.price||0,
-        subGroups:(o.subGroups||[]).filter(sg=>sg.title).map(sg=>({title:sg.title,options:(sg.options||[]).filter(so=>so.name)}))
+        subGroups:(o.subGroups||[]).filter(sg=>sg.title).map(mapSubGroupForSave)
       }))};
     }),
     updatedAt:serverTimestamp()
@@ -1538,7 +1597,7 @@ async function saveBulk() {
         if(type==='kg') return {type:'kg', title:g.title, required:!!g.required, kgRate:g.kgRate||0};
         return {type:'normal', title:g.title, required:!!g.required, maxSelect:g.maxSelect||0, options:(g.options||[]).filter(o=>o.name).map(o=>({
           name:o.name, price:o.price||0,
-          subGroups:(o.subGroups||[]).filter(sg=>sg.title).map(sg=>({title:sg.title,options:(sg.options||[]).filter(so=>so.name)}))
+          subGroups:(o.subGroups||[]).filter(sg=>sg.title).map(mapSubGroupForSave)
         }))};
       }),
       createdAt:serverTimestamp(), updatedAt:serverTimestamp()
@@ -1722,6 +1781,16 @@ window.confirmCrop = function() {
   if (previewEl) previewEl.innerHTML = `<img src="${base64}" style="width:100%;height:100%;object-fit:cover">`;
   const inputEl = document.getElementById(cropTargetInputId);
   if (inputEl) inputEl.value = base64;
+
+  // สำคัญ: การตั้งค่า .value ผ่าน JS แบบนี้ไม่ทำให้เกิด input/change event เอง
+  // ถ้าไม่ทำเครื่องหมายว่ามีการแก้ไขตรงนี้ด้วยตัวเอง รูปที่เพิ่งอัปโหลดจะไม่ถูกบันทึกเลย
+  // ถ้าไม่ได้ไปแก้ช่องอื่นของเมนู/ร้านนั้นด้วย (เช่น อัปโหลดรูปหลายเมนูติดกันโดยไม่แก้อะไรอื่นเลย)
+  if(cropShape==='menu'){
+    const menuId = cropTargetInputId.replace(/^fi-img-/,'');
+    markMenuDirty(menuId);
+  } else {
+    markShopDirty();
+  }
 
   closeCrop();
 }
