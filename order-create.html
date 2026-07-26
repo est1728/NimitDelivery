@@ -535,7 +535,7 @@ function renderPopupBody(){
                 <div class="kg-price-hint">฿${sg.kgRate||0}/ขีด ${totalKheed?` · ราคาที่ต้องจ่าย <b>฿${custAmt}</b>`:''}</div>`;
               }
               html+=`</div>`;
-            } else {
+            } else if(sg.multiSelect){
               if(!(popupSubSelections[key] instanceof Set)) popupSubSelections[key]=new Set();
               html+=`<div class="option-group-section" style="margin-left:16px;margin-top:6px;padding:10px;background:#f8fafc;border-radius:10px" id="sog-${key}">
                 <div class="og-title-row"><div class="og-title" style="font-size:13px">${sg.title}</div>${badge}</div>`;
@@ -552,6 +552,19 @@ function renderPopupBody(){
                     <button type="button" onclick="adjustSubOptQty('${key}',${soi},1)" style="width:24px;height:24px;border:none;border-radius:6px;background:var(--primary);color:#fff;font-weight:800;font-size:14px;cursor:pointer">+</button>
                   </div>`:''}
                   ${so.price?`<div class="opt-price-text">+฿${sShownPrice*(ssel?qty:1)}</div>`:''}</div>`;
+              });
+              html+=`</div>`;
+            } else {
+              const selIdx = popupSubSelections[key];
+              html+=`<div class="option-group-section" style="margin-left:16px;margin-top:6px;padding:10px;background:#f8fafc;border-radius:10px" id="sog-${key}">
+                <div class="og-title-row"><div class="og-title" style="font-size:13px">${sg.title}</div>${badge}</div>`;
+              (sg.options||[]).forEach((so,soi)=>{
+                const ssel=selIdx===soi;
+                const sShownPrice=so.price?calcSubPrice(so.price):0;
+                html+=`<div class="option-item ${ssel?'selected':''}" onclick="selectSubOptionSingle('${key}',${soi})">
+                  <div class="opt-checkbox ${ssel?'checked':''}"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+                  <div class="opt-name-text">${so.name}</div>
+                  ${so.price?`<div class="opt-price-text">+฿${sShownPrice}</div>`:''}</div>`;
               });
               html+=`</div>`;
             }
@@ -582,6 +595,10 @@ window.selectOption=function(gi,oi,optPrice,isSingle){
 function clearSubSelectionsFor(gi,oi){
   Object.keys(popupSubSelections).forEach(key=>{ if(key.startsWith(`${gi}-${oi}-`)) delete popupSubSelections[key]; });
   Object.keys(popupSubQty).forEach(qkey=>{ if(qkey.startsWith(`${gi}-${oi}-`)) delete popupSubQty[qkey]; });
+}
+window.selectSubOptionSingle=function(key,soi){
+  popupSubSelections[key] = popupSubSelections[key]===soi ? null : soi;
+  renderPopupBody(); window.updatePopupTotal();
 }
 window.selectSubOption=function(key,soi){
   if(!(popupSubSelections[key] instanceof Set)) popupSubSelections[key]=new Set();
@@ -661,6 +678,7 @@ function subGroupExtraFor(g,gi,oi){
     if(sgType==='price'){ if(sel!=null) s+=calcSubPrice(sel); }
     else if(sgType==='kg'){ if(sel){ const totalKheed=(sel.kg||0)*10+(sel.kheed||0); const baseAmt=totalKheed*(sg.kgRate||0); if(baseAmt) s+=calcSubPrice(baseAmt); } }
     else if(sel instanceof Set){ sel.forEach(soi=>{ const so=sg.options[soi]; const qty=popupSubQty[`${key}-${soi}`]||1; s+=calcSubPrice(so?.price||0)*qty; }); }
+    else if(typeof sel==='number'){ const so=sg.options[sel]; if(so) s+=calcSubPrice(so.price||0); }
   });
   return s;
 }
@@ -673,6 +691,7 @@ function subGroupSelectedOptionsFor(g,gi,oi){
     if(sgType==='price'){ if(sel!=null) out.push({groupTitle:`${g.title} → ${sg.title}`,name:`${sg.title} ฿${sel}`,price:sel}); }
     else if(sgType==='kg'){ if(sel){ const totalKheed=(sel.kg||0)*10+(sel.kheed||0); if(totalKheed>0) out.push({groupTitle:`${g.title} → ${sg.title}`,name:`${sel.kg||0} กก. ${sel.kheed||0} ขีด`,price:totalKheed*(sg.kgRate||0)}); } }
     else if(sel instanceof Set){ sel.forEach(soi=>{ const so=sg.options[soi]; if(so){ const qty=popupSubQty[`${key}-${soi}`]||1; out.push({groupTitle:`${g.title} → ${sg.title}`,name:qty>1?`${so.name} x${qty}`:so.name,price:(so.price||0)*qty}); } }); }
+    else if(typeof sel==='number'){ const so=sg.options[sel]; if(so) out.push({groupTitle:`${g.title} → ${sg.title}`,name:so.name,price:so.price||0}); }
   });
   return out;
 }
@@ -713,7 +732,8 @@ window.addToOrderFromPopup=function(){
       const sel=popupSubSelections[key];
       const sgMissing = sgType==='price' ? (sel==null)
         : sgType==='kg' ? (!sel || ((sel.kg||0)*10+(sel.kheed||0))===0)
-        : (!(sel instanceof Set) || sel.size===0);
+        : sg.multiSelect ? (!(sel instanceof Set) || sel.size===0)
+        : (typeof sel!=='number');
       if(sgMissing){ missing=true; const el=document.getElementById(`sog-${key}`); if(el){el.classList.remove('error-shake');void el.offsetWidth;el.classList.add('error-shake');} }
     });
   }
