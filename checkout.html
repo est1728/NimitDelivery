@@ -185,7 +185,20 @@ const checkoutShops = JSON.parse(localStorage.getItem("checkoutShops")||"[]");
 const addresses = JSON.parse(localStorage.getItem("addresses")||"[]");
 let selectedAddrIdx = parseInt(localStorage.getItem("defaultAddress")||"0");
 let shopMeta = {};
-let walletPercent=30, riderPercent=70, freeDistance=1.5, baseDeliveryFee=9;
+let walletPercent=30, riderPercent=70, baseDeliveryFee=9, deliveryTiers=[];
+function tierDeliveryFee(km){
+  if(Array.isArray(deliveryTiers) && deliveryTiers.length){
+    const sorted=[...deliveryTiers].sort((a,b)=>(a.min??0)-(b.min??0));
+    for(let i=0;i<sorted.length;i++){
+      const t=sorted[i];
+      const inRange = i===0
+        ? (km>=(t.min??0) && km<=(t.max??Infinity))
+        : (km>(t.min??0) && km<=(t.max??Infinity));
+      if(inRange) return t.fee||0;
+    }
+  }
+  return baseDeliveryFee;
+}
 let tempAddrIdx = selectedAddrIdx;
 
 function distanceKm(lat1,lng1,lat2,lng2){
@@ -198,7 +211,7 @@ async function init(){
   // โหลด settings
   try{
     const s=await getDoc(doc(db,"settings","pricing"));
-    if(s.exists()){const d=s.data();walletPercent=d.walletPercent??30;riderPercent=d.riderPercent??70;freeDistance=d.freeDistance??1.5;baseDeliveryFee=d.deliveryFee??9;}
+    if(s.exists()){const d=s.data();walletPercent=d.walletPercent??30;riderPercent=d.riderPercent??70;baseDeliveryFee=d.deliveryFee??9;deliveryTiers=Array.isArray(d.deliveryTiers)?d.deliveryTiers:[];}
   }catch(e){}
   // โหลด shop meta
   for(const shopId of checkoutShops){
@@ -239,7 +252,7 @@ function renderItems(){
 function getDeliveryFee(shopId){
   const addr=addresses[selectedAddrIdx]||addresses[0];
   const meta=shopMeta[shopId]||{};
-  if(addr?.lat&&meta.lat) return distanceKm(meta.lat,meta.lng,addr.lat,addr.lng)>freeDistance?baseDeliveryFee:0;
+  if(addr?.lat&&meta.lat) return tierDeliveryFee(distanceKm(meta.lat,meta.lng,addr.lat,addr.lng));
   return 0;
 }
 
@@ -284,7 +297,7 @@ window.confirmAddr=function(){
 }
 
 // PLACE ORDER
-function genOrderId(){ return "AMJ-"+String(Math.floor(1000+Math.random()*9000)); }
+function genOrderId(){ return "NM-"+String(Math.floor(1000+Math.random()*9000)); }
 function genGroupId(){ return "GRP-"+Date.now().toString(36)+Math.random().toString(36).substring(2,6); }
 
 window.placeOrder=async function(){
