@@ -260,6 +260,36 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
   </div>
 </div>
 
+<!-- SAVE CONFIRM MODAL -->
+<div class="modal-overlay" id="saveConfirmModal" onclick="if(event.target===this) closeModal('saveConfirmModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">ยืนยันบันทึกการเปลี่ยนแปลง</div>
+    <div style="font-size:13px;color:var(--subtext);margin-bottom:14px">ต้องการบันทึกข้อมูลร้าน/เมนูที่แก้ไขไว้ทั้งหมดใช่มั้ยครับ</div>
+    <button class="modal-cancel-btn" style="background:var(--primary);color:#fff" onclick="closeModal('saveConfirmModal');doActualSave()">ยืนยันบันทึก</button>
+    <button class="modal-cancel-btn" onclick="closeModal('saveConfirmModal')">ยกเลิก</button>
+  </div>
+</div>
+
+<!-- SAVE LOADING MODAL (no cancel — can't be dismissed while in progress) -->
+<div class="modal-overlay" id="saveLoadingModal">
+  <div class="modal" style="text-align:center">
+    <div style="width:40px;height:40px;border:4px solid #eef0f4;border-top-color:var(--primary);border-radius:50%;margin:8px auto 16px;animation:saveSpin 0.8s linear infinite"></div>
+    <div style="font-size:14px;font-weight:700;color:var(--text)">กำลังบันทึก...</div>
+  </div>
+</div>
+<style>@keyframes saveSpin{to{transform:rotate(360deg)}}</style>
+
+<!-- SAVE SUCCESS / ERROR MODAL -->
+<div class="modal-overlay" id="saveResultModal" onclick="if(event.target===this) closeModal('saveResultModal')">
+  <div class="modal" style="text-align:center">
+    <div style="font-size:40px;margin-bottom:8px" id="saveResultIcon">✅</div>
+    <div class="modal-title" id="saveResultTitle" style="text-align:center">บันทึกสำเร็จ</div>
+    <div style="font-size:13px;color:var(--subtext);margin-bottom:14px" id="saveResultMsg"></div>
+    <button class="modal-cancel-btn" style="background:var(--primary);color:#fff" onclick="closeModal('saveResultModal')">ตกลง</button>
+  </div>
+</div>
+
 <div class="shop-header">
   <div class="shop-banner" id="bannerWrap" onclick="openBannerModal()">
     <div id="bannerInner" style="width:100%;height:100%;background:linear-gradient(135deg,#dde8fa,#c2d4f5)"></div>
@@ -492,11 +522,11 @@ let openDays = [0,1,2,3,4,5,6]; // ค่าเริ่มต้น: เปิ�
 let menus = [];
 let openMenuId = null; // id ของเมนูที่กำลัง expand
 let shopType = "normal"; // "proxy" = ร้านฝากซื้อ (ไม่เชื่อม GP หลักจากตั้งค่า)
-let siteGpPercent = 0, siteGpSubPercent = 0, siteGpTiers = [];
+let siteGpPercent = 0, siteGpSubPercent = 0, siteGpTiers = [], siteGpSubTiers = [];
 async function loadGpSettings(){
   try{
     const s = await getDoc(doc(db,"settings","pricing"));
-    if(s.exists()){ const d=s.data(); siteGpPercent=d.gpPercent||0; siteGpSubPercent=d.gpSubPercent||0; siteGpTiers=Array.isArray(d.gpTiers)?d.gpTiers:[]; }
+    if(s.exists()){ const d=s.data(); siteGpPercent=d.gpPercent||0; siteGpSubPercent=d.gpSubPercent||0; siteGpTiers=Array.isArray(d.gpTiers)?d.gpTiers:[]; siteGpSubTiers=Array.isArray(d.gpSubTiers)?d.gpSubTiers:[]; }
   }catch(e){}
 }
 function tierGpPercent(base){
@@ -512,17 +542,30 @@ function tierGpPercent(base){
   }
   return siteGpPercent;
 }
+function tierGpSubPercent(base){
+  if(Array.isArray(siteGpSubTiers) && siteGpSubTiers.length){
+    const sorted=[...siteGpSubTiers].sort((a,b)=>(a.min??0)-(b.min??0));
+    for(let i=0;i<sorted.length;i++){
+      const t=sorted[i];
+      const inRange = i===0
+        ? (base>=(t.min??0) && base<=(t.max??Infinity))
+        : (base>(t.min??0) && base<=(t.max??Infinity));
+      if(inRange) return t.gp||0;
+    }
+  }
+  return siteGpSubPercent;
+}
 // ราคาที่ลูกค้าจะเห็นจริง (รวม GP) — ใช้แสดงตัวอย่างในฟอร์มแก้ไขเมนู ไม่เกี่ยวกับการคำนวณจริงฝั่งลูกค้า
 function previewCustomerPrice(base, menuGp){
   base = parseFloat(base)||0;
   if(shopType==='proxy') return Math.ceil(base);
   return Math.ceil(base*(1+(tierGpPercent(base)+(parseFloat(menuGp)||0))/100));
 }
-// ราคาตัวเลือกย่อยที่ลูกค้าจะเห็น — ใช้ "GP ย่อย (%)" แยกจาก GP ของเมนูหลัก
+// ราคาตัวเลือกย่อยที่ลูกค้าจะเห็น — ใช้ "GP ย่อยตามช่วงราคา" แยกจาก GP ของเมนูหลัก
 function previewSubPrice(optPrice){
   optPrice = parseFloat(optPrice)||0;
   if(shopType==='proxy') return Math.ceil(optPrice);
-  return Math.ceil(optPrice*(1+siteGpSubPercent/100));
+  return Math.ceil(optPrice*(1+tierGpSubPercent(optPrice)/100));
 }
 let categories = []; // [{id,name}]
 let openCatId = null; // หมวดหมู่ที่กำลัง expand
@@ -944,7 +987,8 @@ function renderGroupCard(menuId, g, gi, total) {
         <button class="mini-toggle ${g.required?'on':''}" id="greq-${menuId}-${gi}" onclick="toggleReq('${menuId}',${gi})"></button>
         <span class="req-badge ${g.required?'on':'off'}" id="greq-badge-${menuId}-${gi}">${g.required?'บังคับ':'ไม่บังคับ'}</span>
       </div>
-      <div class="form-field"><div class="form-label" style="font-size:11px">ราคาต่อขีด (฿)</div><input class="form-input" id="kgrate-${menuId}-${gi}" type="number" value="${g.kgRate||0}" style="height:38px"></div>
+      <div class="form-field"><div class="form-label" style="font-size:11px">ราคาต่อขีด (฿)</div><input class="form-input" id="kgrate-${menuId}-${gi}" type="number" value="${g.kgRate||0}" style="height:38px" oninput="updateKgRatePreview('${menuId}',${gi})"></div>
+      <div style="font-size:11px;color:var(--primary);font-weight:700" id="kgrate-preview-${menuId}-${gi}">${(shopType!=='proxy'&&g.kgRate)?`${g.kgRate} → ${previewSubPrice(g.kgRate)} (ราคาที่ลูกค้าเห็นต่อขีด)`:''}</div>
       <div style="font-size:11px;color:var(--subtext)">ลูกค้าจะกรอกจำนวนกิโลกรัม/ขีดเอง ระบบคำนวณราคาอัตโนมัติ</div>
     </div>`;
   }
@@ -1036,7 +1080,8 @@ function renderSubGroupCard(menuId,gi,oi,sgi,sg) {
     return `<div style="background:#fff;border:1.5px solid #eef0f4;border-radius:10px;padding:8px;margin-bottom:8px" id="sgc-${menuId}-${gi}-${oi}-${sgi}">
       ${head}
       <div style="font-size:10px;color:var(--subtext);margin-bottom:2px">ราคาต่อขีด (฿)</div>
-      <input type="number" value="${sg.kgRate||0}" id="sgkgrate-${menuId}-${gi}-${oi}-${sgi}" style="width:100%;height:32px;border:1.5px solid #eef0f4;border-radius:8px;padding:0 8px;font-size:12px;outline:none">
+      <input type="number" value="${sg.kgRate||0}" id="sgkgrate-${menuId}-${gi}-${oi}-${sgi}" style="width:100%;height:32px;border:1.5px solid #eef0f4;border-radius:8px;padding:0 8px;font-size:12px;outline:none" oninput="updateSgKgRatePreview('${menuId}',${gi},${oi},${sgi})">
+      <div style="font-size:10px;color:var(--primary);font-weight:700;margin-top:4px" id="sgkgrate-preview-${menuId}-${gi}-${oi}-${sgi}">${(shopType!=='proxy'&&sg.kgRate)?`${sg.kgRate} → ${previewSubPrice(sg.kgRate)} (ราคาที่ลูกค้าเห็นต่อขีด)`:''}</div>
     </div>`;
   }
   const opts = sg.options||[];
@@ -1135,6 +1180,22 @@ window.updateOptGpPreview = function(menuId,gi,oi){
   const price = parseFloat(priceEl.value)||0;
   if(shopType==='proxy' || !price){ prevEl.textContent=''; return; }
   prevEl.textContent = `${price} → ${previewSubPrice(price)}`;
+}
+window.updateKgRatePreview = function(menuId,gi){
+  const rateEl = document.getElementById(`kgrate-${menuId}-${gi}`);
+  const prevEl = document.getElementById(`kgrate-preview-${menuId}-${gi}`);
+  if(!rateEl || !prevEl) return;
+  const rate = parseFloat(rateEl.value)||0;
+  if(shopType==='proxy' || !rate){ prevEl.textContent=''; return; }
+  prevEl.textContent = `${rate} → ${previewSubPrice(rate)} (ราคาที่ลูกค้าเห็นต่อขีด)`;
+}
+window.updateSgKgRatePreview = function(menuId,gi,oi,sgi){
+  const rateEl = document.getElementById(`sgkgrate-${menuId}-${gi}-${oi}-${sgi}`);
+  const prevEl = document.getElementById(`sgkgrate-preview-${menuId}-${gi}-${oi}-${sgi}`);
+  if(!rateEl || !prevEl) return;
+  const rate = parseFloat(rateEl.value)||0;
+  if(shopType==='proxy' || !rate){ prevEl.textContent=''; return; }
+  prevEl.textContent = `${rate} → ${previewSubPrice(rate)} (ราคาที่ลูกค้าเห็นต่อขีด)`;
 }
 
 // ============ MENU INTERACTIONS ============
@@ -1624,13 +1685,27 @@ async function saveBulk() {
 }
 
 // ============ SHOP SAVE ============
-window.saveShopInfo = async function() {
+window.saveShopInfo = function() {
   if(!shopId) return;
+  document.getElementById("saveConfirmModal").classList.add("show");
+}
+window.doActualSave = async function() {
+  document.getElementById("saveLoadingModal").classList.add("show");
   try {
     await saveEverything();
     releaseGuard();
-    alert("บันทึกสำเร็จ ✅");
-  } catch(e) { alert("เกิดข้อผิดพลาด: "+e.message); }
+    document.getElementById("saveLoadingModal").classList.remove("show");
+    document.getElementById("saveResultIcon").textContent = "✅";
+    document.getElementById("saveResultTitle").textContent = "บันทึกสำเร็จ";
+    document.getElementById("saveResultMsg").textContent = "บันทึกข้อมูลร้าน/เมนูเรียบร้อยแล้วครับ";
+    document.getElementById("saveResultModal").classList.add("show");
+  } catch(e) {
+    document.getElementById("saveLoadingModal").classList.remove("show");
+    document.getElementById("saveResultIcon").textContent = "⚠️";
+    document.getElementById("saveResultTitle").textContent = "เกิดข้อผิดพลาด";
+    document.getElementById("saveResultMsg").textContent = e.message;
+    document.getElementById("saveResultModal").classList.add("show");
+  }
 }
 
 // ============ BANNER / AVATAR ============
