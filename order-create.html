@@ -325,7 +325,7 @@ function calcDeliveryFee(){
 document.getElementById('oidBadge').textContent=orderId;
 document.getElementById('showId').textContent=orderId;
 
-getDoc(doc(db,'settings','pricing')).then(d=>{if(d.exists())Object.assign(settings,d.data());}).catch(()=>{});
+const settingsReady = getDoc(doc(db,'settings','pricing')).then(d=>{if(d.exists())Object.assign(settings,d.data());}).catch(()=>{});
 getDocs(collection(db,'shops')).then(snap=>{snap.forEach(d=>allShops.push({id:d.id,...d.data()}));}).catch(()=>{});
 
 // เรียงลำดับช่วงราคาจากน้อยไปมากก่อนเช็ค — ช่วงแรกสุดรวมจุดเริ่มต้น ช่วงถัดไปตัดจุดเริ่มต้นออก
@@ -823,7 +823,7 @@ async function loadEditOrder(){
     calcRev(); checkCreate();
   }catch(e){ alert('โหลดออเดอร์เดิมไม่สำเร็จ: '+e.message); }
 }
-loadEditOrder();
+settingsReady.then(()=>loadEditOrder());
 
 // ========== REVENUE ==========
 function calcRev(){
