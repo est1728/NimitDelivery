@@ -742,14 +742,15 @@ let menuRenderDebounce = null;
 function loadMenus() {
   if(menusUnsub) menusUnsub();
   menusUnsub = onSnapshot(collection(db,"shops",shopId,"menus"), snap => {
+    const prevMenus = menus; // เก็บสถานะก่อนหน้าไว้เทียบ ว่าจริงๆมีอะไรเปลี่ยนบ้าง
     const remote = [];
     snap.forEach(d => remote.push({id:d.id,...d.data()}));
     // คงแถวชั่วคราว (กำลังเพิ่มเมนูใหม่/เพิ่มจำนวนมากค้างอยู่) ไว้ ไม่ให้ข้อมูลที่ยังไม่บันทึกหายเวลา snapshot อัปเดต
-    const temp = menus.filter(m=>m.id.startsWith('_new_')||m.id.startsWith('_bulk_'));
+    const temp = prevMenus.filter(m=>m.id.startsWith('_new_')||m.id.startsWith('_bulk_'));
     // ถ้ากำลังเปิดแก้ไขเมนูจริงอยู่ (ไม่ใช่แถวชั่วคราว) คงค่าที่พิมพ์ค้างไว้ ไม่ให้หายถ้ามีคนอื่นแก้เมนูอื่นพร้อมกัน
     if(openMenuId && !openMenuId.startsWith('_new_') && !openMenuId.startsWith('_bulk_')){
       const idx = remote.findIndex(m=>m.id===openMenuId);
-      const localVer = menus.find(m=>m.id===openMenuId);
+      const localVer = prevMenus.find(m=>m.id===openMenuId);
       if(idx>=0 && localVer) remote[idx] = localVer;
     }
     menus = [...remote, ...temp];
@@ -758,8 +759,44 @@ function loadMenus() {
     // จะเห็นเป็นการกระพริบซ้อนกัน 2 ครั้งทุกครั้งที่กดอะไรสักอย่าง — หน่วงเวลาสั้นๆ รวบให้เหลือ render ครั้งเดียว
     clearTimeout(menuRenderDebounce);
     menuRenderDebounce = setTimeout(()=>{
-      renderCatStrip();
-      renderMenuGroups();
+      // สำคัญมาก: ถ้าผู้ใช้กำลังพิมพ์อยู่ในฟอร์มเมนูที่เปิดอยู่ ณ ตอนนี้ ห้าม render ทั้งลิสต์ทับเด็ดขาด
+      // เพราะ innerHTML จะทำลาย element ช่องกรอกที่กำลังโฟกัส/พิมพ์อยู่ทิ้ง แล้วสร้างใหม่ (แม้ค่าจะถูกต้อง แต่โฟกัสหาย
+      // ทำให้พิมพ์ต่อไม่ติดเลย แป้นพิมพ์อาจค้างอยู่แต่ตัวอักษรจะไม่ขึ้น) ค่าที่พิมพ์ค้างไว้ปลอดภัยอยู่แล้วใน
+      // อาร์เรย์ menus ด้านบน แค่รอ render จริงตอนที่ผู้ใช้เลิกโฟกัสช่องนั้นแทน ไม่เสียข้อมูลอะไรไป
+      const active = document.activeElement;
+      const openCard = openMenuId ? document.getElementById(`card-${openMenuId}`) : null;
+      const typingInOpenCard = openCard && active && openCard.contains(active) && (active.tagName==='INPUT'||active.tagName==='TEXTAREA');
+      if(typingInOpenCard) return;
+
+      // สำคัญมาก (เคสแอดมิน 2 คนแก้เมนูพร้อมกัน): ถ้าแค่ "ข้อมูลของเมนูบางอัน" เปลี่ยน โดยรายชื่อเมนู/หมวดหมู่/ลำดับ
+      // เหมือนเดิมทุกอย่าง ไม่จำเป็นต้องรื้อสร้างทั้งลิสต์ใหม่หมด (ซึ่งจะไปรบกวนการ์ดอื่นๆที่คนอื่นอาจกำลังเปิดดู/แก้อยู่
+      // พร้อมกันโดยไม่จำเป็น ทำให้รู้สึกกระตุกทุกครั้งที่อีกคนบันทึก) — อัปเดตเฉพาะการ์ดที่ข้อมูลเปลี่ยนจริงๆพอ
+      const prevIds = prevMenus.map(m=>m.id).sort().join(',');
+      const newIds = menus.map(m=>m.id).sort().join(',');
+      const structureChanged = prevIds !== newIds; // มีเมนูเพิ่ม/ลบ
+
+      let needFullRerender = structureChanged;
+      const cardsToUpdate = [];
+      if(!structureChanged){
+        for(const m of menus){
+          const old = prevMenus.find(x=>x.id===m.id);
+          if(!old) continue; // แถวชั่วคราว ไม่ต้องเทียบ
+          if(old===m) continue; // อ้างอิง object เดียวกัน (เช่นเมนูที่เปิดอยู่ที่เพิ่งคงค่าไว้) แน่นอนว่าไม่เปลี่ยน ข้ามได้เลย
+          // ถ้าหมวดหมู่/ลำดับเปลี่ยน ตำแหน่งในลิสต์จะเปลี่ยนไปด้วย ต้อง render ทั้งลิสต์ใหม่จริงๆ ไม่ใช่แค่สลับการ์ดในที่เดิม
+          if((old.categoryId||'')!==(m.categoryId||'') || (old.order||0)!==(m.order||0)){
+            needFullRerender = true;
+            break;
+          }
+          if(JSON.stringify(old)!==JSON.stringify(m)) cardsToUpdate.push(m.id);
+        }
+      }
+
+      if(needFullRerender){
+        renderCatStrip();
+        renderMenuGroups();
+      } else {
+        cardsToUpdate.forEach(id=>updateCardInPlace(id));
+      }
     }, 80);
   }, err => {
     const el = document.getElementById("menuGroups");
@@ -1056,15 +1093,19 @@ function renderSubGroupCard(menuId,gi,oi,sgi,sg) {
   const type = sg.type||'normal';
   const typeLabel = type==='price'?'ตั้งราคา':type==='kg'?'กิโลกรัม':'';
   const reqId = `sgreq-${menuId}-${gi}-${oi}-${sgi}`;
+  const msId = `sgms-${menuId}-${gi}-${oi}-${sgi}`;
   const head = `
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">
       <input value="${esc(sg.title)}" id="sgt-${menuId}-${gi}-${oi}-${sgi}" placeholder="ชื่อกลุ่มย่อย เช่น เพิ่มชีส" style="flex:1;min-width:100px;height:32px;border:1.5px solid #eef0f4;border-radius:8px;padding:0 8px;font-size:12px;outline:none">
       ${typeLabel?`<span class="gtype-badge" style="font-size:10px">${typeLabel}</span>`:''}
       <button type="button" onclick="delSubGroup('${menuId}',${gi},${oi},${sgi})" style="width:28px;height:28px;border:none;background:#fee2e2;border-radius:8px;color:#dc2626;cursor:pointer;flex-shrink:0">✕</button>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
       <button class="mini-toggle ${sg.required?'on':''}" id="${reqId}" onclick="toggleSubGroupReq('${menuId}',${gi},${oi},${sgi})" style="transform:scale(0.85)"></button>
       <span class="req-badge ${sg.required?'on':'off'}" id="${reqId}-badge">${sg.required?'บังคับ':'ไม่บังคับ'}</span>
+      ${type==='normal'?`
+      <button class="mini-toggle ${sg.multiSelect?'on':''}" id="${msId}" onclick="toggleSubGroupMulti('${menuId}',${gi},${oi},${sgi})" style="transform:scale(0.85);margin-left:8px"></button>
+      <span class="req-badge ${sg.multiSelect?'on':'off'}" id="${msId}-badge">${sg.multiSelect?'เลือกได้หลายตัวเลือก':'เลือกได้ตัวเลือกเดียว'}</span>`:''}
     </div>`;
   if(type==='price'){
     return `<div style="background:#fff;border:1.5px solid #eef0f4;border-radius:10px;padding:8px;margin-bottom:8px" id="sgc-${menuId}-${gi}-${oi}-${sgi}">
@@ -1132,6 +1173,13 @@ window.toggleSubGroupReq = function(menuId,gi,oi,sgi){
   sg.required = !sg.required;
   updateCardInPlace(menuId);
 }
+window.toggleSubGroupMulti = function(menuId,gi,oi,sgi){
+  saveFormState(menuId);
+  const m = menus.find(x=>x.id===menuId); if(!m) return;
+  const sg = m.optionGroups?.[gi]?.options?.[oi]?.subGroups?.[sgi]; if(!sg) return;
+  sg.multiSelect = !sg.multiSelect;
+  updateCardInPlace(menuId);
+}
 window.delSubGroup = function(menuId,gi,oi,sgi){
   const m = menus.find(x=>x.id===menuId); if(!m) return;
   const o = m.optionGroups?.[gi]?.options?.[oi]; if(!o?.subGroups) return;
@@ -1161,7 +1209,7 @@ function mapSubGroupForSave(sg){
   const type = sg.type||'normal';
   if(type==='price') return {type:'price', title:sg.title, required:!!sg.required, priceMin:sg.priceMin||0, priceMax:sg.priceMax||0, priceStep:sg.priceStep||5};
   if(type==='kg') return {type:'kg', title:sg.title, required:!!sg.required, kgRate:sg.kgRate||0};
-  return {type:'normal', title:sg.title, required:!!sg.required, options:(sg.options||[]).filter(so=>so.name)};
+  return {type:'normal', title:sg.title, required:!!sg.required, multiSelect:!!sg.multiSelect, options:(sg.options||[]).filter(so=>so.name)};
 }
 
 window.updateGpPreview = function(menuId){
@@ -1345,7 +1393,7 @@ window.confirmCopyApply = function(){
     if(!target.optionGroups) target.optionGroups=[];
     groupsToCopy.forEach(g=>target.optionGroups.push(JSON.parse(JSON.stringify(g)))); // ก็อปปี้แยกให้แต่ละเมนู ไม่ให้อ้างอิง object เดียวกัน
     markMenuDirty(menuId);
-    if(menuId===openMenuId) updateCardInPlace(menuId);
+    updateCardInPlace(menuId);
   });
   const groupCount = groupsToCopy.length, menuCount = cgSelectedMenuIds.size;
   closeModal('copyGroupModal');
