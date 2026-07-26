@@ -379,11 +379,19 @@ body{background:var(--g);min-height:100vh;}
     <div style="font-size:11px;color:var(--s);margin-top:6px;line-height:1.6">ใช้เฉพาะตอนราคาตัวเลือก "ไม่อยู่ในช่วงใดเลย" ที่ตั้งไว้ด้านบน</div>
   </div>
   <div class="scard">
-    <div class="sct">ค่าส่ง</div>
+    <div class="sct" style="display:flex;align-items:center;justify-content:space-between">
+      <span>ค่าส่งตามระยะทาง</span>
+      <button type="button" id="addDelTierBtn" style="border:none;background:var(--pl);color:var(--p);font-size:12px;font-weight:800;padding:6px 12px;border-radius:20px;cursor:pointer">+ เพิ่มช่วง</button>
+    </div>
+    <div id="delTiersList"></div>
+    <div style="font-size:11px;color:var(--s);margin:8px 0 12px;line-height:1.6">กำหนดค่าส่งตามระยะทาง (กม.) จากร้านถึงลูกค้า เช่น 0-1.5กม.=ฟรี, 1.5-5กม.=9บาท, 5-10กม.=20บาท ระบบจะเช็คระยะทางจริงแล้วเลือกช่วงที่ตรงให้อัตโนมัติ</div>
+    <div class="pr"><span>ค่าส่งสำรอง (฿)</span><input class="pi" id="delFee" type="number" value="9"></div>
+    <div style="font-size:11px;color:var(--s);margin-top:6px;line-height:1.6">ใช้เฉพาะตอนระยะทาง "เกินทุกช่วงที่ตั้งไว้" หรือหาพิกัดลูกค้า/ร้านไม่ได้</div>
+  </div>
+  <div class="scard">
+    <div class="sct">หักกระเป๋า/ไรเดอร์</div>
     <div class="pr"><span>หักกระเป๋า (%)</span><input class="pi" id="walletPct" type="number" value="30"></div>
     <div class="pr"><span>รายได้ไรเดอร์ (%)</span><input class="pi" id="riderPct" type="number" value="70"></div>
-    <div class="pr"><span>ระยะฟรีค่าส่ง (กม.)</span><input class="pi" id="freeDist" type="number" value="1.5" step="0.1"></div>
-    <div class="pr"><span>ค่าส่ง (฿)</span><input class="pi" id="delFee" type="number" value="9"></div>
     <div class="pvw" id="pvw"></div>
   </div>
   <div class="sw" style="padding:0 0 12px">
@@ -551,7 +559,7 @@ body{background:var(--g);min-height:100vh;}
   <div class="mb">
     <div class="mh"><div class="mt">แก้ไขออเดอร์</div><button class="mc" data-close="editOrderMov"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>
     <div class="mbd">
-      <button class="mxb" style="background:var(--pl);color:var(--p);font-weight:800;margin-bottom:10px" onclick="if(curDocId) location.href='order-create.html?editOrderId='+curDocId">✎ แก้ไขเมนูที่สั่ง</button>
+      <button class="mxb" style="background:var(--pl);color:var(--p);font-weight:800;margin-bottom:10px" onclick="window.editOrderMenu()">✎ แก้ไขเมนูที่สั่ง</button>
       <div class="mf"><div class="ml">ค่าส่ง (฿)</div><input class="mi" id="editDel" type="number"></div>
       <div class="mf"><div class="ml">หมายเหตุ</div><textarea class="mta" id="editNote"></textarea></div>
       <button class="msb" id="saveEditBtn">บันทึก</button>
@@ -1010,7 +1018,7 @@ function renderOrders(){
 // DETAIL
 let chatMetaUnsub=null;
 function openDetail(docId){
-  curDocId=docId;$('detailPage').classList.add('show');
+  curDocId=docId;curOrder=null;$('detailPage').classList.add('show');
   if(detUnsub)detUnsub();
   detUnsub=onSnapshot(doc(db,'orders',docId),snap=>{
     if(snap.exists()){curOrder={docId:snap.id,...snap.data()};renderDetail(curOrder);}
@@ -1197,7 +1205,11 @@ window.confirmCancelOrder=async function(){
 }
 
 // EDIT ORDER
-function openEditOrder(){if(!curOrder)return;$('editDel').value=curOrder.deliveryFee||0;$('editNote').value=curOrder.adminNote||'';$('editOrderMov').classList.add('show');}
+function openEditOrder(){if(!curOrder){window.toast('กำลังโหลดข้อมูลออเดอร์ กรุณารอสักครู่แล้วลองใหม่','er');return;}$('editDel').value=curOrder.deliveryFee||0;$('editNote').value=curOrder.adminNote||'';$('editOrderMov').classList.add('show');}
+window.editOrderMenu=function(){
+  if(!curDocId){ window.toast('กำลังโหลดข้อมูลออเดอร์ กรุณารอสักครู่แล้วลองใหม่','er'); return; }
+  location.href='order-create.html?editOrderId='+curDocId;
+}
 async function saveEdit(){
   try{await updateDoc(doc(db,'orders',curDocId),{deliveryFee:parseFloat($('editDel').value)||0,adminNote:$('editNote').value,updatedAt:serverTimestamp()});closeMov('editOrderMov');window.toast('บันทึกสำเร็จ','ok');}
   catch(e){window.toast('บันทึกไม่สำเร็จ','er');}
@@ -1205,7 +1217,7 @@ async function saveEdit(){
 
 // EDIT CUSTOMER INFO
 function openEditCus(){
-  if(!curOrder)return;
+  if(!curOrder){ window.toast('กำลังโหลดข้อมูลออเดอร์ กรุณารอสักครู่แล้วลองใหม่','er'); return; }
   $('cusName').value=curOrder.customer?.name||'';
   $('cusPhone').value=curOrder.customer?.phone||'';
   $('cusAddr').value=curOrder.customer?.address||'';
@@ -1224,7 +1236,7 @@ async function saveCus(){
 
 // EDIT SHOP INFO IN ORDER
 function openEditShopInfo(){
-  if(!curOrder)return;
+  if(!curOrder){ window.toast('กำลังโหลดข้อมูลออเดอร์ กรุณารอสักครู่แล้วลองใหม่','er'); return; }
   $('siName').value=curOrder.shopName||'';
   $('siPhone').value=curOrder.shopPhone||'';
   $('siAddr').value=curOrder.shopAddress||'';
@@ -1281,6 +1293,7 @@ async function loadShops(){
             <div class="lr-name">${esc(s.name)}</div>
             <div class="lr-sub">${s.phone||''}</div>
             <div class="lr-sub">${s.address||s.desc||''}</div>
+            ${s.isOpen===false&&s.closeReason?`<div class="lr-sub" style="color:#dc2626;font-weight:700">เหตุผลที่ปิด: ${esc(s.closeReason)}</div>`:''}
           </div>
           <div class="lr-wallet">
             <div class="lr-wallet-v" style="font-size:12px;color:${s.isOpen!==false?'var(--gn)':'#dc2626'}">${s.isOpen!==false?'เปิด':'ปิด'}</div>
@@ -1398,7 +1411,7 @@ window.toggleShopOpen=async function(sid,currentOpen,cb){
   }
   // เปิดร้าน: ไม่ต้องใส่เหตุผล
   try{
-    await updateDoc(doc(db,'shops',sid),{isOpen:true,updatedAt:serverTimestamp()});
+    await updateDoc(doc(db,'shops',sid),{isOpen:true,closeReason:'',updatedAt:serverTimestamp()});
     await addDoc(collection(db,'shops',sid,'statusLogs'),{action:'open',reason:'',at:serverTimestamp(),by:'Admin'});
     window.toast('เปิดร้านแล้ว','ok');
     loadShops();
@@ -1415,7 +1428,7 @@ window.confirmShopClose=async function(){
   const sid=shopCloseTargetId;
   $('shopCloseOv').classList.remove('show');
   try{
-    await updateDoc(doc(db,'shops',sid),{isOpen:false,updatedAt:serverTimestamp()});
+    await updateDoc(doc(db,'shops',sid),{isOpen:false,closeReason:reason,updatedAt:serverTimestamp()});
     await addDoc(collection(db,'shops',sid,'statusLogs'),{action:'close',reason,at:serverTimestamp(),by:'Admin'});
     window.toast('ปิดร้านแล้ว','ok');
     loadShops();
@@ -1501,8 +1514,26 @@ function renderGpSubTiers(){
 window.updGpSubTier=function(i,field,val){if(!gpSubTiers[i])return;gpSubTiers[i][field]=parseFloat(val)||0;};
 window.delGpSubTier=function(i){gpSubTiers.splice(i,1);renderGpSubTiers();};
 function addGpSubTier(){gpSubTiers.push({min:0,max:100,gp:0});renderGpSubTiers();}
+let delTiers=[];
+function renderDelTiers(){
+  const el=$('delTiersList');if(!el)return;
+  if(!delTiers.length){el.innerHTML='<div style="font-size:12px;color:var(--s);padding:10px 0">ยังไม่มีช่วงระยะทาง กด "+ เพิ่มช่วง"</div>';return;}
+  el.innerHTML=delTiers.map((t,i)=>`
+    <div style="display:flex;align-items:center;gap:6px;padding:10px 0;border-bottom:1px solid #f5f6f8">
+      <input class="pi" style="width:64px;height:38px;font-size:13px" type="number" step="0.1" placeholder="ต่ำสุด" value="${t.min}" oninput="window.updDelTier(${i},'min',this.value)">
+      <span style="color:var(--s);font-size:12px">–</span>
+      <input class="pi" style="width:64px;height:38px;font-size:13px" type="number" step="0.1" placeholder="สูงสุด" value="${t.max}" oninput="window.updDelTier(${i},'max',this.value)">
+      <span style="color:var(--s);font-size:12px">กม.</span>
+      <input class="pi" style="width:60px;height:38px;font-size:13px;margin-left:auto" type="number" placeholder="฿" value="${t.fee}" oninput="window.updDelTier(${i},'fee',this.value)">
+      <span style="color:var(--s);font-size:12px">฿</span>
+      <button type="button" onclick="window.delDelTier(${i})" style="width:34px;height:34px;border:none;border-radius:10px;background:var(--rl);color:var(--r);cursor:pointer;flex-shrink:0;font-size:16px;line-height:1">×</button>
+    </div>`).join('');
+}
+window.updDelTier=function(i,field,val){if(!delTiers[i])return;delTiers[i][field]=parseFloat(val)||0;};
+window.delDelTier=function(i){delTiers.splice(i,1);renderDelTiers();};
+function addDelTier(){delTiers.push({min:0,max:5,fee:9});renderDelTiers();}
 async function loadPricing(){
-  try{const snap=await getDoc(doc(db,'settings','pricing'));if(snap.exists()){const d=snap.data();$('gpPercent').value=d.gpPercent||34;$('gpSubPercent').value=d.gpSubPercent||0;$('walletPct').value=d.walletPercent||30;$('riderPct').value=d.riderPercent||70;$('freeDist').value=d.freeDistance||1.5;$('delFee').value=d.deliveryFee||9;gpTiers=Array.isArray(d.gpTiers)?d.gpTiers:[];gpSubTiers=Array.isArray(d.gpSubTiers)?d.gpSubTiers:[];}renderGpTiers();renderGpSubTiers();updPrev();}
+  try{const snap=await getDoc(doc(db,'settings','pricing'));if(snap.exists()){const d=snap.data();$('gpPercent').value=d.gpPercent||34;$('gpSubPercent').value=d.gpSubPercent||0;$('walletPct').value=d.walletPercent||30;$('riderPct').value=d.riderPercent||70;$('delFee').value=d.deliveryFee||9;gpTiers=Array.isArray(d.gpTiers)?d.gpTiers:[];gpSubTiers=Array.isArray(d.gpSubTiers)?d.gpSubTiers:[];delTiers=Array.isArray(d.deliveryTiers)?d.deliveryTiers:[];}renderGpTiers();renderGpSubTiers();renderDelTiers();updPrev();}
   catch(e){renderGpTiers();renderGpSubTiers();}
 }
 
@@ -1576,7 +1607,7 @@ async function savePricing(){
   const btn=$('savePricingBtn');
   if(btn){btn.disabled=true;btn.dataset.txt=btn.textContent;btn.textContent='กำลังบันทึก...';btn.style.transform='scale(.97)';btn.style.opacity='.85';}
   try{
-    await setDoc(doc(db,'settings','pricing'),{gpPercent:parseFloat($('gpPercent').value)||34,gpSubPercent:parseFloat($('gpSubPercent').value)||0,walletPercent:parseFloat($('walletPct').value)||30,riderPercent:parseFloat($('riderPct').value)||70,freeDistance:parseFloat($('freeDist').value)||1.5,deliveryFee:parseFloat($('delFee').value)||9,gpTiers,gpSubTiers,updatedAt:serverTimestamp()},{merge:true});
+    await setDoc(doc(db,'settings','pricing'),{gpPercent:parseFloat($('gpPercent').value)||34,gpSubPercent:parseFloat($('gpSubPercent').value)||0,walletPercent:parseFloat($('walletPct').value)||30,riderPercent:parseFloat($('riderPct').value)||70,deliveryFee:parseFloat($('delFee').value)||9,gpTiers,gpSubTiers,deliveryTiers:delTiers,updatedAt:serverTimestamp()},{merge:true});
     window.toast('บันทึกการตั้งค่าสำเร็จ','ok');
     if(btn){btn.textContent='✓ บันทึกแล้ว';btn.style.background='linear-gradient(135deg,var(--gn),#15803d)';}
   }catch(e){window.toast('บันทึกไม่สำเร็จ','er');if(btn)btn.textContent=btn.dataset.txt||'บันทึกการตั้งค่า';}
@@ -1637,6 +1668,7 @@ document.addEventListener('click', e => {
   if (id==='tglBtn'){statsOpen=!statsOpen;$('statsGrid').classList.toggle('open',statsOpen);t.textContent=statsOpen?'▲ ซ่อนสถิติ':'▼ ดูสถิติ';}
   else if(id==='addGpTierBtn')addGpTier();
   else if(id==='addGpSubTierBtn')addGpSubTier();
+  else if(id==='addDelTierBtn')addDelTier();
   else if(id==='addShopBtn')openAddShop();
   else if(id==='addRiderBtn')window.openAddRider();
   else if(id==='savePricingBtn')savePricing();
