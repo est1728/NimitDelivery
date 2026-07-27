@@ -764,9 +764,10 @@ function loadMenus() {
       // ทำให้พิมพ์ต่อไม่ติดเลย แป้นพิมพ์อาจค้างอยู่แต่ตัวอักษรจะไม่ขึ้น) ค่าที่พิมพ์ค้างไว้ปลอดภัยอยู่แล้วใน
       // อาร์เรย์ menus ด้านบน แค่รอ render จริงตอนที่ผู้ใช้เลิกโฟกัสช่องนั้นแทน ไม่เสียข้อมูลอะไรไป
       const active = document.activeElement;
-      const openCard = openMenuId ? document.getElementById(`card-${openMenuId}`) : null;
-      const typingInOpenCard = openCard && active && openCard.contains(active) && (active.tagName==='INPUT'||active.tagName==='TEXTAREA');
-      if(typingInOpenCard) return;
+      // เดิมเช็คแค่ในการ์ดเมนูที่เปิดอยู่ตอนนั้น พลาดจุดอื่นๆที่กำลังพิมพ์อยู่ได้ (เช่น ป๊อบอัพเพิ่มเมนูจำนวนมาก,
+      // ช่องข้อมูลร้านด้านบน) เปลี่ยนเป็นเช็คกว้างๆว่า "กำลังพิมพ์อยู่ในช่องไหนก็ตามบนหน้านี้หรือเปล่า" ปลอดภัยกว่า
+      const typingAnywhere = active && (active.tagName==='INPUT'||active.tagName==='TEXTAREA');
+      if(typingAnywhere) return;
 
       // สำคัญมาก (เคสแอดมิน 2 คนแก้เมนูพร้อมกัน): ถ้าแค่ "ข้อมูลของเมนูบางอัน" เปลี่ยน โดยรายชื่อเมนู/หมวดหมู่/ลำดับ
       // เหมือนเดิมทุกอย่าง ไม่จำเป็นต้องรื้อสร้างทั้งลิสต์ใหม่หมด (ซึ่งจะไปรบกวนการ์ดอื่นๆที่คนอื่นอาจกำลังเปิดดู/แก้อยู่
