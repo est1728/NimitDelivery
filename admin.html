@@ -1158,6 +1158,28 @@ async function prevSt(){
 }
 
 // ASSIGN
+// ฟังก์ชันแจ้งเตือนกลาง — ใช้ได้ทั้งแบบ "กระจายไปทุกคนในบทบาทนี้" (เช่น แอดมินทุกคน/ไรเดอร์ทุกคน)
+// หรือ "ส่งหาคนใดคนหนึ่งเจาะจง" (ระบุ {uid, role} เช่น ไรเดอร์คนเดียว หรือลูกค้าคนเดียวตามเบอร์โทร)
+async function sendPush(target, title, body, opts={}){
+  try{
+    let tokens = [];
+    if(Array.isArray(target)){
+      for(const role of target){
+        const snap = await getDocs(query(collection(db,'fcmTokens'), where('role','==',role)));
+        snap.forEach(d=>{ const t=d.data().token; if(t) tokens.push(t); });
+      }
+    } else if(target?.uid && target?.role){
+      const snap = await getDoc(doc(db,'fcmTokens', target.uid+'_'+target.role));
+      if(snap.exists() && snap.data().token) tokens.push(snap.data().token);
+    }
+    if(!tokens.length) return;
+    fetch('/api/send-order-notification',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ tokens, title, body, url: opts.url||'/' })
+    }).catch(()=>{});
+  }catch(e){}
+}
+
 async function openAssign(){
   if(!curOrder)return;asgDocId=curDocId;
   const cfm=$('cfmAsgnBtn');if(cfm){cfm.disabled=false;cfm.textContent='ยืนยัน';}
@@ -1189,6 +1211,7 @@ async function confirmAssign(){
   const btn=$('cfmAsgnBtn');
   btn.disabled=true; btn.textContent='กำลังโยน...';
   const assignedOrder=orders.find(o=>o.docId===asgDocId)||curOrder;
+  const prevRiderId=assignedOrder?.riderId||''; // ไรเดอร์คนเดิมก่อนโยนงาน (ถ้ามี) เก็บไว้แจ้งเตือนทีหลัง
   // ไม่ให้ status ถอยหลัง: pending → accepted, ส่วน accepted/picking/arrived/delivering คงไว้
   const curSt=(assignedOrder?.status)||'pending';
   const keepStatus=['pending','done','rejected'].includes(curSt)?'accepted':curSt;
@@ -1198,8 +1221,16 @@ async function confirmAssign(){
     closeAssign();
     window.loadOrders(); // refresh ทันทีหลัง assign
     window.toast('โยนงานให้ '+r.name+' แล้ว','ok');
-    sendPush(['rider'],'📦 ถูกมอบหมายงาน!','ออเดอร์ '+(asgOrder?.orderId||asgDocId),{url:'/rider.html'});
-    sendPush(['customer'],'📦 ไรเดอร์รับงานแล้ว','ออเดอร์ '+(asgOrder?.orderId||asgDocId)+' · '+r.name,{url:'/track.html'});
+    // แจ้งไรเดอร์คนเดิม (ถ้ามีและเป็นคนละคนกับที่เพิ่งโยนให้) ว่างานถูกดึงออกไปแล้ว
+    if(prevRiderId && prevRiderId!==r.id){
+      sendPush({uid:prevRiderId,role:'rider'},'⚠️ งานถูกดึงออกแล้ว','ออเดอร์ '+(asgOrder?.orderId||asgDocId)+' ถูกมอบหมายให้คนอื่นแล้ว',{url:'/rider.html'});
+    }
+    // แจ้งไรเดอร์คนใหม่ที่เพิ่งได้รับงาน
+    sendPush({uid:r.id,role:'rider'},'📦 ถูกมอบหมายงาน!','ออเดอร์ '+(asgOrder?.orderId||asgDocId),{url:'/rider.html'});
+    // แจ้งลูกค้าเจ้าของออเดอร์นี้เท่านั้น (ไม่ใช่ลูกค้าทุกคน)
+    if(asgOrder?.customer?.phone){
+      sendPush({uid:asgOrder.customer.phone,role:'customer'},'📦 ไรเดอร์รับงานแล้ว','ออเดอร์ '+(asgOrder?.orderId||asgDocId)+' · '+r.name,{url:'/track.html'});
+    }
   }catch(e){
     window.toast('โยนงานไม่สำเร็จ','er');
   }
@@ -1220,12 +1251,20 @@ window.confirmCancelOrder=async function(){
   if(!note){document.getElementById('cancelNote').style.borderColor='#dc2626';document.getElementById('cancelNote').focus();window.toast('กรุณาใส่เหตุผล','er');return;}
   document.getElementById('cancelNote').style.borderColor='#e2e8f0';
   try{
+    const cancelledOrder = curOrder; // เก็บไว้ก่อนโดน filter ออกจากลิสต์ ใช้แจ้งเตือนต่อ
     await updateDoc(doc(db,'orders',curDocId),{status:'rejected',cancelNote:note,updatedAt:serverTimestamp()});
     orders=orders.filter(o=>o.docId!==curDocId); // เอาออกจากลิสต์ทันที ไม่ต้องรอ poll รอบถัดไป
     renderOrders();
     window.closeCancelOrder();
     window.toast('ยกเลิกออเดอร์แล้ว','ok');
     showNotif('❌','ยกเลิกออเดอร์แล้ว',note,'linear-gradient(135deg,#dc2626,#b91c1c)');
+    // แจ้งเตือนยกเลิกออเดอร์ → แอดมิน + ไรเดอร์ที่รับงานอยู่ (ถ้ามี) + ร้านค้า
+    if(cancelledOrder){
+      const oid = cancelledOrder.orderId||curDocId;
+      sendPush(['admin'],'❌ ออเดอร์ถูกยกเลิก',oid+' — '+note,{url:'/admin.html'});
+      if(cancelledOrder.riderId) sendPush({uid:cancelledOrder.riderId,role:'rider'},'❌ ออเดอร์ถูกยกเลิก',oid+' — '+note,{url:'/rider.html'});
+      if(cancelledOrder.shopId) sendPush({uid:cancelledOrder.shopId,role:'shop'},'❌ ออเดอร์ถูกยกเลิก',oid+' — '+note,{url:'/shop-admin.html'});
+    }
     closeDetail();
     swPg('ordersPage');
   }catch(e){window.toast('ไม่สำเร็จ: '+e.message,'er');}
@@ -1755,6 +1794,17 @@ window.onAdTypeChange=function(v){
   document.getElementById('adImgRow').style.display=v==='image'?'':'none';
   document.getElementById('adVidRow').style.display=v==='video'?'':'none';
 };
+// แปลง base64 data URL เป็น Blob เอง ไม่ต้องพึ่ง fetch() ซึ่งไม่เสถียรกับ data: URL บนมือถือ/เว็บวิวบางรุ่น
+function dataURLtoBlob(dataURL){
+  const parts = dataURL.split(',');
+  const mimeMatch = parts[0].match(/:(.*?);/);
+  const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+  const binary = atob(parts[1]);
+  const arr = new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++) arr[i]=binary.charCodeAt(i);
+  return new Blob([arr], {type:mime});
+}
+
 window.saveAd=async function(){
   const type=document.getElementById('adType').value;
   const caption=document.getElementById('adCaption').value.trim();
@@ -1771,8 +1821,9 @@ window.saveAd=async function(){
     if(type==='image'){
       if(_cropBase64){
         showUploadProgress('อัพโหลดรูปภาพ...');
-        const res=await fetch(_cropBase64);
-        const blob=await res.blob();
+        // เดิมใช้ fetch(_cropBase64) แปลงเป็น blob ซึ่งไม่เสถียรบนมือถือ/เว็บวิวบางรุ่น (เจอ error "Failed to fetch" จริง)
+        // แปลงเองด้วยมือแทน ไม่ต้องพึ่ง fetch() กับ data: URL เลย เชื่อถือได้กว่า
+        const blob=dataURLtoBlob(_cropBase64);
         const f=new File([blob],'ad_'+Date.now()+'.jpg',{type:'image/jpeg'});
         data.imgUrl=await uploadFile(f,'ads/images');
         _cropBase64='';
