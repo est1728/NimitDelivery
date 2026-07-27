@@ -124,16 +124,6 @@ window.nextPage = async function(){
   btn.disabled=true; btn.textContent="กำลังเข้า...";
 
   const prevPhone = localStorage.getItem("customerPhone");
-  const localAddrs = JSON.parse(localStorage.getItem("addresses")||"[]");
-  // เช็คที่อยู่ที่แคชไว้ใน localStorage ได้เฉพาะตอนเป็นเบอร์เดิมที่เคยล็อกอินค้างไว้เท่านั้น
-  // ถ้าเป็นคนละเบอร์กับที่แคชไว้ (สลับเบอร์ทดสอบ/ใช้เครื่องเดียวกันคนละคน) ต้องเช็ค Firestore ใหม่เสมอ
-  // ไม่งั้นจะข้ามการเช็ค/สร้างข้อมูลลูกค้าใหม่ไปเลย เหมือนสวมรอยใช้ข้อมูลเบอร์เดิมที่แคชไว้ผิดคน
-  // (นี่คือสาเหตุจริงที่เบอร์รองไม่เคยขึ้นในหน้า customers.html — โค้ดไม่เคยแตะ Firestore ให้เบอร์นั้นเลย)
-  if(localAddrs.length > 0 && prevPhone===phone){
-    localStorage.setItem("customerPhone", phone);
-    location.replace("./shops.html"); // ถือว่าล็อกอินสำเร็จแล้ว ไม่ควรย้อนกลับมาหน้ากรอกเบอร์ได้อีก
-    return;
-  }
   localStorage.setItem("customerPhone", phone);
   if(prevPhone && prevPhone!==phone){
     localStorage.removeItem("addresses");
@@ -141,7 +131,8 @@ window.nextPage = async function(){
     localStorage.removeItem("defaultAddress");
   }
 
-  // ไม่มีใน localStorage → เช็ค Firestore
+  // เช็ค Firestore เสมอทุกครั้ง ไม่เชื่อแคชใน localStorage เพียงอย่างเดียวอีกต่อไป
+  // (กันเคสลูกค้าที่ยังกรอกที่อยู่ไม่เสร็จ/ไม่เคยกรอกเลย ไม่ให้หลุดเข้าหน้าร้านไปได้โดยไม่ผ่านการลงทะเบียนจริง)
   try{
     const snap = await getDoc(doc(db,"customers",phone));
     const d = snap.exists() ? snap.data() : null;
