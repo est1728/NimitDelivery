@@ -624,6 +624,13 @@ async function initShop(){
     document.getElementById("shopNameTop").textContent=shopData.name||"ร้านค้า";
     document.getElementById("sbName").textContent=shopData.name||"ร้านค้า";
     document.getElementById("sbSub").textContent=shopData.desc||"จัดการข้อมูลร้าน";
+    // โหลด fcm.js ตอนนี้เท่านั้น (หลัง shopData.id พร้อมใช้แล้วจริงๆ) พร้อมตั้ง role/uid เฉพาะร้านนี้ก่อนเสมอ
+    // เดิมไม่เคยตั้ง uid เฉพาะตัวเลย ทำให้ทุกร้านที่ยังไม่ได้ตั้งค่านี้ชนกันหมด เขียนทับ token ของกันและกัน
+    window._fcmRole = "shop";
+    window._fcmUid = shopData.id;
+    const fcmScript = document.createElement('script');
+    fcmScript.src = 'fcm.js';
+    document.body.appendChild(fcmScript);
     if(shopData.avatarUrl){
       document.getElementById("shopAvatar").innerHTML='<img src="'+shopData.avatarUrl+'">';
       document.getElementById("sbAvatar").innerHTML='<img src="'+shopData.avatarUrl+'">';
@@ -1206,8 +1213,7 @@ function renderShopTrendChart(data){
 
 
 </script>
-<script>window._fcmRole="shop";</script>
-<script src="fcm.js"></script>
+
 <!-- UPLOAD PROGRESS -->
 <div id="uploadProgress" style="display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1565C0;color:#fff;border-radius:20px;padding:10px 20px;z-index:300;min-width:200px;box-shadow:0 4px 20px rgba(0,0,0,.2)">
   <div id="uploadLabel" style="font-size:12px;font-weight:600;margin-bottom:6px;text-align:center">กำลังอัพโหลด...</div>
