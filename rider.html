@@ -651,6 +651,15 @@ async function initRider(){
     document.getElementById("accPhone").textContent=riderData.phone||"-";
     document.getElementById("accPlate").textContent=riderData.plate||"-";
     document.getElementById("accId").textContent=riderData.idCard||"-";
+    // โหลด fcm.js ตอนนี้เท่านั้น (หลัง riderData.id พร้อมใช้แล้วจริงๆ) พร้อมตั้งค่า role/uid ให้ถูกต้องก่อนเสมอ
+    // เดิมมีปัญหา 2 อย่างซ้อนกัน: (1) บรรทัดตั้งค่า role ในไฟล์นี้เพี้ยน/ขาดหาย ทำให้ไม่เคยตั้งเป็น "rider" จริงๆเลย
+    // (โดนนับเป็น "customer" แทนตาม fallback ของ fcm.js) (2) ไม่เคยตั้ง uid เฉพาะตัวเลย ทำให้ไรเดอร์ทุกคนที่ยังไม่ได้
+    // ตั้งค่านี้ชนกันหมด เขียนทับ token ของกันและกันในเอกสารเดียว (fcmTokens/unknown_customer) — เหลือแค่คนล่าสุดที่ได้รับแจ้งเตือนจริง
+    window._fcmRole = "rider";
+    window._fcmUid = riderData.id;
+    const fcmScript = document.createElement('script');
+    fcmScript.src = 'fcm.js';
+    document.body.appendChild(fcmScript);
     updateDateDisplay();
     showPage("mainPage");
     reqNotifPerm();
@@ -1091,27 +1100,6 @@ window.confirmAction=async function(){
   if(!pendingNextStatus||!currentOrderDocId) return;
   try{
     await updateDoc(doc(db,"orders",currentOrderDocId),{status:pendingNextStatus,updatedAt:serverTimestamp()});
-    // แจ้งเตือนลูกค้าทันทีตามสถานะที่เพิ่งเปลี่ยน — ดึง token จริงจาก fcmTokens ที่ fcm.js บันทึกไว้ตอนลูกค้าเปิดแจ้งเตือน
-    // (คีย์ตามรูปแบบเดียวกับ fcm.js: uid_role คือ เบอร์โทรลูกค้า + "_customer")
-    // ไม่รอผลลัพธ์ (fire-and-forget) และไม่ทำให้การอัปเดตสถานะล้มเหลวไปด้วยถ้าแจ้งเตือนพลาด
-    const customerMsg = {
-      accepted:{title:'ไรเดอร์รับงานแล้ว 🛵',body:'ไรเดอร์กำลังเตรียมไปรับอาหารจากร้านค้าของคุณ'},
-      picking:{title:'ไรเดอร์กำลังไปร้าน',body:'ไรเดอร์กำลังเดินทางไปที่ร้านค้าแล้ว'},
-      arrived:{title:'ไรเดอร์ถึงร้านแล้ว',body:'ไรเดอร์ถึงร้านค้าแล้ว กำลังรอรับอาหารของคุณ'},
-      delivering:{title:'กำลังนำอาหารมาส่ง 🍽️',body:'ไรเดอร์รับอาหารแล้ว กำลังเดินทางมาส่งคุณ'},
-      done:{title:'จัดส่งสำเร็จแล้ว ✅',body:'ขอบคุณที่ใช้บริการ Nimit Delivery'},
-    }[pendingNextStatus];
-    const custPhone = currentOrder?.customer?.phone;
-    if(customerMsg && custPhone){
-      getDoc(doc(db,'fcmTokens',custPhone+'_customer')).then(snap=>{
-        const custToken = snap.exists() ? snap.data().token : null;
-        if(!custToken) return;
-        fetch('/api/send-order-notification',{
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ token:custToken, title:customerMsg.title, body:customerMsg.body, orderId: currentOrder?.orderId||currentOrderDocId, url:'/track.html' })
-        }).catch(()=>{});
-      }).catch(()=>{});
-    }
     // หักกระเป๋าไรเดอร์อัตโนมัติเมื่อส่งสำเร็จ
     if(pendingNextStatus==='done'&&currentOrder){
       const cut=currentOrder.walletCut||0;
@@ -1506,10 +1494,5 @@ function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt
 window.closeExtraPanel=function(id){ document.getElementById(id)?.classList.remove('show'); }
 
 initRider();
-
-
-
-fcmRole="rider";</script>
-<script src="fcm.js"></script>
 </body>
 </html>
