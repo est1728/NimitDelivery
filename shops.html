@@ -447,7 +447,10 @@ function loadShops(){
   navigator.geolocation?.getCurrentPosition(p=>{
     userLat=p.coords.latitude; userLng=p.coords.longitude;
     allShops.forEach(s=>{ if(s.lat&&s.lng) s._dist=calcDist(userLat,userLng,s.lat,s.lng); });
-    renderShops(allShops);
+    // สำคัญ: ตำแหน่ง GPS บางทีตอบกลับเร็วกว่าข้อมูลร้านค้าจริงจาก Firestore มาก ถ้า allShops ยังว่างอยู่ตอนนี้
+    // (ยังไม่มีข้อมูลจริงมาเลย) ห้าม render ทับ เดี๋ยวจะโชว์ "ไม่พบร้านค้า" ทั้งที่จริงๆแค่ยังโหลดไม่เสร็จ
+    // ปล่อยให้ onSnapshot ตัวจริงเป็นคน render เองตอนข้อมูลมาถึง (ระยะทางที่คำนวณไว้ตรงนี้จะถูกใช้ตอนนั้นอยู่แล้ว)
+    if(allShops.length) renderShops(allShops);
   },()=>{},{timeout:3000});
 }
 
