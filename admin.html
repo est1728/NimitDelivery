@@ -300,6 +300,11 @@ body{background:var(--g);min-height:100vh;}
       <div class="sidebar-item-text"><div class="sidebar-item-title">กระเป๋ากลาง</div><div class="sidebar-item-sub">ยอดคงเหลือ เติมเงิน ประวัติ</div></div>
       <div class="sidebar-arrow"><svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></div>
     </button>
+    <button class="sidebar-item" onclick="window.enableAdminNotif()">
+      <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+      <div class="sidebar-item-text"><div class="sidebar-item-title">เปิดแจ้งเตือน</div><div class="sidebar-item-sub" id="adminNotifStatus">กดเพื่อขอสิทธิ์แจ้งเตือน</div></div>
+      <div class="sidebar-arrow"><svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></div>
+    </button>
   </div>
 </div>
 
@@ -2053,8 +2058,24 @@ window.confirmCrop=function(){
 };
 
 </script>
-<script>window._fcmRole="admin";</script>
+<script>window._fcmRole="admin";window._fcmManual=true;</script>
 <script src="fcm.js"></script>
+<script type="module">
+window.enableAdminNotif = async function(){
+  const statusEl = document.getElementById('adminNotifStatus');
+  if(typeof Notification!=='undefined' && Notification.permission==='denied'){
+    alert('เบราว์เซอร์เคยปฏิเสธการแจ้งเตือนไว้ก่อนแล้ว ต้องไปเปิดเองในตั้งค่าเบราว์เซอร์ก่อนถึงจะเปิดจากตรงนี้ได้');
+    return;
+  }
+  if(statusEl) statusEl.textContent = 'กำลังขอสิทธิ์...';
+  const res = await window.enableFcmNotifications?.();
+  if(statusEl) statusEl.textContent = res?.ok ? 'เปิดใช้งานแล้ว ✓' : 'ยังไม่ได้เปิด ลองใหม่ได้';
+};
+if(typeof Notification!=='undefined' && Notification.permission==='granted'){
+  const statusEl = document.getElementById('adminNotifStatus');
+  if(statusEl) statusEl.textContent = 'เปิดใช้งานแล้ว ✓';
+}
+</script>
 <!-- AD SHEET -->
 <div id="adCreateSheet" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:200;align-items:flex-end;">
   <div style="background:#fff;border-radius:24px 24px 0 0;width:100%;padding:20px 20px 44px;max-height:90vh;overflow-y:auto">
