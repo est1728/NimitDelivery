@@ -701,8 +701,16 @@ async function reqNotifPerm(){
   }
 }
 function showOSNotif(title,body){
-  if('Notification' in window&&Notification.permission==='granted'){
-    new Notification(title,{body,tag:'nimit-rider',renotify:true});
+  if(!('Notification' in window)||Notification.permission!=='granted') return;
+  // ตอนนี้มี service worker ที่ fcm.js ลงทะเบียนไว้คอยควบคุมหน้าอยู่ (จำเป็นสำหรับ push notification)
+  // เบราว์เซอร์บางตัว (โดยเฉพาะ Chrome บน Android) จะห้ามใช้ new Notification(...) ตรงๆอีกต่อไปตอนมี
+  // service worker ควบคุมอยู่ ต้องเรียกผ่าน serviceWorker.showNotification() แทนเท่านั้น ไม่งั้น error
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.ready.then(reg=>{
+      reg.showNotification(title,{body,tag:'nimit-rider',renotify:true});
+    }).catch(()=>{});
+  } else {
+    try{ new Notification(title,{body,tag:'nimit-rider',renotify:true}); }catch(e){}
   }
 }
 // ============ SOUND ============
