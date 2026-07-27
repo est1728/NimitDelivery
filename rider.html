@@ -1485,9 +1485,6 @@ function renderStmtChart(){
     <div class="legend-item"><div class="legend-dot" style="background:#cbd5e1"></div><div style="flex:1">ยอดรวมทั้งหมด</div><div style="font-weight:700">฿${totalGrand.toLocaleString()}</div></div>
   `;
 }
-s=function(){
-  if(riderData) location.href='reviews.html?type=rider&id='+riderData.id+'&name='+encodeURIComponent(riderData.name||'ไรเดอร์');
-};
 window.openMsgTab=function(){
   window.switchMainTab('messages');
 };
