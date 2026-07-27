@@ -138,6 +138,14 @@ body{background:var(--gray);min-height:100vh;}
     <div class="detail-status-text" id="d-statusText">รอรับออเดอร์</div>
     <div class="timeline-wrap" id="d-timeline"></div>
   </div>
+  <div id="notifBanner" style="display:none;margin:0 16px 14px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px">
+    <div style="font-size:24px">🔔</div>
+    <div style="flex:1">
+      <div style="font-size:13px;font-weight:800;color:#1e3a8a">เปิดแจ้งเตือนสถานะออเดอร์</div>
+      <div style="font-size:12px;color:#3b5bab;margin-top:2px">รู้ทันทีเมื่อไรเดอร์รับงาน ถึงร้าน หรือกำลังมาส่ง</div>
+    </div>
+    <button onclick="window.enableOrderNotifications()" style="background:#2563eb;color:#fff;border:none;border-radius:10px;padding:9px 14px;font-size:13px;font-weight:800;cursor:pointer;flex-shrink:0">เปิดเลย</button>
+  </div>
   <div class="detail-container">
     <div class="done-banner" id="doneBanner" style="display:none">
       <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
@@ -174,7 +182,8 @@ body{background:var(--gray);min-height:100vh;}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, onSnapshot, collection, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, onSnapshot, collection, query, where, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
 // local aliases for cross-scope calls
 const openDetail=(...a)=>window.openDetail(...a);
 
@@ -188,6 +197,10 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+// ⚠️ ต้องเอา VAPID key ที่คัดลอกไว้จากขั้นตอน "Generate key pair" มาแทนที่ตรงนี้ ไม่งั้นแจ้งเตือนจะยังใช้งานไม่ได้
+const VAPID_KEY = "ใส่ VAPID_KEY_ของคุณตรงนี้";
+let messaging = null;
+try{ messaging = getMessaging(app); }catch(e){ console.warn('Messaging init failed:', e); }
 
 const statusSteps = [
   { key:"pending",    label:"รอรับ",      icon:'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>' },
@@ -360,8 +373,41 @@ window.openDetail=function(docId){
   currentDetailDocId=docId;
   document.getElementById("listPage").classList.remove("active");
   document.getElementById("detailPage").classList.add("active");
+  // โชว์แถบขอเปิดแจ้งเตือน เฉพาะตอนที่ยังไม่เคยอนุญาต/ยังไม่เคยปฏิเสธมาก่อน (คือยังเป็น "default" อยู่)
+  const banner = document.getElementById("notifBanner");
+  if(banner) banner.style.display = (typeof Notification!=='undefined' && Notification.permission==='default') ? 'flex' : 'none';
   onSnapshot(doc(db,"orders",docId),snap=>{
     if(snap.exists()) renderDetail({docId,...snap.data()});
+  });
+}
+window.enableOrderNotifications = async function(){
+  if(!currentDetailDocId){ return; }
+  if(typeof Notification==='undefined'){ alert('เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือน'); return; }
+  try{
+    const perm = await Notification.requestPermission();
+    if(perm!=='granted'){
+      document.getElementById("notifBanner").style.display='none';
+      return;
+    }
+    const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+    if(token){
+      await updateDoc(doc(db,"orders",currentDetailDocId), { customerFcmToken: token });
+    }
+    document.getElementById("notifBanner").style.display='none';
+  }catch(e){
+    console.error('เปิดแจ้งเตือนไม่สำเร็จ:', e);
+    alert('เปิดแจ้งเตือนไม่สำเร็จ ลองใหม่อีกครั้งได้ครับ');
+  }
+}
+// รับแจ้งเตือนตอนแอปเปิดอยู่ (foreground) — ไม่ต้องพึ่ง service worker เพราะเปิดหน้าอยู่แล้ว
+if(messaging){
+  onMessage(messaging, (payload)=>{
+    const title = payload.notification?.title || 'Nimit Delivery';
+    const body = payload.notification?.body || '';
+    if('Notification' in window && Notification.permission==='granted'){
+      new Notification(title, { body, icon:'/icon-192.png' });
+    }
   });
 }
 window.showList=function(){
