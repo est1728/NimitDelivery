@@ -165,7 +165,7 @@ body{background:var(--gray);min-height:100vh;padding-bottom:120px;}
 </script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, getDoc, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 // local aliases for cross-scope calls
 const closeAddrSheet=(...a)=>window.closeAddrSheet(...a);
 
@@ -300,6 +300,26 @@ window.confirmAddr=function(){
 function genOrderId(){ return "NM-"+String(Math.floor(1000+Math.random()*9000)); }
 function genGroupId(){ return "GRP-"+Date.now().toString(36)+Math.random().toString(36).substring(2,6); }
 
+// แจ้งเตือนออเดอร์ใหม่ → แอดมิน + ไรเดอร์ทุกคน + ร้านนั้นๆ (fire-and-forget ไม่รอผล ไม่ทำให้การสั่งซื้อล้มเหลวถ้าแจ้งเตือนพลาด)
+async function notifyNewOrder(shopId, shopName, orderId){
+  try{
+    const tokens = [];
+    const [adminSnap, riderSnap, shopSnap] = await Promise.all([
+      getDocs(query(collection(db,'fcmTokens'), where('role','==','admin'))),
+      getDocs(query(collection(db,'fcmTokens'), where('role','==','rider'))),
+      getDoc(doc(db,'fcmTokens', shopId+'_shop')),
+    ]);
+    adminSnap.forEach(d=>{ const t=d.data().token; if(t) tokens.push(t); });
+    riderSnap.forEach(d=>{ const t=d.data().token; if(t) tokens.push(t); });
+    if(shopSnap.exists() && shopSnap.data().token) tokens.push(shopSnap.data().token);
+    if(!tokens.length) return;
+    fetch('/api/send-order-notification',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ tokens, title:'มีออเดอร์ใหม่เข้ามา 🔔', body:`${orderId} จาก ${shopName||'ร้านค้า'}`, orderId, url:'/admin.html' })
+    }).catch(()=>{});
+  }catch(e){}
+}
+
 window.placeOrder=async function(){
   const btn=document.getElementById("orderBtn");
   const addr=addresses[selectedAddrIdx]||addresses[0];
@@ -336,6 +356,7 @@ window.placeOrder=async function(){
         paymentMethod:"cash",status:"pending",createdAt:serverTimestamp()
       });
       orderDocs.push({docId:ref.id,orderId,shopName:grp.shopName});
+      notifyNewOrder(shopId, grp.shopName, orderId);
     }
     // ลบเฉพาะร้านที่สั่ง
     const remaining=JSON.parse(localStorage.getItem("cart")||"{}");
