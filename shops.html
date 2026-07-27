@@ -426,6 +426,10 @@ function loadShops(){
   <style>@keyframes shopsLoadSpin{to{transform:rotate(360deg)}}</style>`;
   if(shopsUnsub) shopsUnsub();
   shopsUnsub=onSnapshot(collection(db,"shops"), snap=>{
+    // ถ้าเป็นผลลัพธ์ที่ยังไม่ยืนยันจากเซิร์ฟเวอร์ (มาจากแคชในเครื่องที่อาจจะยังว่างเปล่า/ไม่ครบ) แล้วดันว่างเปล่าพอดี
+    // ห้ามเชื่อว่า "ไม่มีร้านจริงๆ" เด็ดขาด เดี๋ยวจะกระพริบขึ้นข้อความ "ไม่พบร้านค้า" ให้เห็นแวบเดียวก่อนข้อมูลจริงมาถึง
+    // ปล่อยให้จอที่กำลังโหลดอยู่ค้างไว้ก่อน รอผลจากเซิร์ฟเวอร์จริงๆค่อยตัดสินใจ
+    if(snap.empty && snap.metadata.fromCache) return;
     allShops = [];
     snap.forEach(d => allShops.push({id:d.id,...d.data()}));
     if(!allShops.length){
