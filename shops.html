@@ -169,7 +169,7 @@ body{background:var(--g);min-height:100vh;padding-bottom:28px;}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const db = getFirestore(initializeApp({
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -208,12 +208,25 @@ function updCart(){
 updCart();
 
 // ACTIVE ORDER
-const ords=JSON.parse(localStorage.getItem("currentOrderDocs")||"[]");
-if(ords.length && ords[0]?.docId){
+// เดิมเช็คแค่ localStorage ("currentOrderDocs") ซึ่งจะถูกเขียนก็ต่อเมื่อสั่งผ่าน checkout.html บนเครื่องนี้เองเท่านั้น
+// ถ้าแอดมินสร้างออเดอร์ให้จากหลังบ้าน (คนละเครื่อง) จะไม่มีทางรู้เลยว่ามีออเดอร์ค้างอยู่ ทำให้แถบนี้ไม่ขึ้นทั้งที่จริงๆมีออเดอร์
+// อยู่ — เปลี่ยนมาถามฐานข้อมูลจริงตามเบอร์โทรลูกค้าที่ล็อกอินอยู่แทน ครอบคลุมทุกกรณีที่ออเดอร์ถูกสร้างขึ้นมา
+let activeOrderUnsub=null;
+async function checkActiveOrder(){
+  const phone = JSON.parse(localStorage.getItem("customerData")||"{}").phone || localStorage.getItem("customerPhone");
+  if(!phone) return;
   try{
-    onSnapshot(doc(db,"orders",ords[0].docId), snap=>{
-      if(!snap.exists()) return;
-      const o=snap.data();
+    const snap = await getDocs(query(collection(db,"orders"), where("customer.phone","==",phone)));
+    const active = [];
+    snap.forEach(d=>{ const o=d.data(); if(o.status!=="done" && o.status!=="rejected") active.push({docId:d.id,...o}); });
+    if(!active.length) return;
+    // เอาออเดอร์ล่าสุดสุด (เผื่อมีมากกว่า 1 ออเดอร์ที่ยังไม่เสร็จพร้อมกัน)
+    active.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    const docId = active[0].docId;
+    if(activeOrderUnsub) activeOrderUnsub();
+    activeOrderUnsub = onSnapshot(doc(db,"orders",docId), snap2=>{
+      if(!snap2.exists()) return;
+      const o=snap2.data();
       if(o.status==="done"||o.status==="rejected"){
         document.getElementById("aoEl").style.display="none"; return;
       }
@@ -224,9 +237,12 @@ if(ords.length && ords[0]?.docId){
       const idx=SS.indexOf(o.status);
       document.getElementById("aoBar").innerHTML=SS.slice(0,-1).map((_,i)=>
         `<div class="ao-seg${i<idx?" d":i===idx?" c":""}"></div>`).join("");
+      // เก็บไว้ใน localStorage ด้วย ให้ track.html เปิดเจอออเดอร์นี้ได้เลยเวลากดเข้าไปจากแถบนี้
+      localStorage.setItem("currentOrderDocs",JSON.stringify([{docId,orderId:o.orderId,shopName:o.shopName}]));
     });
   }catch(e){}
 }
+checkActiveOrder();
 
 // ADS
 let curAd=0, totalAds=0, adTimer=null;
