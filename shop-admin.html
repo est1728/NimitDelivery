@@ -372,6 +372,10 @@ body{background:var(--gray);min-height:100vh;overscroll-behavior-y:none;}
       <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
       <div class="sidebar-item-text"><div class="sidebar-item-title">รีวิวร้านของฉัน</div><div class="sidebar-item-sub">คะแนนดาวและความคิดเห็น</div></div>
     </button>
+    <button class="sidebar-item" onclick="window.enableShopNotif()">
+      <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+      <div class="sidebar-item-text"><div class="sidebar-item-title">เปิดแจ้งเตือน</div><div class="sidebar-item-sub" id="shopNotifStatus">กดเพื่อขอสิทธิ์แจ้งเตือน</div></div>
+    </button>
   </div>
 </div>
 
@@ -626,11 +630,27 @@ async function initShop(){
     document.getElementById("sbSub").textContent=shopData.desc||"จัดการข้อมูลร้าน";
     // โหลด fcm.js ตอนนี้เท่านั้น (หลัง shopData.id พร้อมใช้แล้วจริงๆ) พร้อมตั้ง role/uid เฉพาะร้านนี้ก่อนเสมอ
     // เดิมไม่เคยตั้ง uid เฉพาะตัวเลย ทำให้ทุกร้านที่ยังไม่ได้ตั้งค่านี้ชนกันหมด เขียนทับ token ของกันและกัน
+    // เปลี่ยนเป็นให้กดปุ่มเปิดเองแทน auto-prompt (เบราว์เซอร์รุ่นใหม่มักบล็อกการขอสิทธิ์ที่ไม่ได้มาจากการกดของผู้ใช้จริง)
     window._fcmRole = "shop";
     window._fcmUid = shopData.id;
+    window._fcmManual = true;
     const fcmScript = document.createElement('script');
     fcmScript.src = 'fcm.js';
     document.body.appendChild(fcmScript);
+    window.enableShopNotif = async function(){
+      const statusEl = document.getElementById('shopNotifStatus');
+      if(typeof Notification!=='undefined' && Notification.permission==='denied'){
+        alert('เบราว์เซอร์เคยปฏิเสธการแจ้งเตือนไว้ก่อนแล้ว ต้องไปเปิดเองในตั้งค่าเบราว์เซอร์ก่อนถึงจะเปิดจากตรงนี้ได้');
+        return;
+      }
+      if(statusEl) statusEl.textContent = 'กำลังขอสิทธิ์...';
+      const res = await window.enableFcmNotifications?.();
+      if(statusEl) statusEl.textContent = res?.ok ? 'เปิดใช้งานแล้ว ✓' : 'ยังไม่ได้เปิด ลองใหม่ได้';
+    };
+    if(typeof Notification!=='undefined' && Notification.permission==='granted'){
+      const statusEl = document.getElementById('shopNotifStatus');
+      if(statusEl) statusEl.textContent = 'เปิดใช้งานแล้ว ✓';
+    }
     if(shopData.avatarUrl){
       document.getElementById("shopAvatar").innerHTML='<img src="'+shopData.avatarUrl+'">';
       document.getElementById("sbAvatar").innerHTML='<img src="'+shopData.avatarUrl+'">';
