@@ -8,7 +8,7 @@
     else r();
   });
 
-  const VAPID_KEY = 'YOUR_VAPID_KEY'; // เปลี่ยนหลังตั้ง FCM
+  const VAPID_KEY = 'BGvY_08v9WpN9wS7FJV3cUHSOcdtxAAlRu8usaXJXAZjydEX27t6avse-3KaUk9mxNWVdqF6g7fgbBwnFmUgRs8'; // เปลี่ยนหลังตั้ง FCM
 
   try {
     // Register service worker
