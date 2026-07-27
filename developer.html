@@ -221,6 +221,7 @@ body{background:var(--g);min-height:100vh;}
   <button class="tab" onclick="sw('ai')">🤖 AI</button>
   <button class="tab" onclick="sw('hist')">ประวัติ</button>
   <button class="tab" onclick="sw('set')">ตั้งค่า</button>
+  <button class="tab" onclick="sw('notif')">🔔 แจ้งเตือน</button>
 </div>
 
 <!-- DEPLOY -->
@@ -320,7 +321,32 @@ body{background:var(--g);min-height:100vh;}
   </div>
 </div>
 
-<!-- VIEWER -->
+<!-- NOTIFICATION TEST -->
+<div class="page" id="page-notif">
+  <div class="card">
+    <div class="stitle">🔔 ทดสอบระบบแจ้งเตือน</div>
+    <div class="hint" style="margin-bottom:12px">ใช้เช็คว่าระบบ push notification ทำงานจริงหรือเปล่า โดยไม่ต้องไปสร้าง/แก้ออเดอร์จริง</div>
+    <div style="margin-bottom:12px">
+      <div class="lbl">ส่งไปที่</div>
+      <select class="inp" id="ntTarget" onchange="ntToggleUid()">
+        <option value="admin">แอดมินทุกคน</option>
+        <option value="rider">ไรเดอร์ทุกคน</option>
+        <option value="rider1">ไรเดอร์คนเดียว (ระบุรหัส)</option>
+        <option value="shop1">ร้านเดียว (ระบุรหัสร้าน)</option>
+        <option value="customer1">ลูกค้าคนเดียว (ระบุเบอร์โทร)</option>
+      </select>
+    </div>
+    <div style="margin-bottom:12px;display:none" id="ntUidRow">
+      <div class="lbl">รหัส/เบอร์โทรของเป้าหมาย</div>
+      <input class="inp" id="ntUid" placeholder="เช่น เบอร์โทรลูกค้า หรือรหัสไรเดอร์/ร้าน">
+      <div class="hint">หาได้จากหน้า Firestore Console ในคอลเล็กชัน riders/shops (ใช้ document id) หรือเบอร์โทรลูกค้าตรงๆ</div>
+    </div>
+    <div style="margin-bottom:12px"><div class="lbl">หัวข้อ</div><input class="inp" id="ntTitle" value="ทดสอบแจ้งเตือน 🔔"></div>
+    <div style="margin-bottom:12px"><div class="lbl">ข้อความ</div><input class="inp" id="ntBody" value="นี่คือข้อความทดสอบจากระบบ Developer Center"></div>
+    <button class="savbtn" id="ntSendBtn" onclick="sendTestNotif()">ส่งทดสอบ</button>
+    <div id="ntResult" style="display:none;margin-top:14px;padding:12px;border-radius:10px;font-size:13px;font-family:monospace;white-space:pre-wrap;word-break:break-all"></div>
+  </div>
+</div>
 <div class="vw" id="vw">
   <div class="vwbar">
     <button class="vwbk" onclick="clsVw()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
@@ -350,7 +376,7 @@ body{background:var(--g);min-height:100vh;}
 
 <script>
 // ===== STATE =====
-var TABS = ['deploy','diff','files','ai','hist','set'];
+var TABS = ['deploy','diff','files','ai','hist','set','notif'];
 var EXPF = ['index.html','register.html','shops.html','menu.html','cart.html',
   'checkout.html','track.html','address.html','admin.html','admin-style.css',
   'admin-logic.js','rider.html','shop-admin.html','shop-manage.html','developer.html'];
@@ -694,6 +720,76 @@ ldCfg();
 ldQ();
 updQUI();
 if(cfg.token&&cfg.user&&cfg.repo) setTimeout(ldF,500);
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, getDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
+  authDomain:"nimit-delivery.firebaseapp.com",
+  projectId:"nimit-delivery",
+  storageBucket:"nimit-delivery.firebasestorage.app",
+  messagingSenderId:"233476256130",
+  appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
+});
+const db = getFirestore(app);
+
+window.ntToggleUid = function(){
+  const t = document.getElementById('ntTarget').value;
+  document.getElementById('ntUidRow').style.display = (t==='rider1'||t==='shop1'||t==='customer1') ? 'block' : 'none';
+}
+
+window.sendTestNotif = async function(){
+  const btn = document.getElementById('ntSendBtn');
+  const resultEl = document.getElementById('ntResult');
+  const target = document.getElementById('ntTarget').value;
+  const title = document.getElementById('ntTitle').value.trim();
+  const body = document.getElementById('ntBody').value.trim();
+  const uidInput = document.getElementById('ntUid').value.trim();
+  resultEl.style.display='block'; resultEl.style.background='#f8fafc'; resultEl.style.color='#334155';
+  resultEl.textContent = 'กำลังหา token และส่ง...';
+  btn.disabled = true; btn.textContent = 'กำลังส่ง...';
+  try{
+    let tokens = [];
+    if(target==='admin' || target==='rider'){
+      const snap = await getDocs(query(collection(db,'fcmTokens'), where('role','==',target)));
+      snap.forEach(d=>{ const t=d.data().token; if(t) tokens.push(t); });
+      if(!tokens.length){
+        resultEl.textContent = `ไม่พบ token เลยสำหรับบทบาท "${target}" — แปลว่ายังไม่มีใครเปิดแจ้งเตือนสำเร็จเลย (เช็คว่า fcm.js ทำงานถูกต้อง มี VAPID key ใส่ไว้ครบมั้ย)`;
+        resultEl.style.background='#fef3c7'; resultEl.style.color='#92400e';
+        btn.disabled=false; btn.textContent='ส่งทดสอบ'; return;
+      }
+    } else {
+      if(!uidInput){
+        resultEl.textContent='กรุณาใส่รหัส/เบอร์โทรของเป้าหมายก่อน';
+        resultEl.style.background='#fee2e2'; resultEl.style.color='#dc2626';
+        btn.disabled=false; btn.textContent='ส่งทดสอบ'; return;
+      }
+      const role = target==='rider1'?'rider':target==='shop1'?'shop':'customer';
+      const snap = await getDoc(doc(db,'fcmTokens', uidInput+'_'+role));
+      if(!snap.exists() || !snap.data().token){
+        resultEl.textContent = `ไม่พบ token สำหรับ "${uidInput}_${role}" — เช็คว่ารหัส/เบอร์ถูกต้อง และเจ้าตัวเคยกดอนุญาตแจ้งเตือนสำเร็จแล้วจริงๆ`;
+        resultEl.style.background='#fef3c7'; resultEl.style.color='#92400e';
+        btn.disabled=false; btn.textContent='ส่งทดสอบ'; return;
+      }
+      tokens.push(snap.data().token);
+    }
+    const res = await fetch('/api/send-order-notification',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ tokens, title, body, url:'/' })
+    });
+    const json = await res.json();
+    resultEl.textContent = 'พบ '+tokens.length+' token · ผลลัพธ์จากเซิร์ฟเวอร์:\n'+JSON.stringify(json, null, 2);
+    if(json.success){ resultEl.style.background='#dcfce7'; resultEl.style.color='#166534'; }
+    else { resultEl.style.background='#fee2e2'; resultEl.style.color='#dc2626'; }
+  }catch(e){
+    resultEl.textContent = 'เกิดข้อผิดพลาด: '+e.message;
+    resultEl.style.background='#fee2e2'; resultEl.style.color='#dc2626';
+  }
+  btn.disabled=false; btn.textContent='ส่งทดสอบ';
+}
 </script>
 </body>
 </html>
