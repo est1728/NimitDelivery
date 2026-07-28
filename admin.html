@@ -1226,16 +1226,20 @@ async function confirmAssign(){
     closeAssign();
     window.loadOrders(); // refresh ทันทีหลัง assign
     window.toast('โยนงานให้ '+r.name+' แล้ว','ok');
-    // แจ้งไรเดอร์คนเดิม (ถ้ามีและเป็นคนละคนกับที่เพิ่งโยนให้) ว่างานถูกดึงออกไปแล้ว
-    if(prevRiderId && prevRiderId!==r.id){
-      sendPush({uid:prevRiderId,role:'rider'},'⚠️ งานถูกดึงออกแล้ว','ออเดอร์ '+(asgOrder?.orderId||asgDocId)+' ถูกมอบหมายให้คนอื่นแล้ว',{url:'/rider.html'});
-    }
-    // แจ้งไรเดอร์คนใหม่ที่เพิ่งได้รับงาน
-    sendPush({uid:r.id,role:'rider'},'📦 ถูกมอบหมายงาน!','ออเดอร์ '+(asgOrder?.orderId||asgDocId),{url:'/rider.html'});
-    // แจ้งลูกค้าเจ้าของออเดอร์นี้เท่านั้น (ไม่ใช่ลูกค้าทุกคน)
-    if(asgOrder?.customer?.phone){
-      sendPush({uid:asgOrder.customer.phone,role:'customer'},'📦 ไรเดอร์รับงานแล้ว','ออเดอร์ '+(asgOrder?.orderId||asgDocId)+' · '+r.name,{url:'/track.html'});
-    }
+    // ทุกอย่างข้างล่างนี้เป็นแค่ผลข้างเคียง (แจ้งเตือน) ไม่เกี่ยวกับการโยนงานที่สำเร็จไปแล้วข้างบน
+    // แยก try/catch ต่างหาก กันไม่ให้ปัญหาแจ้งเตือนไปทำให้ขึ้นข้อความ "ไม่สำเร็จ" ทั้งที่จริงๆโยนงานสำเร็จแล้ว
+    try{
+      // แจ้งไรเดอร์คนเดิม (ถ้ามีและเป็นคนละคนกับที่เพิ่งโยนให้) ว่างานถูกดึงออกไปแล้ว
+      if(prevRiderId && prevRiderId!==r.id){
+        sendPush({uid:prevRiderId,role:'rider'},'⚠️ งานถูกดึงออกแล้ว','ออเดอร์ '+(asgOrder?.orderId||asgDocId)+' ถูกมอบหมายให้คนอื่นแล้ว',{url:'/rider.html'});
+      }
+      // แจ้งไรเดอร์คนใหม่ที่เพิ่งได้รับงาน
+      sendPush({uid:r.id,role:'rider'},'📦 ถูกมอบหมายงาน!','ออเดอร์ '+(asgOrder?.orderId||asgDocId),{url:'/rider.html'});
+      // แจ้งลูกค้าเจ้าของออเดอร์นี้เท่านั้น (ไม่ใช่ลูกค้าทุกคน)
+      if(asgOrder?.customer?.phone){
+        sendPush({uid:asgOrder.customer.phone,role:'customer'},'📦 ไรเดอร์รับงานแล้ว','ออเดอร์ '+(asgOrder?.orderId||asgDocId)+' · '+r.name,{url:'/track.html'});
+      }
+    }catch(e){}
   }catch(e){
     window.toast('โยนงานไม่สำเร็จ','er');
   }
@@ -1262,16 +1266,19 @@ window.confirmCancelOrder=async function(){
     renderOrders();
     window.closeCancelOrder();
     window.toast('ยกเลิกออเดอร์แล้ว','ok');
-    showNotif('❌','ยกเลิกออเดอร์แล้ว',note,'linear-gradient(135deg,#dc2626,#b91c1c)');
-    // แจ้งเตือนยกเลิกออเดอร์ → แอดมิน + ไรเดอร์ที่รับงานอยู่ (ถ้ามี) + ร้านค้า
-    if(cancelledOrder){
-      const oid = cancelledOrder.orderId||curDocId;
-      sendPush(['admin'],'❌ ออเดอร์ถูกยกเลิก',oid+' — '+note,{url:'/admin.html'});
-      if(cancelledOrder.riderId) sendPush({uid:cancelledOrder.riderId,role:'rider'},'❌ ออเดอร์ถูกยกเลิก',oid+' — '+note,{url:'/rider.html'});
-      if(cancelledOrder.shopId) sendPush({uid:cancelledOrder.shopId,role:'shop'},'❌ ออเดอร์ถูกยกเลิก',oid+' — '+note,{url:'/shop-admin.html'});
-    }
     closeDetail();
     swPg('ordersPage');
+    // ทุกอย่างข้างล่างนี้เป็นแค่ผลข้างเคียง (แจ้งเตือน/แบนเนอร์) ไม่เกี่ยวกับการยกเลิกที่สำเร็จไปแล้วข้างบน
+    // แยก try/catch ของตัวเองไว้ต่างหาก กันไม่ให้อะไรพลาดตรงนี้ไปทำให้เข้าใจผิดว่าการยกเลิกล้มเหลว หรือค้างหน้าเดิมไม่ไปไหน
+    try{
+      showNotif('❌','ยกเลิกออเดอร์แล้ว',note,'linear-gradient(135deg,#dc2626,#b91c1c)');
+      if(cancelledOrder){
+        const oid = cancelledOrder.orderId||curDocId;
+        sendPush(['admin'],'❌ ออเดอร์ถูกยกเลิก',oid+' — '+note,{url:'/admin.html'});
+        if(cancelledOrder.riderId) sendPush({uid:cancelledOrder.riderId,role:'rider'},'❌ ออเดอร์ถูกยกเลิก',oid+' — '+note,{url:'/rider.html'});
+        if(cancelledOrder.shopId) sendPush({uid:cancelledOrder.shopId,role:'shop'},'❌ ออเดอร์ถูกยกเลิก',oid+' — '+note,{url:'/shop-admin.html'});
+      }
+    }catch(e){}
   }catch(e){window.toast('ไม่สำเร็จ: '+e.message,'er');}
 }
 
@@ -2069,9 +2076,18 @@ window.enableAdminNotif = async function(){
   }
   if(statusEl) statusEl.textContent = 'กำลังขอสิทธิ์...';
   const res = await window.enableFcmNotifications?.();
-  if(statusEl) statusEl.textContent = res?.ok ? 'เปิดใช้งานแล้ว ✓' : 'ยังไม่ได้เปิด ลองใหม่ได้';
+  if(res?.ok){
+    localStorage.setItem('fcmTokenSaved_admin','1');
+    if(statusEl) statusEl.textContent = 'เปิดใช้งานแล้ว ✓';
+  } else {
+    // สำคัญ: ห้ามโชว์ "เปิดใช้งานแล้ว" ถ้ายังไม่เคยบันทึก token สำเร็จจริง แม้เบราว์เซอร์จะอนุญาตไปแล้วก็ตาม
+    // (เคยเป็นบัคที่ทำให้ดูเหมือนเปิดสำเร็จ ทั้งที่จริงๆไม่เคยได้ token เลย จึงไม่เคยได้รับแจ้งเตือนอะไรทั้งสิ้น)
+    if(statusEl) statusEl.textContent = 'ยังไม่สำเร็จ (' + (res?.reason||'ไม่ทราบสาเหตุ') + ') กดลองใหม่';
+  }
 };
-if(typeof Notification!=='undefined' && Notification.permission==='granted'){
+// เช็คสถานะจริงจาก localStorage ว่าเคยบันทึก token สำเร็จหรือยัง ไม่ใช่แค่เช็คสิทธิ์เบราว์เซอร์อย่างเดียว
+// (permission=granted ไม่ได้แปลว่า token เคยถูกบันทึกสำเร็จจริง — เคยเป็นบัคที่โชว์ ✓ หลอกๆทั้งที่ไม่เคยได้รับแจ้งเตือนเลย)
+if(localStorage.getItem('fcmTokenSaved_admin')==='1'){
   const statusEl = document.getElementById('adminNotifStatus');
   if(statusEl) statusEl.textContent = 'เปิดใช้งานแล้ว ✓';
 }
