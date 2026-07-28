@@ -37,6 +37,10 @@ body{background:var(--g);min-height:100vh;}
 .sidebar-sub{font-size:12px;opacity:0.8;margin-top:2px;}
 .sidebar-body{flex:1;padding:8px 0;overflow-y:auto;}
 .sidebar-item{display:flex;align-items:center;gap:14px;padding:16px 20px;cursor:pointer;border:none;background:none;width:100%;text-align:left;border-bottom:1px solid #f5f6f8;}
+.sidebar-toggle{width:40px;height:22px;background:#cbd5e1;border-radius:12px;position:relative;border:none;cursor:pointer;flex-shrink:0;transition:background 0.25s;}
+.sidebar-toggle.on{background:var(--green);}
+.sidebar-toggle::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left 0.2s;}
+.sidebar-toggle.on::after{left:21px;}
 .sidebar-item svg{width:20px;height:20px;fill:var(--s);flex-shrink:0;}
 .sidebar-item-text{flex:1;}
 .sidebar-item-title{font-size:14px;font-weight:700;color:var(--t);}
@@ -300,10 +304,10 @@ body{background:var(--g);min-height:100vh;}
       <div class="sidebar-item-text"><div class="sidebar-item-title">กระเป๋ากลาง</div><div class="sidebar-item-sub">ยอดคงเหลือ เติมเงิน ประวัติ</div></div>
       <div class="sidebar-arrow"><svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></div>
     </button>
-    <button class="sidebar-item" onclick="window.enableAdminNotif()">
+    <button class="sidebar-item" onclick="event.stopPropagation()" style="cursor:default">
       <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
-      <div class="sidebar-item-text"><div class="sidebar-item-title">เปิดแจ้งเตือน</div><div class="sidebar-item-sub" id="adminNotifStatus">กดเพื่อขอสิทธิ์แจ้งเตือน</div></div>
-      <div class="sidebar-arrow"><svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></div>
+      <div class="sidebar-item-text"><div class="sidebar-item-title">เปิดแจ้งเตือน</div><div class="sidebar-item-sub" id="adminNotifStatus">กดสวิตช์เพื่อขอสิทธิ์แจ้งเตือน</div></div>
+      <button class="sidebar-toggle" id="adminNotifToggle" onclick="event.stopPropagation();window.enableAdminNotif()"></button>
     </button>
   </div>
 </div>
@@ -1108,7 +1112,8 @@ function renderDetail(o){
   // items table
   $('dtItems').innerHTML=(o.items||[]).map(i=>{
     const opts=i.options?.length?'<div class="item-opts">'+i.options.map(op=>typeof op==='string'?'<div>- '+esc(op)+'</div>':'<div>- '+esc(op.name||op)+'</div>').join('')+'</div>':'';
-    return `<tr><td><div>${esc(i.name)}</div>${opts}</td><td>${i.qty}</td><td>฿${i.price||i.basePrice||0}</td><td>฿${(i.price||i.basePrice||0)*i.qty}</td></tr>`;
+    const note=i.note?'<div style="font-size:12px;color:#dc2626;font-weight:700;margin-top:3px">📝 '+esc(i.note)+'</div>':'';
+    return `<tr><td><div>${esc(i.name)}</div>${opts}${note}</td><td>${i.qty}</td><td>฿${i.price||i.basePrice||0}</td><td>฿${(i.price||i.basePrice||0)*i.qty}</td></tr>`;
   }).join('');
   $('pTotal').textContent='฿'+(o.grandTotal||0);
   $('pBase').textContent='฿'+(o.baseCost||0);
@@ -2070,6 +2075,7 @@ window.confirmCrop=function(){
 <script type="module">
 window.enableAdminNotif = async function(){
   const statusEl = document.getElementById('adminNotifStatus');
+  const toggleEl = document.getElementById('adminNotifToggle');
   if(typeof Notification!=='undefined' && Notification.permission==='denied'){
     alert('เบราว์เซอร์เคยปฏิเสธการแจ้งเตือนไว้ก่อนแล้ว ต้องไปเปิดเองในตั้งค่าเบราว์เซอร์ก่อนถึงจะเปิดจากตรงนี้ได้');
     return;
@@ -2079,17 +2085,21 @@ window.enableAdminNotif = async function(){
   if(res?.ok){
     localStorage.setItem('fcmTokenSaved_admin','1');
     if(statusEl) statusEl.textContent = 'เปิดใช้งานแล้ว ✓';
+    if(toggleEl) toggleEl.className = 'sidebar-toggle on';
   } else {
     // สำคัญ: ห้ามโชว์ "เปิดใช้งานแล้ว" ถ้ายังไม่เคยบันทึก token สำเร็จจริง แม้เบราว์เซอร์จะอนุญาตไปแล้วก็ตาม
     // (เคยเป็นบัคที่ทำให้ดูเหมือนเปิดสำเร็จ ทั้งที่จริงๆไม่เคยได้ token เลย จึงไม่เคยได้รับแจ้งเตือนอะไรทั้งสิ้น)
-    if(statusEl) statusEl.textContent = 'ยังไม่สำเร็จ (' + (res?.reason||'ไม่ทราบสาเหตุ') + ') กดลองใหม่';
+    if(statusEl) statusEl.textContent = 'ยังไม่สำเร็จ (' + (res?.reason||'ไม่ทราบสาเหตุ') + (res?.message?': '+res.message:'') + ')';
+    if(toggleEl) toggleEl.className = 'sidebar-toggle';
   }
 };
 // เช็คสถานะจริงจาก localStorage ว่าเคยบันทึก token สำเร็จหรือยัง ไม่ใช่แค่เช็คสิทธิ์เบราว์เซอร์อย่างเดียว
 // (permission=granted ไม่ได้แปลว่า token เคยถูกบันทึกสำเร็จจริง — เคยเป็นบัคที่โชว์ ✓ หลอกๆทั้งที่ไม่เคยได้รับแจ้งเตือนเลย)
 if(localStorage.getItem('fcmTokenSaved_admin')==='1'){
   const statusEl = document.getElementById('adminNotifStatus');
+  const toggleEl = document.getElementById('adminNotifToggle');
   if(statusEl) statusEl.textContent = 'เปิดใช้งานแล้ว ✓';
+  if(toggleEl) toggleEl.className = 'sidebar-toggle on';
 }
 </script>
 <!-- AD SHEET -->
