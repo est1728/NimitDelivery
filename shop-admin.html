@@ -645,9 +645,15 @@ async function initShop(){
       }
       if(statusEl) statusEl.textContent = 'กำลังขอสิทธิ์...';
       const res = await window.enableFcmNotifications?.();
-      if(statusEl) statusEl.textContent = res?.ok ? 'เปิดใช้งานแล้ว ✓' : 'ยังไม่ได้เปิด ลองใหม่ได้';
+      if(res?.ok){
+        localStorage.setItem('fcmTokenSaved_shop_'+shopData.id,'1');
+        if(statusEl) statusEl.textContent = 'เปิดใช้งานแล้ว ✓';
+      } else {
+        if(statusEl) statusEl.textContent = 'ยังไม่สำเร็จ (' + (res?.reason||'ไม่ทราบสาเหตุ') + ') กดลองใหม่';
+      }
     };
-    if(typeof Notification!=='undefined' && Notification.permission==='granted'){
+    // เช็คสถานะจริงจาก localStorage ว่าเคยบันทึก token สำเร็จหรือยัง ไม่ใช่แค่เช็คสิทธิ์เบราว์เซอร์อย่างเดียว
+    if(localStorage.getItem('fcmTokenSaved_shop_'+shopData.id)==='1'){
       const statusEl = document.getElementById('shopNotifStatus');
       if(statusEl) statusEl.textContent = 'เปิดใช้งานแล้ว ✓';
     }
