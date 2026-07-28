@@ -434,13 +434,24 @@ window.enableCustNotif = async function(){
   }
   if(sub) sub.textContent = 'กำลังขอสิทธิ์...';
   const res = await window.enableFcmNotifications?.();
-  if(res?.ok){ if(banner) banner.style.display='none'; }
-  else { if(sub) sub.textContent = 'รู้ทันทีเมื่อไรเดอร์รับงาน ถึงร้าน หรือกำลังมาส่ง'; }
+  if(res?.ok){
+    localStorage.setItem('fcmTokenSaved_customer','1');
+    if(banner) banner.style.display='none';
+  } else {
+    // สำคัญ: ถึงแม้เบราว์เซอร์จะอนุญาตไปแล้ว (permission=granted) แต่ถ้าขั้นตอนบันทึก token ล้มเหลว
+    // (เช่น ปัญหาเครือข่ายชั่วคราว) ต้องให้เห็นชัดว่ายังไม่สำเร็จ และกดลองใหม่ได้อีก ไม่ใช่แค่เงียบๆกลับไปข้อความเดิม
+    if(sub) sub.textContent = 'เปิดไม่สำเร็จ (' + (res?.reason||'ไม่ทราบสาเหตุ') + ') กดลองใหม่อีกครั้ง';
+  }
 };
-// โชว์แถบนี้เฉพาะตอนที่ยังไม่เคยอนุญาต/ยังไม่เคยปฏิเสธมาก่อน (คือยังเป็น "default" อยู่)
-if(typeof Notification!=='undefined' && Notification.permission==='default'){
-  const banner = document.getElementById('custNotifBanner');
-  if(banner) banner.style.display='flex';
+// โชว์แถบนี้ถ้ายังไม่เคยอนุญาต หรืออนุญาตแล้วแต่ยังไม่เคยบันทึก token สำเร็จจริงบนเครื่องนี้
+// (กันเคส permission=granted แล้วแต่ enableFcmNotifications เคยล้มเหลวตอนบันทึกลง Firestore
+// ซึ่งถ้าเช็คแค่ permission==='default' แถบจะไม่มีทางโชว์อีกเลย ทำให้ไม่มีทางลองใหม่ได้)
+if(typeof Notification!=='undefined'){
+  const alreadySaved = localStorage.getItem('fcmTokenSaved_customer')==='1';
+  if(Notification.permission==='default' || (Notification.permission==='granted' && !alreadySaved)){
+    const banner = document.getElementById('custNotifBanner');
+    if(banner) banner.style.display='flex';
+  }
 }
 </script>
 </body>
