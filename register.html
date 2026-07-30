@@ -133,9 +133,17 @@ if(navigator.geolocation){
 
 window.getMyLocation=function(){
   if(!navigator.geolocation) return;
+  const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
   navigator.geolocation.getCurrentPosition(
     pos=>placeMarker(pos.coords.latitude,pos.coords.longitude),
-    ()=>alert("ไม่สามารถเข้าถึง GPS ได้")
+    ()=>{
+      if(isStandalone){
+        alert("เข้าถึงตำแหน่งไม่ได้ — เป็นบัคที่รู้จักของ iOS เวลาเปิดผ่านไอคอนหน้าจอโฮม\n\nลองเปิดลิงก์นี้ผ่าน Safari ตรงๆ (ไม่ผ่านไอคอนที่บันทึกไว้) แล้วลองใหม่อีกครั้ง หรือปักหมุดเองบนแผนที่แทนได้เลยครับ");
+      } else {
+        alert("ไม่สามารถเข้าถึง GPS ได้ ลองปักหมุดเองบนแผนที่แทนได้ครับ");
+      }
+    },
+    {timeout:8000, enableHighAccuracy:true}
   );
 }
 
