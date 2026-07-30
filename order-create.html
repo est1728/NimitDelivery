@@ -41,7 +41,7 @@ body{background:var(--g);min-height:100vh;padding-bottom:90px;}
 .t-row{display:flex;align-items:center;padding:7px 0;font-size:14px;border-bottom:1px solid #f5f6f8;}
 .t-row span:first-child{flex:1;color:var(--t);}
 .t-row span:nth-child(2){width:44px;text-align:center;color:var(--s);}
-.t-row span:last-child{width:60px;text-align:right;font-weight:700;color:var(--p);}
+.t-row .t-price{width:60px;text-align:right;font-weight:700;color:var(--p);}
 .t-total{display:flex;justify-content:space-between;padding:8px 0 0;font-size:15px;font-weight:800;color:var(--t);}
 .t-empty{font-size:13px;color:var(--s);padding:8px 0;font-style:italic;}
 
@@ -767,16 +767,22 @@ window.changeQty=function(id,name,base,disp,delta){
   var el=document.getElementById('q_'+id);if(el)el.textContent=selItems[id]?selItems[id].qty:0;
 };
 function renderMenuItemsList(){
-  var items=Object.values(selItems);
-  if(!items.length){document.getElementById('menuItems').innerHTML='<div class="t-empty">ยังไม่มีรายการ</div>';document.getElementById('menuTotal').textContent='-';}
+  var entries=Object.entries(selItems);
+  if(!entries.length){document.getElementById('menuItems').innerHTML='<div class="t-empty">ยังไม่มีรายการ</div>';document.getElementById('menuTotal').textContent='-';}
   else{
-    document.getElementById('menuItems').innerHTML=items.map(it=>{
+    document.getElementById('menuItems').innerHTML=entries.map(function(entry){
+      var key=entry[0], it=entry[1];
       const subs=it.subOptions&&it.subOptions.length?it.subOptions.map(s=>`<div style="font-size:12px;color:var(--s);padding-left:8px">- ${esc(s)}</div>`).join(''):'';
-      return `<div class="t-row"><span><div>${esc(it.name)}</div>${subs}</span><span>×${it.qty}</span><span>฿${it.price*it.qty}</span></div>`;
+      return `<div class="t-row"><span><div>${esc(it.name)}</div>${subs}</span><span>×${it.qty}</span><span class="t-price">฿${it.price*it.qty}</span><button type="button" onclick="removeMenuItem('${key}')" style="width:26px;height:26px;border:none;border-radius:8px;background:#fee2e2;color:#dc2626;font-weight:800;font-size:14px;cursor:pointer;flex-shrink:0;margin-left:6px">✕</button></div>`;
     }).join('');
-    document.getElementById('menuTotal').textContent='฿'+items.reduce((s,i)=>s+i.price*i.qty,0);
+    document.getElementById('menuTotal').textContent='฿'+entries.reduce((s,e)=>s+e[1].price*e[1].qty,0);
   }
 }
+window.removeMenuItem=function(key){
+  delete selItems[key];
+  renderMenuItemsList();
+  calcRev();checkCreate();
+};
 window.confirmMenu=function(){
   window.closeMask('shopMask');
   renderMenuItemsList();
