@@ -142,6 +142,10 @@ body{background:var(--gray);min-height:100vh;overscroll-behavior-y:none;}
 .sidebar-shop-sub{font-size:12px;opacity:0.8;margin-top:2px;}
 .sidebar-body{flex:1;padding:8px 0;}
 .sidebar-item{display:flex;align-items:center;gap:14px;padding:16px 20px;cursor:pointer;border:none;background:none;width:100%;text-align:left;border-bottom:1px solid #f5f6f8;}
+.sidebar-toggle{width:40px;height:22px;background:#cbd5e1;border-radius:12px;position:relative;border:none;cursor:pointer;flex-shrink:0;transition:background 0.25s;}
+.sidebar-toggle.on{background:var(--primary,#2563eb);}
+.sidebar-toggle::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left 0.2s;}
+.sidebar-toggle.on::after{left:21px;}
 .sidebar-item svg{width:20px;height:20px;fill:var(--subtext);flex-shrink:0;}
 .sidebar-item-text{flex:1;}
 .sidebar-item-title{font-size:14px;font-weight:700;color:var(--text);}
@@ -268,6 +272,13 @@ body{background:var(--gray);min-height:100vh;overscroll-behavior-y:none;}
     <span class="open-toggle-label" id="openLabel">ร้านปิดอยู่</span>
     <button class="open-switch" id="openSwitch" onclick="toggleOpen()"></button>
   </div>
+  <div id="loyaltyStrip" style="display:none;margin:0 16px 12px;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:14px;padding:12px 14px">
+    <div style="display:flex;align-items:center;justify-content:between;gap:8px;margin-bottom:8px">
+      <div style="font-size:13px;font-weight:800;color:#9a3412;flex:1">🎫 สมาชิกสะสมแต้ม</div>
+      <div style="font-size:11px;color:#c2410c" id="loyaltyMemberCount">0 คน</div>
+    </div>
+    <div id="loyaltyMemberList" style="max-height:160px;overflow-y:auto"></div>
+  </div>
   <div class="tabs-row">
     <button class="tab-link active" id="tab-orders" onclick="switchTab('orders')">ออเดอร์</button>
     <button class="tab-link" id="tab-history" onclick="switchTab('history')">ประวัติ</button>
@@ -372,9 +383,20 @@ body{background:var(--gray);min-height:100vh;overscroll-behavior-y:none;}
       <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
       <div class="sidebar-item-text"><div class="sidebar-item-title">รีวิวร้านของฉัน</div><div class="sidebar-item-sub">คะแนนดาวและความคิดเห็น</div></div>
     </button>
-    <button class="sidebar-item" onclick="window.enableShopNotif()">
+    <button class="sidebar-item" onclick="event.stopPropagation()" style="cursor:default">
       <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
-      <div class="sidebar-item-text"><div class="sidebar-item-title">เปิดแจ้งเตือน</div><div class="sidebar-item-sub" id="shopNotifStatus">กดเพื่อขอสิทธิ์แจ้งเตือน</div></div>
+      <div class="sidebar-item-text"><div class="sidebar-item-title">เปิดแจ้งเตือน</div><div class="sidebar-item-sub" id="shopNotifStatus">กดสวิตช์เพื่อขอสิทธิ์แจ้งเตือน</div></div>
+      <button class="sidebar-toggle" id="shopNotifToggle" onclick="event.stopPropagation();window.enableShopNotif()"></button>
+    </button>
+    <button class="sidebar-item" onclick="event.stopPropagation()" style="cursor:default">
+      <svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a2 2 0 0 0-2-2c-1.05 0-1.87.62-2.44 1.5L13 6.32 12.44 4.5C11.87 3.62 11.05 3 10 3a2 2 0 0 0-2 2c0 .35.07.69.18 1H6a2 2 0 0 0-2 2v2a1 1 0 0 0 1 1h1v7a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-7h1a1 1 0 0 0 1-1V8a2 2 0 0 0-2-2zM16 5a1 1 0 0 1-1 1h-1.06l.31-.94A1.24 1.24 0 0 1 15.5 4a1 1 0 0 1 .5 1zM9 5a1 1 0 0 1 1-1c.31 0 .74.16.94.5l.5 1.5H10a1 1 0 0 1-1-1z"/></svg>
+      <div class="sidebar-item-text"><div class="sidebar-item-title">สะสมแต้ม</div><div class="sidebar-item-sub" id="loyaltyToggleStatus">ปิดอยู่</div></div>
+      <button class="sidebar-toggle" id="loyaltyToggle" onclick="event.stopPropagation();window.toggleLoyalty()"></button>
+    </button>
+    <button class="sidebar-item" id="loyaltySettingsItem" style="display:none" onclick="openExtraPanel('panelLoyalty');closeSidebar();loadLoyaltySettings()">
+      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+      <div class="sidebar-item-text"><div class="sidebar-item-title">ตั้งค่าสะสมแต้ม</div><div class="sidebar-item-sub">จำนวนแต้ม / เพิ่มแต้มลูกค้า</div></div>
+      <div class="sidebar-arrow"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
     </button>
   </div>
 </div>
@@ -395,6 +417,31 @@ body{background:var(--gray);min-height:100vh;overscroll-behavior-y:none;}
     <button class="ad-submit-btn" onclick="confirmSubmitAd()">เผยแพร่โฆษณา</button>
   </div>
   <div style="padding:12px 16px 0"><div style="font-size:13px;font-weight:800;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px" id="adsListLabel" style="display:none">โฆษณาของคุณ</div><div id="adsList"></div></div>
+</div>
+
+<!-- LOYALTY SETTINGS PANEL -->
+<div class="extra-panel" id="panelLoyalty">
+  <div class="ep-topbar"><button class="ep-back" onclick="closeExtraPanel('panelLoyalty')"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button><div class="ep-title">ตั้งค่าสะสมแต้ม</div></div>
+  <div class="ep-card">
+    <div class="ep-card-title">จำนวนแต้มที่ต้องสะสม</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+      <input type="number" id="loyaltyTargetInput" min="1" placeholder="เช่น 10" style="flex:1;height:44px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:15px;outline:none">
+      <button onclick="window.saveLoyaltyTarget()" style="height:44px;padding:0 16px;border:none;border-radius:12px;background:var(--primary,#2563eb);color:#fff;font-weight:800;font-size:14px;cursor:pointer">บันทึก</button>
+    </div>
+    <div style="font-size:12px;color:#94a3b8">สะสมครบตามจำนวนนี้ ลูกค้าจะได้เมนูฟรี 1 อย่างตอนสั่งครั้งถัดไป</div>
+  </div>
+  <div class="ep-card">
+    <div class="ep-card-title">เพิ่มแต้มให้ลูกค้าเอง</div>
+    <input id="loyaltyAddPhone" placeholder="เบอร์โทรลูกค้า" style="width:100%;height:44px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:15px;outline:none;margin-bottom:8px;box-sizing:border-box">
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="number" id="loyaltyAddPoints" value="1" min="1" style="flex:1;height:44px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:15px;outline:none">
+      <button onclick="window.addLoyaltyPoints()" style="height:44px;padding:0 16px;border:none;border-radius:12px;background:var(--primary,#2563eb);color:#fff;font-weight:800;font-size:14px;cursor:pointer">เพิ่มแต้ม</button>
+    </div>
+  </div>
+  <div style="padding:12px 16px 0">
+    <div style="font-size:13px;font-weight:800;color:var(--subtext);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">สมาชิกทั้งหมด</div>
+    <div id="loyaltySettingsMemberList"></div>
+  </div>
 </div>
 
 <!-- CONFIRM AD PUBLISH -->
@@ -639,6 +686,7 @@ async function initShop(){
     document.body.appendChild(fcmScript);
     window.enableShopNotif = async function(){
       const statusEl = document.getElementById('shopNotifStatus');
+      const toggleEl = document.getElementById('shopNotifToggle');
       if(typeof Notification!=='undefined' && Notification.permission==='denied'){
         alert('เบราว์เซอร์เคยปฏิเสธการแจ้งเตือนไว้ก่อนแล้ว ต้องไปเปิดเองในตั้งค่าเบราว์เซอร์ก่อนถึงจะเปิดจากตรงนี้ได้');
         return;
@@ -648,20 +696,24 @@ async function initShop(){
       if(res?.ok){
         localStorage.setItem('fcmTokenSaved_shop_'+shopData.id,'1');
         if(statusEl) statusEl.textContent = 'เปิดใช้งานแล้ว ✓';
+        if(toggleEl) toggleEl.className = 'sidebar-toggle on';
       } else {
-        if(statusEl) statusEl.textContent = 'ยังไม่สำเร็จ (' + (res?.reason||'ไม่ทราบสาเหตุ') + ') กดลองใหม่';
+        if(statusEl) statusEl.textContent = 'ยังไม่สำเร็จ (' + (res?.reason||'ไม่ทราบสาเหตุ') + (res?.message?': '+res.message:'') + ')';
+        if(toggleEl) toggleEl.className = 'sidebar-toggle';
       }
     };
     // เช็คสถานะจริงจาก localStorage ว่าเคยบันทึก token สำเร็จหรือยัง ไม่ใช่แค่เช็คสิทธิ์เบราว์เซอร์อย่างเดียว
     if(localStorage.getItem('fcmTokenSaved_shop_'+shopData.id)==='1'){
       const statusEl = document.getElementById('shopNotifStatus');
+      const toggleEl = document.getElementById('shopNotifToggle');
       if(statusEl) statusEl.textContent = 'เปิดใช้งานแล้ว ✓';
+      if(toggleEl) toggleEl.className = 'sidebar-toggle on';
     }
     if(shopData.avatarUrl){
       document.getElementById("shopAvatar").innerHTML='<img src="'+shopData.avatarUrl+'">';
       document.getElementById("sbAvatar").innerHTML='<img src="'+shopData.avatarUrl+'">';
     }
-    isOpen=shopData.isOpen||false; updateOpenUI();
+    isOpen=shopData.isOpen||false; updateOpenUI(); updateLoyaltyUI();
     showPage("mainPage"); listenOrders();
   }catch(e){
     console.error('initShop error:',e);
@@ -689,6 +741,88 @@ function updateOpenUI(){
     }
   }
 }
+// ============ LOYALTY CARD ============
+let loyaltyMembersUnsub=null;
+function updateLoyaltyUI(){
+  const toggleEl=document.getElementById("loyaltyToggle");
+  const statusEl=document.getElementById("loyaltyToggleStatus");
+  const stripEl=document.getElementById("loyaltyStrip");
+  const settingsItemEl=document.getElementById("loyaltySettingsItem");
+  const on=!!shopData?.loyaltyEnabled;
+  if(toggleEl) toggleEl.className="sidebar-toggle"+(on?" on":"");
+  if(statusEl) statusEl.textContent=on?"เปิดอยู่":"ปิดอยู่";
+  if(settingsItemEl) settingsItemEl.style.display=on?"flex":"none";
+  if(stripEl) stripEl.style.display=on?"block":"none";
+  if(on){ startLoyaltyMembersListener(); } else if(loyaltyMembersUnsub){ loyaltyMembersUnsub(); loyaltyMembersUnsub=null; }
+}
+window.toggleLoyalty=async function(){
+  const newVal=!shopData.loyaltyEnabled;
+  try{
+    await updateDoc(doc(db,"shops",shopData.id),{loyaltyEnabled:newVal,loyaltyTarget:shopData.loyaltyTarget||10});
+    shopData.loyaltyEnabled=newVal;
+    if(!shopData.loyaltyTarget) shopData.loyaltyTarget=10;
+    updateLoyaltyUI();
+  }catch(e){ alert("บันทึกไม่สำเร็จ: "+e.message); }
+};
+function startLoyaltyMembersListener(){
+  if(loyaltyMembersUnsub) return; // ทำงานอยู่แล้ว ไม่ต้องเปิดซ้ำ
+  loyaltyMembersUnsub=onSnapshot(query(collection(db,"loyaltyCards"),where("shopId","==",shopData.id)),snap=>{
+    const members=[]; snap.forEach(d=>members.push(d.data()));
+    members.sort((a,b)=>(b.points||0)-(a.points||0));
+    renderLoyaltyMembers(members,"loyaltyMemberList");
+    renderLoyaltyMembers(members,"loyaltySettingsMemberList");
+    const countEl=document.getElementById("loyaltyMemberCount");
+    if(countEl) countEl.textContent=members.length+" คน";
+  });
+}
+function renderLoyaltyMembers(members,elId){
+  const el=document.getElementById(elId); if(!el) return;
+  const target=shopData?.loyaltyTarget||10;
+  if(!members.length){ el.innerHTML='<div style="text-align:center;padding:16px;color:#94a3b8;font-size:12px">ยังไม่มีสมาชิกสะสมแต้ม</div>'; return; }
+  el.innerHTML=members.map(m=>{
+    const full=(m.points||0)>=target;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f5f6f8">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;color:#0f172a">${esc(m.customerName||m.customerPhone||"-")}</div>
+        <div style="font-size:11px;color:#94a3b8">${esc(m.customerPhone||"")}</div>
+      </div>
+      <div style="font-size:13px;font-weight:800;color:${full?"#16a34a":"#c2410c"}">${m.points||0}/${target} ${full?"✓":""}</div>
+    </div>`;
+  }).join("");
+}
+window.loadLoyaltySettings=function(){
+  const input=document.getElementById("loyaltyTargetInput");
+  if(input) input.value=shopData?.loyaltyTarget||10;
+};
+window.saveLoyaltyTarget=async function(){
+  const val=parseInt(document.getElementById("loyaltyTargetInput").value);
+  if(!val||val<1){ alert("กรุณาใส่จำนวนแต้มให้ถูกต้อง"); return; }
+  try{
+    await updateDoc(doc(db,"shops",shopData.id),{loyaltyTarget:val});
+    shopData.loyaltyTarget=val;
+    alert("บันทึกแล้ว");
+    if(loyaltyMembersUnsub){ loyaltyMembersUnsub(); loyaltyMembersUnsub=null; startLoyaltyMembersListener(); }
+  }catch(e){ alert("บันทึกไม่สำเร็จ: "+e.message); }
+};
+window.addLoyaltyPoints=async function(){
+  const phone=document.getElementById("loyaltyAddPhone").value.trim();
+  const pts=parseInt(document.getElementById("loyaltyAddPoints").value)||1;
+  if(!phone){ alert("กรุณาใส่เบอร์โทรลูกค้า"); return; }
+  try{
+    let customerName="";
+    try{ const cSnap=await getDoc(doc(db,"customers",phone)); if(cSnap.exists()) customerName=cSnap.data().name||""; }catch(e){}
+    const cardId=shopData.id+"_"+phone;
+    const cardSnap=await getDoc(doc(db,"loyaltyCards",cardId));
+    if(cardSnap.exists()){
+      await updateDoc(doc(db,"loyaltyCards",cardId),{points:increment(pts),updatedAt:serverTimestamp(),...(customerName?{customerName}:{})});
+    }else{
+      await setDoc(doc(db,"loyaltyCards",cardId),{shopId:shopData.id,shopName:shopData.name||"",customerPhone:phone,customerName,points:pts,updatedAt:serverTimestamp()});
+    }
+    document.getElementById("loyaltyAddPhone").value="";
+    document.getElementById("loyaltyAddPoints").value="1";
+    alert("เพิ่มแต้มสำเร็จ");
+  }catch(e){ alert("เพิ่มแต้มไม่สำเร็จ: "+e.message); }
+};
 window.toggleOpen=async function(){
   if(isOpen){
     // ปิดร้าน: ต้องใส่เหตุผลก่อนเสมอ
