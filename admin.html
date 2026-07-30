@@ -439,6 +439,12 @@ body{background:var(--g);min-height:100vh;}
     <div class="pr"><span>รายได้ไรเดอร์ (%)</span><input class="pi" id="riderPct" type="number" value="70"></div>
     <div class="pvw" id="pvw"></div>
   </div>
+  <div class="scard">
+    <div class="sct">VAPID Key (สำหรับแจ้งเตือน)</div>
+    <input class="pi" id="vapidKeyInput" placeholder="วางค่า VAPID key จาก Firebase Cloud Messaging ที่นี่" style="width:100%;margin-bottom:10px">
+    <button type="button" onclick="window.saveVapidKey()" style="width:100%;height:44px;border:none;border-radius:12px;background:var(--p);color:#fff;font-weight:800;font-size:14px;cursor:pointer">บันทึก</button>
+    <div style="font-size:11px;color:var(--s);margin-top:8px;line-height:1.6">ตั้งค่าที่นี่ครั้งเดียว ระบบแจ้งเตือนทุกหน้า (ลูกค้า/ไรเดอร์/แอดมิน/ร้านค้า) จะดึงค่านี้ไปใช้อัตโนมัติ ไม่ต้องแก้โค้ดในไฟล์ fcm.js อีกต่อไปเลย</div>
+  </div>
   <div class="sw" style="padding:0 0 12px">
     <button class="spbtn" id="savePricingBtn">บันทึกการตั้งค่า</button>
   </div></div>
@@ -1681,6 +1687,16 @@ function addDelTier(){delTiers.push({min:0,max:5,fee:9});renderDelTiers();}
 async function loadPricing(){
   try{const snap=await getDoc(doc(db,'settings','pricing'));if(snap.exists()){const d=snap.data();$('gpPercent').value=d.gpPercent||34;$('gpSubPercent').value=d.gpSubPercent||0;$('walletPct').value=d.walletPercent||30;$('riderPct').value=d.riderPercent||70;$('delFee').value=d.deliveryFee||9;gpTiers=Array.isArray(d.gpTiers)?d.gpTiers:[];gpSubTiers=Array.isArray(d.gpSubTiers)?d.gpSubTiers:[];delTiers=Array.isArray(d.deliveryTiers)?d.deliveryTiers:[];}renderGpTiers();renderGpSubTiers();renderDelTiers();updPrev();}
   catch(e){renderGpTiers();renderGpSubTiers();}
+  // โหลด VAPID key เก็บแยกไว้คนละเอกสารกับราคา (คนละเรื่องกันเลย จะได้ไม่ปนกัน)
+  try{const vSnap=await getDoc(doc(db,'settings','fcmConfig'));if(vSnap.exists()&&$('vapidKeyInput'))$('vapidKeyInput').value=vSnap.data().vapidKey||'';}catch(e){}
+}
+window.saveVapidKey=async function(){
+  const val=$('vapidKeyInput').value.trim();
+  if(!val){window.toast('กรุณาใส่ค่า VAPID key ก่อน','er');return;}
+  try{
+    await setDoc(doc(db,'settings','fcmConfig'),{vapidKey:val,updatedAt:serverTimestamp()},{merge:true});
+    window.toast('บันทึกแล้ว ทุกหน้าจะใช้ค่านี้อัตโนมัติ','ok');
+  }catch(e){window.toast('บันทึกไม่สำเร็จ: '+e.message,'er');}
 }
 
 // ============ APP-WIDE OPEN/CLOSE ============
