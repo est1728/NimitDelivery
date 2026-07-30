@@ -686,6 +686,7 @@ async function initRider(){
     listenTotalUnread();
     listenPending();
     listenMyAssignments();
+    startLocationSharing();
   }catch(e){ showPage("notFoundPage"); }
 }
 
@@ -713,6 +714,31 @@ function showOSNotif(title,body){
     try{ new Notification(title,{body,tag:'nimit-rider',renotify:true}); }catch(e){}
   }
 }
+// ============ LIVE LOCATION SHARING (สำหรับแผนที่ติดตามไรเดอร์ในหลังบ้านแอดมิน) ============
+let _locWatchId=null, _lastLocWriteMs=0;
+const LOC_WRITE_INTERVAL_MS=15000; // เขียนขึ้น Firestore ได้ไม่เกิน 1 ครั้งทุก 15 วิ กัน write ถี่เกินไปตอน GPS อัปเดตบ่อย
+function _writeLocation(pos){
+  const now=Date.now();
+  if(now-_lastLocWriteMs<LOC_WRITE_INTERVAL_MS) return;
+  _lastLocWriteMs=now;
+  if(!riderData?.id) return;
+  updateDoc(doc(db,'riders',riderData.id),{
+    currentLat:pos.coords.latitude, currentLng:pos.coords.longitude, locationUpdatedAt:serverTimestamp()
+  }).catch(()=>{});
+}
+function startLocationSharing(){
+  if(!('geolocation' in navigator)) return;
+  if(_locWatchId!=null) return; // ทำงานอยู่แล้ว ไม่ต้องเริ่มซ้ำ
+  _locWatchId=navigator.geolocation.watchPosition(_writeLocation, ()=>{}, {enableHighAccuracy:true, maximumAge:10000, timeout:20000});
+}
+function stopLocationSharing(){
+  if(_locWatchId!=null){ navigator.geolocation.clearWatch(_locWatchId); _locWatchId=null; }
+}
+// หยุดส่งตำแหน่งตอนสลับแอป/ปิดหน้าจอ (ประหยัดแบต) กลับมาเปิดใหม่ก็เริ่มส่งต่อทันที
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden) stopLocationSharing();
+  else if(riderData?.id) startLocationSharing();
+});
 // ============ SOUND ============
 let _sharedAudioCtx=null;
 function getAudioCtx(){
@@ -1087,7 +1113,8 @@ function renderDetail(o){
   }
   document.getElementById("d-items").innerHTML=(o.items||[]).map(i=>{
     const opts=i.options&&i.options.length?i.options.map(op=>{const nm=typeof op==='string'?op:(op.name||'');const pr=typeof op==='object'&&'';return nm?'<div>- '+esc(nm)+pr+'</div>':'';}).join(''):'';
-    return '<div class="item-row"><div><div style="font-weight:700">'+esc(i.name)+'</div>'+(opts?'<div class="item-opt">'+opts+'</div>':'')+'</div><div>x'+i.qty+'</div><div>฿'+(i.price*i.qty)+'</div></div>';
+    const note=i.note?'<div style="font-size:12px;color:#dc2626;font-weight:700;margin-top:2px">📝 '+esc(i.note)+'</div>':'';
+    return '<div class="item-row"><div><div style="font-weight:700">'+esc(i.name)+'</div>'+(opts?'<div class="item-opt">'+opts+'</div>':'')+note+'</div><div>x'+i.qty+'</div><div>฿'+(i.price*i.qty)+'</div></div>';
   }).join('');
   document.getElementById("d-subtotal").textContent=`฿${o.subtotal||0}`;
   document.getElementById("d-grand").textContent=`฿${o.grandTotal||0}`;
