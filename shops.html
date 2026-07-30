@@ -127,6 +127,9 @@ body{background:var(--g);min-height:100vh;padding-bottom:28px;}
         <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>
         <div class="addr-txt" id="addrTxt">ที่อยู่</div>
       </div>
+      <button class="cart" onclick="window.openLoyaltyView()" style="margin-right:6px">
+        <svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a2 2 0 0 0-2-2c-1.05 0-1.87.62-2.44 1.5L13 6.32 12.44 4.5C11.87 3.62 11.05 3 10 3a2 2 0 0 0-2 2c0 .35.07.69.18 1H6a2 2 0 0 0-2 2v2a1 1 0 0 0 1 1h1v7a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-7h1a1 1 0 0 0 1-1V8a2 2 0 0 0-2-2zM16 5a1 1 0 0 1-1 1h-1.06l.31-.94A1.24 1.24 0 0 1 15.5 4a1 1 0 0 1 .5 1zM9 5a1 1 0 0 1 1-1c.31 0 .74.16.94.5l.5 1.5H10a1 1 0 0 1-1-1z"/></svg>
+      </button>
       <button class="cart" onclick="window.Motion?window.Motion.navigate('cart.html'):location.href='cart.html'">
         <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg>
         <div class="cart-bdg" id="cartBdg">0</div>
@@ -405,6 +408,7 @@ function card(s){
   const sDays = Array.isArray(s.openDays)&&s.openDays.length ? s.openDays : [0,1,2,3,4,5,6];
   const daysTxt = sDays.length===7 ? 'ทุกวัน' : [...sDays].sort((a,b)=>a-b).map(d=>dayLabels[d]).join(' ');
   const schTxt = s.autoSchedule&&s.scheduleOpen&&s.scheduleClose?`<div class="mi"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>${daysTxt} · ${s.scheduleOpen}-${s.scheduleClose} น.</div>`:'';
+  const loyaltyBadge=s.loyaltyEnabled?`<div class="mi" style="color:#c2410c">🎫 สะสมแต้ม</div>`:'';
   return `<div class="sc${openNow?"":" closed"}" ${oc}>
     <div class="sc-banner">${banner}${badgeEl}${badge}</div>
     <div class="sc-body" style="padding:0 14px 14px;position:relative">
@@ -415,7 +419,7 @@ function card(s){
           ${s.desc?`<div class="sc-desc">${esc(s.desc)}</div>`:""}
         </div>
       </div>
-      <div class="sc-meta">${time}${star}</div>
+      <div class="sc-meta">${time}${star}${loyaltyBadge}</div>
       ${schTxt}
     </div>
   </div>`;
@@ -497,6 +501,72 @@ window.openAdVideo=function(url){
   </div>`;
   overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
   document.body.appendChild(overlay);
+};
+</script>
+
+<!-- LOYALTY CARDS VIEW -->
+<div id="loyaltyViewModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:300;align-items:flex-end">
+  <div style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-height:75vh;overflow-y:auto;padding:20px 16px 30px">
+    <div style="width:36px;height:4px;border-radius:2px;background:#e2e8f0;margin:0 auto 14px"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-size:17px;font-weight:800;color:#0f172a">🎫 บัตรสะสมแต้มของฉัน</div>
+      <button onclick="document.getElementById('loyaltyViewModal').style.display='none'" style="border:none;background:#f1f5f9;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer">✕</button>
+    </div>
+    <div id="loyaltyViewList"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, getDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const _lApp = getApps()[0] || initializeApp({
+  apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
+  authDomain:"nimit-delivery.firebaseapp.com",
+  projectId:"nimit-delivery",
+  storageBucket:"nimit-delivery.firebasestorage.app",
+  messagingSenderId:"233476256130",
+  appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
+});
+const _lDb = getFirestore(_lApp);
+function _lEsc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+window.openLoyaltyView = async function(){
+  const modal = document.getElementById('loyaltyViewModal');
+  const listEl = document.getElementById('loyaltyViewList');
+  modal.style.display='flex';
+  listEl.innerHTML = '<div style="text-align:center;padding:24px;color:#94a3b8;font-size:13px">กำลังโหลด...</div>';
+  const phone = JSON.parse(localStorage.getItem("customerData")||"{}").phone || localStorage.getItem("customerPhone");
+  if(!phone){ listEl.innerHTML = '<div style="text-align:center;padding:24px;color:#94a3b8;font-size:13px">กรุณาเข้าสู่ระบบก่อน</div>'; return; }
+  try{
+    const snap = await getDocs(query(collection(_lDb,'loyaltyCards'), where('customerPhone','==',phone)));
+    const cards = []; snap.forEach(d=>cards.push(d.data()));
+    if(!cards.length){
+      listEl.innerHTML = '<div style="text-align:center;padding:24px;color:#94a3b8;font-size:13px">ยังไม่มีบัตรสะสมแต้มเลยครับ ลองสั่งร้านที่มีป้าย 🎫 สะสมแต้ม ดูได้เลย</div>';
+      return;
+    }
+    const shopIds = [...new Set(cards.map(c=>c.shopId))];
+    const shopTargets = {};
+    await Promise.all(shopIds.map(async sid=>{
+      try{ const sSnap = await getDoc(doc(_lDb,'shops',sid)); if(sSnap.exists()) shopTargets[sid] = sSnap.data().loyaltyTarget||10; }catch(e){}
+    }));
+    listEl.innerHTML = cards.map(c=>{
+      const target = shopTargets[c.shopId]||10;
+      const pts = c.points||0;
+      const full = pts>=target;
+      const pct = Math.min(100, Math.round(pts/target*100));
+      return `<div style="border:1.5px solid ${full?'#86efac':'#e2e8f0'};background:${full?'#f0fdf4':'#fff'};border-radius:14px;padding:14px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="font-size:14px;font-weight:800;color:#0f172a">${_lEsc(c.shopName)}</div>
+          <div style="font-size:13px;font-weight:800;color:${full?'#16a34a':'#c2410c'}">${pts}/${target}${full?' ✓':''}</div>
+        </div>
+        <div style="height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${full?'#16a34a':'#f97316'};border-radius:4px"></div></div>
+        ${full?'<div style="font-size:11px;color:#16a34a;font-weight:700;margin-top:6px">แต้มเต็มแล้ว! ใช้สิทธิ์รับฟรีได้ตอนชำระเงินร้านนี้</div>':''}
+      </div>`;
+    }).join('');
+  }catch(e){
+    listEl.innerHTML = '<div style="text-align:center;padding:24px;color:#dc2626;font-size:13px">โหลดไม่สำเร็จ: '+e.message+'</div>';
+  }
 };
 </script>
 
