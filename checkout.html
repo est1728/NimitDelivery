@@ -151,6 +151,12 @@ body{background:var(--gray);min-height:100vh;padding-bottom:120px;}
 </div>
 
 <!-- ADDRESS SHEET -->
+<div class="sheet-overlay" id="redeemModalOverlay" onclick="if(event.target===this)window.closeRedeemModal()" style="z-index:410"></div>
+<div class="addr-sheet" id="redeemModalSheet" style="z-index:411">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head"><div class="sheet-title">ใช้สิทธิ์แลกฟรี</div><button class="sheet-close" onclick="window.closeRedeemModal()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>
+  <div class="sheet-body" id="redeemModalBody"></div>
+</div>
 <div class="sheet-overlay" id="sheetOverlay" onclick="window.closeAddrSheet()"></div>
 <div class="addr-sheet" id="addrSheet">
   <div class="sheet-handle"></div>
@@ -165,7 +171,7 @@ body{background:var(--gray);min-height:100vh;padding-bottom:120px;}
 </script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, doc, getDoc, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, getDoc, getDocs, query, where, serverTimestamp, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 // local aliases for cross-scope calls
 const closeAddrSheet=(...a)=>window.closeAddrSheet(...a);
 
@@ -185,6 +191,11 @@ const checkoutShops = JSON.parse(localStorage.getItem("checkoutShops")||"[]");
 const addresses = JSON.parse(localStorage.getItem("addresses")||"[]");
 let selectedAddrIdx = parseInt(localStorage.getItem("defaultAddress")||"0");
 let shopMeta = {};
+let loyaltyCards = {}; // { shopId: {points, ...} } — เฉพาะร้านที่เปิดระบบสะสมแต้มไว้
+let redeemedShop = null; // shopId ที่กำลังใช้สิทธิ์แลกฟรีอยู่ (ใช้ได้ทีละร้านต่อออเดอร์)
+let redeemedExistingIdx = null; // ถ้าเลือกจากเมนูที่สั่งแล้ว: index ของ item ในร้านนั้น
+let redeemedNewItem = null; // ถ้าเลือกเพิ่มเมนูใหม่ฟรี: {name, price}
+let redeemMenuCache = {}; // แคชเมนูร้านไว้ ไม่ต้องโหลดซ้ำทุกครั้งที่เปิดป๊อบอัพ
 let walletPercent=30, riderPercent=70, baseDeliveryFee=9, deliveryTiers=[];
 function tierDeliveryFee(km){
   if(Array.isArray(deliveryTiers) && deliveryTiers.length){
@@ -220,6 +231,17 @@ async function init(){
       if(s.exists()) shopMeta[shopId]=s.data();
     }catch(e){}
   }
+  // โหลดบัตรสะสมแต้มของลูกค้า เฉพาะร้านที่เปิดระบบนี้ไว้เท่านั้น
+  const custPhone = JSON.parse(localStorage.getItem("customerData")||"{}").phone || localStorage.getItem("customerPhone");
+  if(custPhone){
+    for(const shopId of checkoutShops){
+      if(!shopMeta[shopId]?.loyaltyEnabled) continue;
+      try{
+        const cSnap=await getDoc(doc(db,"loyaltyCards",shopId+"_"+custPhone));
+        loyaltyCards[shopId]=cSnap.exists()?cSnap.data():{points:0};
+      }catch(e){ loyaltyCards[shopId]={points:0}; }
+    }
+  }
   renderAddress();
   renderItems();
   renderSummary();
@@ -243,8 +265,35 @@ function renderItems(){
   const el=document.getElementById("itemsBlock");
   el.innerHTML=checkoutShops.map(shopId=>{
     const grp=cart[shopId]; if(!grp) return '';
+    const meta=shopMeta[shopId]||{};
+    let loyaltyHtml='';
+    if(meta.loyaltyEnabled){
+      const card=loyaltyCards[shopId]||{points:0};
+      const target=meta.loyaltyTarget||10;
+      const isFull=(card.points||0)>=target;
+      const isRedeeming=redeemedShop===shopId;
+      if(isFull && !isRedeeming){
+        loyaltyHtml=`<div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:12px;padding:10px 12px;margin:8px 0;display:flex;align-items:center;gap:8px">
+          <div style="flex:1;font-size:12px;font-weight:700;color:#9a3412">🎁 แต้มเต็มแล้ว! รับเมนูฟรี 1 อย่างได้เลย</div>
+          <button onclick="window.openRedeemModal('${shopId}')" style="background:#f97316;color:#fff;border:none;border-radius:20px;padding:6px 12px;font-size:12px;font-weight:800;cursor:pointer">ใช้สิทธิ์</button>
+        </div>`;
+      } else if(isRedeeming){
+        const label=redeemedNewItem?redeemedNewItem.name:(redeemedExistingIdx!=null?grp.items[redeemedExistingIdx]?.name:'');
+        loyaltyHtml=`<div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:10px 12px;margin:8px 0;display:flex;align-items:center;gap:8px">
+          <div style="flex:1;font-size:12px;font-weight:700;color:#166534">✓ ใช้แต้มแลกฟรี: ${esc(label||'')}</div>
+          <button onclick="window.cancelRedeem()" style="background:none;border:none;color:#dc2626;font-size:12px;font-weight:700;cursor:pointer">ยกเลิก</button>
+        </div>`;
+      } else {
+        loyaltyHtml=`<div style="font-size:11px;color:#c2410c;font-weight:700;margin:6px 0">🎫 สั่งครั้งนี้ได้ 1 แต้ม (สะสม ${card.points||0}/${target})</div>`;
+      }
+    }
     return '<div class="shop-block"><div class="shop-block-name"><svg viewBox="0 0 24 24"><path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/></svg>'+grp.shopName+'</div>'
-      +grp.items.map(i=>'<div class="order-item"><div class="order-item-img">'+(i.imgUrl?'<img src="'+i.imgUrl+'">':"")+'</div><div class="order-item-info"><div class="order-item-name">'+i.name+'</div>'+(i.options?.length?'<div class="order-item-opts">'+i.options.map(o=>o.name).join(', ')+'</div>':'')+'</div><div style="text-align:right"><div class="order-item-price">฿'+i.price*i.qty+'</div><div class="order-item-qty">x'+i.qty+'</div></div></div>').join('')
+      +loyaltyHtml
+      +grp.items.map((i,idx)=>{
+        const isFreeItem=redeemedShop===shopId&&redeemedExistingIdx===idx;
+        return '<div class="order-item"><div class="order-item-img">'+(i.imgUrl?'<img src="'+i.imgUrl+'">':"")+'</div><div class="order-item-info"><div class="order-item-name">'+i.name+(isFreeItem?' <span style="color:#16a34a;font-weight:800">(ฟรี 1 ชิ้น)</span>':'')+'</div>'+(i.options?.length?'<div class="order-item-opts">'+i.options.map(o=>o.name).join(', ')+'</div>':'')+'</div><div style="text-align:right"><div class="order-item-price">฿'+i.price*i.qty+'</div><div class="order-item-qty">x'+i.qty+'</div></div></div>';
+      }).join('')
+      +(redeemedShop===shopId&&redeemedNewItem?'<div class="order-item"><div class="order-item-img"></div><div class="order-item-info"><div class="order-item-name">'+esc(redeemedNewItem.name)+' <span style="color:#16a34a;font-weight:800">(ฟรี)</span></div></div><div style="text-align:right"><div class="order-item-price">฿0</div><div class="order-item-qty">x1</div></div></div>':'')
       +'</div>';
   }).join('');
 }
@@ -260,7 +309,13 @@ function renderSummary(){
   let foodTotal=0, deliveryTotal=0;
   checkoutShops.forEach(id=>{
     if(!cart[id]) return;
-    foodTotal+=cart[id].items.reduce((s,i)=>s+i.price*i.qty,0);
+    let shopFoodTotal=cart[id].items.reduce((s,i)=>s+i.price*i.qty,0);
+    // ถ้ากำลังใช้สิทธิ์แลกฟรีกับร้านนี้ (เลือกจากเมนูที่สั่งไว้แล้ว) หักราคาของ 1 ชิ้นนั้นออก
+    if(redeemedShop===id && redeemedExistingIdx!=null){
+      const it=cart[id].items[redeemedExistingIdx];
+      if(it) shopFoodTotal-=it.price;
+    }
+    foodTotal+=shopFoodTotal;
     deliveryTotal+=getDeliveryFee(id);
   });
   document.getElementById("sum-food").textContent=foodTotal;
@@ -325,21 +380,31 @@ window.placeOrder=async function(){
   const addr=addresses[selectedAddrIdx]||addresses[0];
   if(!addr){ alert("กรุณาเลือกที่อยู่ก่อน"); return; }
   btn.disabled=true; btn.textContent="กำลังสั่ง...";
+  const custPhone = JSON.parse(localStorage.getItem("customerData")||"{}").phone || localStorage.getItem("customerPhone");
   try{
     const groupId=genGroupId(); const orderDocs=[];
     const customerData={name:addr.name,phone:addr.phone,address:addr.address,lat:addr.lat||null,lng:addr.lng||null};
     for(const shopId of checkoutShops){
       const grp=cart[shopId]; if(!grp) continue;
       const meta=shopMeta[shopId]||{};
-      const subtotal=grp.items.reduce((s,i)=>s+i.price*i.qty,0);
+      const isRedeemingThisShop = redeemedShop===shopId && (redeemedExistingIdx!=null || redeemedNewItem);
+      let orderItems=grp.items.slice(); // สำเนา ไม่แก้ของเดิมในตะกร้า
+      let loyaltyDiscount=0;
+      if(isRedeemingThisShop && redeemedExistingIdx!=null){
+        const it=orderItems[redeemedExistingIdx];
+        if(it){ loyaltyDiscount=it.price; }
+      } else if(isRedeemingThisShop && redeemedNewItem){
+        orderItems=orderItems.concat([{name:redeemedNewItem.name,price:0,basePrice:0,qty:1,note:"แลกด้วยแต้มสะสม (ฟรี)"}]);
+      }
+      const subtotal=orderItems.reduce((s,i)=>s+i.price*i.qty,0)-loyaltyDiscount;
       const isProxy = meta.shopType==='proxy';
       // ร้านฝากซื้อ: ไม่มีต้นทุนที่ต้องจ่ายคืนร้านเลย (จ่ายร้าน = 0 เสมอ) ทั้งยอดไปเป็นส่วนแบ่งไรเดอร์/แอดมินหมด
       // baseCost ต้องรวมราคาดิบของตัวเลือกย่อยด้วย ไม่ใช่แค่ราคาดิบเมนูหลัก (ร้านปกติเท่านั้น)
       // (ไม่งั้น subtotal-baseCost จะรวมราคาดิบของตัวเลือกทั้งก้อนเข้ามาด้วย ไม่ใช่แค่ส่วนต่าง GP ย่อย)
-      const baseCost=isProxy?0:grp.items.reduce((s,i)=>{
+      const baseCost=isProxy?0:orderItems.reduce((s,i)=>{
         const optBase=(i.options||[]).reduce((os,o)=>os+(o.price||0),0);
         return s+(i.basePrice+optBase)*i.qty;
-      },0);
+      },0)-(loyaltyDiscount?loyaltyDiscount:0); // เมนูที่แลกฟรีไม่ต้องหักต้นทุนคืนร้านส่วนนั้น (ร้านให้ฟรีเอง)
       const deliveryFee=getDeliveryFee(shopId);
       const grandTotal=subtotal+deliveryFee;
       // ร้านฝากซื้อ (proxy): ไม่มี GP ราคาลูกค้า = ราคาดิบ ดังนั้น subtotal-baseCost จะเท่ากับ 0 เสมอ
@@ -351,12 +416,31 @@ window.placeOrder=async function(){
       const ref=await addDoc(collection(db,"orders"),{
         orderId,groupId,shopId,shopName:grp.shopName,
         shopPhone:meta.phone||'',shopAddress:meta.address||'',shopLat:meta.lat||null,shopLng:meta.lng||null,
-        customer:customerData,items:grp.items,
+        customer:customerData,items:orderItems,
         subtotal,baseCost,deliveryFee,grandTotal,totalDiff,walletCut,riderEarn,
+        ...(isRedeemingThisShop?{loyaltyRedeemed:true,loyaltyDiscount}:{}),
         paymentMethod:"cash",status:"pending",createdAt:serverTimestamp()
       });
       orderDocs.push({docId:ref.id,orderId,shopName:grp.shopName});
       notifyNewOrder(shopId, grp.shopName, orderId);
+      // อัปเดตบัตรสะสมแต้ม: ถ้าใช้สิทธิ์แลกฟรีไปแล้ว รีเซ็ตแต้มกลับ (หักตามจำนวนที่ต้องสะสม) / ถ้าไม่ได้แลก เพิ่ม 1 แต้มตามปกติ
+      if(meta.loyaltyEnabled && custPhone){
+        try{
+          const cardId=shopId+"_"+custPhone;
+          if(isRedeemingThisShop){
+            const target=meta.loyaltyTarget||10;
+            const curPts=(loyaltyCards[shopId]?.points)||0;
+            await updateDoc(doc(db,"loyaltyCards",cardId),{points:Math.max(0,curPts-target),updatedAt:serverTimestamp()});
+          } else {
+            const cardSnap=await getDoc(doc(db,"loyaltyCards",cardId));
+            if(cardSnap.exists()){
+              await updateDoc(doc(db,"loyaltyCards",cardId),{points:increment(1),updatedAt:serverTimestamp()});
+            } else {
+              await setDoc(doc(db,"loyaltyCards",cardId),{shopId,shopName:grp.shopName,customerPhone:custPhone,customerName:addr.name||"",points:1,updatedAt:serverTimestamp()});
+            }
+          }
+        }catch(e){} // แต้มพลาดไม่ควรทำให้สั่งอาหารไม่สำเร็จ
+      }
     }
     // ลบเฉพาะร้านที่สั่ง
     const remaining=JSON.parse(localStorage.getItem("cart")||"{}");
@@ -367,6 +451,55 @@ window.placeOrder=async function(){
     window.location.replace("track.html");
   }catch(e){ btn.disabled=false; btn.textContent="ยืนยันสั่งซื้อ"; alert("เกิดข้อผิดพลาด"); }
 }
+
+// ============ LOYALTY REDEEM ============
+window.openRedeemModal=async function(shopId){
+  const grp=cart[shopId]; if(!grp) return;
+  let html='<div style="font-size:15px;font-weight:800;margin-bottom:12px">🎁 เลือกวิธีใช้สิทธิ์แลกฟรี</div>';
+  html+='<div style="font-size:12px;color:#94a3b8;margin-bottom:14px">เลือกได้ 1 อย่าง: ใช้กับเมนูที่สั่งไว้แล้ว หรือเพิ่มเมนูใหม่ฟรี</div>';
+  html+='<div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:8px">เมนูที่สั่งไว้แล้ว (เลือกให้ฟรี 1 ชิ้น)</div>';
+  grp.items.forEach((it,idx)=>{
+    html+=`<button onclick="window.confirmRedeemExisting('${shopId}',${idx})" style="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:12px;background:#fff;margin-bottom:8px;cursor:pointer;font-size:13px">
+      <span>${esc(it.name)}</span><span style="color:#94a3b8">฿${it.price}</span>
+    </button>`;
+  });
+  html+='<div style="font-size:13px;font-weight:700;color:#0f172a;margin:14px 0 8px">หรือเพิ่มเมนูใหม่ฟรี 1 อย่าง</div>';
+  html+='<div id="redeemNewMenuList" style="font-size:13px;color:#94a3b8">กำลังโหลดเมนู...</div>';
+  document.getElementById("redeemModalBody").innerHTML=html;
+  document.getElementById("redeemModalOverlay").classList.add("show");
+  document.getElementById("redeemModalSheet").classList.add("show");
+  // โหลดเมนูร้าน (ชื่อ+ราคาเท่านั้น เพื่อความง่าย ไม่รวมตัวเลือกเสริม เพราะเป็นของแถมฟรี)
+  try{
+    if(!redeemMenuCache[shopId]){
+      const snap=await getDocs(collection(db,"shops",shopId,"menus"));
+      const items=[]; snap.forEach(d=>{ const m=d.data(); if(m.available!==false) items.push({name:m.name,price:m.price||0}); });
+      redeemMenuCache[shopId]=items;
+    }
+    const menuItems=redeemMenuCache[shopId];
+    const listEl=document.getElementById("redeemNewMenuList");
+    if(!listEl) return; // ปิดป๊อบอัพไปแล้วก่อนโหลดเสร็จ
+    if(!menuItems.length){ listEl.innerHTML='<div>ไม่พบเมนู</div>'; return; }
+    listEl.innerHTML=menuItems.map(m=>`<button onclick='window.confirmRedeemNew("${shopId}",${JSON.stringify(m.name)},${m.price})' style="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:12px;background:#fff;margin-bottom:8px;cursor:pointer;font-size:13px">
+      <span>${esc(m.name)}</span><span style="color:#94a3b8">฿${m.price}</span>
+    </button>`).join('');
+  }catch(e){
+    const listEl=document.getElementById("redeemNewMenuList");
+    if(listEl) listEl.innerHTML='<div>โหลดเมนูไม่สำเร็จ</div>';
+  }
+};
+window.closeRedeemModal=function(){ document.getElementById("redeemModalOverlay").classList.remove("show"); document.getElementById("redeemModalSheet").classList.remove("show"); };
+window.confirmRedeemExisting=function(shopId,idx){
+  redeemedShop=shopId; redeemedExistingIdx=idx; redeemedNewItem=null;
+  window.closeRedeemModal(); renderItems(); renderSummary();
+};
+window.confirmRedeemNew=function(shopId,name,price){
+  redeemedShop=shopId; redeemedNewItem={name,price}; redeemedExistingIdx=null;
+  window.closeRedeemModal(); renderItems(); renderSummary();
+};
+window.cancelRedeem=function(){
+  redeemedShop=null; redeemedExistingIdx=null; redeemedNewItem=null;
+  renderItems(); renderSummary();
+};
 
 init();
 
