@@ -34,8 +34,6 @@ window.enableFcmNotifications = async function () {
     else r();
   });
 
-  const VAPID_KEY = 'BGvY_08v9WpN9wS7FJV3cUHSOcdtxAAlRu8usaXJXAZjydEX27t6avse-3KaUk9mxNWVdqF6g7fgbBwnFmUgRs8'; // เปลี่ยนหลังตั้ง FCM
-
   try {
     // Register service worker
     if (!('serviceWorker' in navigator)) return { ok: false, reason: 'no-serviceworker' };
@@ -44,7 +42,7 @@ window.enableFcmNotifications = async function () {
     // Load Firebase Messaging
     const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
     const { getMessaging, getToken, onMessage } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js');
-    const { getFirestore, doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const { getFirestore, doc, getDoc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
 
     const app = getApps()[0] || initializeApp({
       apiKey: "AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -57,6 +55,18 @@ window.enableFcmNotifications = async function () {
 
     const messaging = getMessaging(app);
     const db = getFirestore(app);
+
+    // ดึง VAPID key จากฐานข้อมูลกลาง (ตั้งค่าได้จากหน้าตั้งค่าใน admin.html) แทนการฝังไว้ในโค้ดตรงๆ
+    // จะได้ไม่ต้องมาแก้ไฟล์นี้ทุกครั้งที่ต้องเปลี่ยนค่า — เก็บแคชไว้ใน localStorage ด้วยกันเรียก Firestore ซ้ำถี่เกินไป
+    let VAPID_KEY = localStorage.getItem('_fcmVapidKeyCache') || '';
+    try{
+      const vSnap = await getDoc(doc(db, 'settings', 'fcmConfig'));
+      if(vSnap.exists() && vSnap.data().vapidKey){
+        VAPID_KEY = vSnap.data().vapidKey;
+        localStorage.setItem('_fcmVapidKeyCache', VAPID_KEY);
+      }
+    }catch(e){} // ถ้าดึงไม่ได้ ใช้ค่าที่แคชไว้ก่อนหน้า (ถ้ามี) ต่อไปก่อน
+    if(!VAPID_KEY) return { ok: false, reason: 'no-vapid-key' };
 
     // ขอ permission
     const perm = await Notification.requestPermission();
@@ -103,5 +113,12 @@ window.enableFcmNotifications = async function () {
 
 // พฤติกรรมเดิม: ขอสิทธิ์อัตโนมัติทันที เว้นแต่หน้านั้นตั้ง window._fcmManual = true ไว้ก่อน
 if (!window._fcmManual) {
+  window.enableFcmNotifications();
+} else if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+  // สำคัญมาก: หน้าที่ตั้งใจให้กดสวิตช์เปิดเอง (_fcmManual=true) แต่ถ้าผู้ใช้คนนี้เคยกดอนุญาตสำเร็จมาก่อนแล้วจริงๆ
+  // ให้รีเฟรช token ให้เงียบๆทุกครั้งที่เข้าเว็บอัตโนมัติเลย ไม่ต้องรอให้กดสวิตช์ใหม่เอง
+  // ทำแบบนี้ได้อย่างปลอดภัย 100% เพราะ requestPermission() จะไม่มีทาง popup ถามซ้ำอีกเลยถ้าเบราว์เซอร์
+  // เคยได้คำตอบ "อนุญาต" ไปแล้ว (จำคำตอบเดิมไว้ถาวร) — เรียกซ้ำได้เรื่อยๆแบบเงียบสนิท ไม่กวนผู้ใช้แม้แต่นิดเดียว
+  // แก้ปัญหา token เก่าหมดอายุ/ไม่ตรงกับการตั้งค่าปัจจุบัน (เช่น เปลี่ยน VAPID key) โดยไม่ต้องให้ผู้ใช้ทำอะไรเองเลย
   window.enableFcmNotifications();
 }
