@@ -255,11 +255,20 @@ function initMap(){
 }
 
 function useMyLocation(){
+  // iOS มีบัคที่รู้จักกันดี: ถ้าเปิดเว็บผ่านไอคอนที่เพิ่มไว้หน้าจอโฮม (standalone) การขอสิทธิ์ตำแหน่งมักค้างตลอดไป
+  // ไม่มี pop-up ขึ้นเลย ไม่ error ไม่ timeout เอง — ต้องตั้ง timeout เองเพื่อให้อย่างน้อยแจ้งผู้ใช้ได้ว่าเกิดอะไรขึ้น
+  const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
   navigator.geolocation.getCurrentPosition(function(p){
     curLat = p.coords.latitude; curLng = p.coords.longitude;
     map.setView([curLat,curLng],16);
     marker.setLatLng([curLat,curLng]);
-  }, function(){ alert('ไม่สามารถเข้าถึง GPS ได้'); });
+  }, function(){
+    if(isStandalone){
+      alert('เข้าถึงตำแหน่งไม่ได้ — เป็นบัคที่รู้จักของ iOS เวลาเปิดผ่านไอคอนหน้าจอโฮม\n\nลองเปิดลิงก์นี้ผ่าน Safari ตรงๆ (ไม่ผ่านไอคอนที่บันทึกไว้) แล้วลองใหม่อีกครั้ง หรือปักหมุดเองบนแผนที่แทนได้เลยครับ');
+    } else {
+      alert('ไม่สามารถเข้าถึง GPS ได้ ลองปักหมุดเองบนแผนที่แทนได้ครับ');
+    }
+  }, {timeout:8000, enableHighAccuracy:true});
 }
 
 // ========== STORAGE ==========
