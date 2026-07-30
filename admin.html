@@ -270,6 +270,8 @@ body{background:var(--g);min-height:100vh;}
 .lr-copy{font-size:11px;font-weight:700;color:var(--p);padding:4px 10px;border:none;background:none;cursor:pointer;white-space:nowrap;flex-shrink:0;}
 
 </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 <div id="notifBanner" style="position:fixed;top:0;left:0;right:0;z-index:999;color:#fff;padding:14px 16px;transform:translateY(-100%);transition:transform .35s cubic-bezier(.34,1.56,.64,1);box-shadow:0 4px 20px rgba(0,0,0,.3);display:flex;align-items:center;gap:10px;">
@@ -365,6 +367,13 @@ body{background:var(--g);min-height:100vh;}
 <!-- RIDERS -->
 <div id="ridersPage" class="pg">
   <div class="tb"><div class="tb-t">ไรเดอร์</div><button class="tb-btn" id="addRiderBtn"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button></div>
+  <div style="margin:0 16px 14px;border-radius:16px;overflow:hidden;isolation:isolate;position:relative;box-shadow:0 2px 8px rgba(0,0,0,.08)">
+    <div style="background:#0c4aa6;color:#fff;padding:10px 14px;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:space-between">
+      <span>📍 ตำแหน่งไรเดอร์แบบเรียลไทม์</span>
+      <span id="riderMapCount" style="font-size:11px;font-weight:700;background:rgba(255,255,255,.2);padding:2px 8px;border-radius:10px">0 คนออนไลน์</span>
+    </div>
+    <div id="riderTrackMap" style="width:100%;height:260px;background:#eef0f4"></div>
+  </div>
   <div class="sw" id="ridersEl"><div class="lt">กำลังโหลด...</div></div>
 </div>
 
@@ -611,6 +620,9 @@ body{background:var(--g);min-height:100vh;}
       <div class="mf"><div class="ml">ชื่อลูกค้า</div><input class="mi" id="cusName"></div>
       <div class="mf"><div class="ml">เบอร์โทร</div><input class="mi" id="cusPhone" type="tel"></div>
       <div class="mf"><div class="ml">ที่อยู่จัดส่ง</div><textarea class="mta" id="cusAddr"></textarea></div>
+      <div class="mf"><div class="ml">ตำแหน่งหมุด (แตะบนแผนที่เพื่อย้ายหมุด)</div>
+        <div id="cusPinMap" style="width:100%;height:200px;border-radius:12px;overflow:hidden;isolation:isolate;position:relative"></div>
+      </div>
       <button class="msb" id="saveCusBtn">บันทึก</button>
       <button class="mxb" data-close="editCusMov">ยกเลิก</button>
     </div>
@@ -935,7 +947,7 @@ function swPg(pg){
   const m={ordersPage:'ni-orders',historyPage:'ni-history',shopsPage:'ni-shops',ridersPage:'ni-riders',settingsPage:'ni-settings'};
   if(m[pg])$(m[pg]).classList.add('on');
   if(pg==='shopsPage')loadShops();
-  if(pg==='ridersPage')loadRiders();
+  if(pg==='ridersPage'){loadRiders();initRiderMap();}
   if(pg==='historyPage')loadHistory();
   if(pg==='settingsPage'){loadPricing();loadAppStatus();}
 }
@@ -1299,20 +1311,36 @@ async function saveEdit(){
 }
 
 // EDIT CUSTOMER INFO
+let cusPinMap=null, cusPinMarker=null;
 function openEditCus(){
   if(!curOrder){ window.toast('กำลังโหลดข้อมูลออเดอร์ กรุณารอสักครู่แล้วลองใหม่','er'); return; }
   $('cusName').value=curOrder.customer?.name||'';
   $('cusPhone').value=curOrder.customer?.phone||'';
   $('cusAddr').value=curOrder.customer?.address||'';
   $('editCusMov').classList.add('show');
+  const lat=curOrder.customer?.lat||13.7563, lng=curOrder.customer?.lng||100.5018; // ถ้ายังไม่เคยมีพิกัด เริ่มที่กรุงเทพฯ
+  setTimeout(()=>{
+    if(!cusPinMap){
+      cusPinMap=L.map('cusPinMap').setView([lat,lng],16);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(cusPinMap);
+      cusPinMarker=L.marker([lat,lng],{draggable:true}).addTo(cusPinMap);
+      cusPinMap.on('click',e=>{ cusPinMarker.setLatLng(e.latlng); });
+    } else {
+      cusPinMap.setView([lat,lng],16);
+      cusPinMarker.setLatLng([lat,lng]);
+    }
+    cusPinMap.invalidateSize();
+  },100);
 }
 async function saveCus(){
   const name=$('cusName').value.trim(),phone=$('cusPhone').value.trim(),addr=$('cusAddr').value.trim();
+  const pin=cusPinMarker?cusPinMarker.getLatLng():null;
   try{
-    // อัพเดตใน order
-    await updateDoc(doc(db,'orders',curDocId),{'customer.name':name,'customer.phone':phone,'customer.address':addr,updatedAt:serverTimestamp()});
+    // อัพเดตใน order — เพิ่ม lat/lng จากหมุดที่ขยับไว้ด้วย (เดิมมีแค่ข้อความที่อยู่ ไม่เคยอัปเดตพิกัดจริงเลย
+    // ทำให้ไรเดอร์เห็นหมุดเดิมตลอดแม้แอดมินจะแก้ที่อยู่ไปแล้วก็ตาม)
+    await updateDoc(doc(db,'orders',curDocId),{'customer.name':name,'customer.phone':phone,'customer.address':addr,...(pin?{'customer.lat':pin.lat,'customer.lng':pin.lng}:{}),updatedAt:serverTimestamp()});
     // บันทึกในคอลเลกชัน customers ด้วย (เก็บประวัติ)
-    if(phone) await setDoc(doc(db,'customers',phone),{name,phone,address:addr,updatedAt:serverTimestamp()},{merge:true});
+    if(phone) await setDoc(doc(db,'customers',phone),{name,phone,address:addr,...(pin?{lat:pin.lat,lng:pin.lng}:{}),updatedAt:serverTimestamp()},{merge:true});
     closeMov('editCusMov');window.toast('บันทึกข้อมูลลูกค้าสำเร็จ','ok');
   }catch(e){window.toast('บันทึกไม่สำเร็จ','er');}
 }
@@ -1437,6 +1465,41 @@ async function saveShop(){
 }
 
 // RIDERS
+// ============ RIDER LIVE TRACKING MAP ============
+let riderMap=null, riderMarkers={}, riderMapUnsub=null, riderMapFitted=false;
+const RIDER_ONLINE_THRESHOLD_MS = 3*60*1000; // ถือว่า "ออนไลน์" ถ้าอัปเดตตำแหน่งล่าสุดไม่เกิน 3 นาทีที่แล้ว
+function initRiderMap(){
+  if(riderMap){ setTimeout(()=>riderMap.invalidateSize(),100); return; } // ทำครั้งเดียวพอ แค่รีเฟรชขนาดตอนกลับมาเปิดหน้าอีกที
+  riderMap=L.map('riderTrackMap',{zoomControl:true}).setView([13.7563,100.5018],12); // ค่าเริ่มต้น กรุงเทพฯ เผื่อยังไม่มีไรเดอร์ออนไลน์เลย
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(riderMap);
+  setTimeout(()=>riderMap.invalidateSize(),150);
+  if(riderMapUnsub) riderMapUnsub();
+  riderMapUnsub=onSnapshot(collection(db,'riders'),snap=>{
+    const now=Date.now();
+    const onlineIds=new Set();
+    const bounds=[];
+    snap.forEach(d=>{
+      const r=d.data();
+      const updatedMs = r.locationUpdatedAt?.toMillis ? r.locationUpdatedAt.toMillis() : (r.locationUpdatedAt ? new Date(r.locationUpdatedAt).getTime() : 0);
+      const isOnline = r.currentLat && r.currentLng && (now-updatedMs) < RIDER_ONLINE_THRESHOLD_MS;
+      if(!isOnline) return;
+      onlineIds.add(d.id);
+      bounds.push([r.currentLat,r.currentLng]);
+      if(riderMarkers[d.id]){
+        riderMarkers[d.id].setLatLng([r.currentLat,r.currentLng]);
+      } else {
+        const icon=L.divIcon({html:'<div style="background:#0c4aa6;color:#fff;width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.3);border:2px solid #fff"><span style="transform:rotate(45deg);font-size:15px">🛵</span></div>',iconSize:[32,32],iconAnchor:[16,32],className:''});
+        riderMarkers[d.id]=L.marker([r.currentLat,r.currentLng],{icon}).addTo(riderMap).bindPopup(esc(r.name||'ไรเดอร์'));
+      }
+    });
+    // ลบ marker ของไรเดอร์ที่ไม่ออนไลน์แล้ว (ออกจากหน้าไป/ปิดแอป/นานเกิน threshold)
+    Object.keys(riderMarkers).forEach(id=>{
+      if(!onlineIds.has(id)){ riderMap.removeLayer(riderMarkers[id]); delete riderMarkers[id]; }
+    });
+    const countEl=$('riderMapCount'); if(countEl) countEl.textContent=onlineIds.size+' คนออนไลน์';
+    if(bounds.length && !riderMapFitted){ try{ riderMap.fitBounds(bounds,{padding:[30,30],maxZoom:15}); riderMapFitted=true; }catch(e){} }
+  });
+}
 async function loadRiders(){
   try{
     const snap=await getDocs(collection(db,'riders'));
