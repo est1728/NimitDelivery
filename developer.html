@@ -331,6 +331,7 @@ body{background:var(--g);min-height:100vh;}
       <select class="inp" id="ntTarget" onchange="ntToggleUid()">
         <option value="admin">แอดมินทุกคน</option>
         <option value="rider">ไรเดอร์ทุกคน</option>
+        <option value="customer">ลูกค้าทุกคน</option>
         <option value="rider1">ไรเดอร์คนเดียว (ระบุรหัส)</option>
         <option value="shop1">ร้านเดียว (ระบุรหัสร้าน)</option>
         <option value="customer1">ลูกค้าคนเดียว (ระบุเบอร์โทร)</option>
@@ -753,7 +754,7 @@ window.sendTestNotif = async function(){
   btn.disabled = true; btn.textContent = 'กำลังส่ง...';
   try{
     let tokens = [];
-    if(target==='admin' || target==='rider'){
+    if(target==='admin' || target==='rider' || target==='customer'){
       const snap = await getDocs(query(collection(db,'fcmTokens'), where('role','==',target)));
       snap.forEach(d=>{ const t=d.data().token; if(t) tokens.push(t); });
       if(!tokens.length){
