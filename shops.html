@@ -613,12 +613,11 @@ window.openAdVideo=function(url){
 </script>
 
 <!-- LOYALTY CARDS VIEW -->
-<div id="loyaltyViewModal" onclick="if(event.target===this)document.getElementById('loyaltyViewModal').style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:9000;flex-direction:column;justify-content:flex-end;align-items:stretch">
-  <div style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-height:75vh;overflow-y:auto;padding:20px 16px 30px">
-    <div style="width:36px;height:4px;border-radius:2px;background:#e2e8f0;margin:0 auto 14px"></div>
+<div id="loyaltyViewModal" onclick="if(event.target===this)document.getElementById('loyaltyViewModal').style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:9000;flex-direction:column;justify-content:center;align-items:center;padding:20px">
+  <div style="background:#fff;border-radius:20px;width:100%;max-width:400px;max-height:75vh;overflow-y:auto;padding:20px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <div style="font-size:17px;font-weight:800;color:#0f172a">🎫 บัตรสะสมแต้มของฉัน</div>
-      <button onclick="document.getElementById('loyaltyViewModal').style.display='none'" style="border:none;background:#f1f5f9;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer">✕</button>
+      <button onclick="document.getElementById('loyaltyViewModal').style.display='none'" style="border:none;background:#f1f5f9;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;flex-shrink:0">✕</button>
     </div>
     <div id="loyaltyViewList"></div>
   </div>
