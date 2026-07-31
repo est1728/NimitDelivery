@@ -251,7 +251,35 @@ body{background:var(--gray);min-height:100vh;overscroll-behavior-y:none;}
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<link rel="manifest" href="/manifest-shop.json">
+<script>
+// สร้าง manifest แบบไดนามิกแทนไฟล์ static เพราะร้านค้าแต่ละร้านมีลิงก์เฉพาะตัว (?id=...) ต่างกัน
+// ถ้าใช้ manifest.json ไฟล์เดียวแบบ hardcode start_url ไว้ ตอนติดตั้งแล้วเปิดจากไอคอนจะเปิดแบบไม่มี ?id=
+// ทำให้หน้าไม่รู้ว่าเป็นร้านไหน ขึ้น "ไม่พบลิงก์" — ต้องฝัง URL เต็มของร้านนั้นเข้าไปในตัว manifest เองตอนรันจริง
+(function(){
+  const manifest = {
+    id: location.pathname + location.search,
+    name: "Nimit Delivery - ร้านค้า",
+    short_name: "Nimit ร้านค้า",
+    description: "แอปจัดการร้านค้า Nimit Delivery",
+    start_url: location.pathname + location.search,
+    scope: "/",
+    display: "standalone",
+    background_color: "#0c4aa6",
+    theme_color: "#0c4aa6",
+    icons: [
+      { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
+      { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type: "application/json"});
+  const link = document.createElement("link");
+  link.rel = "manifest";
+  link.href = URL.createObjectURL(blob);
+  document.head.appendChild(link);
+})();
+</script>
 <link rel="icon" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/icon-192.png">
 <meta name="theme-color" content="#0c4aa6">
