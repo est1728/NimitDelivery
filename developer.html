@@ -208,6 +208,15 @@ body{background:var(--g);min-height:100vh;}
 </style>
 </head>
 <body>
+<script>
+window.onerror = function(msg, url, line, col, error){
+  var box = document.createElement('div');
+  box.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#dc2626;color:#fff;padding:14px;font-size:13px;font-family:monospace;white-space:pre-wrap;word-break:break-all;max-height:60vh;overflow:auto';
+  box.textContent = 'JS ERROR: ' + msg + '\n(line ' + line + ':' + col + ')\n' + (error && error.stack ? error.stack.slice(0,500) : '');
+  document.body.appendChild(box);
+  return false;
+};
+</script>
 <div class="tw2" id="tw"></div>
 <div class="bar">
   <div class="bar-ico"><svg viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg></div>
