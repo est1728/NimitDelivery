@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>บัตรสะสมแต้ม - Nimit Delivery</title>
+<style>
+:root{--p:#0c4aa6;--pd:#083570;--g:#f5f6f8;--t:#0f172a;--s:#64748b;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
+body{background:var(--g);min-height:100vh;padding-bottom:28px;}
+.tb{background:linear-gradient(135deg,var(--p),var(--pd));padding:16px;color:#fff;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+.back-btn{background:rgba(255,255,255,.15);border:none;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.back-btn svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tb-title{font-size:17px;font-weight:800}
+.list{padding:16px}
+.card{border:1.5px solid #e2e8f0;background:#fff;border-radius:14px;padding:14px;margin-bottom:10px}
+.card.full{border-color:#86efac;background:#f0fdf4}
+.card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.card-name{font-size:14px;font-weight:800;color:var(--t)}
+.card-pts{font-size:13px;font-weight:800}
+.bar-track{height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px}
+.card-note{font-size:11px;font-weight:700;margin-top:6px}
+.empty{text-align:center;padding:60px 24px;color:var(--s);font-size:14px;line-height:1.7}
+.loading{text-align:center;padding:60px 24px;color:var(--s);font-size:13px}
+</style>
+</head>
+<body>
+<div class="tb">
+  <button class="back-btn" onclick="history.length>1?history.back():location.href='shops.html'"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+  <div class="tb-title">🎫 บัตรสะสมแต้มของฉัน</div>
+</div>
+<div class="list" id="list"><div class="loading">กำลังโหลด...</div></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, getDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
+  authDomain:"nimit-delivery.firebaseapp.com",
+  projectId:"nimit-delivery",
+  storageBucket:"nimit-delivery.firebasestorage.app",
+  messagingSenderId:"233476256130",
+  appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
+});
+const db = getFirestore(app);
+function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+async function load(){
+  const listEl = document.getElementById("list");
+  const phone = JSON.parse(localStorage.getItem("customerData")||"{}").phone || localStorage.getItem("customerPhone");
+  if(!phone){ listEl.innerHTML = '<div class="empty">กรุณาเข้าสู่ระบบก่อนครับ</div>'; return; }
+  try{
+    const timeout = ms => new Promise((_,rej)=>setTimeout(()=>rej(new Error("หมดเวลารอ ลองรีเฟรชหน้าใหม่")), ms));
+    const snap = await Promise.race([
+      getDocs(query(collection(db,"loyaltyCards"), where("customerPhone","==",phone))),
+      timeout(10000)
+    ]);
+    const cards = []; snap.forEach(d=>cards.push(d.data()));
+    if(!cards.length){
+      listEl.innerHTML = '<div class="empty">ยังไม่มีบัตรสะสมแต้มเลยครับ<br>ลองสั่งร้านที่มีป้าย 🎫 สะสมแต้ม ดูได้เลย</div>';
+      return;
+    }
+    const shopIds = [...new Set(cards.map(c=>c.shopId))];
+    const shopTargets = {};
+    await Promise.all(shopIds.map(async sid=>{
+      try{ const sSnap = await getDoc(doc(db,"shops",sid)); if(sSnap.exists()) shopTargets[sid] = sSnap.data().loyaltyTarget||10; }catch(e){}
+    }));
+    listEl.innerHTML = cards.map(c=>{
+      const target = shopTargets[c.shopId]||10;
+      const pts = c.points||0;
+      const full = pts>=target;
+      const pct = Math.min(100, Math.round(pts/target*100));
+      return `<div class="card${full?' full':''}">
+        <div class="card-top">
+          <div class="card-name">${esc(c.shopName)}</div>
+          <div class="card-pts" style="color:${full?'#16a34a':'#c2410c'}">${pts}/${target}${full?' ✓':''}</div>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${full?'#16a34a':'#f97316'}"></div></div>
+        ${full?'<div class="card-note" style="color:#16a34a">แต้มเต็มแล้ว! ใช้สิทธิ์รับฟรีได้ตอนชำระเงินร้านนี้</div>':''}
+      </div>`;
+    }).join("");
+  }catch(e){
+    listEl.innerHTML = '<div class="empty">โหลดไม่สำเร็จ: '+esc(e.message)+'</div>';
+  }
+}
+load();
+</script>
+</body>
+</html>
