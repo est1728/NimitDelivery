@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+<script>
+// จับ event นี้ให้เร็วที่สุดเท่าที่จะทำได้ ก่อนโค้ดอื่นใดทั้งสิ้น เพราะ beforeinstallprompt อาจ fire
+// เร็วมากตั้งแต่ต้นๆของการโหลดหน้า ถ้าตัวจับอยู่หลังเกินไป (เช่นรอจน body โหลดเสร็จ) อาจพลาด event ไปเลย
+// ทั้งที่จริงๆเว็บ installable อยู่แล้ว (ยืนยันได้จากเมนู 3 จุดของ Chrome ที่มีตัวเลือกติดตั้งให้กดเองได้ปกติ)
+window._deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  window._deferredInstallPrompt = e;
+  if(typeof window._updateInstallBtn === 'function') window._updateInstallBtn();
+});
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ไรเดอร์ - Nimit Delivery</title>
@@ -343,8 +354,8 @@ window.onerror = function(msg, url, line, col, error){
 </script>
 <script>
 // ============ ปุ่มติดตั้งแอป (PWA) ============
-let _deferredInstallPrompt = null;
-function _updateInstallBtn(){
+// ตัวจับ beforeinstallprompt ตัวจริงอยู่ใน <head> แล้ว (เร็วที่สุดเท่าที่จะทำได้) ตรงนี้แค่ใช้ค่าที่จับมาได้ต่อ
+window._updateInstallBtn = function(){
   const textEl = document.getElementById('installBtnText');
   const btnEl = document.getElementById('installBtn');
   if(!btnEl) return;
@@ -357,19 +368,14 @@ function _updateInstallBtn(){
     if(textEl) textEl.textContent='ติดตั้งแอป';
   }
 }
-window.addEventListener('beforeinstallprompt', function(e){
-  e.preventDefault();
-  _deferredInstallPrompt = e;
-  _updateInstallBtn();
-});
 window.addEventListener('appinstalled', function(){
-  _deferredInstallPrompt = null;
-  _updateInstallBtn();
+  window._deferredInstallPrompt = null;
+  window._updateInstallBtn();
 });
 window.installApp = async function(){
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
   if(isStandalone){ return; } // ติดตั้งไปแล้ว ปุ่มควรจางอยู่แล้ว กันไว้เผื่อกดซ้ำ
-  if(!_deferredInstallPrompt){
+  if(!window._deferredInstallPrompt){
     // เช็คก่อนว่าเปิดผ่าน in-app browser (Messenger/Line/Instagram ฯลฯ) อยู่หรือเปล่า — ถ้าใช่ ปุ่มนี้จะไม่มีทาง
     // ทำงานได้เลยไม่ว่าจะรอนานแค่ไหน เพราะเบราว์เซอร์ในแอปพวกนี้ไม่รองรับการติดตั้งแบบนี้ตั้งแต่ต้น ต้องบอกตรงๆ
     // ไม่ใช่บอกว่า "รอสักครู่" เพราะจะทำให้เข้าใจผิดว่าเดี๋ยวจะใช้ได้ ทั้งที่จริงๆไม่มีทางใช้ได้เลยในบราวเซอร์นี้
@@ -382,12 +388,12 @@ window.installApp = async function(){
     }
     return;
   }
-  _deferredInstallPrompt.prompt();
-  await _deferredInstallPrompt.userChoice;
-  _deferredInstallPrompt = null;
-  _updateInstallBtn();
+  window._deferredInstallPrompt.prompt();
+  await window._deferredInstallPrompt.userChoice;
+  window._deferredInstallPrompt = null;
+  window._updateInstallBtn();
 };
-document.addEventListener('DOMContentLoaded', _updateInstallBtn);
+document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
 </script>
 
 <div id="loadingPage" class="page active">
@@ -1198,7 +1204,8 @@ function renderDetail(o){
   document.getElementById("d-items").innerHTML=(o.items||[]).map(i=>{
     const opts=i.options&&i.options.length?i.options.map(op=>{const nm=typeof op==='string'?op:(op.name||'');const pr=typeof op==='object'&&'';return nm?'<div>- '+esc(nm)+pr+'</div>':'';}).join(''):'';
     const note=i.note?'<div style="font-size:12px;color:#dc2626;font-weight:700;margin-top:2px">📝 '+esc(i.note)+'</div>':'';
-    return '<div class="item-row"><div><div style="font-weight:700">'+esc(i.name)+'</div>'+(opts?'<div class="item-opt">'+opts+'</div>':'')+note+'</div><div>x'+i.qty+'</div><div>฿'+(i.price*i.qty)+'</div></div>';
+    const cat=i.category?'<div style="font-size:11px;color:#94a3b8">หมวด: '+esc(i.category)+'</div>':'';
+    return '<div class="item-row"><div><div style="font-weight:700">'+esc(i.name)+'</div>'+cat+(opts?'<div class="item-opt">'+opts+'</div>':'')+note+'</div><div>x'+i.qty+'</div><div>฿'+(i.price*i.qty)+'</div></div>';
   }).join('');
   document.getElementById("d-subtotal").textContent=`฿${o.subtotal||0}`;
   document.getElementById("d-grand").textContent=`฿${o.grandTotal||0}`;
