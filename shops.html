@@ -7,9 +7,9 @@
 <style>
 :root{--p:#0c4aa6;--pd:#083570;--pl:#e8f0fe;--g:#f5f6f8;--t:#0f172a;--s:#64748b;--gn:#16a34a;--gnl:#dcfce7;}
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
-.sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:400;display:none;}
-.sidebar-overlay.show{display:block;}
-.sidebar{position:fixed;top:0;right:-300px;width:280px;height:100%;background:#fff;z-index:401;transition:right 0.25s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.15);display:flex;flex-direction:column;}
+.sidebar-overlay{position:fixed !important;inset:0 !important;background:rgba(0,0,0,0.4);z-index:9500 !important;display:none;}
+.sidebar-overlay.show{display:block !important;}
+.sidebar{position:fixed !important;top:0;right:-300px;width:280px;height:100%;background:#fff;z-index:9501 !important;transition:right 0.25s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.15);display:flex;flex-direction:column;}
 .sidebar.open{right:0;}
 .sidebar-header{background:linear-gradient(135deg,var(--p),var(--pd));padding:24px 20px;color:#fff;}
 .sidebar-name{font-size:16px;font-weight:800;}
@@ -184,8 +184,16 @@ window.installApp = async function(){
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
   if(isStandalone){ return; } // ติดตั้งไปแล้ว ปุ่มควรจางอยู่แล้ว กันไว้เผื่อกดซ้ำ
   if(!_deferredInstallPrompt){
-    // เบราว์เซอร์ยังไม่พร้อมให้ติดตั้ง (บางทีต้องรอสักครู่หลังโหลดหน้าเสร็จ หรือเคยกดปฏิเสธไปก่อนหน้านี้)
-    alert('ยังไม่พร้อมให้ติดตั้งตอนนี้ครับ ลองรอสักครู่แล้วกดใหม่อีกครั้ง (หรือถ้าเคยกดปฏิเสธไปก่อนหน้านี้ อาจต้องรีเฟรชหน้าใหม่ก่อน)');
+    // เช็คก่อนว่าเปิดผ่าน in-app browser (Messenger/Line/Instagram ฯลฯ) อยู่หรือเปล่า — ถ้าใช่ ปุ่มนี้จะไม่มีทาง
+    // ทำงานได้เลยไม่ว่าจะรอนานแค่ไหน เพราะเบราว์เซอร์ในแอปพวกนี้ไม่รองรับการติดตั้งแบบนี้ตั้งแต่ต้น ต้องบอกตรงๆ
+    // ไม่ใช่บอกว่า "รอสักครู่" เพราะจะทำให้เข้าใจผิดว่าเดี๋ยวจะใช้ได้ ทั้งที่จริงๆไม่มีทางใช้ได้เลยในบราวเซอร์นี้
+    const ua = navigator.userAgent || '';
+    const isInAppBrowser = /FBAN|FBAV|FB_IAB|Instagram|Line|MicroMessenger|TikTok/i.test(ua);
+    if(isInAppBrowser){
+      alert('ปุ่มนี้ใช้งานไม่ได้ครับ เพราะตอนนี้เปิดผ่านเบราว์เซอร์ในแอป (เช่น Messenger/Line/Instagram) ซึ่งไม่รองรับการติดตั้งแอปแบบนี้เลย\n\nวิธีแก้: กดจุด 3 จุดหรือไอคอนแชร์ แล้วเลือก "เปิดใน Chrome" หรือคัดลอกลิงก์ไปวางเปิดใน Chrome/เบราว์เซอร์ปกติแทนครับ');
+    } else {
+      alert('ยังไม่พร้อมให้ติดตั้งตอนนี้ครับ ลองรอสักครู่แล้วกดใหม่อีกครั้ง (หรือถ้าเคยกดปฏิเสธไปก่อนหน้านี้ อาจต้องรีเฟรชหน้าใหม่ก่อน)');
+    }
     return;
   }
   _deferredInstallPrompt.prompt();
@@ -633,6 +641,10 @@ function _lEsc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;
 
 window.openSidebar = function(){
   const ov=document.getElementById('sidebarOverlay'), sb=document.getElementById('sidebar');
+  // ย้ายให้เป็นลูกตรงของ body เสมอ กันปัญหา position:fixed เพี้ยนถ้ามี ancestor ไหนดันมี
+  // transform/filter/will-change ติดอยู่โดยไม่ตั้งใจ (ทำให้ fixed positioning อ้างอิงผิดจุดจากวิวพอร์ตจริง)
+  if(ov && ov.parentElement!==document.body) document.body.appendChild(ov);
+  if(sb && sb.parentElement!==document.body) document.body.appendChild(sb);
   if(ov) ov.classList.add('show');
   if(sb) sb.classList.add('open');
 };
