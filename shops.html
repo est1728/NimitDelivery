@@ -7,6 +7,20 @@
 <style>
 :root{--p:#0c4aa6;--pd:#083570;--pl:#e8f0fe;--g:#f5f6f8;--t:#0f172a;--s:#64748b;--gn:#16a34a;--gnl:#dcfce7;}
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
+.sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:400;display:none;}
+.sidebar-overlay.show{display:block;}
+.sidebar{position:fixed;top:0;right:-300px;width:280px;height:100%;background:#fff;z-index:401;transition:right 0.25s ease;box-shadow:-4px 0 20px rgba(0,0,0,0.15);display:flex;flex-direction:column;}
+.sidebar.open{right:0;}
+.sidebar-header{background:linear-gradient(135deg,var(--p),var(--pd));padding:24px 20px;color:#fff;}
+.sidebar-name{font-size:16px;font-weight:800;}
+.sidebar-sub{font-size:12px;opacity:0.8;margin-top:2px;}
+.sidebar-body{flex:1;padding:8px 0;overflow-y:auto;}
+.sidebar-item{display:flex;align-items:center;gap:14px;padding:16px 20px;cursor:pointer;border:none;background:none;width:100%;text-align:left;border-bottom:1px solid var(--g);}
+.sidebar-item svg{width:20px;height:20px;fill:var(--s);flex-shrink:0;}
+.sidebar-item-text{flex:1;min-width:0;}
+.sidebar-item-title{font-size:14px;font-weight:700;color:var(--t);}
+.sidebar-item-sub{font-size:12px;color:var(--s);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sidebar-arrow svg{width:16px;height:16px;fill:var(--s);}
 html,body{overscroll-behavior-y:contain;}
 body{background:var(--g);min-height:100vh;padding-bottom:28px;}
 
@@ -136,12 +150,8 @@ window.onerror = function(msg, url, line, col, error){
   <div class="tb-row">
     <div class="logo">Nimit Delivery</div>
     <div class="tb-right">
-      <div class="addr-chip" onclick="sessionStorage.setItem('addrBack','shops.html');window.Motion?window.Motion.navigate('address.html'):location.href='address.html'">
-        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>
-        <div class="addr-txt" id="addrTxt">ที่อยู่</div>
-      </div>
-      <button class="cart" onclick="window.openLoyaltyView()" style="margin-right:6px">
-        <svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a2 2 0 0 0-2-2c-1.05 0-1.87.62-2.44 1.5L13 6.32 12.44 4.5C11.87 3.62 11.05 3 10 3a2 2 0 0 0-2 2c0 .35.07.69.18 1H6a2 2 0 0 0-2 2v2a1 1 0 0 0 1 1h1v7a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-7h1a1 1 0 0 0 1-1V8a2 2 0 0 0-2-2zM16 5a1 1 0 0 1-1 1h-1.06l.31-.94A1.24 1.24 0 0 1 15.5 4a1 1 0 0 1 .5 1zM9 5a1 1 0 0 1 1-1c.31 0 .74.16.94.5l.5 1.5H10a1 1 0 0 1-1-1z"/></svg>
+      <button class="cart" onclick="window.openSidebar()" style="margin-right:6px">
+        <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
       </button>
       <button class="cart" onclick="window.Motion?window.Motion.navigate('cart.html'):location.href='cart.html'">
         <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg>
@@ -152,6 +162,26 @@ window.onerror = function(msg, url, line, col, error){
   <div class="srch">
     <svg class="srch-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
     <input id="srchBox" placeholder="ค้นหาร้านหรือเมนู..." readonly onclick="location.href='search.html'" style="cursor:pointer">
+  </div>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="window.closeSidebar()"></div>
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-name">Nimit Delivery</div>
+    <div class="sidebar-sub">เมนูของฉัน</div>
+  </div>
+  <div class="sidebar-body">
+    <button class="sidebar-item" onclick="window.closeSidebar();sessionStorage.setItem('addrBack','shops.html');window.Motion?window.Motion.navigate('address.html'):location.href='address.html'">
+      <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>
+      <div class="sidebar-item-text"><div class="sidebar-item-title">ที่อยู่จัดส่ง</div><div class="sidebar-item-sub" id="addrTxt">ที่อยู่</div></div>
+      <div class="sidebar-arrow"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
+    </button>
+    <button class="sidebar-item" onclick="window.closeSidebar();window.openLoyaltyView()">
+      <svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a2 2 0 0 0-2-2c-1.05 0-1.87.62-2.44 1.5L13 6.32 12.44 4.5C11.87 3.62 11.05 3 10 3a2 2 0 0 0-2 2c0 .35.07.69.18 1H6a2 2 0 0 0-2 2v2a1 1 0 0 0 1 1h1v7a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-7h1a1 1 0 0 0 1-1V8a2 2 0 0 0-2-2zM16 5a1 1 0 0 1-1 1h-1.06l.31-.94A1.24 1.24 0 0 1 15.5 4a1 1 0 0 1 .5 1zM9 5a1 1 0 0 1 1-1c.31 0 .74.16.94.5l.5 1.5H10a1 1 0 0 1-1-1z"/></svg>
+      <div class="sidebar-item-text"><div class="sidebar-item-title">บัตรสะสมแต้ม</div><div class="sidebar-item-sub">ดูแต้มที่สะสมไว้ทุกร้าน</div></div>
+      <div class="sidebar-arrow"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
+    </button>
   </div>
 </div>
 
@@ -544,6 +574,14 @@ const _lApp = getApps()[0] || initializeApp({
 const _lDb = getFirestore(_lApp);
 function _lEsc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
+window.openSidebar = function(){
+  document.getElementById('sidebarOverlay').classList.add('show');
+  document.getElementById('sidebar').classList.add('open');
+};
+window.closeSidebar = function(){
+  document.getElementById('sidebarOverlay').classList.remove('show');
+  document.getElementById('sidebar').classList.remove('open');
+};
 window.openLoyaltyView = async function(){
   const modal = document.getElementById('loyaltyViewModal');
   const listEl = document.getElementById('loyaltyViewList');
