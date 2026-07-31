@@ -753,6 +753,8 @@ window.ntToggleUid = function(){
 
 window.sendTestNotif = async function(){
   const btn = document.getElementById('ntSendBtn');
+  if(btn.disabled) return; // กันกดซ้ำถี่ๆ ก่อนที่ disabled จะมีผลจริงทัน — ตรวจสอบเป็นบรรทัดแรกสุดก่อนทำอะไรทั้งนั้น
+  btn.disabled = true;
   const resultEl = document.getElementById('ntResult');
   const target = document.getElementById('ntTarget').value;
   const title = document.getElementById('ntTitle').value.trim();
