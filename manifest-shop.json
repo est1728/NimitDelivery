@@ -1,0 +1,17 @@
+{
+  "id": "/shop-admin.html",
+  "name": "Nimit Delivery - ร้านค้า",
+  "short_name": "Nimit ร้านค้า",
+  "description": "แอปจัดการร้านค้า Nimit Delivery",
+  "start_url": "/shop-admin.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0c4aa6",
+  "theme_color": "#0c4aa6",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
