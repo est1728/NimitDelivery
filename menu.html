@@ -801,7 +801,7 @@ window.addToCartFromPopup=function(){
   const base=calcPrice(m.price,m.gp);
   const finalPrice=base+extra;
   if(!cart[shopId]) cart[shopId]={shopName,items:[]};
-  cart[shopId].items.push({id:m.id,name:m.name,basePrice:m.price,price:finalPrice,qty:popupQty,imgUrl:m.imgUrl||'',options:selectedOptions,optionGroups:m.optionGroups,note:document.getElementById("popupNote")?.value||'',gp:m.gp||0});
+  cart[shopId].items.push({id:m.id,name:m.name,basePrice:m.price,price:finalPrice,qty:popupQty,imgUrl:m.imgUrl||'',options:selectedOptions,optionGroups:m.optionGroups,note:document.getElementById("popupNote")?.value||'',gp:m.gp||0,category:m.category||''});
   localStorage.setItem("cart",JSON.stringify(cart));
   window.closePopup(); renderMenus(); updateCartBar();}
 
