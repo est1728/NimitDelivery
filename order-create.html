@@ -754,7 +754,7 @@ window.addToOrderFromPopup=function(){
   const base=calcPrice(m.price||0, m.gp||0);
   const note=document.getElementById("popupNote")?.value||'';
   const key=m.id+'_'+selectedOptions.map(o=>o.name).join('_')+'_'+Date.now();
-  selItems[key]={name:m.name,subOptions:selectedOptions.map(o=>o.name),basePrice:m.price,price:base+extra,qty:1,note,options:selectedOptions};
+  selItems[key]={name:m.name,subOptions:selectedOptions.map(o=>o.name),basePrice:m.price,price:base+extra,qty:1,note,options:selectedOptions,category:m.category||''};
   window.closePopup();
   window.confirmMenu();
 }
@@ -839,7 +839,7 @@ async function loadEditOrder(){
     document.getElementById('rCusAddr').textContent = selCus.address||'-'; document.getElementById('rCusAddr').classList.remove('empty');
     // รายการเมนูเดิม — แปลงกลับเป็นรูปแบบ selItems ด้วย key ที่ไม่ชนกับระบบเดิม
     (o.items||[]).forEach((it,i)=>{
-      selItems['edit_'+i] = {name:it.name||'', basePrice:it.basePrice||0, price:it.price||0, qty:it.qty||1, note:it.note||'', options:it.options||[], subOptions:(it.options||[]).map(op=>op.name)};
+      selItems['edit_'+i] = {name:it.name||'', basePrice:it.basePrice||0, price:it.price||0, qty:it.qty||1, note:it.note||'', options:it.options||[], subOptions:(it.options||[]).map(op=>op.name), category:it.category||''};
     });
     // เปลี่ยนหน้าตาให้รู้ว่ากำลังแก้ไขออเดอร์เดิมอยู่ ไม่ใช่สร้างใหม่
     document.title = 'แก้ไขออเดอร์ '+(o.orderId||'');
@@ -905,7 +905,8 @@ window.createOrder=async function(){
       qty:Number(it.qty)||1,
       options:(it.options||[]).filter(Boolean).map(function(o){return {groupTitle:o.groupTitle||'',name:o.name,price:Number(o.price)||0};}),
       note:String(it.note||''),
-      imgUrl:''
+      imgUrl:'',
+      category:String(it.category||'')
     };
   });
   var subtotal=items.reduce(function(s,i){return s+i.price*i.qty;},0);
