@@ -125,7 +125,7 @@ body{background:var(--bg);min-height:100vh;padding-bottom:120px;}
 .kg-price-hint b{color:var(--primary);}
 .popup-note{margin-top:4px;}
 .popup-note-label{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;}
-.popup-note-input{width:100%;border:2px solid #e8eaf0;border-radius:12px;padding:10px 14px;font-size:14px;outline:none;resize:none;height:66px;font-family:inherit;}
+.popup-note-input{width:100%;border:2px solid #e8eaf0;border-radius:12px;padding:10px 14px;font-size:14px;outline:none;resize:vertical;height:100px;font-family:inherit;}
 .popup-note-input:focus{border-color:var(--primary);}
 .popup-footer{flex-shrink:0;padding:14px 20px 30px;border-top:1px solid #f0f2f5;display:flex;gap:10px;}
 .popup-cancel-btn{flex:1;height:52px;border:2px solid #e2e8f0;border-radius:14px;background:#fff;color:var(--text);font-size:15px;font-weight:700;cursor:pointer;}
@@ -193,6 +193,14 @@ body{background:var(--bg);min-height:100vh;padding-bottom:120px;}
       <div class="popup-price" id="popupPrice"></div>
     </div>
     <div class="popup-body" id="popupBody"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-top:1px solid #f0f0f0">
+      <div style="font-size:14px;font-weight:700;color:#0f172a">จำนวน</div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <button type="button" onclick="window.changePopupQty(-1)" style="width:34px;height:34px;border-radius:50%;border:1.5px solid #e2e8f0;background:#fff;font-size:18px;font-weight:800;color:#0c4aa6;cursor:pointer">−</button>
+        <div id="popupQtyVal" style="min-width:24px;text-align:center;font-size:16px;font-weight:800">1</div>
+        <button type="button" onclick="window.changePopupQty(1)" style="width:34px;height:34px;border-radius:50%;border:none;background:#0c4aa6;font-size:18px;font-weight:800;color:#fff;cursor:pointer">+</button>
+      </div>
+    </div>
     <div class="popup-footer">
       <button class="popup-cancel-btn" onclick="closePopup()">ยกเลิก</button>
       <button class="popup-add-btn" id="popupAddBtn" onclick="addToCartFromPopup()">เพิ่มลงตะกร้า ฿<span id="popupTotal">0</span></button>
@@ -235,7 +243,7 @@ document.getElementById("shopNameTitle").textContent = shopName || "ร้าน
 let cart = JSON.parse(localStorage.getItem("cart") || "{}");
 let allMenus = [], filteredMenus = [], categories = [], currentCat = "ทั้งหมด";
 let shopCategories = []; // [{id,name}] จาก shop-manage.html ถ้ามี
-let gpPercent = 0, gpSubPercent = 0, gpTiers = [], gpSubTiers = [], shopType = "normal", popupMenu = null, popupSelections = {}, popupSubSelections = {}, popupSubQty = {};
+let gpPercent = 0, gpSubPercent = 0, gpTiers = [], gpSubTiers = [], shopType = "normal", popupMenu = null, popupSelections = {}, popupSubSelections = {}, popupSubQty = {}, popupQty = 1;
 
 async function loadSettings(){
   try{ const s=await getDoc(doc(db,"settings","pricing")); if(s.exists()){ const d=s.data(); gpPercent=d.gpPercent||0; gpSubPercent=d.gpSubPercent||0; gpTiers=Array.isArray(d.gpTiers)?d.gpTiers:[]; gpSubTiers=Array.isArray(d.gpSubTiers)?d.gpSubTiers:[]; } }catch(e){}}
@@ -403,7 +411,8 @@ function renderMenuCardHtml(m){
 // POPUP
 window.openMenuPopup=function(menuId){
   const m=allMenus.find(x=>x.id===menuId); if(!m) return;
-  popupMenu=m; popupSelections={}; popupSubSelections={}; popupSubQty={};
+  popupMenu=m; popupSelections={}; popupSubSelections={}; popupSubQty={}; popupQty=1;
+  document.getElementById("popupQtyVal").textContent=1;
   document.getElementById("popupImgWrap").innerHTML=m.imgUrl
     ?`<img src="${m.imgUrl}">`
     :`<div class="popup-img-placeholder"><svg viewBox="0 0 24 24"><path d="M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26 1.44 1.42 2.43 2.89 2.43 5.29v8.05zM1 21.99V21h15.03v.99c0 .55-.45 1-1.01 1H2.01c-.56 0-1.01-.45-1.01-1zm15.03-7c0-4.5-6.72-5-8.03-5-1.28 0-8 .5-8 5h16.03z"/></svg></div>`;
@@ -694,11 +703,16 @@ function groupSelectedOptions(g,gi){
   return out;
 }
 
+window.changePopupQty=function(delta){
+  popupQty=Math.max(1,popupQty+delta);
+  document.getElementById("popupQtyVal").textContent=popupQty;
+  updatePopupTotal();
+}
 function updatePopupTotal(){
   const m=popupMenu; if(!m) return;
   const base=calcPrice(m.price,m.gp); let extra=0;
   (m.optionGroups||[]).forEach((g,gi)=>{ extra+=groupExtra(m,g,gi); });
-  document.getElementById("popupTotal").textContent=base+extra;}
+  document.getElementById("popupTotal").textContent=(base+extra)*popupQty;}
 
 window.addToCartFromPopup=function(){
   const m=popupMenu; if(!m) return;
@@ -735,7 +749,7 @@ window.addToCartFromPopup=function(){
   const base=calcPrice(m.price,m.gp);
   const finalPrice=base+extra;
   if(!cart[shopId]) cart[shopId]={shopName,items:[]};
-  cart[shopId].items.push({id:m.id,name:m.name,basePrice:m.price,price:finalPrice,qty:1,imgUrl:m.imgUrl||'',options:selectedOptions,optionGroups:m.optionGroups,note:document.getElementById("popupNote")?.value||'',gp:m.gp||0});
+  cart[shopId].items.push({id:m.id,name:m.name,basePrice:m.price,price:finalPrice,qty:popupQty,imgUrl:m.imgUrl||'',options:selectedOptions,optionGroups:m.optionGroups,note:document.getElementById("popupNote")?.value||'',gp:m.gp||0});
   localStorage.setItem("cart",JSON.stringify(cart));
   window.closePopup(); renderMenus(); updateCartBar();}
 
@@ -748,7 +762,7 @@ window.quickRemove=function(menuId){
   localStorage.setItem("cart",JSON.stringify(cart));
   renderMenus(); updateCartBar();}
 
-window.closePopup=function(){ document.getElementById("optionPopup").classList.remove("show"); popupMenu=null; popupSelections={}; popupSubSelections={}; popupSubQty={}; }
+window.closePopup=function(){ document.getElementById("optionPopup").classList.remove("show"); popupMenu=null; popupSelections={}; popupSubSelections={}; popupSubQty={}; popupQty=1; }
 document.getElementById("optionPopup").addEventListener('click',function(e){ if(e.target===this) window.closePopup(); });
 
 function updateCartBar(){
