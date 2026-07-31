@@ -1,8 +1,10 @@
 {
+  "id": "/shops.html",
   "name": "Nimit Delivery",
   "short_name": "Nimit",
   "description": "แพลตฟอร์มสั่งอาหารและบริการส่งของ Nimit Delivery",
   "start_url": "/shops.html",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0c4aa6",
   "theme_color": "#0c4aa6",
