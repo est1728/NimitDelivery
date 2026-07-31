@@ -41,8 +41,17 @@ window.enableFcmNotifications = async function () {
 
     // Load Firebase Messaging
     const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
-    const { getMessaging, getToken, onMessage } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js');
+    const { getMessaging, getToken, onMessage, isSupported } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js');
     const { getFirestore, doc, getDoc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+
+    // สำคัญมาก: ต้องเช็ค isSupported() ก่อนเรียก getMessaging() เสมอ ห้ามข้ามขั้นตอนนี้เด็ดขาด
+    // เบราว์เซอร์ในแอป (Messenger/Line/Instagram ฯลฯ) มักไม่รองรับ Push API ที่ FCM ต้องใช้
+    // ถ้าเรียก getMessaging() ตรงๆในเบราว์เซอร์แบบนี้ Firebase SDK จะโยน error จาก "floating promise"
+    // ภายในตัวเอง ซึ่ง try/catch ปกติจับไม่ได้เลย (เป็นพฤติกรรมที่รู้จักกันดีของ Firebase SDK) ทำให้กลาย
+    // เป็น unhandled promise rejection ที่หลุดออกไปแสดงเป็น error ให้ผู้ใช้จริงเห็นตรงๆ (เคยเกิดขึ้นจริง
+    // กับลูกค้าที่เปิดผ่าน Messenger — เห็น error สีแดงเต็มจอ ทั้งที่ควรจะแค่ข้ามการแจ้งเตือนไปเงียบๆ)
+    const supported = await isSupported().catch(() => false);
+    if (!supported) return { ok: false, reason: 'unsupported-browser' };
 
     const app = getApps()[0] || initializeApp({
       apiKey: "AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
