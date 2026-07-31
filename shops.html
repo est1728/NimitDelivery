@@ -137,13 +137,57 @@ body{background:var(--g);min-height:100vh;padding-bottom:28px;}
 </head>
 <body>
 <script>
-window.onerror = function(msg, url, line, col, error){
+function _showErrBanner(text){
   var box = document.createElement('div');
   box.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#dc2626;color:#fff;padding:14px;font-size:13px;font-family:monospace;white-space:pre-wrap;word-break:break-all;max-height:60vh;overflow:auto';
-  box.textContent = 'JS ERROR: ' + msg + '\n(line ' + line + ':' + col + ')\n' + (error && error.stack ? error.stack.slice(0,500) : '');
+  box.textContent = text;
   document.body.appendChild(box);
+}
+window.onerror = function(msg, url, line, col, error){
+  _showErrBanner('JS ERROR: ' + msg + '\n(line ' + line + ':' + col + ')\n' + (error && error.stack ? error.stack.slice(0,500) : ''));
   return false;
 };
+// สำคัญ: window.onerror จับได้แค่ error แบบ synchronous เท่านั้น ถ้ามี Promise ที่ reject แล้วไม่มีใคร catch
+// (เช่น getDocs()/fetch() พังแบบเงียบๆ) จะไม่โดน onerror จับเลย ต้องดักด้วย unhandledrejection แยกต่างหาก
+window.addEventListener('unhandledrejection', function(e){
+  _showErrBanner('UNHANDLED PROMISE REJECTION: ' + (e.reason && e.reason.message ? e.reason.message : String(e.reason)) + '\n' + (e.reason && e.reason.stack ? e.reason.stack.slice(0,500) : ''));
+});
+
+// ============ ปุ่มติดตั้งแอป (PWA) ============
+let _deferredInstallPrompt = null;
+function _updateInstallBtn(){
+  const titleEl = document.getElementById('installBtnText');
+  const subEl = document.getElementById('installBtnSub');
+  const btnEl = document.getElementById('installBtn');
+  if(!btnEl) return;
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  if(isStandalone){
+    btnEl.style.opacity='0.5'; btnEl.style.pointerEvents='none';
+    if(titleEl) titleEl.textContent='ติดตั้งแล้ว ✓';
+    if(subEl) subEl.textContent='เปิดจากไอคอนหน้าจอโฮมได้เลย';
+  } else {
+    btnEl.style.opacity='1'; btnEl.style.pointerEvents='auto';
+    if(titleEl) titleEl.textContent='ติดตั้งแอป';
+    if(subEl) subEl.textContent='เพิ่มไอคอนไว้หน้าจอโฮม เปิดใช้ไวขึ้น';
+  }
+}
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  _deferredInstallPrompt = e;
+  _updateInstallBtn();
+});
+window.addEventListener('appinstalled', function(){
+  _deferredInstallPrompt = null;
+  _updateInstallBtn();
+});
+window.installApp = async function(){
+  if(!_deferredInstallPrompt){ return; }
+  _deferredInstallPrompt.prompt();
+  await _deferredInstallPrompt.userChoice;
+  _deferredInstallPrompt = null;
+  _updateInstallBtn();
+};
+document.addEventListener('DOMContentLoaded', _updateInstallBtn);
 </script>
 
 <div class="tb">
@@ -167,9 +211,12 @@ window.onerror = function(msg, url, line, col, error){
 
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="window.closeSidebar()"></div>
 <div class="sidebar" id="sidebar">
-  <div class="sidebar-header">
-    <div class="sidebar-name">Nimit Delivery</div>
-    <div class="sidebar-sub">เมนูของฉัน</div>
+  <div class="sidebar-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+    <div>
+      <div class="sidebar-name">Nimit Delivery</div>
+      <div class="sidebar-sub">เมนูของฉัน</div>
+    </div>
+    <button onclick="window.closeSidebar()" style="background:rgba(255,255,255,.2);border:none;width:30px;height:30px;border-radius:50%;color:#fff;font-size:16px;cursor:pointer;flex-shrink:0">✕</button>
   </div>
   <div class="sidebar-body">
     <button class="sidebar-item" onclick="window.closeSidebar();sessionStorage.setItem('addrBack','shops.html');window.Motion?window.Motion.navigate('address.html'):location.href='address.html'">
@@ -181,6 +228,10 @@ window.onerror = function(msg, url, line, col, error){
       <svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a2 2 0 0 0-2-2c-1.05 0-1.87.62-2.44 1.5L13 6.32 12.44 4.5C11.87 3.62 11.05 3 10 3a2 2 0 0 0-2 2c0 .35.07.69.18 1H6a2 2 0 0 0-2 2v2a1 1 0 0 0 1 1h1v7a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-7h1a1 1 0 0 0 1-1V8a2 2 0 0 0-2-2zM16 5a1 1 0 0 1-1 1h-1.06l.31-.94A1.24 1.24 0 0 1 15.5 4a1 1 0 0 1 .5 1zM9 5a1 1 0 0 1 1-1c.31 0 .74.16.94.5l.5 1.5H10a1 1 0 0 1-1-1z"/></svg>
       <div class="sidebar-item-text"><div class="sidebar-item-title">บัตรสะสมแต้ม</div><div class="sidebar-item-sub">ดูแต้มที่สะสมไว้ทุกร้าน</div></div>
       <div class="sidebar-arrow"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
+    </button>
+    <button class="sidebar-item" id="installBtn" onclick="window.installApp()">
+      <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+      <div class="sidebar-item-text"><div class="sidebar-item-title" id="installBtnText">ติดตั้งแอป</div><div class="sidebar-item-sub" id="installBtnSub">เพิ่มไอคอนไว้หน้าจอโฮม เปิดใช้ไวขึ้น</div></div>
     </button>
   </div>
 </div>
@@ -575,12 +626,14 @@ const _lDb = getFirestore(_lApp);
 function _lEsc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
 window.openSidebar = function(){
-  document.getElementById('sidebarOverlay').classList.add('show');
-  document.getElementById('sidebar').classList.add('open');
+  const ov=document.getElementById('sidebarOverlay'), sb=document.getElementById('sidebar');
+  if(ov) ov.classList.add('show');
+  if(sb) sb.classList.add('open');
 };
 window.closeSidebar = function(){
-  document.getElementById('sidebarOverlay').classList.remove('show');
-  document.getElementById('sidebar').classList.remove('open');
+  const ov=document.getElementById('sidebarOverlay'), sb=document.getElementById('sidebar');
+  if(ov) ov.classList.remove('show');
+  if(sb) sb.classList.remove('open');
 };
 window.openLoyaltyView = async function(){
   const modal = document.getElementById('loyaltyViewModal');
@@ -590,7 +643,11 @@ window.openLoyaltyView = async function(){
   const phone = JSON.parse(localStorage.getItem("customerData")||"{}").phone || localStorage.getItem("customerPhone");
   if(!phone){ listEl.innerHTML = '<div style="text-align:center;padding:24px;color:#94a3b8;font-size:13px">กรุณาเข้าสู่ระบบก่อน</div>'; return; }
   try{
-    const snap = await getDocs(query(collection(_lDb,'loyaltyCards'), where('customerPhone','==',phone)));
+    const timeout = ms => new Promise((_,rej)=>setTimeout(()=>rej(new Error('หมดเวลารอ (10 วินาที) ลองใหม่อีกครั้ง')), ms));
+    const snap = await Promise.race([
+      getDocs(query(collection(_lDb,'loyaltyCards'), where('customerPhone','==',phone))),
+      timeout(10000)
+    ]);
     const cards = []; snap.forEach(d=>cards.push(d.data()));
     if(!cards.length){
       listEl.innerHTML = '<div style="text-align:center;padding:24px;color:#94a3b8;font-size:13px">ยังไม่มีบัตรสะสมแต้มเลยครับ ลองสั่งร้านที่มีป้าย 🎫 สะสมแต้ม ดูได้เลย</div>';
