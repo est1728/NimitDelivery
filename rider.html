@@ -297,7 +297,35 @@ body{background:var(--gray);min-height:100vh;}
 .legend-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f5f7fa;font-size:13px;}
 .legend-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
 </style>
-<link rel="manifest" href="/manifest-rider.json">
+<script>
+// สร้าง manifest แบบไดนามิกแทนไฟล์ static เพราะไรเดอร์แต่ละคนมีลิงก์เฉพาะตัว (?id=...) ต่างกัน
+// ถ้าใช้ manifest.json ไฟล์เดียวแบบ hardcode start_url ไว้ ตอนติดตั้งแล้วเปิดจากไอคอนจะเปิดแบบไม่มี ?id=
+// ทำให้หน้าไม่รู้ว่าเป็นไรเดอร์คนไหน ขึ้น "ไม่พบลิงก์" — ต้องฝัง URL เต็มของไรเดอร์คนนั้นเข้าไปในตัว manifest เองตอนรันจริง
+(function(){
+  const manifest = {
+    id: location.pathname + location.search,
+    name: "Nimit Delivery - ไรเดอร์",
+    short_name: "Nimit ไรเดอร์",
+    description: "แอปไรเดอร์ Nimit Delivery",
+    start_url: location.pathname + location.search,
+    scope: "/",
+    display: "standalone",
+    background_color: "#0c4aa6",
+    theme_color: "#0c4aa6",
+    icons: [
+      { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
+      { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type: "application/json"});
+  const link = document.createElement("link");
+  link.rel = "manifest";
+  link.href = URL.createObjectURL(blob);
+  document.head.appendChild(link);
+})();
+</script>
 <link rel="icon" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/icon-192.png">
 <meta name="theme-color" content="#0c4aa6">
