@@ -297,7 +297,7 @@ body{background:var(--gray);min-height:100vh;}
 .legend-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f5f7fa;font-size:13px;}
 .legend-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
 </style>
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="/manifest-rider.json">
 <link rel="icon" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/icon-192.png">
 <meta name="theme-color" content="#0c4aa6">
@@ -339,7 +339,13 @@ window.addEventListener('appinstalled', function(){
   _updateInstallBtn();
 });
 window.installApp = async function(){
-  if(!_deferredInstallPrompt){ return; }
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  if(isStandalone){ return; } // ติดตั้งไปแล้ว ปุ่มควรจางอยู่แล้ว กันไว้เผื่อกดซ้ำ
+  if(!_deferredInstallPrompt){
+    // เบราว์เซอร์ยังไม่พร้อมให้ติดตั้ง (บางทีต้องรอสักครู่หลังโหลดหน้าเสร็จ หรือเคยกดปฏิเสธไปก่อนหน้านี้)
+    alert('ยังไม่พร้อมให้ติดตั้งตอนนี้ครับ ลองรอสักครู่แล้วกดใหม่อีกครั้ง (หรือถ้าเคยกดปฏิเสธไปก่อนหน้านี้ อาจต้องรีเฟรชหน้าใหม่ก่อน)');
+    return;
+  }
   _deferredInstallPrompt.prompt();
   await _deferredInstallPrompt.userChoice;
   _deferredInstallPrompt = null;
