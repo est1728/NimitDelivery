@@ -257,6 +257,41 @@ body{background:var(--gray);min-height:100vh;overscroll-behavior-y:none;}
 <meta name="theme-color" content="#0c4aa6">
 </head>
 <body>
+<script>
+// ============ ปุ่มติดตั้งแอป (PWA) ============
+let _deferredInstallPrompt = null;
+function _updateInstallBtn(){
+  const titleEl = document.getElementById('installBtnText');
+  const btnEl = document.getElementById('installBtn');
+  if(!btnEl) return;
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  if(isStandalone){
+    btnEl.style.opacity='0.5'; btnEl.style.pointerEvents='none';
+    if(titleEl) titleEl.textContent='ติดตั้งแล้ว ✓';
+  } else {
+    btnEl.style.opacity='1'; btnEl.style.pointerEvents='auto';
+    if(titleEl) titleEl.textContent='ติดตั้งแอป';
+  }
+}
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  _deferredInstallPrompt = e;
+  _updateInstallBtn();
+});
+window.addEventListener('appinstalled', function(){
+  _deferredInstallPrompt = null;
+  _updateInstallBtn();
+});
+window.installApp = async function(){
+  if(!_deferredInstallPrompt){ return; }
+  _deferredInstallPrompt.prompt();
+  await _deferredInstallPrompt.userChoice;
+  _deferredInstallPrompt = null;
+  _updateInstallBtn();
+};
+document.addEventListener('DOMContentLoaded', _updateInstallBtn);
+</script>
+
 <div class="toast-wrap" id="toastWrap"></div>
 
 <div id="loadingPage" class="page active">
@@ -401,6 +436,10 @@ body{background:var(--gray);min-height:100vh;overscroll-behavior-y:none;}
       <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
       <div class="sidebar-item-text"><div class="sidebar-item-title">ตั้งค่าสะสมแต้ม</div><div class="sidebar-item-sub">จำนวนแต้ม / เพิ่มแต้มลูกค้า</div></div>
       <div class="sidebar-arrow"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
+    </button>
+    <button class="sidebar-item" id="installBtn" onclick="window.installApp()">
+      <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+      <div class="sidebar-item-text"><div class="sidebar-item-title" id="installBtnText">ติดตั้งแอป</div><div class="sidebar-item-sub">เพิ่มไอคอนไว้หน้าจอโฮม เปิดใช้ไวขึ้น</div></div>
     </button>
   </div>
 </div>
