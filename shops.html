@@ -116,8 +116,21 @@ body{background:var(--g);min-height:100vh;padding-bottom:28px;}
 .ad-zoom{position:absolute;bottom:8px;right:8px;width:32px;height:32px;border:none;border-radius:8px;background:rgba(0,0,0,.55);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:3;}
 .ad-zoom:active{opacity:.8;}
 </style>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="theme-color" content="#0c4aa6">
 </head>
 <body>
+<script>
+window.onerror = function(msg, url, line, col, error){
+  var box = document.createElement('div');
+  box.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#dc2626;color:#fff;padding:14px;font-size:13px;font-family:monospace;white-space:pre-wrap;word-break:break-all;max-height:60vh;overflow:auto';
+  box.textContent = 'JS ERROR: ' + msg + '\n(line ' + line + ':' + col + ')\n' + (error && error.stack ? error.stack.slice(0,500) : '');
+  document.body.appendChild(box);
+  return false;
+};
+</script>
 
 <div class="tb">
   <div class="tb-row">
