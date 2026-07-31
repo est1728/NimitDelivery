@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+<script>
+// จับ event นี้ให้เร็วที่สุดเท่าที่จะทำได้ ก่อนโค้ดอื่นใดทั้งสิ้น เพราะ beforeinstallprompt อาจ fire
+// เร็วมากตั้งแต่ต้นๆของการโหลดหน้า ถ้าตัวจับอยู่หลังเกินไป (เช่นรอจน body โหลดเสร็จ) อาจพลาด event ไปเลย
+// ทั้งที่จริงๆเว็บ installable อยู่แล้ว (ยืนยันได้จากเมนู 3 จุดของ Chrome ที่มีตัวเลือกติดตั้งให้กดเองได้ปกติ)
+window._deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  window._deferredInstallPrompt = e;
+  if(typeof window._updateInstallBtn === 'function') window._updateInstallBtn();
+});
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Nimit Delivery</title>
@@ -137,25 +148,9 @@ body{background:var(--g);min-height:100vh;padding-bottom:28px;}
 </head>
 <body>
 <script>
-function _showErrBanner(text){
-  var box = document.createElement('div');
-  box.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#dc2626;color:#fff;padding:14px;font-size:13px;font-family:monospace;white-space:pre-wrap;word-break:break-all;max-height:60vh;overflow:auto';
-  box.textContent = text;
-  document.body.appendChild(box);
-}
-window.onerror = function(msg, url, line, col, error){
-  _showErrBanner('JS ERROR: ' + msg + '\n(line ' + line + ':' + col + ')\n' + (error && error.stack ? error.stack.slice(0,500) : ''));
-  return false;
-};
-// สำคัญ: window.onerror จับได้แค่ error แบบ synchronous เท่านั้น ถ้ามี Promise ที่ reject แล้วไม่มีใคร catch
-// (เช่น getDocs()/fetch() พังแบบเงียบๆ) จะไม่โดน onerror จับเลย ต้องดักด้วย unhandledrejection แยกต่างหาก
-window.addEventListener('unhandledrejection', function(e){
-  _showErrBanner('UNHANDLED PROMISE REJECTION: ' + (e.reason && e.reason.message ? e.reason.message : String(e.reason)) + '\n' + (e.reason && e.reason.stack ? e.reason.stack.slice(0,500) : ''));
-});
-
 // ============ ปุ่มติดตั้งแอป (PWA) ============
-let _deferredInstallPrompt = null;
-function _updateInstallBtn(){
+// ตัวจับ beforeinstallprompt ตัวจริงอยู่ใน <head> แล้ว (เร็วที่สุดเท่าที่จะทำได้) ตรงนี้แค่ใช้ค่าที่จับมาได้ต่อ
+window._updateInstallBtn = function(){
   const titleEl = document.getElementById('installBtnText');
   const subEl = document.getElementById('installBtnSub');
   const btnEl = document.getElementById('installBtn');
@@ -171,19 +166,14 @@ function _updateInstallBtn(){
     if(subEl) subEl.textContent='เพิ่มไอคอนไว้หน้าจอโฮม เปิดใช้ไวขึ้น';
   }
 }
-window.addEventListener('beforeinstallprompt', function(e){
-  e.preventDefault();
-  _deferredInstallPrompt = e;
-  _updateInstallBtn();
-});
 window.addEventListener('appinstalled', function(){
-  _deferredInstallPrompt = null;
-  _updateInstallBtn();
+  window._deferredInstallPrompt = null;
+  window._updateInstallBtn();
 });
 window.installApp = async function(){
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
   if(isStandalone){ return; } // ติดตั้งไปแล้ว ปุ่มควรจางอยู่แล้ว กันไว้เผื่อกดซ้ำ
-  if(!_deferredInstallPrompt){
+  if(!window._deferredInstallPrompt){
     // เช็คก่อนว่าเปิดผ่าน in-app browser (Messenger/Line/Instagram ฯลฯ) อยู่หรือเปล่า — ถ้าใช่ ปุ่มนี้จะไม่มีทาง
     // ทำงานได้เลยไม่ว่าจะรอนานแค่ไหน เพราะเบราว์เซอร์ในแอปพวกนี้ไม่รองรับการติดตั้งแบบนี้ตั้งแต่ต้น ต้องบอกตรงๆ
     // ไม่ใช่บอกว่า "รอสักครู่" เพราะจะทำให้เข้าใจผิดว่าเดี๋ยวจะใช้ได้ ทั้งที่จริงๆไม่มีทางใช้ได้เลยในบราวเซอร์นี้
@@ -196,12 +186,12 @@ window.installApp = async function(){
     }
     return;
   }
-  _deferredInstallPrompt.prompt();
-  await _deferredInstallPrompt.userChoice;
-  _deferredInstallPrompt = null;
-  _updateInstallBtn();
+  window._deferredInstallPrompt.prompt();
+  await window._deferredInstallPrompt.userChoice;
+  window._deferredInstallPrompt = null;
+  window._updateInstallBtn();
 };
-document.addEventListener('DOMContentLoaded', _updateInstallBtn);
+document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
 </script>
 
 <div class="tb">
@@ -238,7 +228,7 @@ document.addEventListener('DOMContentLoaded', _updateInstallBtn);
       <div class="sidebar-item-text"><div class="sidebar-item-title">ที่อยู่จัดส่ง</div><div class="sidebar-item-sub" id="addrTxt">ที่อยู่</div></div>
       <div class="sidebar-arrow"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
     </button>
-    <button class="sidebar-item" onclick="window.closeSidebar();window.openLoyaltyView()">
+    <button class="sidebar-item" onclick="window.closeSidebar();location.href='loyalty.html'">
       <svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a2 2 0 0 0-2-2c-1.05 0-1.87.62-2.44 1.5L13 6.32 12.44 4.5C11.87 3.62 11.05 3 10 3a2 2 0 0 0-2 2c0 .35.07.69.18 1H6a2 2 0 0 0-2 2v2a1 1 0 0 0 1 1h1v7a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-7h1a1 1 0 0 0 1-1V8a2 2 0 0 0-2-2zM16 5a1 1 0 0 1-1 1h-1.06l.31-.94A1.24 1.24 0 0 1 15.5 4a1 1 0 0 1 .5 1zM9 5a1 1 0 0 1 1-1c.31 0 .74.16.94.5l.5 1.5H10a1 1 0 0 1-1-1z"/></svg>
       <div class="sidebar-item-text"><div class="sidebar-item-title">บัตรสะสมแต้ม</div><div class="sidebar-item-sub">ดูแต้มที่สะสมไว้ทุกร้าน</div></div>
       <div class="sidebar-arrow"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
@@ -612,32 +602,7 @@ window.openAdVideo=function(url){
 };
 </script>
 
-<!-- LOYALTY CARDS VIEW -->
-<div id="loyaltyViewModal" onclick="if(event.target===this)document.getElementById('loyaltyViewModal').style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:9000;flex-direction:column;justify-content:center;align-items:center;padding:20px">
-  <div style="background:#fff;border-radius:20px;width:100%;max-width:400px;max-height:75vh;overflow-y:auto;padding:20px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <div style="font-size:17px;font-weight:800;color:#0f172a">🎫 บัตรสะสมแต้มของฉัน</div>
-      <button onclick="document.getElementById('loyaltyViewModal').style.display='none'" style="border:none;background:#f1f5f9;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;flex-shrink:0">✕</button>
-    </div>
-    <div id="loyaltyViewList"></div>
-  </div>
-</div>
-
 <script type="module">
-import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, getDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-const _lApp = getApps()[0] || initializeApp({
-  apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
-  authDomain:"nimit-delivery.firebaseapp.com",
-  projectId:"nimit-delivery",
-  storageBucket:"nimit-delivery.firebasestorage.app",
-  messagingSenderId:"233476256130",
-  appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
-});
-const _lDb = getFirestore(_lApp);
-function _lEsc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-
 window.openSidebar = function(){
   const ov=document.getElementById('sidebarOverlay'), sb=document.getElementById('sidebar');
   // ย้ายให้เป็นลูกตรงของ body เสมอ กันปัญหา position:fixed เพี้ยนถ้ามี ancestor ไหนดันมี
@@ -651,47 +616,6 @@ window.closeSidebar = function(){
   const ov=document.getElementById('sidebarOverlay'), sb=document.getElementById('sidebar');
   if(ov) ov.classList.remove('show');
   if(sb) sb.classList.remove('open');
-};
-window.openLoyaltyView = async function(){
-  const modal = document.getElementById('loyaltyViewModal');
-  const listEl = document.getElementById('loyaltyViewList');
-  modal.style.display='flex';
-  listEl.innerHTML = '<div style="text-align:center;padding:24px;color:#94a3b8;font-size:13px">กำลังโหลด...</div>';
-  const phone = JSON.parse(localStorage.getItem("customerData")||"{}").phone || localStorage.getItem("customerPhone");
-  if(!phone){ listEl.innerHTML = '<div style="text-align:center;padding:24px;color:#94a3b8;font-size:13px">กรุณาเข้าสู่ระบบก่อน</div>'; return; }
-  try{
-    const timeout = ms => new Promise((_,rej)=>setTimeout(()=>rej(new Error('หมดเวลารอ (10 วินาที) ลองใหม่อีกครั้ง')), ms));
-    const snap = await Promise.race([
-      getDocs(query(collection(_lDb,'loyaltyCards'), where('customerPhone','==',phone))),
-      timeout(10000)
-    ]);
-    const cards = []; snap.forEach(d=>cards.push(d.data()));
-    if(!cards.length){
-      listEl.innerHTML = '<div style="text-align:center;padding:24px;color:#94a3b8;font-size:13px">ยังไม่มีบัตรสะสมแต้มเลยครับ ลองสั่งร้านที่มีป้าย 🎫 สะสมแต้ม ดูได้เลย</div>';
-      return;
-    }
-    const shopIds = [...new Set(cards.map(c=>c.shopId))];
-    const shopTargets = {};
-    await Promise.all(shopIds.map(async sid=>{
-      try{ const sSnap = await getDoc(doc(_lDb,'shops',sid)); if(sSnap.exists()) shopTargets[sid] = sSnap.data().loyaltyTarget||10; }catch(e){}
-    }));
-    listEl.innerHTML = cards.map(c=>{
-      const target = shopTargets[c.shopId]||10;
-      const pts = c.points||0;
-      const full = pts>=target;
-      const pct = Math.min(100, Math.round(pts/target*100));
-      return `<div style="border:1.5px solid ${full?'#86efac':'#e2e8f0'};background:${full?'#f0fdf4':'#fff'};border-radius:14px;padding:14px;margin-bottom:10px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <div style="font-size:14px;font-weight:800;color:#0f172a">${_lEsc(c.shopName)}</div>
-          <div style="font-size:13px;font-weight:800;color:${full?'#16a34a':'#c2410c'}">${pts}/${target}${full?' ✓':''}</div>
-        </div>
-        <div style="height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${full?'#16a34a':'#f97316'};border-radius:4px"></div></div>
-        ${full?'<div style="font-size:11px;color:#16a34a;font-weight:700;margin-top:6px">แต้มเต็มแล้ว! ใช้สิทธิ์รับฟรีได้ตอนชำระเงินร้านนี้</div>':''}
-      </div>`;
-    }).join('');
-  }catch(e){
-    listEl.innerHTML = '<div style="text-align:center;padding:24px;color:#dc2626;font-size:13px">โหลดไม่สำเร็จ: '+e.message+'</div>';
-  }
 };
 </script>
 
