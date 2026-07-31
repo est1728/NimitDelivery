@@ -160,12 +160,12 @@ body{background:var(--bg);min-height:100vh;padding-bottom:120px;}
 </div>
 
 <div class="shop-header">
-  <div class="shop-avatar-row">
+  <div class="shop-avatar-row" onclick="window.openShopProfile()" style="cursor:pointer">
     <div class="shop-avatar" id="shopAvatar">
       <div class="shop-avatar-placeholder"><svg viewBox="0 0 24 24"><path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/></svg></div>
     </div>
   </div>
-  <div class="shop-profile">
+  <div class="shop-profile" onclick="window.openShopProfile()" style="cursor:pointer">
     <div class="shop-title" id="shopNameTitle">ร้านค้า</div>
     <div class="shop-desc-text" id="shopDescText"></div>
   </div>
@@ -208,6 +208,27 @@ body{background:var(--bg);min-height:100vh;padding-bottom:120px;}
   </div>
 </div>
 
+<!-- SHOP PROFILE POPUP -->
+<div class="popup-overlay" id="shopProfilePopup" onclick="if(event.target===this)window.closeShopProfile()">
+  <div class="popup-box" style="max-height:70vh">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px">
+      <div style="font-size:16px;font-weight:800;color:#0f172a">ข้อมูลร้านค้า</div>
+      <button onclick="window.closeShopProfile()" style="border:none;background:#f1f5f9;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;flex-shrink:0">✕</button>
+    </div>
+    <div style="padding:0 20px 24px;overflow-y:auto">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+        <div id="shopProfileAvatar" style="width:64px;height:64px;border-radius:16px;overflow:hidden;background:#e8f0fe;flex-shrink:0;display:flex;align-items:center;justify-content:center"></div>
+        <div style="min-width:0">
+          <div id="shopProfileName" style="font-size:17px;font-weight:800;color:#0f172a"></div>
+          <div id="shopProfileStatus" style="font-size:12px;font-weight:700;margin-top:2px"></div>
+        </div>
+      </div>
+      <div id="shopProfileDesc" style="font-size:14px;color:#334155;line-height:1.6;margin-bottom:14px"></div>
+      <div id="shopProfileSchedule" style="font-size:13px;color:#64748b"></div>
+    </div>
+  </div>
+</div>
+
 <!-- CART BAR -->
 <div class="cart-bar" id="cartBar">
   <div class="cart-bar-inner" onclick="window.location.href='cart.html'">
@@ -236,6 +257,18 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// ล็อกการเลื่อนพื้นหลังตอนมีป๊อบอัพเปิดอยู่ (บัคเดียวกับที่เจอและแก้ไปแล้วใน shop-manage.html)
+(function(){
+  function anyModalOpen(){
+    return Array.from(document.querySelectorAll('.popup-overlay')).some(el => getComputedStyle(el).display !== 'none');
+  }
+  function updateBodyScrollLock(){
+    document.body.style.overflow = anyModalOpen() ? 'hidden' : '';
+  }
+  new MutationObserver(updateBodyScrollLock).observe(document.body, {attributes:true, attributeFilter:['class','style'], subtree:true});
+  updateBodyScrollLock();
+})();
+
 const shopId = localStorage.getItem("selectedShopId");
 const shopName = localStorage.getItem("selectedShopName");
 document.getElementById("shopNameTitle").textContent = shopName || "ร้านค้า";
@@ -243,7 +276,7 @@ document.getElementById("shopNameTitle").textContent = shopName || "ร้าน
 let cart = JSON.parse(localStorage.getItem("cart") || "{}");
 let allMenus = [], filteredMenus = [], categories = [], currentCat = "ทั้งหมด";
 let shopCategories = []; // [{id,name}] จาก shop-manage.html ถ้ามี
-let gpPercent = 0, gpSubPercent = 0, gpTiers = [], gpSubTiers = [], shopType = "normal", popupMenu = null, popupSelections = {}, popupSubSelections = {}, popupSubQty = {}, popupQty = 1;
+let gpPercent = 0, gpSubPercent = 0, gpTiers = [], gpSubTiers = [], shopType = "normal", popupMenu = null, popupSelections = {}, popupSubSelections = {}, popupSubQty = {}, popupQty = 1, shopFullData = null;
 
 async function loadSettings(){
   try{ const s=await getDoc(doc(db,"settings","pricing")); if(s.exists()){ const d=s.data(); gpPercent=d.gpPercent||0; gpSubPercent=d.gpSubPercent||0; gpTiers=Array.isArray(d.gpTiers)?d.gpTiers:[]; gpSubTiers=Array.isArray(d.gpSubTiers)?d.gpSubTiers:[]; } }catch(e){}}
@@ -266,6 +299,7 @@ async function loadShopInfo(){
     const s=await getDoc(doc(db,"shops",shopId));
     if(s.exists()){
       const d=s.data();
+      shopFullData = d;
       shopCategories = Array.isArray(d.categories) ? d.categories : [];
       shopType = d.shopType || "normal";
       if(d.desc) document.getElementById("shopDescText").textContent=d.desc;
@@ -283,6 +317,24 @@ async function loadShopInfo(){
       }
       }
   }catch(e){}}
+
+window.openShopProfile=function(){
+  const d=shopFullData||{};
+  const avatarEl=document.getElementById("shopProfileAvatar");
+  avatarEl.innerHTML=d.avatarUrl?`<img src="${d.avatarUrl}" style="width:100%;height:100%;object-fit:cover">`:`<svg viewBox="0 0 24 24" style="width:32px;height:32px;fill:#94a3b8"><path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/></svg>`;
+  document.getElementById("shopProfileName").textContent=shopName||"ร้านค้า";
+  const openNow = d.isOpen===false ? false : (d.autoSchedule ? isShopWithinSchedule(d) : true);
+  const statusEl=document.getElementById("shopProfileStatus");
+  statusEl.textContent = openNow ? "เปิดอยู่ตอนนี้" : "ปิดอยู่ในขณะนี้";
+  statusEl.style.color = openNow ? "#16a34a" : "#dc2626";
+  document.getElementById("shopProfileDesc").textContent = d.desc || "ยังไม่มีคำอธิบายร้าน";
+  const schedEl=document.getElementById("shopProfileSchedule");
+  schedEl.textContent = (d.autoSchedule && d.scheduleOpen && d.scheduleClose) ? `เวลาเปิด-ปิด: ${d.scheduleOpen} - ${d.scheduleClose}` : "";
+  document.getElementById("shopProfilePopup").classList.add("show");
+};
+window.closeShopProfile=function(){
+  document.getElementById("shopProfilePopup").classList.remove("show");
+};
 
 // หาค่า GP% ตามช่วงราคา (gpTiers) — ถ้าไม่มีช่วงที่ตรง ใช้ gpPercent (GP รวม) แทน
 function tierGpPercent(base){
