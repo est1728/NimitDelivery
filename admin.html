@@ -278,6 +278,41 @@ body{background:var(--g);min-height:100vh;}
 <meta name="theme-color" content="#0c4aa6">
 </head>
 <body>
+<script>
+// ============ ปุ่มติดตั้งแอป (PWA) ============
+let _deferredInstallPrompt = null;
+function _updateInstallBtn(){
+  const titleEl = document.getElementById('installBtnText');
+  const btnEl = document.getElementById('installBtn');
+  if(!btnEl) return;
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  if(isStandalone){
+    btnEl.style.opacity='0.5'; btnEl.style.pointerEvents='none';
+    if(titleEl) titleEl.textContent='ติดตั้งแล้ว ✓';
+  } else {
+    btnEl.style.opacity='1'; btnEl.style.pointerEvents='auto';
+    if(titleEl) titleEl.textContent='ติดตั้งแอป';
+  }
+}
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  _deferredInstallPrompt = e;
+  _updateInstallBtn();
+});
+window.addEventListener('appinstalled', function(){
+  _deferredInstallPrompt = null;
+  _updateInstallBtn();
+});
+window.installApp = async function(){
+  if(!_deferredInstallPrompt){ return; }
+  _deferredInstallPrompt.prompt();
+  await _deferredInstallPrompt.userChoice;
+  _deferredInstallPrompt = null;
+  _updateInstallBtn();
+};
+document.addEventListener('DOMContentLoaded', _updateInstallBtn);
+</script>
+
 <div id="notifBanner" style="position:fixed;top:0;left:0;right:0;z-index:999;color:#fff;padding:14px 16px;transform:translateY(-100%);transition:transform .35s cubic-bezier(.34,1.56,.64,1);box-shadow:0 4px 20px rgba(0,0,0,.3);display:flex;align-items:center;gap:10px;">
   <span id="notifIco" style="font-size:20px">🔔</span>
   <div style="flex:1"><div id="notifTitle" style="font-size:14px;font-weight:800;color:#fff"></div><div id="notifSub" style="font-size:12px;opacity:.85;color:#fff;margin-top:2px"></div></div>
@@ -314,6 +349,10 @@ body{background:var(--g);min-height:100vh;}
       <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
       <div class="sidebar-item-text"><div class="sidebar-item-title">เปิดแจ้งเตือน</div><div class="sidebar-item-sub" id="adminNotifStatus">กดสวิตช์เพื่อขอสิทธิ์แจ้งเตือน</div></div>
       <button class="sidebar-toggle" id="adminNotifToggle" onclick="event.stopPropagation();window.enableAdminNotif()"></button>
+    </button>
+    <button class="sidebar-item" id="installBtn" onclick="window.installApp()">
+      <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+      <div class="sidebar-item-text"><div class="sidebar-item-title" id="installBtnText">ติดตั้งแอป</div><div class="sidebar-item-sub">เพิ่มไอคอนไว้หน้าจอโฮม เปิดใช้ไวขึ้น</div></div>
     </button>
   </div>
 </div>
