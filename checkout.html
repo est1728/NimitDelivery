@@ -388,7 +388,11 @@ window.placeOrder=async function(){
       const grp=cart[shopId]; if(!grp) continue;
       const meta=shopMeta[shopId]||{};
       const isRedeemingThisShop = redeemedShop===shopId && (redeemedExistingIdx!=null || redeemedNewItem);
-      let orderItems=grp.items.slice(); // สำเนา ไม่แก้ของเดิมในตะกร้า
+      // สำคัญมาก: ตัด imgUrl ออกจากรายการที่บันทึกลงออเดอร์ เพราะจริงๆแล้วเก็บเป็นรูปแบบ base64 เต็มรูป
+      // (ไม่ใช่แค่ลิงก์) ตัวนึงอาจหนักหลายร้อย KB พอมีหลายรายการในออเดอร์เดียว รวมกันเกิน 1MB ที่ Firestore
+      // อนุญาตให้บันทึกต่อ 1 เอกสารได้ทันที (เจอจริงกับลูกค้าที่สั่งเยอะ — เอกสารหนักถึง 3.4MB จนบันทึกไม่ผ่านเลย)
+      // ไม่กระทบอะไรเลยเพราะหน้ารายละเอียดออเดอร์ (แอดมิน/ไรเดอร์/ร้านค้า/ลูกค้าเอง) ไม่เคยเอารูปจากออเดอร์มาโชว์อยู่แล้ว
+      let orderItems=grp.items.slice().map(it=>{ const {imgUrl,...rest}=it; return rest; }); // สำเนา ไม่แก้ของเดิมในตะกร้า
       let loyaltyDiscount=0;
       if(isRedeemingThisShop && redeemedExistingIdx!=null){
         const it=orderItems[redeemedExistingIdx];
