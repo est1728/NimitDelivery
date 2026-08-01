@@ -383,7 +383,7 @@ window.placeOrder=async function(){
   const custPhone = JSON.parse(localStorage.getItem("customerData")||"{}").phone || localStorage.getItem("customerPhone");
   try{
     const groupId=genGroupId(); const orderDocs=[];
-    const customerData={name:addr.name,phone:addr.phone,address:addr.address,lat:addr.lat||null,lng:addr.lng||null};
+    const customerData={name:addr.name||'',phone:addr.phone||'',address:addr.address||'',lat:addr.lat||null,lng:addr.lng||null};
     for(const shopId of checkoutShops){
       const grp=cart[shopId]; if(!grp) continue;
       const meta=shopMeta[shopId]||{};
@@ -413,14 +413,18 @@ window.placeOrder=async function(){
       const walletCut=Math.round(totalDiff*walletPercent/100);
       const riderEarn=Math.round(totalDiff*riderPercent/100);
       const orderId=genOrderId();
-      const ref=await addDoc(collection(db,"orders"),{
+      // สำคัญ: Firestore จะปฏิเสธการเขียนข้อมูลทั้งก้อนทันทีถ้ามีฟิลด์ไหนก็ตามเป็น undefined แม้จะซ่อนอยู่ลึกๆ
+      // ในโครงสร้างเมนู/ตัวเลือกที่ซับซ้อนก็ตาม — ป้องกันไว้ล่วงหน้าด้วยการแปลงผ่าน JSON ก่อนเขียนจริง
+      // (JSON.stringify ตัดคีย์ที่เป็น undefined ทิ้งไปเองอัตโนมัติ ไม่ว่าจะซ้อนลึกแค่ไหนก็ตาม)
+      const orderPayload=JSON.parse(JSON.stringify({
         orderId,groupId,shopId,shopName:grp.shopName,
         shopPhone:meta.phone||'',shopAddress:meta.address||'',shopLat:meta.lat||null,shopLng:meta.lng||null,
         customer:customerData,items:orderItems,
         subtotal,baseCost,deliveryFee,grandTotal,totalDiff,walletCut,riderEarn,
         ...(isRedeemingThisShop?{loyaltyRedeemed:true,loyaltyDiscount}:{}),
-        paymentMethod:"cash",status:"pending",createdAt:serverTimestamp()
-      });
+        paymentMethod:"cash",status:"pending"
+      }));
+      const ref=await addDoc(collection(db,"orders"),{...orderPayload,createdAt:serverTimestamp()});
       orderDocs.push({docId:ref.id,orderId,shopName:grp.shopName});
       notifyNewOrder(shopId, grp.shopName, orderId);
       // อัปเดตบัตรสะสมแต้ม: ถ้าใช้สิทธิ์แลกฟรีไปแล้ว รีเซ็ตแต้มกลับ (หักตามจำนวนที่ต้องสะสม) / ถ้าไม่ได้แลก เพิ่ม 1 แต้มตามปกติ
@@ -449,7 +453,7 @@ window.placeOrder=async function(){
     localStorage.setItem("currentGroupId",groupId);
     localStorage.setItem("currentOrderDocs",JSON.stringify(orderDocs));
     window.location.replace("track.html");
-  }catch(e){ btn.disabled=false; btn.textContent="ยืนยันสั่งซื้อ"; alert("เกิดข้อผิดพลาด"); }
+  }catch(e){ btn.disabled=false; btn.textContent="ยืนยันสั่งซื้อ"; alert("เกิดข้อผิดพลาด: "+e.message); console.error(e); }
 }
 
 // ============ LOYALTY REDEEM ============
