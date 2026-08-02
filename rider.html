@@ -1375,7 +1375,11 @@ window.toggleNotif=async function(){
         // ขอไม่สำเร็จ (ผู้ใช้กดปฏิเสธ หรือมีปัญหาอื่น) ปิดสวิตช์กลับ ไม่ให้ดูเหมือนเปิดสำเร็จทั้งที่จริงๆยังไม่ได้
         notifOn=false;
         document.getElementById("notifToggle").className="sidebar-toggle";
-        document.getElementById("notifStatusText").textContent="การแจ้งเตือน: ปิดอยู่";
+        if(res?.reason==='unsupported-browser'){
+          document.getElementById("notifStatusText").textContent="เบราว์เซอร์นี้ใช้แจ้งเตือนไม่ได้ ลองเปิดผ่าน Chrome ปกติแทน";
+        } else {
+          document.getElementById("notifStatusText").textContent="การแจ้งเตือน: ปิดอยู่";
+        }
       }
     }
   }
@@ -1638,7 +1642,11 @@ window.toggleNotif=async function(){
         // ขอไม่สำเร็จ (ผู้ใช้กดปฏิเสธ หรือมีปัญหาอื่น) ปิดสวิตช์กลับ ไม่ให้ดูเหมือนเปิดสำเร็จทั้งที่จริงๆยังไม่ได้
         notifOn=false;
         document.getElementById("notifToggle").className="sidebar-toggle";
-        document.getElementById("notifStatusText").textContent="การแจ้งเตือน: ปิดอยู่";
+        if(res?.reason==='unsupported-browser'){
+          document.getElementById("notifStatusText").textContent="เบราว์เซอร์นี้ใช้แจ้งเตือนไม่ได้ ลองเปิดผ่าน Chrome ปกติแทน";
+        } else {
+          document.getElementById("notifStatusText").textContent="การแจ้งเตือน: ปิดอยู่";
+        }
       }
     }
   }
