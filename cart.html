@@ -458,7 +458,7 @@ window.reorder=async function(docId){
     });
     localStorage.setItem("cart",JSON.stringify(cart));
     switchTab("food");
-  }catch(e){ alert("เกิดข้อผิดพลาด"); }
+  }catch(e){ alert("เกิดข้อผิดพลาด: "+e.message); console.error(e); }
 }
 
 // TABS
