@@ -789,7 +789,9 @@ async function initShop(){
         if(statusEl) statusEl.textContent = 'เปิดใช้งานแล้ว ✓';
         if(toggleEl) toggleEl.className = 'sidebar-toggle on';
       } else {
-        if(statusEl) statusEl.textContent = 'ยังไม่สำเร็จ (' + (res?.reason||'ไม่ทราบสาเหตุ') + (res?.message?': '+res.message:'') + ')';
+        if(res?.reason==='unsupported-browser'){
+      if(statusEl) statusEl.textContent = 'เบราว์เซอร์นี้ใช้แจ้งเตือนไม่ได้ ลองเปิดผ่าน Chrome/Safari ปกติแทนครับ (ไม่ใช่ผ่าน LINE/Messenger)';
+    } else if(statusEl) statusEl.textContent = 'ยังไม่สำเร็จ (' + (res?.reason||'ไม่ทราบสาเหตุ') + (res?.message?': '+res.message:'') + ')';
         if(toggleEl) toggleEl.className = 'sidebar-toggle';
       }
     };
