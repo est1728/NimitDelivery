@@ -207,7 +207,7 @@ window.submitReview = async function(){
     document.getElementById('doneScreen').style.display='block';
   }catch(e){
     btn.disabled=false; btn.textContent='ส่งรีวิว';
-    alert('เกิดข้อผิดพลาด กรุณาลองใหม่');
+    alert('เกิดข้อผิดพลาด: '+e.message); console.error(e);
   }
 };
 
