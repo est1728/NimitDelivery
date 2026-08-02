@@ -178,16 +178,18 @@ window.saveData=async function(){
   const phone=localStorage.getItem("customerPhone");
   const name=document.getElementById("name").value.trim();
   const address=document.getElementById("address").value.trim();
-  const customerData={phone,name,address,lat:selectedLat,lng:selectedLng,createdAt:new Date().toISOString(),registered:true};
+  // สำคัญ: selectedLat/selectedLng อาจเป็น undefined ได้ถ้าลูกค้ายังไม่เคยปักหมุดเลย — Firestore จะปฏิเสธ
+  // การเขียนข้อมูลทั้งก้อนทันทีถ้ามีฟิลด์ไหนเป็น undefined (บัคคลาสเดียวกับที่เจอฝั่ง checkout.html)
+  const customerData={phone,name,address,lat:selectedLat||null,lng:selectedLng||null,createdAt:new Date().toISOString(),registered:true};
   try{
     await setDoc(doc(db,"customers",phone),customerData);
     localStorage.setItem("customerData",JSON.stringify(customerData));
     // เติมลง address book ทันที ให้หน้า address.html แสดงเป็นรายการที่อยู่ (ไม่ใช่ฟอร์มเปล่า)
-    localStorage.setItem("addresses",JSON.stringify([{name,phone,address,lat:selectedLat,lng:selectedLng}]));
+    localStorage.setItem("addresses",JSON.stringify([{name,phone,address,lat:selectedLat||null,lng:selectedLng||null}]));
     localStorage.setItem("defaultAddress","0");
     sessionStorage.removeItem("newCustomer");
     window.location.replace("address.html"); // ลงทะเบียนเสร็จแล้ว ไม่ควรย้อนกลับมาฟอร์มลงทะเบียนที่จบไปแล้ว
-  }catch(e){ alert("เกิดข้อผิดพลาด กรุณาลองใหม่"); }
+  }catch(e){ alert("เกิดข้อผิดพลาด: "+e.message); console.error(e); }
 }
 </script>
 </body>
