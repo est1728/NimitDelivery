@@ -328,6 +328,12 @@ window.onerror = function(msg, url, line, col, error){
     <button class="savbtn" onclick="savGM()">บันทึก Gemini Key</button>
     <button onclick="rstQ()" style="width:100%;height:44px;border:2px solid var(--p);border-radius:12px;background:#fff;color:var(--p);font-size:14px;font-weight:700;cursor:pointer;margin-top:8px">🔄 Reset Quota (ถ้า quota ค้าง)</button>
   </div>
+  <div class="card">
+    <div class="stitle">🔔 VAPID Key (สำหรับแจ้งเตือน)</div>
+    <div class="hint" style="margin-bottom:12px">ตั้งค่าที่นี่ครั้งเดียว ระบบแจ้งเตือนทุกหน้า (ลูกค้า/ไรเดอร์/แอดมิน/ร้านค้า) จะดึงค่านี้ไปใช้อัตโนมัติ ไม่ต้องแก้โค้ดในไฟล์ fcm.js เลย</div>
+    <div style="margin-bottom:12px"><input class="inp" id="sVapidKey" placeholder="วางค่า VAPID key จาก Firebase Cloud Messaging"></div>
+    <button class="savbtn" onclick="savVapid()">บันทึก VAPID Key</button>
+  </div>
 </div>
 
 <!-- NOTIFICATION TEST -->
@@ -734,7 +740,7 @@ if(cfg.token&&cfg.user&&cfg.repo) setTimeout(ldF,500);
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, getDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, getDocs, query, where, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const app = initializeApp({
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -745,6 +751,29 @@ const app = initializeApp({
   appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
 });
 const db = getFirestore(app);
+
+// โหลดค่า VAPID key ปัจจุบันมาแสดงตอนเปิดหน้า (ถ้ามี) และฟังก์ชันบันทึกค่าใหม่
+(async function(){
+  try{
+    const snap = await getDoc(doc(db,'settings','fcmConfig'));
+    if(snap.exists() && snap.data().vapidKey){
+      const el = document.getElementById('sVapidKey');
+      if(el) el.value = snap.data().vapidKey;
+    }
+  }catch(e){}
+})();
+window.savVapid = async function(){
+  const val = document.getElementById('sVapidKey').value.trim();
+  if(!val){ if(typeof toast==='function') toast('กรุณาใส่ค่า VAPID key ก่อน','er'); return; }
+  try{
+    await setDoc(doc(db,'settings','fcmConfig'),{vapidKey:val,updatedAt:serverTimestamp()},{merge:true});
+    if(typeof toast==='function') toast('บันทึกแล้ว ทุกหน้าจะใช้ค่านี้อัตโนมัติ','ok');
+    else alert('บันทึกแล้ว');
+  }catch(e){
+    if(typeof toast==='function') toast('บันทึกไม่สำเร็จ: '+e.message,'er');
+    else alert('บันทึกไม่สำเร็จ: '+e.message);
+  }
+};
 
 window.ntToggleUid = function(){
   const t = document.getElementById('ntTarget').value;
