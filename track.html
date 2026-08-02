@@ -441,6 +441,10 @@ window.enableCustNotif = async function(){
   if(res?.ok){
     localStorage.setItem('fcmTokenSaved_customer','1');
     if(banner) banner.style.display='none';
+  } else if(res?.reason==='unsupported-browser'){
+    // เบราว์เซอร์ในแอป (LINE/Messenger/Instagram ฯลฯ) ไม่รองรับการแจ้งเตือนแบบนี้เลย ไม่มีทางลองใหม่แล้วสำเร็จ
+    // ต้องบอกตรงๆให้เปิดผ่านเบราว์เซอร์ปกติแทน ไม่ใช่บอกให้ "ลองใหม่" ซึ่งจะทำให้เข้าใจผิดว่าเดี๋ยวจะใช้ได้
+    if(sub) sub.textContent = 'เบราว์เซอร์นี้ใช้แจ้งเตือนไม่ได้ ลองเปิดผ่าน Chrome/Safari ปกติแทนครับ (ไม่ใช่ผ่าน LINE/Messenger)';
   } else {
     // สำคัญ: ถึงแม้เบราว์เซอร์จะอนุญาตไปแล้ว (permission=granted) แต่ถ้าขั้นตอนบันทึก token ล้มเหลว
     // (เช่น ปัญหาเครือข่ายชั่วคราว) ต้องให้เห็นชัดว่ายังไม่สำเร็จ และกดลองใหม่ได้อีก ไม่ใช่แค่เงียบๆกลับไปข้อความเดิม
