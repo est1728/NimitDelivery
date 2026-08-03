@@ -270,8 +270,15 @@ window.onerror = function(msg, url, line, col, error){
     <button class="rfbtn" onclick="ldF()"><svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg></button>
   </div>
   <div class="ck"><div class="lbl" style="margin-bottom:8px">ตรวจสอบไฟล์หลัก</div><div id="ckl"><span style="font-size:13px;color:var(--s)">กด refresh</span></div></div>
-  <div class="lbl" style="margin-bottom:8px">ไฟล์ทั้งหมด</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+    <div class="lbl">ไฟล์ทั้งหมด (ติ๊กเลือกไฟล์ที่อยากให้ AI อ่าน)</div>
+    <button onclick="toggleAiSelectMode()" id="aiSelBtn" style="font-size:12px;font-weight:700;color:var(--p);background:var(--pl);border:none;border-radius:8px;padding:5px 10px;cursor:pointer;white-space:nowrap">🔍 เลือกไฟล์ให้ AI อ่าน</button>
+  </div>
   <div id="expl"><div class="emp"><svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a2.996 2.996 0 0 0-5.5-1.65l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-2 .89-2 2v11c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2z"/></svg><p>ยังไม่มีข้อมูล</p><span>กด refresh</span></div></div>
+</div>
+<div id="aiSelBar" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--p);color:#fff;padding:12px 16px;align-items:center;justify-content:space-between;z-index:500;box-shadow:0 -4px 12px rgba(0,0,0,.15)">
+  <div style="font-size:13px;font-weight:700"><span id="aiSelCount">0</span> ไฟล์ที่เลือก</div>
+  <button onclick="sendSelectedFilesToAI()" style="background:#fff;color:var(--p);border:none;border-radius:10px;padding:8px 16px;font-size:13px;font-weight:800;cursor:pointer">ส่งให้ AI ตรวจสอบ →</button>
 </div>
 
 <!-- AI -->
@@ -280,6 +287,10 @@ window.onerror = function(msg, url, line, col, error){
     <div class="ai-dot sl" id="aiDot"></div>
     <div class="ai-st" id="aiSt">รอตั้งค่า Gemini API Key</div>
     <button class="qb" id="qbadge" onclick="sw('set')">Gemini AI</button>
+  </div>
+  <div id="aiAttachIndicator" style="display:none;align-items:center;gap:8px;background:var(--pl);padding:8px 12px;font-size:12px;color:var(--p);font-weight:700">
+    <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+    <button onclick="clearAttachedFiles()" style="border:none;background:none;color:var(--p);font-weight:800;cursor:pointer;flex-shrink:0">✕</button>
   </div>
   <div class="cm-wrap" id="cmw">
     <div class="wlc" id="wlc">
@@ -333,6 +344,29 @@ window.onerror = function(msg, url, line, col, error){
     <div class="hint" style="margin-bottom:12px">ตั้งค่าที่นี่ครั้งเดียว ระบบแจ้งเตือนทุกหน้า (ลูกค้า/ไรเดอร์/แอดมิน/ร้านค้า) จะดึงค่านี้ไปใช้อัตโนมัติ ไม่ต้องแก้โค้ดในไฟล์ fcm.js เลย</div>
     <div style="margin-bottom:12px"><input class="inp" id="sVapidKey" placeholder="วางค่า VAPID key จาก Firebase Cloud Messaging"></div>
     <button class="savbtn" onclick="savVapid()">บันทึก VAPID Key</button>
+  </div>
+  <div class="card">
+    <div class="stitle" style="display:flex;align-items:center;justify-content:space-between">
+      <span>💰 GP ตามช่วงราคา (ระบบหลัก)</span>
+      <button type="button" onclick="addGpTier()" style="border:none;background:var(--pl);color:var(--p);font-size:12px;font-weight:800;padding:6px 12px;border-radius:20px;cursor:pointer">+ เพิ่มช่วง</button>
+    </div>
+    <div class="hint" style="margin-bottom:10px">ย้ายมาจากหน้าแอดมินแล้ว — แอดมินร้าน/สาขาจะแก้ค่านี้เองไม่ได้อีกต่อไป กันปัญหาตอนมีหลายสาขา/แฟรนไชส์</div>
+    <div id="gpTiersList"></div>
+    <div class="hint" style="margin:8px 0 12px">กำหนด GP% ตามช่วงราคาสินค้า เช่น 0–100 บ. ใช้ GP 30%, 100–200 บ. ใช้ GP 20% ระบบจะเช็คว่าราคาอยู่ในช่วงไหนก่อนเสมอ</div>
+    <div style="margin-bottom:8px"><div class="lbl">GP สำรอง (%)</div><input class="inp" id="dGpPercent" type="number" placeholder="34"></div>
+    <div class="hint" style="margin-bottom:12px">ใช้เฉพาะตอนราคาสินค้า "ไม่อยู่ในช่วงใดเลย" ที่ตั้งไว้ด้านบน</div>
+    <button class="savbtn" onclick="saveGpSettings()">บันทึก GP</button>
+  </div>
+  <div class="card">
+    <div class="stitle" style="display:flex;align-items:center;justify-content:space-between">
+      <span>💰 GP ย่อยตามช่วงราคา (ตัวเลือก/เมนูเสริม)</span>
+      <button type="button" onclick="addGpSubTier()" style="border:none;background:var(--pl);color:var(--p);font-size:12px;font-weight:800;padding:6px 12px;border-radius:20px;cursor:pointer">+ เพิ่มช่วง</button>
+    </div>
+    <div id="gpSubTiersList"></div>
+    <div class="hint" style="margin:8px 0 12px">กำหนด GP% ของตัวเลือก/เมนูเสริมตามช่วงราคาของตัวเลือกนั้นๆเอง (แยกจาก GP หลักด้านบน)</div>
+    <div style="margin-bottom:8px"><div class="lbl">GP ย่อยสำรอง (%)</div><input class="inp" id="dGpSubPercent" type="number" placeholder="0"></div>
+    <div class="hint" style="margin-bottom:12px">ใช้เฉพาะตอนราคาตัวเลือก "ไม่อยู่ในช่วงใดเลย" ที่ตั้งไว้ด้านบน</div>
+    <button class="savbtn" onclick="saveGpSettings()">บันทึก GP ย่อย</button>
   </div>
 </div>
 
@@ -539,15 +573,36 @@ async function ldF(){
     repoFiles=await res.json(); rdFiles(); rdChk();
   }catch(e){document.getElementById('expl').innerHTML='<div class="emp"><p style="color:var(--r)">เกิดข้อผิดพลาด</p></div>';}
 }
+var aiSelectMode=false, aiSelectedFiles={};
+function toggleAiSelectMode(){
+  aiSelectMode=!aiSelectMode;
+  aiSelectedFiles={};
+  document.getElementById('aiSelBtn').textContent=aiSelectMode?'✕ ยกเลิกเลือก':'🔍 เลือกไฟล์ให้ AI อ่าน';
+  document.getElementById('aiSelBar').style.display='none';
+  rdFiles();
+}
+function toggleFileSelect(name,ev){
+  ev.stopPropagation();
+  if(aiSelectedFiles[name]) delete aiSelectedFiles[name];
+  else aiSelectedFiles[name]=true;
+  var cnt=Object.keys(aiSelectedFiles).length;
+  document.getElementById('aiSelCount').textContent=cnt;
+  document.getElementById('aiSelBar').style.display=cnt>0?'flex':'none';
+  rdFiles();
+}
 function rdFiles(){
   var f=repoFiles.filter(function(f){return f.type==='file';});
   document.getElementById('expl').innerHTML='<div class="el">'+f.map(function(fi){
     var ic=icl(fi.name);
-    return '<div class="er" onclick="opnVw(\''+fi.name+'\',\''+fi.download_url+'\')">'
+    var checked=aiSelectedFiles[fi.name];
+    var checkbox=aiSelectMode?'<input type="checkbox" onclick="toggleFileSelect(\''+fi.name+'\',event)" '+(checked?'checked':'')+' style="width:18px;height:18px;flex-shrink:0;margin-right:4px">':'';
+    var clickAction=aiSelectMode?"toggleFileSelect('"+fi.name+"',event)":"opnVw('"+fi.name+"','"+fi.download_url+"')";
+    return '<div class="er" onclick="'+clickAction+'" style="'+(checked?'background:var(--pl)':'')+'">'
+      +checkbox
       +'<div class="fi '+ic+' ei" style="width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg style="width:15px;height:15px" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg></div>'
       +'<div style="font-size:13px;font-weight:700;color:var(--t);flex:1;font-family:monospace">'+fi.name+'</div>'
       +'<div style="font-size:11px;color:var(--s)">'+fsz(fi.size)+'</div>'
-      +'<svg style="width:13px;height:13px;fill:var(--s);flex-shrink:0" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>';
+      +(aiSelectMode?'':'<svg style="width:13px;height:13px;fill:var(--s);flex-shrink:0" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>')+'</div>';
   }).join('')+'</div>';
 }
 function rdChk(){
@@ -617,11 +672,41 @@ function shwSlp(){
   b.innerHTML='<div class="slp-ico">🌙</div><div class="slp-t">AI นอนหลับแล้ว</div><div class="slp-s">'+slpMsg()+'</div>';
   document.getElementById('cmw').appendChild(b);
 }
+var attachedFilesContext=''; var attachedFileNames=[];
+async function sendSelectedFilesToAI(){
+  var names=Object.keys(aiSelectedFiles);
+  if(!names.length) return;
+  var btn=event?.target; if(btn){btn.disabled=true;btn.textContent='กำลังโหลดไฟล์...';}
+  try{
+    var contents=await Promise.all(names.map(async function(name){
+      var fi=repoFiles.find(function(f){return f.name===name;});
+      if(!fi) return '';
+      var r=await fetch(fi.download_url);
+      var txt=await r.text();
+      return '=== ไฟล์: '+name+' ===\n'+txt;
+    }));
+    attachedFilesContext=contents.join('\n\n');
+    attachedFileNames=names;
+    toggleAiSelectMode(); // ออกจากโหมดเลือกไฟล์ กลับสภาพปกติ
+    sw('ai');
+    var indicator=document.getElementById('aiAttachIndicator');
+    if(indicator){
+      indicator.style.display='flex';
+      indicator.querySelector('span').textContent='📎 แนบไฟล์ไว้ให้ AI อ่านแล้ว: '+names.join(', ');
+    }
+  }catch(e){
+    toast('โหลดไฟล์ไม่สำเร็จ: '+e.message,'er');
+  }
+}
+function clearAttachedFiles(){
+  attachedFilesContext=''; attachedFileNames=[];
+  var indicator=document.getElementById('aiAttachIndicator');
+  if(indicator) indicator.style.display='none';
+}
 function qask(msg){document.getElementById('ci').value=msg;sndChat();}
 async function sndChat(){
   chkQ(); cfg=JSON.parse(localStorage.getItem('devCfg')||'{}');
   if(!cfg.gmKey){toast('ตั้งค่า Gemini API Key ก่อน','er');sw('set');return;}
-  if(QMAX-qUsed<=0){setAISt('sl',slpMsg());shwSlp();toast('โควต้าวันนี้หมดแล้ว','er');return;}
   var inp=document.getElementById('ci'); var msg=inp.value.trim(); if(!msg)return;
   inp.value='';inp.style.height='auto';
   document.getElementById('csnd').disabled=true;
@@ -629,13 +714,24 @@ async function sndChat(){
   addB('u',msg); var tid='t'+Date.now(); addTk(tid); scrl();
   chatH.push({role:'user',parts:[{text:msg}]});
   setAISt('b','กำลังคิด...');
-  var sys='คุณคือ AI ผู้เชี่ยวชาญตรวจสอบโค้ด Nimit Delivery (Food Delivery App) ตอบภาษาไทย กระชับ ระบุเลขบรรทัด ห้ามแก้ UI ห้ามเปลี่ยน style แสดงเฉพาะโค้ดที่แก้';
-  var msgs=chatH.length>1?chatH.slice(-10):[{role:'user',parts:[{text:sys+' '+msg}]}];
+  // สำคัญมาก: บอกรายละเอียดโปรเจกต์จริงให้ชัดเจน ไม่งั้น AI จะเดาใช้เทคโนโลยีทั่วไป (เช่น React) ที่ไม่ตรงกับระบบเราเลย
+  // และใช้ systemInstruction แยกต่างหากจาก contents เพื่อให้ context นี้อยู่ตลอดทั้งบทสนทนา ไม่ใช่แค่ข้อความแรก
+  // (ของเดิมใส่ไว้ในข้อความแรกอย่างเดียว พอคุยเกิน 10 ข้อความ context นี้จะหลุดออกจากหน้าต่างที่ส่งไปเลย)
+  var sysInstruction='คุณคือ AI ผู้เชี่ยวชาญตรวจสอบโค้ดให้โปรเจกต์ Nimit Delivery (แอปสั่งอาหารเดลิเวอรี) '
+    +'ข้อมูลโปรเจกต์จริงที่ต้องรู้เสมอ: '
+    +'(1) เทคโนโลยี: HTML/CSS/JavaScript ธรรมดาล้วนๆ (Vanilla JS) ไม่มี React/Vue/Angular หรือ framework ใดๆทั้งสิ้น ไม่มีขั้นตอน build/compile ไม่มีโฟลเดอร์ src/ ไม่มีไฟล์ .jsx/.tsx เด็ดขาด '
+    +'(2) ฐานข้อมูล: Firebase Firestore v10 แบบ ES modules โหลดตรงจาก CDN (gstatic.com) ในแต่ละไฟล์ HTML '
+    +'(3) โครงสร้าง: ไฟล์ HTML แยกอิสระแต่ละหน้า (เช่น shops.html, menu.html, checkout.html, admin.html, rider.html, shop-admin.html) ไม่ได้เชื่อมกันแบบ SPA '
+    +'(4) แผนที่ใช้ Leaflet (2 มิติ, ไม่มีฟีเจอร์หมุน/เอียงแกน 3 มิติ) '
+    +'(5) แจ้งเตือนใช้ Firebase Cloud Messaging ผ่านไฟล์ fcm.js กลาง '
+    +'กติกาการตอบ: ตอบภาษาไทย กระชับ ระบุเลขบรรทัด ห้ามแก้ UI ห้ามเปลี่ยน style แสดงเฉพาะโค้ดที่แก้ และห้ามเสนอโค้ดที่ใช้เทคโนโลยีอื่นนอกเหนือจากที่ระบุไว้ข้างต้นเด็ดขาด'
+    +(attachedFilesContext?('\n\nผู้ใช้แนบเนื้อหาไฟล์จริงต่อไปนี้มาให้อ่านและตรวจสอบโดยเฉพาะ ใช้เนื้อหานี้เป็นหลักในการตอบ:\n\n'+attachedFilesContext):'');
+  var msgs=chatH.length>1?chatH.slice(-10):[{role:'user',parts:[{text:msg}]}];
   try{
     // ลอง 3 ครั้งถ้าโดน rate limit
     var resp, retries=0;
     while(retries<3){
-      resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key='+cfg.gmKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:msgs,generationConfig:{maxOutputTokens:2048,temperature:0.7}})});
+      resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+cfg.gmKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({systemInstruction:{parts:[{text:sysInstruction}]},contents:msgs,generationConfig:{maxOutputTokens:2048,temperature:0.7}})});
       if(resp.status===429){
         retries++;
         if(retries>=3){rpTk(tid,'⚠️ Rate limit - รอ 1 นาทีแล้วลองใหม่');setAISt('er','Rate limit');document.getElementById('csnd').disabled=false;return;}
@@ -646,13 +742,11 @@ async function sndChat(){
       break;
     }
     var data=await resp.json();
-    qUsed++; localStorage.setItem('gmQU',String(qUsed)); updQUI();
     if(data.error) throw new Error(data.error.message);
     var reply=data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]?data.candidates[0].content.parts[0].text:'ไม่ได้รับคำตอบ';
     chatH.push({role:'model',parts:[{text:reply}]});
     rpTk(tid,reply);
-    var leftNow=QMAX-qUsed; if(leftNow<0)leftNow=0;
-    setAISt('r','พร้อมใช้งาน · เหลือ '+leftNow+' req วันนี้');
+    setAISt('r','พร้อมใช้งาน');
   }catch(e){rpTk(tid,'เกิดข้อผิดพลาด: '+e.message);setAISt('er','เกิดข้อผิดพลาด');}
   document.getElementById('csnd').disabled=false; scrl();
 }
@@ -777,6 +871,69 @@ window.savVapid = async function(){
     else alert('บันทึกไม่สำเร็จ: '+e.message);
   }
 };
+
+// ============ GP SETTINGS (ย้ายมาจาก admin.html) ============
+let dGpTiers=[], dGpSubTiers=[];
+function renderDGpTiers(){
+  const el=document.getElementById('gpTiersList'); if(!el) return;
+  if(!dGpTiers.length){ el.innerHTML='<div style="font-size:12px;color:var(--s);padding:10px 0">ยังไม่มีช่วงราคา กด "+ เพิ่มช่วง"</div>'; return; }
+  el.innerHTML=dGpTiers.map((t,i)=>`
+    <div style="display:flex;align-items:center;gap:6px;padding:10px 0;border-bottom:1px solid #f0f0f0">
+      <input class="inp" style="width:64px;height:38px;font-size:13px;margin-bottom:0" type="number" placeholder="ต่ำสุด" value="${t.min}" oninput="updDGpTier(${i},'min',this.value)">
+      <span style="color:var(--s);font-size:12px">–</span>
+      <input class="inp" style="width:64px;height:38px;font-size:13px;margin-bottom:0" type="number" placeholder="สูงสุด" value="${t.max}" oninput="updDGpTier(${i},'max',this.value)">
+      <span style="color:var(--s);font-size:12px">บ.</span>
+      <input class="inp" style="width:60px;height:38px;font-size:13px;margin-bottom:0;margin-left:auto" type="number" placeholder="GP%" value="${t.gp}" oninput="updDGpTier(${i},'gp',this.value)">
+      <span style="color:var(--s);font-size:12px">%</span>
+      <button type="button" onclick="delDGpTier(${i})" style="width:34px;height:34px;border:none;border-radius:10px;background:#fee2e2;color:#dc2626;cursor:pointer;flex-shrink:0;font-size:16px;line-height:1">×</button>
+    </div>`).join('');
+}
+window.updDGpTier=function(i,field,val){ if(!dGpTiers[i]) return; dGpTiers[i][field]=parseFloat(val)||0; };
+window.delDGpTier=function(i){ dGpTiers.splice(i,1); renderDGpTiers(); };
+window.addGpTier=function(){ dGpTiers.push({min:0,max:100,gp:30}); renderDGpTiers(); };
+function renderDGpSubTiers(){
+  const el=document.getElementById('gpSubTiersList'); if(!el) return;
+  if(!dGpSubTiers.length){ el.innerHTML='<div style="font-size:12px;color:var(--s);padding:10px 0">ยังไม่มีช่วงราคา กด "+ เพิ่มช่วง"</div>'; return; }
+  el.innerHTML=dGpSubTiers.map((t,i)=>`
+    <div style="display:flex;align-items:center;gap:6px;padding:10px 0;border-bottom:1px solid #f0f0f0">
+      <input class="inp" style="width:64px;height:38px;font-size:13px;margin-bottom:0" type="number" placeholder="ต่ำสุด" value="${t.min}" oninput="updDGpSubTier(${i},'min',this.value)">
+      <span style="color:var(--s);font-size:12px">–</span>
+      <input class="inp" style="width:64px;height:38px;font-size:13px;margin-bottom:0" type="number" placeholder="สูงสุด" value="${t.max}" oninput="updDGpSubTier(${i},'max',this.value)">
+      <span style="color:var(--s);font-size:12px">บ.</span>
+      <input class="inp" style="width:60px;height:38px;font-size:13px;margin-bottom:0;margin-left:auto" type="number" placeholder="GP%" value="${t.gp}" oninput="updDGpSubTier(${i},'gp',this.value)">
+      <span style="color:var(--s);font-size:12px">%</span>
+      <button type="button" onclick="delDGpSubTier(${i})" style="width:34px;height:34px;border:none;border-radius:10px;background:#fee2e2;color:#dc2626;cursor:pointer;flex-shrink:0;font-size:16px;line-height:1">×</button>
+    </div>`).join('');
+}
+window.updDGpSubTier=function(i,field,val){ if(!dGpSubTiers[i]) return; dGpSubTiers[i][field]=parseFloat(val)||0; };
+window.delDGpSubTier=function(i){ dGpSubTiers.splice(i,1); renderDGpSubTiers(); };
+window.addGpSubTier=function(){ dGpSubTiers.push({min:0,max:100,gp:0}); renderDGpSubTiers(); };
+window.saveGpSettings=async function(){
+  try{
+    await setDoc(doc(db,'settings','pricing'),{
+      gpPercent: parseFloat(document.getElementById('dGpPercent').value)||34,
+      gpSubPercent: parseFloat(document.getElementById('dGpSubPercent').value)||0,
+      gpTiers: dGpTiers, gpSubTiers: dGpSubTiers,
+      updatedAt: serverTimestamp()
+    },{merge:true});
+    if(typeof toast==='function') toast('บันทึก GP แล้ว','ok'); else alert('บันทึกแล้ว');
+  }catch(e){
+    if(typeof toast==='function') toast('บันทึกไม่สำเร็จ: '+e.message,'er'); else alert('บันทึกไม่สำเร็จ: '+e.message);
+  }
+};
+(async function loadGpSettings(){
+  try{
+    const snap=await getDoc(doc(db,'settings','pricing'));
+    if(snap.exists()){
+      const d=snap.data();
+      const gpEl=document.getElementById('dGpPercent'); if(gpEl) gpEl.value=d.gpPercent??34;
+      const gpSubEl=document.getElementById('dGpSubPercent'); if(gpSubEl) gpSubEl.value=d.gpSubPercent??0;
+      dGpTiers=Array.isArray(d.gpTiers)?d.gpTiers:[];
+      dGpSubTiers=Array.isArray(d.gpSubTiers)?d.gpSubTiers:[];
+    }
+  }catch(e){}
+  renderDGpTiers(); renderDGpSubTiers();
+})();
 
 window.ntToggleUid = function(){
   const t = document.getElementById('ntTarget').value;
