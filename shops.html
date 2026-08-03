@@ -198,9 +198,8 @@ document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
   <div class="tb-row">
     <div>
       <div class="logo">Nimit Delivery</div>
-      <div id="loginStatusBar" style="display:none;align-items:center;gap:4px;margin-top:2px;cursor:pointer" onclick="location.href='index.html'">
-        <span style="font-size:12px;color:rgba(255,255,255,.85)">ยังไม่ได้เข้าสู่ระบบ ·</span>
-        <span style="font-size:12px;color:#fff;font-weight:800;text-decoration:underline">เข้าสู่ระบบ</span>
+      <div id="loginStatusBar" style="display:none;align-items:center;gap:4px;margin-top:2px;cursor:pointer" onclick="window.handleLoginBarClick()">
+        <span id="loginStatusText" style="font-size:12px;color:#fff;font-weight:800"></span>
       </div>
     </div>
     <div class="tb-right">
@@ -593,15 +592,28 @@ window.pick=function(id,name){
 
 window.loadShops=loadShops;
 loadAds();
-// แสดงแถบ "ยังไม่ได้เข้าสู่ระบบ" ถ้ายังไม่มีเบอร์โทรบันทึกไว้เลย (เรียกดูร้าน/เมนูได้ตามปกติ
-// ไม่บังคับเข้าสู่ระบบก่อน แบบเดียวกับ Shopee — จะขอให้เข้าสู่ระบบก็ตอนจะกดใส่ตะกร้าจริงๆแทน)
+// แถบสถานะเข้าสู่ระบบ: ถ้ายังไม่ได้เข้าสู่ระบบ ขึ้นเชิญชวนให้กดเข้าสู่ระบบ (เรียกดูร้าน/เมนูได้ตามปกติ
+// ไม่บังคับก่อน แบบเดียวกับ Shopee — จะขอให้เข้าสู่ระบบก็ตอนจะกดใส่ตะกร้าจริงๆแทน)
+// ถ้าเข้าสู่ระบบแล้ว ขึ้นชื่อลูกค้าแทน ให้เห็นชัดว่าเข้าสู่ระบบเป็นใครอยู่
 (function(){
-  const phone = JSON.parse(localStorage.getItem("customerData")||"{}").phone || localStorage.getItem("customerPhone");
-  if(!phone){
-    const bar=document.getElementById("loginStatusBar");
-    if(bar) bar.style.display="flex";
+  const cData = JSON.parse(localStorage.getItem("customerData")||"{}");
+  const phone = cData.phone || localStorage.getItem("customerPhone");
+  const bar = document.getElementById("loginStatusBar");
+  const textEl = document.getElementById("loginStatusText");
+  if(!bar || !textEl) return;
+  bar.style.display = "flex";
+  if(phone){
+    textEl.textContent = "👋 " + (cData.name || phone);
+  } else {
+    textEl.textContent = "ยังไม่ได้เข้าสู่ระบบ · เข้าสู่ระบบ";
+    textEl.style.textDecoration = "underline";
   }
 })();
+window.handleLoginBarClick = function(){
+  const phone = JSON.parse(localStorage.getItem("customerData")||"{}").phone || localStorage.getItem("customerPhone");
+  if(!phone) location.href = "index.html"; // ยังไม่เข้าสู่ระบบ พาไปกรอกเบอร์
+  // ถ้าเข้าสู่ระบบแล้ว กดแล้วไม่ต้องทำอะไร (แค่โชว์ว่าเป็นใคร ไม่ใช่ปุ่มทำงาน)
+};
 loadShops();
 
 window.openAdVideo=function(url){
