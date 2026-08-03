@@ -768,6 +768,15 @@ function updatePopupTotal(){
 
 window.addToCartFromPopup=function(){
   const m=popupMenu; if(!m) return;
+  // เช็คว่าเข้าสู่ระบบหรือยังก่อนใส่ตะกร้า (แบบเดียวกับ Shopee — ดูเมนูได้แต่กดใส่ตะกร้าต้องเข้าสู่ระบบก่อน)
+  const _phone = JSON.parse(localStorage.getItem("customerData")||"{}").phone || localStorage.getItem("customerPhone");
+  if(!_phone){
+    sessionStorage.setItem("loginReturnUrl", location.href);
+    sessionStorage.setItem("addrBack", location.href);
+    alert("กรุณาเข้าสู่ระบบก่อนสั่งซื้อครับ");
+    location.href="index.html";
+    return;
+  }
   let missing=false;
   function checkSubGroupsMissing(g,gi,oi){
     const o=g.options[oi]; if(!o||!(o.subGroups||[]).length) return;
