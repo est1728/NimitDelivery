@@ -921,6 +921,12 @@ function renderMenuCard(m,idx,total) {
 function updateCardInPlace(menuId){
   const cardEl = document.getElementById(`card-${menuId}`);
   if(!cardEl){ renderMenuGroups(); return; }
+  // สำคัญมาก: ฟังก์ชันนี้ถูกเรียกจากหลายจุดมาก (13 จุดในไฟล์นี้) แต่เดิมมีแค่จุดเดียวที่เช็คก่อนว่ากำลังพิมพ์อยู่หรือเปล่า
+  // ก่อนเรียก ที่เหลือไม่มีการป้องกันเลย พอมีจุดไหนก็ตามเรียกฟังก์ชันนี้ตอนที่ผู้ใช้กำลังพิมพ์อยู่ในฟอร์มของการ์ด
+  // นี้พอดี (เช่น ชื่อเมนู) cardEl.replaceWith() จะทำลาย input ที่กำลังโฟกัส/พิมพ์อยู่ทิ้งทันที สร้างใหม่แทนที่
+  // (ค่าที่พิมพ์ไปแล้วหายไปด้วย เพราะการ์ดใหม่ render จากค่าฐานข้อมูลเดิม ไม่ใช่ค่าที่เพิ่งพิมพ์) ทำให้เห็นเป็นอาการ
+  // "พิมพ์ได้แต่ตัวหนังสือไม่ขึ้น" เพราะโดนรีเซ็ตทับซ้ำๆ — ย้ายการป้องกันมาไว้ตรงนี้แทน ครอบคลุมทุกจุดที่เรียกพร้อมกันเลย
+  if(cardEl.contains(document.activeElement) && (document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='TEXTAREA')) return;
   const m = menus.find(x=>x.id===menuId);
   if(!m){ renderMenuGroups(); return; }
   const group = menus.filter(x=>(x.categoryId||'')===(m.categoryId||'') && !x.id.startsWith('_bulk_')).sort((a,b)=>(a.order||0)-(b.order||0));
