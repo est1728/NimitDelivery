@@ -107,7 +107,11 @@ window.enableFcmNotifications = async function () {
         // ตรงๆ เพราะตอนนี้มี service worker ควบคุมหน้าอยู่แล้ว (จำเป็นสำหรับ push) เบราว์เซอร์บางตัว
         // (โดยเฉพาะ Chrome บน Android) จะ error ทันทีถ้าเรียก new Notification() ตรงๆระหว่างมี SW ควบคุมอยู่
         if (Notification.permission === 'granted') {
-          reg.showNotification(title || 'Nimit Delivery', { body, tag: 'nimit', renotify: true });
+          // สำคัญ: ใช้ tag ไม่ซ้ำกันทุกครั้งเหมือนที่แก้ไปแล้วใน sw.js — ของเดิมใช้ tag คงที่ ('nimit')
+          // ทำให้มือถือบางรุ่นไม่เด้งแจ้งเตือนซ้ำถ้ามีอันเก่าค้างอยู่ในทีเดียวกัน แม้จะตั้ง renotify:true ไว้แล้วก็ตาม
+          // จุดนี้เป็นคนละที่กับ sw.js (นี่คือตอนแอปเปิดอยู่ ไม่ใช่ตอนปิดแอป) เลยพลาดแก้ไปรอบก่อนหน้านี้
+          const uniqueTag = 'nimit-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+          reg.showNotification(title || 'Nimit Delivery', { body, tag: uniqueTag, renotify: true });
         }
       }
     });
