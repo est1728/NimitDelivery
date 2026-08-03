@@ -196,7 +196,13 @@ document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
 
 <div class="tb">
   <div class="tb-row">
-    <div class="logo">Nimit Delivery</div>
+    <div>
+      <div class="logo">Nimit Delivery</div>
+      <div id="loginStatusBar" style="display:none;align-items:center;gap:4px;margin-top:2px;cursor:pointer" onclick="location.href='index.html'">
+        <span style="font-size:12px;color:rgba(255,255,255,.85)">ยังไม่ได้เข้าสู่ระบบ ·</span>
+        <span style="font-size:12px;color:#fff;font-weight:800;text-decoration:underline">เข้าสู่ระบบ</span>
+      </div>
+    </div>
     <div class="tb-right">
       <button class="cart" onclick="window.openSidebar()" style="margin-right:6px">
         <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
@@ -587,6 +593,15 @@ window.pick=function(id,name){
 
 window.loadShops=loadShops;
 loadAds();
+// แสดงแถบ "ยังไม่ได้เข้าสู่ระบบ" ถ้ายังไม่มีเบอร์โทรบันทึกไว้เลย (เรียกดูร้าน/เมนูได้ตามปกติ
+// ไม่บังคับเข้าสู่ระบบก่อน แบบเดียวกับ Shopee — จะขอให้เข้าสู่ระบบก็ตอนจะกดใส่ตะกร้าจริงๆแทน)
+(function(){
+  const phone = JSON.parse(localStorage.getItem("customerData")||"{}").phone || localStorage.getItem("customerPhone");
+  if(!phone){
+    const bar=document.getElementById("loginStatusBar");
+    if(bar) bar.style.display="flex";
+  }
+})();
 loadShops();
 
 window.openAdVideo=function(url){
