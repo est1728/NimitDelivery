@@ -468,26 +468,6 @@ document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
   </div>
   <div class="scard">
     <div class="sct" style="display:flex;align-items:center;justify-content:space-between">
-      <span>GP ตามช่วงราคา (ระบบหลัก)</span>
-      <button type="button" id="addGpTierBtn" style="border:none;background:var(--pl);color:var(--p);font-size:12px;font-weight:800;padding:6px 12px;border-radius:20px;cursor:pointer">+ เพิ่มช่วง</button>
-    </div>
-    <div id="gpTiersList"></div>
-    <div style="font-size:11px;color:var(--s);margin:8px 0 12px;line-height:1.6">กำหนด GP% ตามช่วงราคาสินค้า เช่น 0–100 บ. ใช้ GP 30%, 100–200 บ. ใช้ GP 20% ระบบจะเช็คว่าราคาอยู่ในช่วงไหนก่อนเสมอ</div>
-    <div class="pr"><span>GP สำรอง (%)</span><input class="pi" id="gpPercent" type="number" value="34"></div>
-    <div style="font-size:11px;color:var(--s);margin-top:6px;line-height:1.6">ใช้เฉพาะตอนราคาสินค้า "ไม่อยู่ในช่วงใดเลย" ที่ตั้งไว้ด้านบน (เช่น ตั้งช่วงไว้แค่ 0–200 แต่มีสินค้าราคา 500)</div>
-  </div>
-  <div class="scard">
-    <div class="sct" style="display:flex;align-items:center;justify-content:space-between">
-      <span>GP ย่อยตามช่วงราคา (ตัวเลือก/เมนูเสริม)</span>
-      <button type="button" id="addGpSubTierBtn" style="border:none;background:var(--pl);color:var(--p);font-size:12px;font-weight:800;padding:6px 12px;border-radius:20px;cursor:pointer">+ เพิ่มช่วง</button>
-    </div>
-    <div id="gpSubTiersList"></div>
-    <div style="font-size:11px;color:var(--s);margin:8px 0 12px;line-height:1.6">กำหนด GP% ของตัวเลือก/เมนูเสริมตามช่วงราคาของตัวเลือกนั้นๆ เอง (แยกจาก GP หลักของสินค้าด้านบน) ระบบจะเช็คว่าราคาตัวเลือกอยู่ในช่วงไหนก่อนเสมอ</div>
-    <div class="pr"><span>GP ย่อยสำรอง (%)</span><input class="pi" id="gpSubPercent" type="number" value="0"></div>
-    <div style="font-size:11px;color:var(--s);margin-top:6px;line-height:1.6">ใช้เฉพาะตอนราคาตัวเลือก "ไม่อยู่ในช่วงใดเลย" ที่ตั้งไว้ด้านบน</div>
-  </div>
-  <div class="scard">
-    <div class="sct" style="display:flex;align-items:center;justify-content:space-between">
       <span>ค่าส่งตามระยะทาง</span>
       <button type="button" id="addDelTierBtn" style="border:none;background:var(--pl);color:var(--p);font-size:12px;font-weight:800;padding:6px 12px;border-radius:20px;cursor:pointer">+ เพิ่มช่วง</button>
     </div>
@@ -1021,9 +1001,9 @@ function swPg(pg){
   if(pg==='settingsPage'){loadPricing();loadAppStatus();}
 }
 function updPrev(){
-  const gp=parseFloat($('gpPercent').value)||34,wp=parseFloat($('walletPct').value)||30,rp=parseFloat($('riderPct').value)||70;
-  const base=50,d2=Math.ceil(base*(1+gp/100)),diff=d2-base;
-  $('pvw').innerHTML='ตัวอย่าง: ร้าน ฿'+base+' → ลูกค้า ฿'+d2+'<br>ส่วนต่าง ฿'+diff+' · กระเป๋า ฿'+Math.round(diff*wp/100)+' · ไรเดอร์ ฿'+Math.round(diff*rp/100);
+  const wp=parseFloat($('walletPct').value)||30,rp=parseFloat($('riderPct').value)||70;
+  const diff=15; // ตัวอย่างส่วนต่างสมมติ (GP ย้ายไปตั้งค่าที่ developer.html แล้ว ไม่ใช่เรื่องของหน้านี้อีกต่อไป)
+  $('pvw').innerHTML='ตัวอย่าง: ส่วนต่าง ฿'+diff+' · กระเป๋า ฿'+Math.round(diff*wp/100)+' · ไรเดอร์ ฿'+Math.round(diff*rp/100);
 }
 
 // ORDERS
@@ -1694,42 +1674,6 @@ async function doTopup(){
 }
 
 // PRICING
-let gpTiers=[];
-function renderGpTiers(){
-  const el=$('gpTiersList');if(!el)return;
-  if(!gpTiers.length){el.innerHTML='<div style="font-size:12px;color:var(--s);padding:10px 0">ยังไม่มีช่วงราคา กด "+ เพิ่มช่วง"</div>';return;}
-  el.innerHTML=gpTiers.map((t,i)=>`
-    <div style="display:flex;align-items:center;gap:6px;padding:10px 0;border-bottom:1px solid #f5f6f8">
-      <input class="pi" style="width:64px;height:38px;font-size:13px" type="number" placeholder="ต่ำสุด" value="${t.min}" oninput="window.updGpTier(${i},'min',this.value)">
-      <span style="color:var(--s);font-size:12px">–</span>
-      <input class="pi" style="width:64px;height:38px;font-size:13px" type="number" placeholder="สูงสุด" value="${t.max}" oninput="window.updGpTier(${i},'max',this.value)">
-      <span style="color:var(--s);font-size:12px">บ.</span>
-      <input class="pi" style="width:60px;height:38px;font-size:13px;margin-left:auto" type="number" placeholder="GP%" value="${t.gp}" oninput="window.updGpTier(${i},'gp',this.value)">
-      <span style="color:var(--s);font-size:12px">%</span>
-      <button type="button" onclick="window.delGpTier(${i})" style="width:34px;height:34px;border:none;border-radius:10px;background:var(--rl);color:var(--r);cursor:pointer;flex-shrink:0;font-size:16px;line-height:1">×</button>
-    </div>`).join('');
-}
-window.updGpTier=function(i,field,val){if(!gpTiers[i])return;gpTiers[i][field]=parseFloat(val)||0;};
-window.delGpTier=function(i){gpTiers.splice(i,1);renderGpTiers();};
-function addGpTier(){gpTiers.push({min:0,max:100,gp:30});renderGpTiers();}
-let gpSubTiers=[];
-function renderGpSubTiers(){
-  const el=$('gpSubTiersList');if(!el)return;
-  if(!gpSubTiers.length){el.innerHTML='<div style="font-size:12px;color:var(--s);padding:10px 0">ยังไม่มีช่วงราคา กด "+ เพิ่มช่วง"</div>';return;}
-  el.innerHTML=gpSubTiers.map((t,i)=>`
-    <div style="display:flex;align-items:center;gap:6px;padding:10px 0;border-bottom:1px solid #f5f6f8">
-      <input class="pi" style="width:64px;height:38px;font-size:13px" type="number" placeholder="ต่ำสุด" value="${t.min}" oninput="window.updGpSubTier(${i},'min',this.value)">
-      <span style="color:var(--s);font-size:12px">–</span>
-      <input class="pi" style="width:64px;height:38px;font-size:13px" type="number" placeholder="สูงสุด" value="${t.max}" oninput="window.updGpSubTier(${i},'max',this.value)">
-      <span style="color:var(--s);font-size:12px">บ.</span>
-      <input class="pi" style="width:60px;height:38px;font-size:13px;margin-left:auto" type="number" placeholder="GP%" value="${t.gp}" oninput="window.updGpSubTier(${i},'gp',this.value)">
-      <span style="color:var(--s);font-size:12px">%</span>
-      <button type="button" onclick="window.delGpSubTier(${i})" style="width:34px;height:34px;border:none;border-radius:10px;background:var(--rl);color:var(--r);cursor:pointer;flex-shrink:0;font-size:16px;line-height:1">×</button>
-    </div>`).join('');
-}
-window.updGpSubTier=function(i,field,val){if(!gpSubTiers[i])return;gpSubTiers[i][field]=parseFloat(val)||0;};
-window.delGpSubTier=function(i){gpSubTiers.splice(i,1);renderGpSubTiers();};
-function addGpSubTier(){gpSubTiers.push({min:0,max:100,gp:0});renderGpSubTiers();}
 let delTiers=[];
 function renderDelTiers(){
   const el=$('delTiersList');if(!el)return;
@@ -1749,8 +1693,8 @@ window.updDelTier=function(i,field,val){if(!delTiers[i])return;delTiers[i][field
 window.delDelTier=function(i){delTiers.splice(i,1);renderDelTiers();};
 function addDelTier(){delTiers.push({min:0,max:5,fee:9});renderDelTiers();}
 async function loadPricing(){
-  try{const snap=await getDoc(doc(db,'settings','pricing'));if(snap.exists()){const d=snap.data();$('gpPercent').value=d.gpPercent||34;$('gpSubPercent').value=d.gpSubPercent||0;$('walletPct').value=d.walletPercent||30;$('riderPct').value=d.riderPercent||70;$('delFee').value=d.deliveryFee||9;gpTiers=Array.isArray(d.gpTiers)?d.gpTiers:[];gpSubTiers=Array.isArray(d.gpSubTiers)?d.gpSubTiers:[];delTiers=Array.isArray(d.deliveryTiers)?d.deliveryTiers:[];}renderGpTiers();renderGpSubTiers();renderDelTiers();updPrev();}
-  catch(e){renderGpTiers();renderGpSubTiers();}
+  try{const snap=await getDoc(doc(db,'settings','pricing'));if(snap.exists()){const d=snap.data();$('walletPct').value=d.walletPercent||30;$('riderPct').value=d.riderPercent||70;$('delFee').value=d.deliveryFee||9;delTiers=Array.isArray(d.deliveryTiers)?d.deliveryTiers:[];}renderDelTiers();updPrev();}
+  catch(e){renderDelTiers();}
   // โหลด VAPID key เก็บแยกไว้คนละเอกสารกับราคา (คนละเรื่องกันเลย จะได้ไม่ปนกัน)
   try{const vSnap=await getDoc(doc(db,'settings','fcmConfig'));if(vSnap.exists()&&$('vapidKeyInput'))$('vapidKeyInput').value=vSnap.data().vapidKey||'';}catch(e){}
 }
@@ -1833,7 +1777,7 @@ async function savePricing(){
   const btn=$('savePricingBtn');
   if(btn){btn.disabled=true;btn.dataset.txt=btn.textContent;btn.textContent='กำลังบันทึก...';btn.style.transform='scale(.97)';btn.style.opacity='.85';}
   try{
-    await setDoc(doc(db,'settings','pricing'),{gpPercent:parseFloat($('gpPercent').value)||34,gpSubPercent:parseFloat($('gpSubPercent').value)||0,walletPercent:parseFloat($('walletPct').value)||30,riderPercent:parseFloat($('riderPct').value)||70,deliveryFee:parseFloat($('delFee').value)||9,gpTiers,gpSubTiers,deliveryTiers:delTiers,updatedAt:serverTimestamp()},{merge:true});
+    await setDoc(doc(db,'settings','pricing'),{walletPercent:parseFloat($('walletPct').value)||30,riderPercent:parseFloat($('riderPct').value)||70,deliveryFee:parseFloat($('delFee').value)||9,deliveryTiers:delTiers,updatedAt:serverTimestamp()},{merge:true});
     window.toast('บันทึกการตั้งค่าสำเร็จ','ok');
     if(btn){btn.textContent='✓ บันทึกแล้ว';btn.style.background='linear-gradient(135deg,var(--gn),#15803d)';}
   }catch(e){window.toast('บันทึกไม่สำเร็จ','er');if(btn)btn.textContent=btn.dataset.txt||'บันทึกการตั้งค่า';}
@@ -1892,8 +1836,6 @@ document.addEventListener('click', e => {
   if (t.dataset.recall) { openRecall(t.dataset.recall,t.dataset.oid,t.dataset.sname);return; }
   const id=t.id;
   if (id==='tglBtn'){statsOpen=!statsOpen;$('statsGrid').classList.toggle('open',statsOpen);t.textContent=statsOpen?'▲ ซ่อนสถิติ':'▼ ดูสถิติ';}
-  else if(id==='addGpTierBtn')addGpTier();
-  else if(id==='addGpSubTierBtn')addGpSubTier();
   else if(id==='addDelTierBtn')addDelTier();
   else if(id==='addShopBtn')openAddShop();
   else if(id==='addRiderBtn')window.openAddRider();
@@ -1926,7 +1868,7 @@ document.addEventListener('click', e => {
   else if(id==='cfmCancel')closeCfm();
 });
 
-['gpPercent','walletPct','riderPct'].forEach(id=>$(id)?.addEventListener('input',updPrev));
+['walletPct','riderPct'].forEach(id=>$(id)?.addEventListener('input',updPrev));
 
 updPrev();document.getElementById('statDate').max = new Date().toISOString().split('T')[0];
 reqNotifPerm();
