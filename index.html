@@ -145,6 +145,9 @@ window.nextPage = async function(){
         localStorage.setItem("addresses",JSON.stringify([{name:d.name||"",phone,address:d.address,lat:d.lat||null,lng:d.lng||null}]));
         localStorage.setItem("defaultAddress","0");
       }
+      // ถ้ามาจากหน้าที่กดใส่ตะกร้าแล้วถูกเด้งมาให้เข้าสู่ระบบก่อน ให้พากลับไปหน้านั้นต่อเลย ไม่ใช่เด้งไป shops.html เฉยๆ
+      const returnUrl = sessionStorage.getItem("loginReturnUrl");
+      if(returnUrl){ sessionStorage.removeItem("loginReturnUrl"); location.replace(returnUrl); return; }
       location.replace("./shops.html"); // ถือว่าล็อกอินสำเร็จแล้ว ไม่ควรย้อนกลับมาหน้ากรอกเบอร์ได้อีก
     } else {
       // ลูกค้าใหม่ หรือเคยเริ่มกรอกไว้แต่ยังไม่กดบันทึกจบ (ยังไม่มี registered:true):
