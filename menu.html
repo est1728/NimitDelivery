@@ -230,7 +230,7 @@ body{background:var(--bg);min-height:100vh;padding-bottom:120px;}
 </div>
 
 <!-- ดูรูปเต็มจอ -->
-<div class="popup-overlay" id="bigImagePopup" onclick="window.closeBigImage()" style="align-items:center;background:rgba(0,0,0,.92)">
+<div class="popup-overlay" id="bigImagePopup" onclick="window.closeBigImage()" style="align-items:center;justify-content:center;background:rgba(0,0,0,.92)">
   <button onclick="window.closeBigImage()" style="position:absolute;top:20px;right:20px;border:none;background:rgba(255,255,255,.15);color:#fff;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;z-index:1">✕</button>
   <img id="bigImageEl" src="" style="max-width:calc(100% - 40px);max-height:90%;object-fit:contain;border-radius:12px">
 </div>
@@ -348,7 +348,11 @@ window.openBigImage=function(type){
   const url = type==='banner' ? d.bannerUrl : d.avatarUrl;
   if(!url) return; // ไม่มีรูปให้ดูใหญ่ (ยังไม่ได้อัปโหลดรูปนี้)
   document.getElementById("bigImageEl").src=url;
-  document.getElementById("bigImagePopup").classList.add("show");
+  const popupEl = document.getElementById("bigImagePopup");
+  // สำคัญ: ย้าย element นี้ไปเป็นลูกโดยตรงของ body เสมอก่อนเปิด กัน position:fixed อ้างอิงตำแหน่งผิดจุด
+  // ถ้ามี ancestor ระหว่างทางที่ตั้ง CSS transform/filter/will-change ไว้ (ปัญหาคลาสสิกที่เจอมาก่อนกับป๊อบอัพอื่น)
+  if(popupEl.parentElement !== document.body) document.body.appendChild(popupEl);
+  popupEl.classList.add("show");
 };
 window.closeBigImage=function(){
   document.getElementById("bigImagePopup").classList.remove("show");
