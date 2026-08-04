@@ -217,7 +217,7 @@ body{background:var(--bg);min-height:100vh;padding-bottom:120px;}
     </div>
     <div style="padding:0 20px 24px;overflow-y:auto">
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-        <div id="shopProfileAvatar" style="width:64px;height:64px;border-radius:16px;overflow:hidden;background:#e8f0fe;flex-shrink:0;display:flex;align-items:center;justify-content:center"></div>
+        <div id="shopProfileAvatar" onclick="event.stopPropagation();window.openBigImage()" style="width:64px;height:64px;border-radius:16px;overflow:hidden;background:#e8f0fe;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer"></div>
         <div style="min-width:0">
           <div id="shopProfileName" style="font-size:17px;font-weight:800;color:#0f172a"></div>
           <div id="shopProfileStatus" style="font-size:12px;font-weight:700;margin-top:2px"></div>
@@ -227,6 +227,12 @@ body{background:var(--bg);min-height:100vh;padding-bottom:120px;}
       <div id="shopProfileSchedule" style="font-size:13px;color:#64748b"></div>
     </div>
   </div>
+</div>
+
+<!-- ดูรูปเต็มจอ -->
+<div class="popup-overlay" id="bigImagePopup" onclick="window.closeBigImage()" style="align-items:center;background:rgba(0,0,0,.92)">
+  <button onclick="window.closeBigImage()" style="position:absolute;top:20px;right:20px;border:none;background:rgba(255,255,255,.15);color:#fff;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;z-index:1">✕</button>
+  <img id="bigImageEl" src="" style="max-width:100%;max-height:90%;margin:0 20px;object-fit:contain;border-radius:12px">
 </div>
 
 <!-- CART BAR -->
@@ -334,6 +340,17 @@ window.openShopProfile=function(){
 };
 window.closeShopProfile=function(){
   document.getElementById("shopProfilePopup").classList.remove("show");
+};
+
+// ============ ดูรูปโปรไฟล์ร้านเต็มจอ ============
+window.openBigImage=function(){
+  const d=shopFullData||{};
+  if(!d.avatarUrl) return; // ไม่มีรูปให้ดูใหญ่ (ยังไม่ได้อัปโหลดรูปร้าน)
+  document.getElementById("bigImageEl").src=d.avatarUrl;
+  document.getElementById("bigImagePopup").classList.add("show");
+};
+window.closeBigImage=function(){
+  document.getElementById("bigImagePopup").classList.remove("show");
 };
 
 // หาค่า GP% ตามช่วงราคา (gpTiers) — ถ้าไม่มีช่วงที่ตรง ใช้ gpPercent (GP รวม) แทน
