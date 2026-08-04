@@ -5,177 +5,33 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nimit Delivery</title>
 <style>
-:root {
-  --primary:#0c4aa6; --primary-dark:#083570; --primary-light:#e8f0fe;
-  --gray:#f5f6f8; --text:#0f172a; --subtext:#64748b;
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:linear-gradient(135deg,#0c4aa6,#083570);
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:'Arial',sans-serif;
 }
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Arial',sans-serif;}
-body{background:#fff;min-height:100vh;display:flex;flex-direction:column;}
-
-.topbar{padding:16px 20px;border-bottom:1px solid #f0f0f0;}
-.logo{font-size:20px;font-weight:800;color:var(--primary);}
-
-.hero{background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:36px 24px 48px;border-radius:0 0 32px 32px;}
-.hero h1{font-size:26px;font-weight:800;color:#fff;margin-bottom:6px;}
-.hero p{font-size:15px;color:rgba(255,255,255,0.85);}
-
-.container{padding:24px 20px;flex:1;}
-.label{font-size:13px;font-weight:700;color:var(--subtext);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;}
-
-.phone-input{width:100%;height:56px;border:2px solid #e0e0e0;border-radius:16px;padding:0 20px;font-size:18px;outline:none;transition:border 0.2s;background:#fff;}
-.phone-input:focus{border-color:var(--primary);}
-
-.saved-badge{display:none;align-items:center;gap:8px;background:var(--primary-light);border-radius:12px;padding:10px 14px;margin-top:10px;font-size:13px;color:var(--primary);font-weight:700;}
-.saved-badge svg{width:16px;height:16px;fill:var(--primary);flex-shrink:0;}
-.saved-badge-clear{margin-left:auto;font-size:12px;color:var(--subtext);cursor:pointer;font-weight:600;text-decoration:underline;}
-
-.error-msg{color:#e53935;font-size:13px;margin-top:6px;display:none;}
-
-.next-btn{width:100%;height:56px;border:none;border-radius:16px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:17px;font-weight:800;margin-top:20px;cursor:pointer;box-shadow:0 6px 16px rgba(12,74,166,0.3);}
-.next-btn:disabled{background:#c5cfe8;box-shadow:none;cursor:not-allowed;}
-
-.note{margin-top:24px;text-align:center;color:var(--subtext);font-size:13px;line-height:1.6;}
+.logo-wrap{width:88px;height:88px;border-radius:24px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.25);animation:pulse 1.6s ease-in-out infinite}
+.logo-wrap img{width:100%;height:100%;object-fit:cover}
+.brand{color:#fff;font-size:20px;font-weight:800;margin-top:18px;letter-spacing:.3px}
+.dots{display:flex;gap:6px;margin-top:14px}
+.dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.6);animation:blink 1.4s infinite}
+.dot:nth-child(2){animation-delay:.2s}
+.dot:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
 </style>
-<link rel="icon" href="/icon-192.png">
-<link rel="apple-touch-icon" href="/icon-192.png">
-<meta name="theme-color" content="#0c4aa6">
 </head>
 <body>
+<div class="logo-wrap"><img src="/icon-192.png" alt="Nimit Delivery"></div>
+<div class="brand">Nimit Delivery</div>
+<div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
 
-<div class="topbar"><div class="logo">Nimit Delivery</div></div>
-
-<div class="hero">
-  <h1>ยินดีต้อนรับ</h1>
-  <p>ใส่เบอร์โทรเพื่อเริ่มสั่งอาหาร</p>
-</div>
-
-<div class="container">
-  <div class="label">เบอร์โทรศัพท์</div>
-  <input id="phone" class="phone-input" type="tel" placeholder="08X-XXX-XXXX"
-    oninput="window.onPhoneInput(this)" autocomplete="tel">
-
-  <div id="savedBadge" class="saved-badge">
-    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-    <span id="savedBadgeText">จำเบอร์ไว้แล้ว</span>
-    <span class="saved-badge-clear" onclick="window.clearSaved()">เปลี่ยน</span>
-  </div>
-
-  <div id="error" class="error-msg">กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (10 หลัก ขึ้นต้นด้วย 0)</div>
-
-  <button class="next-btn" id="nextBtn" onclick="window.nextPage()" disabled>ถัดไป</button>
-
-  <div class="note">ระบบจะจำเบอร์ของคุณสำหรับครั้งถัดไป<br>ไม่ต้องสมัครสมาชิก</div>
-</div>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-const db = getFirestore(initializeApp({
-  apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
-  authDomain:"nimit-delivery.firebaseapp.com",
-  projectId:"nimit-delivery",
-  storageBucket:"nimit-delivery.firebasestorage.app",
-  messagingSenderId:"233476256130",
-  appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
-}));
-
-// ถ้ามีเบอร์จำไว้ → เติมให้ แต่ไม่ redirect อัตโนมัติ (ให้กดเองทุกครั้ง)
-const saved = localStorage.getItem("customerPhone");
-if(saved){
-  document.getElementById("phone").value = saved;
-  document.getElementById("nextBtn").disabled = false;
-  const badge = document.getElementById("savedBadge");
-  badge.style.display = "flex";
-  document.getElementById("savedBadgeText").textContent = "เบอร์ที่จำไว้: "+saved;
-}
-
-window.onPhoneInput = function(el){
-  const val = el.value.replace(/[^0-9A-Za-z_-]/g,'');
-  el.value = val;
-  document.getElementById("nextBtn").disabled = val.length < 6;
-  document.getElementById("error").style.display = "none";
-  document.getElementById("savedBadge").style.display = "none";
-}
-
-window.clearSaved = function(){
-  localStorage.removeItem("customerPhone");
-  localStorage.removeItem("customerData");
-  localStorage.removeItem("addresses");
-  document.getElementById("phone").value = "";
-  document.getElementById("nextBtn").disabled = true;
-  document.getElementById("savedBadge").style.display = "none";
-  document.getElementById("phone").focus();
-}
-
-window.nextPage = async function(){
-  const phone = document.getElementById("phone").value.replace(/[^0-9A-Za-z_-]/g,'');
-  if(phone.length < 6){ document.getElementById("error").style.display="block"; return; }
-
-  if(phone==="KJNFY63ESTC_C"){ location.href="./admin.html"; return; }
-  if(phone==="KJNFY63ESTC_CUI"){ location.href="./developer.html"; return; }
-
-  // เช็ครูปแบบเบอร์โทรไทยจริงๆ (10 หลัก ขึ้นต้นด้วย 0) ก่อนจะถือว่าเป็นเบอร์ลูกค้า
-  // กันเคสพิมพ์รหัสลับผิดไปตัวเดียวแล้วดันหลุดมาเป็น "ลูกค้าใหม่" สร้างข้อมูลขยะในระบบลูกค้า
-  if(!/^0[0-9]{9}$/.test(phone)){
-    document.getElementById("error").style.display="block";
-    return;
-  }
-  document.getElementById("error").style.display="none";
-
-  const btn=document.getElementById("nextBtn");
-  btn.disabled=true; btn.textContent="กำลังเข้า...";
-
-  const prevPhone = localStorage.getItem("customerPhone");
-  localStorage.setItem("customerPhone", phone);
-  if(prevPhone && prevPhone!==phone){
-    localStorage.removeItem("addresses");
-    localStorage.removeItem("customerData");
-    localStorage.removeItem("defaultAddress");
-  }
-
-  // เช็ค Firestore เสมอทุกครั้ง ไม่เชื่อแคชใน localStorage เพียงอย่างเดียวอีกต่อไป
-  // (กันเคสลูกค้าที่ยังกรอกที่อยู่ไม่เสร็จ/ไม่เคยกรอกเลย ไม่ให้หลุดเข้าหน้าร้านไปได้โดยไม่ผ่านการลงทะเบียนจริง)
-  try{
-    const snap = await getDoc(doc(db,"customers",phone));
-    const d = snap.exists() ? snap.data() : null;
-    if(d && d.registered){
-      localStorage.setItem("customerData", JSON.stringify(d));
-      if(d.address){
-        localStorage.setItem("addresses",JSON.stringify([{name:d.name||"",phone,address:d.address,lat:d.lat||null,lng:d.lng||null}]));
-        localStorage.setItem("defaultAddress","0");
-      }
-      // ถ้ามาจากหน้าที่กดใส่ตะกร้าแล้วถูกเด้งมาให้เข้าสู่ระบบก่อน ให้พากลับไปหน้านั้นต่อเลย ไม่ใช่เด้งไป shops.html เฉยๆ
-      const returnUrl = sessionStorage.getItem("loginReturnUrl");
-      if(returnUrl){ sessionStorage.removeItem("loginReturnUrl"); location.replace(returnUrl); return; }
-      location.replace("./shops.html"); // ถือว่าล็อกอินสำเร็จแล้ว ไม่ควรย้อนกลับมาหน้ากรอกเบอร์ได้อีก
-    } else {
-      // ลูกค้าใหม่ หรือเคยเริ่มกรอกไว้แต่ยังไม่กดบันทึกจบ (ยังไม่มี registered:true):
-      // บันทึกข้อมูลเบื้องต้น (แค่เบอร์โทร) ลง Firestore ทันทีตั้งแต่ล็อกอินครั้งแรก ไม่ทับข้อมูลที่เคยกรอกไว้บางส่วน (merge)
-      // ไม่ต้องรอให้กรอกฟอร์ม register.html จนครบก่อน — กันกรณีเขากรอกไม่จบแล้วข้อมูลไม่ขึ้นที่หน้าลูกค้าของแอดมินเลย
-      try{ await setDoc(doc(db,"customers",phone),{phone,createdAt:new Date().toISOString()},{merge:true}); }catch(e2){}
-      sessionStorage.setItem("newCustomer","1");
-      sessionStorage.setItem("addrBack","shops.html");
-      location.href="./register.html";
-    }
-  }catch(e){
-    // Firestore error → ถ้าไม่มีที่อยู่เลย ไป register.html
-    sessionStorage.setItem("newCustomer","1");
-    sessionStorage.setItem("addrBack","shops.html");
-    location.href="./register.html";
-  }
-}
-
-document.getElementById("phone").addEventListener("keydown",e=>{ if(e.key==="Enter") window.nextPage(); });
-
-// รีเซ็ตปุ่มเมื่อกลับมาหน้านี้ด้วย back navigation (bfcache)
-window.addEventListener("pageshow", function(e){
-  const btn = document.getElementById("nextBtn");
-  const phone = document.getElementById("phone").value.trim();
-  btn.disabled = phone.length < 6;
-  btn.textContent = "ถัดไป";
-});
+<script>
+// หน้านี้มีหน้าที่เดียว: โชว์โลโก้แป๊บนึงแล้วพาไปหน้าร้านค้าทันที (ไม่ใช่หน้าจริง แค่ตัวส่งต่อ)
+// ทำแบบนี้แทนการพึ่ง vercel.json redirect/rewrite เพราะกฎ "index.html ต้องเป็นหน้าแรกเสมอ" ของระบบ
+// โฮสต์ไฟล์แบบนี้ (ใช้กันทุกที่ ไม่ใช่แค่ Vercel) เชื่อถือได้ 100% กว่าการพยายามข้ามกฎนั้นด้วยไฟล์ตั้งค่า
+location.replace('/shops.html');
 </script>
-<script src="motion.js"></script>
 </body>
 </html>
