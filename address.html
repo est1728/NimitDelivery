@@ -255,15 +255,48 @@ function initMap(){
 }
 
 function useMyLocation(){
+  // สำคัญมาก: เช็คก่อนเลยว่าเปิดผ่านเบราว์เซอร์ในแอปแชท (LINE/Messenger/Instagram ฯลฯ) บน iOS อยู่หรือเปล่า
+  // เพราะ iOS จะบล็อกการขอสิทธิ์ตำแหน่งทันทีในสถานการณ์นี้ (permission denied ทันที ไม่มีทาง pop-up ขอสิทธิ์ขึ้นเลย)
+  // เป็นปัญหาเดียวกับที่เจอกับระบบแจ้งเตือน/ปุ่มติดตั้งแอปมาก่อนหน้านี้แล้ว ต้องแจ้งเชิงรุกไปเลย ไม่ต้องรอให้ error ก่อน
+  const ua = navigator.userAgent || '';
+  const isInAppBrowser = /FBAN|FBAV|FB_IAB|Instagram|Line|MicroMessenger|TikTok/i.test(ua);
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+  if(isInAppBrowser && isIOS){
+    alert('ขอตำแหน่งไม่ได้เพราะเปิดผ่านแอปแชท (เช่น LINE/Messenger) บน iPhone ครับ\n\nกรุณากดจุด 3 จุด/ไอคอนมุมขวาบน แล้วเลือก "เปิดใน Safari" ก่อน ถึงจะขอตำแหน่งได้ หรือปักหมุดเองบนแผนที่แทนได้เลยครับ');
+    return;
+  }
   // iOS มีบัคที่รู้จักกันดี: ถ้าเปิดเว็บผ่านไอคอนที่เพิ่มไว้หน้าจอโฮม (standalone) การขอสิทธิ์ตำแหน่งมักค้างตลอดไป
-  // ไม่มี pop-up ขึ้นเลย ไม่ error ไม่ timeout เอง — ต้องตั้ง timeout เองเพื่อให้อย่างน้อยแจ้งผู้ใช้ได้ว่าเกิดอะไรขึ้น
+  // ไม่มี pop-up ขึ้นเลย ไม่ error ไม่ timeout เอง — สำคัญมาก: ตัวเลือก {timeout:...} ที่ส่งให้ getCurrentPosition()
+  // เองก็ใช้ไม่ได้ผลด้วยในสถานการณ์นี้ เพราะบัคของ iOS ทำให้ callback ทั้งสำเร็จและ error ไม่ถูกเรียกเลยแม้แต่ครั้งเดียว
+  // ต้องตั้ง setTimeout ของเราเองแยกต่างหากไว้ข้างนอก ซึ่งรับประกันว่าจะทำงานแน่นอนไม่ว่า geolocation API จะค้างแค่ไหนก็ตาม
   const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+  let settled = false;
+  const manualTimeout = setTimeout(function(){
+    if(settled) return;
+    settled = true;
+    if(isStandalone){
+      alert('เข้าถึงตำแหน่งไม่ได้ — เป็นบัคที่รู้จักของ iOS เวลาเปิดผ่านไอคอนหน้าจอโฮม\n\nลองเปิดลิงก์นี้ผ่าน Safari ตรงๆ (ไม่ผ่านไอคอนที่บันทึกไว้) แล้วลองใหม่อีกครั้ง หรือปักหมุดเองบนแผนที่แทนได้เลยครับ');
+    } else {
+      alert('ค้นหาตำแหน่งนานเกินไป ลองใหม่อีกครั้ง หรือปักหมุดเองบนแผนที่แทนได้ครับ');
+    }
+  }, 8000);
   navigator.geolocation.getCurrentPosition(function(p){
+    if(settled) return;
+    settled = true;
+    clearTimeout(manualTimeout);
     curLat = p.coords.latitude; curLng = p.coords.longitude;
     map.setView([curLat,curLng],16);
     marker.setLatLng([curLat,curLng]);
-  }, function(){
-    if(isStandalone){
+  }, function(err){
+    if(settled) return;
+    settled = true;
+    clearTimeout(manualTimeout);
+    // สำคัญ: แยกข้อความตาม error.code ให้ชัดว่าสาเหตุจริงคืออะไร (ปฏิเสธสิทธิ์ / หาตำแหน่งไม่ได้ / หมดเวลา)
+    // ไม่ใช้ข้อความเดียวกันหมดเหมือนเดิม เพราะแต่ละสาเหตุแก้ไม่เหมือนกัน โดยเฉพาะเคส "ปฏิเสธสิทธิ์" ที่ผู้ใช้
+    // ต้องไปเปิดเองในตั้งค่าเครื่อง ไม่มีทางกดขอใหม่จากหน้าเว็บได้เลยจนกว่าจะไปเปิดสิทธิ์ก่อน
+    if(err && err.code === 1){
+      alert('เว็บไซต์ไม่ได้รับสิทธิ์เข้าถึงตำแหน่ง — ต้องไปเปิดเองในตั้งค่าเครื่อง (ตั้งค่า > ความเป็นส่วนตัว > บริการหาตำแหน่ง > Safari/เบราว์เซอร์ที่ใช้ > อนุญาต) แล้วลองใหม่ หรือปักหมุดเองบนแผนที่แทนได้เลยครับ');
+    } else if(isStandalone){
       alert('เข้าถึงตำแหน่งไม่ได้ — เป็นบัคที่รู้จักของ iOS เวลาเปิดผ่านไอคอนหน้าจอโฮม\n\nลองเปิดลิงก์นี้ผ่าน Safari ตรงๆ (ไม่ผ่านไอคอนที่บันทึกไว้) แล้วลองใหม่อีกครั้ง หรือปักหมุดเองบนแผนที่แทนได้เลยครับ');
     } else {
       alert('ไม่สามารถเข้าถึง GPS ได้ ลองปักหมุดเองบนแผนที่แทนได้ครับ');
