@@ -131,6 +131,10 @@ function init(){
     // ยังไม่มีที่อยู่เลย → เปิดฟอร์มก่อน
     showForm(-1);
     document.getElementById('formBackBtn').style.display = 'none';
+  } else if(sessionStorage.getItem('editDefaultAddr')){
+    // มาจากปุ่มชื่อในหน้าร้าน (แก้ชื่อ+ที่อยู่+หมุดของบัญชีปัจจุบันโดยตรง) → เปิดฟอร์มแก้ไขที่อยู่หลักทันที ไม่ต้องผ่านหน้า list ก่อน
+    sessionStorage.removeItem('editDefaultAddr');
+    showForm(defaultIdx);
   } else {
     // มีที่อยู่แล้ว (เช่น เพิ่งบันทึกจาก register.html) → เปิดหน้า list ทันที
     showList();
