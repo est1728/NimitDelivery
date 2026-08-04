@@ -250,10 +250,37 @@ document.getElementById('editCusBtn').onclick=()=>{
 };
 document.getElementById('addClose').onclick=()=>document.getElementById('addMask').classList.remove('show');
 document.getElementById('locBtn').onclick=()=>{
+  const ua = navigator.userAgent || '';
+  const isInAppBrowser = /FBAN|FBAV|FB_IAB|Instagram|Line|MicroMessenger|TikTok/i.test(ua);
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+  if(isInAppBrowser && isIOS){
+    alert('ขอตำแหน่งไม่ได้เพราะเปิดผ่านแอปแชท (เช่น LINE/Messenger) บน iPhone ครับ\n\nกรุณากดจุด 3 จุด/ไอคอนมุมขวาบน แล้วเลือก "เปิดใน Safari" ก่อน ถึงจะขอตำแหน่งได้ หรือปักหมุดเองบนแผนที่แทนได้เลยครับ');
+    return;
+  }
+  // สำคัญมาก: เดิมไม่มี timeout เลย บน iOS standalone จะค้างตลอดไปไม่มีทางรู้เลยว่าเกิดอะไรขึ้น
+  // ต้องตั้ง setTimeout เองแยกต่างหาก เพราะตัวเลือก timeout ของ API เองก็ใช้ไม่ได้ผลในสถานการณ์นี้เช่นกัน
+  let settled = false;
+  const manualTimeout = setTimeout(()=>{
+    if(settled) return;
+    settled = true;
+    alert('ค้นหาตำแหน่งนานเกินไป ลองใหม่อีกครั้ง หรือปักหมุดเองบนแผนที่แทนได้ครับ');
+  }, 8000);
   navigator.geolocation.getCurrentPosition(p=>{
+    if(settled) return;
+    settled = true;
+    clearTimeout(manualTimeout);
     fLat=p.coords.latitude;fLng=p.coords.longitude;
     fMap?.setView([fLat,fLng],16);fMarker?.setLatLng([fLat,fLng]);
-  },()=>alert('ไม่สามารถเข้าถึง GPS'));
+  },(err)=>{
+    if(settled) return;
+    settled = true;
+    clearTimeout(manualTimeout);
+    if(err && err.code === 1){
+      alert('เว็บไซต์ไม่ได้รับสิทธิ์เข้าถึงตำแหน่ง — ต้องไปเปิดเองในตั้งค่าเครื่อง (ตั้งค่า > ความเป็นส่วนตัว > บริการหาตำแหน่ง > Safari/เบราว์เซอร์ที่ใช้ > อนุญาต) แล้วลองใหม่ หรือปักหมุดเองบนแผนที่แทนได้เลยครับ');
+    } else {
+      alert('ไม่สามารถเข้าถึง GPS ได้ ลองปักหมุดเองบนแผนที่แทนได้ครับ');
+    }
+  }, {timeout:8000, enableHighAccuracy:true});
 };
 document.getElementById('saveBtn').onclick=async()=>{
   const name=document.getElementById('fName').value.trim();
