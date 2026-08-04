@@ -217,7 +217,7 @@ body{background:var(--bg);min-height:100vh;padding-bottom:120px;}
     </div>
     <div style="padding:0 20px 24px;overflow-y:auto">
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-        <div id="shopProfileAvatar" onclick="event.stopPropagation();window.openBigImage()" style="width:64px;height:64px;border-radius:16px;overflow:hidden;background:#e8f0fe;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer"></div>
+        <div id="shopProfileAvatar" onclick="event.stopPropagation();window.openBigImage('avatar')" style="width:64px;height:64px;border-radius:16px;overflow:hidden;background:#e8f0fe;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer"></div>
         <div style="min-width:0">
           <div id="shopProfileName" style="font-size:17px;font-weight:800;color:#0f172a"></div>
           <div id="shopProfileStatus" style="font-size:12px;font-weight:700;margin-top:2px"></div>
@@ -315,7 +315,7 @@ async function loadShopInfo(){
       if(d.avatarUrl) avatar.innerHTML=`<img src="${d.avatarUrl}">`;
       const banner=document.getElementById("bannerArea");
       if(d.bannerUrl){
-        banner.innerHTML=`<img src="${d.bannerUrl}"><div class="banner-top-btns"><button class="back-btn" onclick="history.back()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button><button class="cart-top-btn" onclick="window.location.href='cart.html'"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg><span class="cart-badge" id="topCartBadge">0</span></button></div>`;
+        banner.innerHTML=`<img src="${d.bannerUrl}" onclick="event.stopPropagation();window.openBigImage('banner')" style="cursor:pointer"><div class="banner-top-btns"><button class="back-btn" onclick="history.back()"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button><button class="cart-top-btn" onclick="window.location.href='cart.html'"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg><span class="cart-badge" id="topCartBadge">0</span></button></div>`;
         // banner.innerHTML แทนที่ topCartBadge ตัวเดิมทั้งก้อนด้วยอันใหม่ที่ตั้งค่าเริ่มต้นเป็น "0" เสมอ
         // ถ้าลูกค้ามีของในตะกร้าอยู่ก่อนแล้ว (จากการเข้าซ้ำ/มาจากร้านอื่น) เลขจะโดนรีเซ็ตเป็น 0 ทั้งที่ของยังอยู่จริง
         // ต้องเรียก updateCartBar() ซ้ำอีกครั้งหลังแทนที่ ให้เลขตรงกับตะกร้าจริง
@@ -343,10 +343,11 @@ window.closeShopProfile=function(){
 };
 
 // ============ ดูรูปโปรไฟล์ร้านเต็มจอ ============
-window.openBigImage=function(){
+window.openBigImage=function(type){
   const d=shopFullData||{};
-  if(!d.avatarUrl) return; // ไม่มีรูปให้ดูใหญ่ (ยังไม่ได้อัปโหลดรูปร้าน)
-  document.getElementById("bigImageEl").src=d.avatarUrl;
+  const url = type==='banner' ? d.bannerUrl : d.avatarUrl;
+  if(!url) return; // ไม่มีรูปให้ดูใหญ่ (ยังไม่ได้อัปโหลดรูปนี้)
+  document.getElementById("bigImageEl").src=url;
   document.getElementById("bigImagePopup").classList.add("show");
 };
 window.closeBigImage=function(){
