@@ -501,7 +501,7 @@ function effectiveOpen(s){
 
 function card(s){
   const sn=s.name.replace(/'/g,"\'").replace(/"/g,"&quot;");
-  const banner=s.bannerUrl?`<img src="${s.bannerUrl}" style="width:100%;height:100%;object-fit:cover;display:block">`:`<div class="sc-ph"></div>`;
+  const banner=s.bannerUrl?`<img src="${s.bannerUrl}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block">`:`<div class="sc-ph"></div>`;
   const ava=s.avatarUrl
     ?`<img src="${s.avatarUrl}" style="width:100%;height:100%;object-fit:cover">`
     :`<svg viewBox="0 0 24 24" style="width:30px;height:30px;fill:var(--p)"><path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/></svg>`;
