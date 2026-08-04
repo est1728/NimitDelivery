@@ -368,6 +368,12 @@ window.onerror = function(msg, url, line, col, error){
     <div class="hint" style="margin-bottom:12px">ใช้เฉพาะตอนราคาตัวเลือก "ไม่อยู่ในช่วงใดเลย" ที่ตั้งไว้ด้านบน</div>
     <button class="savbtn" onclick="saveGpSettings()">บันทึก GP ย่อย</button>
   </div>
+  <div class="card">
+    <div class="stitle">🖼 แปลงรูปเมนูเก่าให้เป็นระบบใหม่</div>
+    <div class="hint" style="margin-bottom:12px">รูปเมนู/ร้านที่อัปโหลดไว้ก่อนหน้านี้ยังเป็นแบบฝังเต็มๆอยู่ในฐานข้อมูล (ทำให้หน้าร้าน/เมนูโหลดช้า) กดปุ่มนี้เพื่อไล่แปลงทั้งหมดให้เป็นแบบลิงก์สั้นๆอัตโนมัติ — ไม่กระทบรูปที่แสดงผลเลย แค่เปลี่ยนวิธีเก็บข้างในเท่านั้น ใช้เวลาสักครู่ถ้ามีรูปเยอะ อย่าปิดหน้านี้ระหว่างทำงาน</div>
+    <button class="savbtn" id="migrateImgBtn" onclick="migrateOldImages()">เริ่มแปลงรูปเก่า</button>
+    <div id="migrateImgProgress" style="display:none;margin-top:14px;font-size:13px;color:var(--t)"></div>
+  </div>
 </div>
 
 <!-- NOTIFICATION TEST -->
@@ -731,7 +737,7 @@ async function sndChat(){
     // ลอง 3 ครั้งถ้าโดน rate limit
     var resp, retries=0;
     while(retries<3){
-      resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+cfg.gmKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({systemInstruction:{parts:[{text:sysInstruction}]},contents:msgs,generationConfig:{maxOutputTokens:2048,temperature:0.7}})});
+      resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+cfg.gmKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({systemInstruction:{parts:[{text:sysInstruction}]},contents:msgs,generationConfig:{maxOutputTokens:2048,temperature:0.7}})});
       if(resp.status===429){
         retries++;
         if(retries>=3){rpTk(tid,'⚠️ Rate limit - รอ 1 นาทีแล้วลองใหม่');setAISt('er','Rate limit');document.getElementById('csnd').disabled=false;return;}
@@ -934,6 +940,75 @@ window.saveGpSettings=async function(){
   }catch(e){}
   renderDGpTiers(); renderDGpSubTiers();
 })();
+
+// ============ แปลงรูปเก่า (base64) เป็นระบบใหม่ (Storage + ลิงก์) ============
+async function base64ToStorageUrl(base64Str){
+  const blob = await (await fetch(base64Str)).blob();
+  const formData = new FormData();
+  formData.append('file', blob);
+  formData.append('upload_preset', 'nimit_menu');
+  const cloudRes = await fetch('https://api.cloudinary.com/v1_1/ltthcvpf/image/upload', {method:'POST', body:formData});
+  if(!cloudRes.ok) throw new Error('อัปโหลดไม่สำเร็จ (HTTP '+cloudRes.status+')');
+  const cloudData = await cloudRes.json();
+  return cloudData.secure_url;
+}
+window.migrateOldImages = async function(){
+  const btn = document.getElementById('migrateImgBtn');
+  const progEl = document.getElementById('migrateImgProgress');
+  btn.disabled = true; btn.textContent = 'กำลังแปลง...';
+  progEl.style.display = 'block';
+  progEl.textContent = 'กำลังค้นหาร้านทั้งหมด...';
+  let migrated = 0, failed = 0, skipped = 0;
+  try{
+    const shopsSnap = await getDocs(collection(db,'shops'));
+    const shops = shopsSnap.docs;
+    for(let i=0; i<shops.length; i++){
+      const shopDoc = shops[i];
+      const shopId = shopDoc.id;
+      const shopData = shopDoc.data();
+      progEl.textContent = `กำลังตรวจร้าน ${i+1}/${shops.length} (${shopData.name||shopId})... แปลงแล้ว ${migrated} รูป ข้าม ${skipped} พลาด ${failed}`;
+      // เช็ครูปร้าน (ป้ายแบนเนอร์/โลโก้) ก่อน
+      const shopUpdates = {};
+      for(const field of ['bannerUrl','avatarUrl']){
+        const val = shopData[field];
+        if(typeof val==='string' && val.startsWith('data:')){
+          try{
+            const url = await base64ToStorageUrl(val);
+            shopUpdates[field] = url;
+            migrated++;
+          }catch(e){ failed++; }
+        }
+      }
+      if(Object.keys(shopUpdates).length){
+        try{ await setDoc(doc(db,'shops',shopId), shopUpdates, {merge:true}); }catch(e){ failed++; }
+      }
+      // เช็ครูปเมนูทุกอันของร้านนี้
+      try{
+        const menusSnap = await getDocs(collection(db,'shops',shopId,'menus'));
+        for(const menuDoc of menusSnap.docs){
+          const m = menuDoc.data();
+          if(typeof m.imgUrl==='string' && m.imgUrl.startsWith('data:')){
+            try{
+              const url = await base64ToStorageUrl(m.imgUrl);
+              await setDoc(doc(db,'shops',shopId,'menus',menuDoc.id), {imgUrl:url}, {merge:true});
+              migrated++;
+            }catch(e){ failed++; }
+          } else {
+            skipped++;
+          }
+          progEl.textContent = `กำลังตรวจร้าน ${i+1}/${shops.length} (${shopData.name||shopId})... แปลงแล้ว ${migrated} รูป ข้าม ${skipped} พลาด ${failed}`;
+        }
+      }catch(e){}
+    }
+    progEl.textContent = `เสร็จแล้ว! แปลงรูปสำเร็จ ${migrated} รูป ข้ามรูปที่แปลงไปแล้ว/ไม่มีรูป ${skipped} รายการ ${failed>0?('พลาด '+failed+' รูป (ลองกดใหม่อีกรอบเพื่อแปลงที่เหลือได้)'):''}`;
+    if(typeof toast==='function') toast('แปลงรูปเก่าเสร็จแล้ว','ok');
+  }catch(e){
+    progEl.textContent = 'เกิดข้อผิดพลาด: '+e.message;
+    if(typeof toast==='function') toast('เกิดข้อผิดพลาด: '+e.message,'er');
+  }finally{
+    btn.disabled = false; btn.textContent = 'เริ่มแปลงรูปเก่า';
+  }
+};
 
 window.ntToggleUid = function(){
   const t = document.getElementById('ntTarget').value;
