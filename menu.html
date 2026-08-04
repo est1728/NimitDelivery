@@ -232,7 +232,7 @@ body{background:var(--bg);min-height:100vh;padding-bottom:120px;}
 <!-- ดูรูปเต็มจอ -->
 <div class="popup-overlay" id="bigImagePopup" onclick="window.closeBigImage()" style="align-items:center;background:rgba(0,0,0,.92)">
   <button onclick="window.closeBigImage()" style="position:absolute;top:20px;right:20px;border:none;background:rgba(255,255,255,.15);color:#fff;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;z-index:1">✕</button>
-  <img id="bigImageEl" src="" style="max-width:100%;max-height:90%;margin:0 20px;object-fit:contain;border-radius:12px">
+  <img id="bigImageEl" src="" style="max-width:calc(100% - 40px);max-height:90%;object-fit:contain;border-radius:12px">
 </div>
 
 <!-- CART BAR -->
