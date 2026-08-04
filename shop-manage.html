@@ -478,7 +478,7 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
   </div>
   <div class="crop-actions">
     <button class="crop-btn crop-cancel" onclick="closeCrop()">ยกเลิก</button>
-    <button class="crop-btn crop-confirm" onclick="confirmCrop()">ใช้รูปนี้</button>
+    <button class="crop-btn crop-confirm" id="cropConfirmBtn" onclick="confirmCrop()">ใช้รูปนี้</button>
   </div>
 </div>
 <canvas id="cropCanvas" style="display:none"></canvas>
@@ -1926,7 +1926,7 @@ document.addEventListener('pointermove', e => {
 });
 document.addEventListener('pointerup', () => { cropDragging = false; cropResizing = false; });
 
-window.confirmCrop = function() {
+window.confirmCrop = async function() {
   const cropImgEl = document.getElementById("cropImg");
   const canvas = document.getElementById("cropCanvas");
   const scaleX = cropImgNaturalW / cropImgDisplayW, scaleY = cropImgNaturalH / cropImgDisplayH;
@@ -1940,24 +1940,46 @@ window.confirmCrop = function() {
   const ctx = canvas.getContext('2d');
   ctx.drawImage(cropImgEl, cropX, cropY, cropW, cropH, 0, 0, outW, outH);
 
-  const base64 = canvas.toDataURL('image/jpeg', 0.85);
+  // สำคัญมาก: จุดนี้คือจุดแก้ปัญหาหน้าโหลดช้าตัวจริง — เดิมเก็บรูปเป็น base64 ยาวๆฝังตรงในข้อมูลเมนูเลย
+  // (ทำให้ทุกครั้งที่ขอรายการเมนู ต้องแบกรูปเต็มๆของทุกเมนูมาด้วยเสมอ ไม่ว่าจะได้แสดงผลจริงหรือเปล่า)
+  // ตอนนี้เปลี่ยนเป็นอัปโหลดรูปขึ้น Firebase Storage แยกต่างหากแทน แล้วเก็บแค่ "ลิงก์สั้นๆ" ไว้ในข้อมูลเมนู
+  // ทำให้รายการเมนูเบามาก โหลดเร็วขึ้นมาก ส่วนรูปจริงจะถูกโหลดแยกทีหลังตอนเบราว์เซอร์แสดงผล <img> จริงๆ
+  const btn = document.getElementById("cropConfirmBtn");
+  const origBtnText = btn.textContent;
+  btn.disabled = true; btn.textContent = "กำลังอัปโหลด...";
 
-  const previewEl = document.getElementById(cropTargetPreviewId);
-  if (previewEl) previewEl.innerHTML = `<img src="${base64}" style="width:100%;height:100%;object-fit:cover">`;
-  const inputEl = document.getElementById(cropTargetInputId);
-  if (inputEl) inputEl.value = base64;
+  try{
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.85));
+    // อัปโหลดขึ้น Cloudinary แทน Firebase Storage (ไม่ต้องผูกบัตรเครดิตเลย ตามที่เลือกไว้)
+    // ใช้ unsigned upload preset ที่ตั้งไว้ในบัญชี Cloudinary — อัปโหลดตรงจากเบราว์เซอร์ได้เลย ไม่ต้องมีเซิร์ฟเวอร์กลาง
+    const formData = new FormData();
+    formData.append('file', blob);
+    formData.append('upload_preset', 'nimit_menu');
+    const cloudRes = await fetch('https://api.cloudinary.com/v1_1/ltthcvpf/image/upload', {method:'POST', body:formData});
+    if(!cloudRes.ok) throw new Error('อัปโหลดไม่สำเร็จ (HTTP '+cloudRes.status+')');
+    const cloudData = await cloudRes.json();
+    const downloadUrl = cloudData.secure_url;
 
-  // สำคัญ: การตั้งค่า .value ผ่าน JS แบบนี้ไม่ทำให้เกิด input/change event เอง
-  // ถ้าไม่ทำเครื่องหมายว่ามีการแก้ไขตรงนี้ด้วยตัวเอง รูปที่เพิ่งอัปโหลดจะไม่ถูกบันทึกเลย
-  // ถ้าไม่ได้ไปแก้ช่องอื่นของเมนู/ร้านนั้นด้วย (เช่น อัปโหลดรูปหลายเมนูติดกันโดยไม่แก้อะไรอื่นเลย)
-  if(cropShape==='menu'){
-    const menuId = cropTargetInputId.replace(/^fi-img-/,'');
-    markMenuDirty(menuId);
-  } else {
-    markShopDirty();
+    const previewEl = document.getElementById(cropTargetPreviewId);
+    if (previewEl) previewEl.innerHTML = `<img src="${downloadUrl}" style="width:100%;height:100%;object-fit:cover">`;
+    const inputEl = document.getElementById(cropTargetInputId);
+    if (inputEl) inputEl.value = downloadUrl;
+
+    // สำคัญ: การตั้งค่า .value ผ่าน JS แบบนี้ไม่ทำให้เกิด input/change event เอง
+    // ถ้าไม่ทำเครื่องหมายว่ามีการแก้ไขตรงนี้ด้วยตัวเอง รูปที่เพิ่งอัปโหลดจะไม่ถูกบันทึกเลย
+    // ถ้าไม่ได้ไปแก้ช่องอื่นของเมนู/ร้านนั้นด้วย (เช่น อัปโหลดรูปหลายเมนูติดกันโดยไม่แก้อะไรอื่นเลย)
+    if(cropShape==='menu'){
+      const menuId = cropTargetInputId.replace(/^fi-img-/,'');
+      markMenuDirty(menuId);
+    } else {
+      markShopDirty();
+    }
+    closeCrop();
+  }catch(e){
+    alert('อัปโหลดรูปไม่สำเร็จ: '+e.message+' ลองใหม่อีกครั้งครับ');
+  }finally{
+    btn.disabled = false; btn.textContent = origBtnText;
   }
-
-  closeCrop();
 }
 window.closeCrop = function() { document.getElementById("cropOverlay").classList.remove("show"); };
 
