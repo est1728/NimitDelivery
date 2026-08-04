@@ -132,17 +132,47 @@ if(navigator.geolocation){
 }
 
 window.getMyLocation=function(){
+  const ua = navigator.userAgent || '';
+  const isInAppBrowser = /FBAN|FBAV|FB_IAB|Instagram|Line|MicroMessenger|TikTok/i.test(ua);
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+  if(isInAppBrowser && isIOS){
+    alert('ขอตำแหน่งไม่ได้เพราะเปิดผ่านแอปแชท (เช่น LINE/Messenger) บน iPhone ครับ\n\nกรุณากดจุด 3 จุด/ไอคอนมุมขวาบน แล้วเลือก "เปิดใน Safari" ก่อน ถึงจะขอตำแหน่งได้ หรือปักหมุดเองบนแผนที่แทนได้เลยครับ');
+    return;
+  }
   if(!navigator.geolocation) return;
   const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+  // สำคัญมาก: ตัวเลือก {timeout:...} ที่ส่งให้ getCurrentPosition() เองใช้ไม่ได้ผลตอน iOS standalone ค้าง
+  // (บัคที่รู้จักของ iOS ทำให้ callback ทั้งสำเร็จและ error ไม่ถูกเรียกเลยแม้แต่ครั้งเดียว) ต้องตั้ง setTimeout
+  // ของเราเองแยกต่างหากไว้ข้างนอก ซึ่งรับประกันว่าจะทำงานแน่นอนไม่ว่า geolocation API จะค้างแค่ไหนก็ตาม
+  let settled = false;
+  const manualTimeout = setTimeout(()=>{
+    if(settled) return;
+    settled = true;
+    if(isStandalone){
+      alert("เข้าถึงตำแหน่งไม่ได้ — เป็นบัคที่รู้จักของ iOS เวลาเปิดผ่านไอคอนหน้าจอโฮม\n\nลองเปิดลิงก์นี้ผ่าน Safari ตรงๆ (ไม่ผ่านไอคอนที่บันทึกไว้) แล้วลองใหม่อีกครั้ง หรือปักหมุดเองบนแผนที่แทนได้เลยครับ");
+    } else {
+      alert("ค้นหาตำแหน่งนานเกินไป ลองใหม่อีกครั้ง หรือปักหมุดเองบนแผนที่แทนได้ครับ");
+    }
+  }, 8000);
   navigator.geolocation.getCurrentPosition(
-    pos=>placeMarker(pos.coords.latitude,pos.coords.longitude),
-    ()=>{
-      if(isStandalone){
+    pos=>{
+      if(settled) return;
+      settled = true;
+      clearTimeout(manualTimeout);
+      placeMarker(pos.coords.latitude,pos.coords.longitude);
+    },
+    (err)=>{
+      if(settled) return;
+      settled = true;
+      clearTimeout(manualTimeout);
+      // สำคัญ: แยกข้อความตาม error.code ให้ชัดว่าสาเหตุจริงคืออะไร ไม่ใช้ข้อความเดียวกันหมด
+      if(err && err.code === 1){
+        alert("เว็บไซต์ไม่ได้รับสิทธิ์เข้าถึงตำแหน่ง — ต้องไปเปิดเองในตั้งค่าเครื่อง (ตั้งค่า > ความเป็นส่วนตัว > บริการหาตำแหน่ง > Safari/เบราว์เซอร์ที่ใช้ > อนุญาต) แล้วลองใหม่ หรือปักหมุดเองบนแผนที่แทนได้เลยครับ");
+      } else if(isStandalone){
         alert("เข้าถึงตำแหน่งไม่ได้ — เป็นบัคที่รู้จักของ iOS เวลาเปิดผ่านไอคอนหน้าจอโฮม\n\nลองเปิดลิงก์นี้ผ่าน Safari ตรงๆ (ไม่ผ่านไอคอนที่บันทึกไว้) แล้วลองใหม่อีกครั้ง หรือปักหมุดเองบนแผนที่แทนได้เลยครับ");
       } else {
         alert("ไม่สามารถเข้าถึง GPS ได้ ลองปักหมุดเองบนแผนที่แทนได้ครับ");
-      }
-    },
+      }    },
     {timeout:8000, enableHighAccuracy:true}
   );
 }
