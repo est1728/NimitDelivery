@@ -474,7 +474,7 @@ document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
     <button class="sidebar-item" onclick="event.stopPropagation()" style="cursor:default">
       <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
       <div class="sidebar-item-text"><div class="sidebar-item-title">เปิดแจ้งเตือน</div><div class="sidebar-item-sub" id="shopNotifStatus">กดสวิตช์เพื่อขอสิทธิ์แจ้งเตือน</div></div>
-      <button class="sidebar-toggle" id="shopNotifToggle" onclick="event.stopPropagation();window.enableShopNotif()"></button>
+      <button class="sidebar-toggle" id="shopNotifToggle" onclick="event.stopPropagation();window.toggleShopNotif()"></button>
     </button>
     <button class="sidebar-item" onclick="event.stopPropagation()" style="cursor:default">
       <svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a2 2 0 0 0-2-2c-1.05 0-1.87.62-2.44 1.5L13 6.32 12.44 4.5C11.87 3.62 11.05 3 10 3a2 2 0 0 0-2 2c0 .35.07.69.18 1H6a2 2 0 0 0-2 2v2a1 1 0 0 0 1 1h1v7a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-7h1a1 1 0 0 0 1-1V8a2 2 0 0 0-2-2zM16 5a1 1 0 0 1-1 1h-1.06l.31-.94A1.24 1.24 0 0 1 15.5 4a1 1 0 0 1 .5 1zM9 5a1 1 0 0 1 1-1c.31 0 .74.16.94.5l.5 1.5H10a1 1 0 0 1-1-1z"/></svg>
@@ -776,6 +776,26 @@ async function initShop(){
     const fcmScript = document.createElement('script');
     fcmScript.src = 'fcm.js';
     document.body.appendChild(fcmScript);
+    // สำคัญมาก: บัคจริงที่เจอ — เดิมปุ่มนี้เรียกแค่ enableShopNotif() อย่างเดียวเสมอ ไม่ว่าจะกดกี่ครั้งก็ตาม
+    // ไม่มีทางปิดได้เลยเพราะไม่มีโค้ดส่วนไหนที่ "ปิด" การแจ้งเตือนเลยแม้แต่นิดเดียว กดซ้ำแค่ไหนก็แค่เปิดซ้ำ
+    // เดิมที่มีอยู่แล้วเท่านั้น ต้องเช็คสถานะปัจจุบันก่อนว่าเปิดอยู่หรือเปล่า แล้วค่อยเลือกว่าจะเปิดหรือปิด
+    window.toggleShopNotif = async function(){
+      const toggleEl = document.getElementById('shopNotifToggle');
+      const isOn = toggleEl && toggleEl.classList.contains('on');
+      if(isOn){ await window.disableShopNotif(); } else { await window.enableShopNotif(); }
+    };
+    window.disableShopNotif = async function(){
+      const statusEl = document.getElementById('shopNotifStatus');
+      const toggleEl = document.getElementById('shopNotifToggle');
+      if(statusEl) statusEl.textContent = 'กำลังปิด...';
+      try{
+        // ลบ token ออกจากฐานข้อมูลจริง ไม่ใช่แค่เปลี่ยนหน้าตาปุ่มเฉยๆ — กันไม่ให้เซิร์ฟเวอร์ยังส่งแจ้งเตือนมาอยู่
+        await deleteDoc(doc(db,'fcmTokens', shopData.id+'_shop'));
+      }catch(e){} // ถ้าลบไม่สำเร็จ (เช่น ไม่เคยมี token อยู่แล้ว) ไม่เป็นไร ยังต้องเคลียร์สถานะฝั่งเครื่องนี้ต่อไป
+      localStorage.removeItem('fcmTokenSaved_shop_'+shopData.id);
+      if(statusEl) statusEl.textContent = 'ปิดอยู่';
+      if(toggleEl) toggleEl.className = 'sidebar-toggle';
+    };
     window.enableShopNotif = async function(){
       const statusEl = document.getElementById('shopNotifStatus');
       const toggleEl = document.getElementById('shopNotifToggle');
