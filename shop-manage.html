@@ -1404,11 +1404,12 @@ function renderCgModal(){
       <span style="font-size:13px;color:var(--text);flex:1">${esc(g.title||'(ยังไม่ตั้งชื่อ)')}</span>
       <span class="gtype-badge" style="font-size:10px">${typeLabel(g.type||'normal')}</span>
     </label>`).join('') : '<div style="padding:14px;text-align:center;color:var(--subtext);font-size:13px">เมนูนี้ยังไม่มีกลุ่มตัวเลือก</div>';
-  const list = menus.filter(m2=>!m2.id.startsWith('_new_') && !m2.id.startsWith('_bulk_') && m2.id!==cgSourceMenuId);
+  const list = menus.filter(m2=>!m2.id.startsWith('_new_') && !m2.id.startsWith('_bulk_') && m2.id!==cgSourceMenuId)
+    .sort((a,b)=>(a.category||'').localeCompare(b.category||'','th') || (a.name||'').localeCompare(b.name||'','th'));
   document.getElementById('cgMenuList').innerHTML = list.length ? list.map(m2=>`
     <label style="display:flex;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid #f5f6f8;cursor:pointer">
       <input type="checkbox" ${cgSelectedMenuIds.has(m2.id)?'checked':''} onchange="toggleCgMenu('${m2.id}',this.checked)" style="width:18px;height:18px;flex-shrink:0">
-      <span style="font-size:13px;color:var(--text)">${esc(m2.name||'(ยังไม่ตั้งชื่อ)')}</span>
+      <span style="font-size:13px;color:var(--text)">${esc(m2.name||'(ยังไม่ตั้งชื่อ)')}${m2.category?' <span style="color:var(--subtext);font-weight:400">· '+esc(m2.category)+'</span>':''}</span>
     </label>`).join('') : '<div style="padding:14px;text-align:center;color:var(--subtext);font-size:13px">ยังไม่มีเมนูอื่นในร้าน</div>';
 }
 window.toggleCgGroup = function(gi,checked){
