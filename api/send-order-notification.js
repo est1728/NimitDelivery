@@ -43,7 +43,12 @@ export default async function handler(req, res) {
   }
 
   const { token, tokens, title, body, orderId, url } = req.body || {};
-  const tokenList = Array.isArray(tokens) ? tokens.filter(Boolean) : (token ? [token] : []);
+  // สำคัญมาก: บัคจริงที่เจอ — เดิมกรองแค่ค่าว่าง/null ออก (filter(Boolean)) แต่ไม่เคยตัดตัวที่ซ้ำกันออกเลย
+  // ถ้าเครื่องเดียวกันมีเอกสาร fcmTokens มากกว่า 1 ชิ้นที่ชี้ไปที่ token เดียวกัน (เช่น จากบัคเก่าที่เคยเจอ
+  // เรื่อง token ชนกันตอนไม่มี uid เฉพาะตัว) รายการ tokens ที่ query ออกมาได้ก็จะมี token ตัวเดียวกันซ้ำอยู่
+  // หลายรอบ พอส่งแบบ multicast ไปทุกตัวใน list เครื่องนั้นเลยได้รับข้อความเดียวกันซ้ำหลายครั้งในการส่งครั้งเดียว
+  const rawTokenList = Array.isArray(tokens) ? tokens.filter(Boolean) : (token ? [token] : []);
+  const tokenList = [...new Set(rawTokenList)];
 
   if (!tokenList.length || !title || !body) {
     res.status(400).json({ error: 'ข้อมูลไม่ครบ ต้องมี token หรือ tokens อย่างน้อย 1 อัน, title, body' });
@@ -87,5 +92,4 @@ export default async function handler(req, res) {
     // error ระดับระบบ (เช่น Firebase Admin ตั้งค่าไม่ถูกต้อง) ไม่ใช่ปัญหาที่ token
     res.status(200).json({ success: false, error: e.message });
   }
-    }
-      
+}
