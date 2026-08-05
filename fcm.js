@@ -7,9 +7,16 @@
 // เสียงแจ้งเตือนกลาง ใช้ได้ทุกหน้าเหมือนกันหมด ไม่ต้องพึ่งฟังก์ชันเสียงเฉพาะของแต่ละหน้า
 // (บางหน้ามีระบบเสียงของตัวเอง เช่น rider.html แต่ปุ่มแสดงแจ้งเตือนของหน้านั้นไม่เคยเรียกใช้เสียงเลย
 // ทำให้แจ้งเตือนที่มาจาก push ขึ้นแบบเงียบสนิท ไม่มีเสียงเตือนเลย)
+// สำคัญมาก: ต้องใช้ AudioContext ตัวเดียวที่สร้างครั้งเดียวแล้วนำกลับมาใช้ซ้ำเสมอ ห้ามสร้างใหม่ทุกครั้งที่เล่นเสียง
+// เบราว์เซอร์ส่วนใหญ่จำกัดจำนวน AudioContext ที่เปิดพร้อมกันได้ (มักประมาณ 6 ตัว) ถ้าสร้างใหม่ทุกครั้งที่มีการแจ้งเตือน
+// เข้ามา พอเปิดแท็บทิ้งไว้นานๆแล้วมีการแจ้งเตือนเข้ามาหลายรอบ จะชนขีดจำกัดจนสร้างไม่ได้อีกเลย เสียงแจ้งเตือนก็เลย
+// เงียบไปดื้อๆทั้งที่ก่อนหน้านี้เคยทำงานปกติ (อาการตรงกับที่เจอ "เปิดเว็บทิ้งไว้นานๆแล้วแจ้งเตือนดับทั้งเว็บ")
+let _fcmAudioCtx = null;
 function _fcmPlayDing(){
   try{
-    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    if(!_fcmAudioCtx) _fcmAudioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    if(_fcmAudioCtx.state === 'suspended') _fcmAudioCtx.resume();
+    const ctx = _fcmAudioCtx;
     const notes = [523, 659, 784];
     notes.forEach((freq,i)=>{
       const osc = ctx.createOscillator();
@@ -25,7 +32,7 @@ function _fcmPlayDing(){
   }catch(e){}
 }
 
-window.enableFcmNotifications = async function () {
+async function _enableFcmNotificationsInner() {
   // กันไม่ให้ลงทะเบียนซ้ำถ้าเคยเปิดสำเร็จแล้วในหน้านี้อยู่แล้ว (กดปุ่มซ้ำหลายครั้งไม่ควรทำให้แจ้งเตือนซ้ำ)
   if (window._fcmAlreadyEnabled) return { ok: true };
   // รอ Firebase โหลด (เผื่อถูกเรียกเร็วเกินไปตั้งแต่หน้ายังโหลดไม่เสร็จ)
@@ -122,6 +129,17 @@ window.enableFcmNotifications = async function () {
     console.warn('FCM setup failed:', e.message);
     return { ok: false, reason: 'error', message: e.message };
   }
+}
+window.enableFcmNotifications = async function(){
+  const result = await _enableFcmNotificationsInner();
+  // สำคัญ: บันทึกผลลัพธ์ล่าสุดไว้เสมอไม่ว่าสำเร็จหรือไม่ก็ตาม ไม่ว่าจะออกจากฟังก์ชันด้วยเหตุผลไหนก็ตาม
+  // (ไม่ใช่แค่ตอนสำเร็จ/error เท่านั้น — ครอบคลุมทุกจุด return ข้างในด้วย เช่น ไม่มี VAPID key, เบราว์เซอร์ไม่รองรับ,
+  // ผู้ใช้ปฏิเสธสิทธิ์ ฯลฯ) ทำแบบนี้เพื่อให้ตรวจสอบย้อนหลังได้ว่าจริงๆแล้วระบบทำงานอยู่หรือเปล่า โดยไม่ต้องให้ใครกด
+  // ทดสอบเองเลย แค่เข้าเว็บใช้งานตามปกติ ระบบจะจดสถานะไว้ให้อัตโนมัติทุกครั้ง
+  try{
+    localStorage.setItem('_fcmLastResult', JSON.stringify({...result, ts:new Date().toISOString(), role:window._fcmRole||'?'}));
+  }catch(e){}
+  return result;
 };
 
 // พฤติกรรมเดิม: ขอสิทธิ์อัตโนมัติทันที เว้นแต่หน้านั้นตั้ง window._fcmManual = true ไว้ก่อน
