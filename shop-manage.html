@@ -1912,12 +1912,18 @@ document.addEventListener('pointermove', e => {
     updateCropFrame();
   }
   if (cropResizing) {
+    // สำคัญมาก: บัคจริงที่เจอ — เดิมล็อกสัดส่วนเป็นสี่เหลี่ยมจัตุรัสเฉพาะรูปเมนู/โปรไฟล์เท่านั้น
+    // ส่วนรูปแบนเนอร์ปล่อยให้ลากปรับกรอบเป็นสัดส่วนอะไรก็ได้ตามใจ แต่ตอนวาดภาพจริงกลับบังคับผลลัพธ์
+    // ให้เป็น 1200x675 (16:9) เสมอไม่ว่าจะเลือกกรอบมาสัดส่วนไหนก็ตาม พอสัดส่วนที่เลือกไม่ตรงกับ 16:9
+    // ภาพเลยถูกบีบ/ยืดให้เข้ากรอบผลลัพธ์ ทำให้ภาพเพี้ยนไปจากของจริง ต้องล็อกสัดส่วนกรอบให้ตรงกับ 16:9
+    // ตั้งแต่ตอนลากปรับเลย เหมือนที่ทำกับรูปสี่เหลี่ยมจัตุรัสอยู่แล้ว ถึงจะไม่มีทางเพี้ยนได้เลย
     const lockSquare = cropShape !== 'banner';
+    const lockRatio = cropShape === 'banner' ? 16/9 : (lockSquare ? 1 : null);
     let newW = cropStartFW, newH = cropStartFH, newX = cropStartFX, newY = cropStartFY;
-    if (cropResizeHandle === 'br') { newW = Math.max(60, cropStartFW + dx); newH = lockSquare ? newW : Math.max(40, cropStartFH + dy); }
-    else if (cropResizeHandle === 'bl') { newW = Math.max(60, cropStartFW - dx); newH = lockSquare ? newW : Math.max(40, cropStartFH + dy); newX = cropStartFX + cropStartFW - newW; }
-    else if (cropResizeHandle === 'tr') { newW = Math.max(60, cropStartFW + dx); newH = lockSquare ? newW : Math.max(40, cropStartFH - dy); newY = lockSquare ? cropStartFY + cropStartFH - newH : cropStartFY + cropStartFH - newH; }
-    else if (cropResizeHandle === 'tl') { newW = Math.max(60, cropStartFW - dx); newH = lockSquare ? newW : Math.max(40, cropStartFH - dy); newX = cropStartFX + cropStartFW - newW; newY = cropStartFY + cropStartFH - newH; }
+    if (cropResizeHandle === 'br') { newW = Math.max(60, cropStartFW + dx); newH = lockRatio ? newW/lockRatio : Math.max(40, cropStartFH + dy); }
+    else if (cropResizeHandle === 'bl') { newW = Math.max(60, cropStartFW - dx); newH = lockRatio ? newW/lockRatio : Math.max(40, cropStartFH + dy); newX = cropStartFX + cropStartFW - newW; }
+    else if (cropResizeHandle === 'tr') { newW = Math.max(60, cropStartFW + dx); newH = lockRatio ? newW/lockRatio : Math.max(40, cropStartFH - dy); newY = lockRatio ? cropStartFY + cropStartFH - newH : cropStartFY + cropStartFH - newH; }
+    else if (cropResizeHandle === 'tl') { newW = Math.max(60, cropStartFW - dx); newH = lockRatio ? newW/lockRatio : Math.max(40, cropStartFH - dy); newX = cropStartFX + cropStartFW - newW; newY = cropStartFY + cropStartFH - newH; }
     newX = Math.max(0, newX); newY = Math.max(0, newY);
     if (newX + newW > cw) newW = cw - newX;
     if (newY + newH > ch) newH = ch - newY;
