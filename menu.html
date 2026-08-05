@@ -275,7 +275,14 @@ const db = getFirestore(app);
   updateBodyScrollLock();
 })();
 
-const shopId = localStorage.getItem("selectedShopId");
+// สำคัญมาก: บัคจริงที่เจอ — เดิมอ่านรหัสร้านจาก localStorage อย่างเดียว ไม่เคยอ่านจากลิงก์ (?id=...) เลย
+// ทำให้ลิงก์ตรงของแต่ละร้าน (จากปุ่ม "แชร์ลิงก์เมนู" ในหน้าร้านค้า) ไปเปิดร้านที่เคยเข้าดูล่าสุดผ่าน
+// การเลื่อนดูในหน้า shops.html แทน ไม่ว่าลิงก์จะเป็นร้านไหนก็ตาม เพราะ localStorage ยังเป็นค่าเก่าค้างอยู่
+// ต้องอ่านจาก URL ก่อนเป็นอันดับแรกเสมอ ถ้ามีค่อยใช้ค่านั้น ถ้าไม่มี (เช่น กดมาจากในเว็บตามปกติ) ค่อย fallback
+// ไปใช้ localStorage แบบเดิม แล้วซิงค์ localStorage ให้ตรงกับค่าจาก URL ด้วย กันหน้าอื่นที่อาจอ่านค่านี้ต่อ
+const urlShopId = new URLSearchParams(window.location.search).get("id");
+const shopId = urlShopId || localStorage.getItem("selectedShopId");
+if(urlShopId) localStorage.setItem("selectedShopId", urlShopId);
 const shopName = localStorage.getItem("selectedShopName");
 document.getElementById("shopNameTitle").textContent = shopName || "ร้านค้า";
 
@@ -306,6 +313,11 @@ async function loadShopInfo(){
     if(s.exists()){
       const d=s.data();
       shopFullData = d;
+      // สำคัญ: อัปเดตชื่อร้านที่หัวเว็บให้ตรงกับข้อมูลจริงที่เพิ่งโหลดมา — เดิมตั้งค่าครั้งเดียวจาก
+      // localStorage ตอนแรกเท่านั้น ไม่เคยแก้ไขให้ตรงกับร้านจริงที่กำลังดูอยู่เลย (บัคเดียวกับที่ทำให้
+      // ลิงก์ตรงของแต่ละร้านเปิดผิดร้าน — จุดนี้คือส่วนที่เหลือของปัญหาเดียวกัน แค่เป็นเรื่องชื่อที่โชว์)
+      document.getElementById("shopNameTitle").textContent = d.name || "ร้านค้า";
+      localStorage.setItem("selectedShopName", d.name || "");
       shopCategories = Array.isArray(d.categories) ? d.categories : [];
       shopType = d.shopType || "normal";
       if(d.desc) document.getElementById("shopDescText").textContent=d.desc;
