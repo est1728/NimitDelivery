@@ -281,7 +281,7 @@ const db = getFirestore(app);
 // ต้องอ่านจาก URL ก่อนเป็นอันดับแรกเสมอ ถ้ามีค่อยใช้ค่านั้น ถ้าไม่มี (เช่น กดมาจากในเว็บตามปกติ) ค่อย fallback
 // ไปใช้ localStorage แบบเดิม แล้วซิงค์ localStorage ให้ตรงกับค่าจาก URL ด้วย กันหน้าอื่นที่อาจอ่านค่านี้ต่อ
 const urlShopId = new URLSearchParams(window.location.search).get("id");
-const shopId = urlShopId || localStorage.getItem("selectedShopId");
+let shopId = urlShopId || localStorage.getItem("selectedShopId");
 if(urlShopId) localStorage.setItem("selectedShopId", urlShopId);
 const shopName = localStorage.getItem("selectedShopName");
 document.getElementById("shopNameTitle").textContent = shopName || "ร้านค้า";
@@ -309,7 +309,19 @@ function isShopWithinSchedule(d){
 
 async function loadShopInfo(){
   try{
-    const s=await getDoc(doc(db,"shops",shopId));
+    // สำคัญมาก: ลิงก์ที่ร้านคัดลอกไปแชร์ อาจมีค่าเป็น "slug" (ชื่อเรียกสั้นๆที่อ่านง่าย) ไม่ใช่ document id จริง
+    // ของ Firestore เสมอไป — ต้องค้นหาแบบเดียวกับที่ shop-admin.html ใช้อยู่แล้ว (ลองหาแบบ slug ก่อน ถ้าไม่เจอ
+    // ค่อย fallback ไปหาแบบ document id ตรงๆ) ไม่งั้นชื่อร้านอาจโหลดถูกร้านได้บังเอิญ แต่เมนูจริงๆกลับไม่โหลดเลย
+    // เพราะ id ที่ใช้ query เมนูกับ id ที่ใช้หาชื่อร้านไม่ตรงกัน (บัคจริงที่เจอ: ชื่อร้านขึ้นถูก แต่ "ไม่มีเมนู")
+    let s = await getDoc(doc(db,"shops",shopId));
+    if(!s.exists()){
+      const slugSnap = await getDocs(query(collection(db,"shops"), where("slug","==",shopId)));
+      if(!slugSnap.empty){
+        s = slugSnap.docs[0];
+        shopId = s.id; // อัปเดต shopId ให้เป็น document id จริง ให้ query เมนูที่ตามมาหลังจากนี้ใช้ค่าที่ถูกต้อง
+        localStorage.setItem("selectedShopId", shopId);
+      }
+    }
     if(s.exists()){
       const d=s.data();
       shopFullData = d;
