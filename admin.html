@@ -483,6 +483,11 @@ document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
     <div class="pvw" id="pvw"></div>
   </div>
   <div class="scard">
+    <div class="sct">สถานะระบบแจ้งเตือน (เครื่องนี้)</div>
+    <div id="fcmDiagStatus" style="font-size:13px;color:var(--s);line-height:1.6">กำลังโหลด...</div>
+    <div style="font-size:11px;color:var(--s);margin-top:8px;line-height:1.6">แสดงผลจากครั้งล่าสุดที่ระบบพยายามเปิดแจ้งเตือนบนเครื่องนี้อัตโนมัติ ไม่ต้องกดทดสอบเอง — ถ้าเข้าเว็บตามปกติแล้วยังไม่เจอผลลัพธ์ล่าสุด ให้ลองปิดเปิดสวิตช์แจ้งเตือนในเมนูด้านข้างสักครั้งก่อน</div>
+  </div>
+  <div class="scard">
     <div class="sct">VAPID Key (สำหรับแจ้งเตือน)</div>
     <input class="pi" id="vapidKeyInput" placeholder="วางค่า VAPID key จาก Firebase Cloud Messaging ที่นี่" style="width:100%;margin-bottom:10px">
     <button type="button" onclick="window.saveVapidKey()" style="width:100%;height:44px;border:none;border-radius:12px;background:var(--p);color:#fff;font-weight:800;font-size:14px;cursor:pointer">บันทึก</button>
@@ -998,7 +1003,29 @@ function swPg(pg){
   if(pg==='shopsPage')loadShops();
   if(pg==='ridersPage'){loadRiders();initRiderMap();}
   if(pg==='historyPage')loadHistory();
-  if(pg==='settingsPage'){loadPricing();loadAppStatus();}
+  if(pg==='settingsPage'){loadPricing();loadAppStatus();loadFcmDiagStatus();}
+}
+function loadFcmDiagStatus(){
+  const el=$('fcmDiagStatus'); if(!el) return;
+  try{
+    const raw=localStorage.getItem('_fcmLastResult');
+    if(!raw){ el.textContent='ยังไม่เคยมีบันทึกผลลัพธ์บนเครื่องนี้เลย'; el.style.color='var(--s)'; return; }
+    const r=JSON.parse(raw);
+    const timeStr=new Date(r.ts).toLocaleString('th-TH');
+    if(r.ok){
+      el.innerHTML='<span style="color:#16a34a;font-weight:800">✓ ทำงานปกติ</span><br>บทบาท: '+(r.role||'-')+'<br>เวลาล่าสุด: '+timeStr;
+      el.style.color='';
+    } else {
+      const reasonText={
+        'no-serviceworker':'เบราว์เซอร์นี้ไม่รองรับ Service Worker',
+        'unsupported-browser':'เบราว์เซอร์นี้ไม่รองรับระบบแจ้งเตือน (เช่น เปิดผ่านแอปแชท)',
+        'no-vapid-key':'ไม่พบ VAPID Key — ตั้งค่าด้านล่างนี้ก่อน',
+        'no-token':'ขอ token จากระบบไม่สำเร็จ',
+        'error':'เกิดข้อผิดพลาด: '+(r.message||'ไม่ทราบสาเหตุ')
+      }[r.reason] || (r.reason&&r.reason.startsWith('permission-') ? 'ผู้ใช้ยังไม่ได้กดอนุญาตสิทธิ์แจ้งเตือน ('+r.reason.replace('permission-','')+')' : 'สาเหตุ: '+r.reason);
+      el.innerHTML='<span style="color:#dc2626;font-weight:800">✕ ยังไม่สำเร็จ</span><br>'+reasonText+'<br>บทบาท: '+(r.role||'-')+'<br>เวลาล่าสุด: '+timeStr;
+    }
+  }catch(e){ el.textContent='อ่านข้อมูลไม่สำเร็จ'; }
 }
 function updPrev(){
   const wp=parseFloat($('walletPct').value)||30,rp=parseFloat($('riderPct').value)||70;
