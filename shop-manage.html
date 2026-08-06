@@ -1825,6 +1825,7 @@ let cropImgNaturalW, cropImgNaturalH, cropImgDisplayW, cropImgDisplayH, cropImgO
 let cropFrameX, cropFrameY, cropFrameW, cropFrameH;
 let cropDragging = false, cropResizing = false, cropResizeHandle = '';
 let cropStartX, cropStartY, cropStartFX, cropStartFY, cropStartFW, cropStartFH;
+let cropTargetRatio = 1; // สัดส่วนกรอบที่ล็อกไว้ของรอบนี้ (คำนวณสดจากพื้นที่แสดงผลจริงตอนเปิดครอป)
 
 window.onCropFileSelect = function(event, shape, previewElId, targetInputId) {
   const file = event.target.files[0];
@@ -1840,8 +1841,17 @@ function openCropOverlay(src) {
   const cropImgEl = document.getElementById("cropImg");
   const cropContainerEl = document.getElementById("cropContainer");
 
-  let cw = 320, ch = 320;
-  if (cropShape === 'banner') { cw = 320; ch = 180; }
+  // สำคัญมาก: ต้องใช้สัดส่วนเดียวกับพื้นที่ที่รูปจะไปแสดงจริง ไม่ใช่ 16:9 ตายตัว
+  // แบนเนอร์แสดงจริงเป็นแถบยาวเตี้ย (กว้างเต็มจอ สูงคงที่ ~110-130px) ไม่ใช่ 16:9 เลย
+  // วัดจากพื้นที่แบนเนอร์จริงบนหน้านี้สดๆ เพื่อให้กรอบที่เลือกตรงกับที่แสดงจริงเป๊ะ
+  if (cropShape === 'banner') {
+    const bw = document.getElementById('bannerWrap');
+    cropTargetRatio = (bw && bw.offsetWidth > 0 && bw.offsetHeight > 0) ? (bw.offsetWidth / bw.offsetHeight) : (390/130);
+  } else {
+    cropTargetRatio = 1; // โปรไฟล์ร้าน/รูปเมนู แสดงจริงเป็นสี่เหลี่ยมจัตุรัสอยู่แล้ว (72x72 / 80x80)
+  }
+
+  let cw = 320, ch = Math.round(cw / cropTargetRatio);
   cropContainerEl.style.width = cw + 'px';
   cropContainerEl.style.height = ch + 'px';
 
@@ -1862,7 +1872,7 @@ function openCropOverlay(src) {
       const size = Math.min(cw, ch) * 0.78;
       cropFrameW = size; cropFrameH = size;
     } else {
-      cropFrameW = cw * 0.9; cropFrameH = cropFrameW * 9 / 16;
+      cropFrameW = cw * 0.9; cropFrameH = cropFrameW / cropTargetRatio;
     }
     cropFrameX = (cw - cropFrameW) / 2;
     cropFrameY = (ch - cropFrameH) / 2;
@@ -1912,22 +1922,26 @@ document.addEventListener('pointermove', e => {
     updateCropFrame();
   }
   if (cropResizing) {
-    // สำคัญมาก: บัคจริงที่เจอ — เดิมล็อกสัดส่วนเป็นสี่เหลี่ยมจัตุรัสเฉพาะรูปเมนู/โปรไฟล์เท่านั้น
-    // ส่วนรูปแบนเนอร์ปล่อยให้ลากปรับกรอบเป็นสัดส่วนอะไรก็ได้ตามใจ แต่ตอนวาดภาพจริงกลับบังคับผลลัพธ์
-    // ให้เป็น 1200x675 (16:9) เสมอไม่ว่าจะเลือกกรอบมาสัดส่วนไหนก็ตาม พอสัดส่วนที่เลือกไม่ตรงกับ 16:9
-    // ภาพเลยถูกบีบ/ยืดให้เข้ากรอบผลลัพธ์ ทำให้ภาพเพี้ยนไปจากของจริง ต้องล็อกสัดส่วนกรอบให้ตรงกับ 16:9
-    // ตั้งแต่ตอนลากปรับเลย เหมือนที่ทำกับรูปสี่เหลี่ยมจัตุรัสอยู่แล้ว ถึงจะไม่มีทางเพี้ยนได้เลย
-    const lockSquare = cropShape !== 'banner';
-    const lockRatio = cropShape === 'banner' ? 16/9 : (lockSquare ? 1 : null);
-    let newW = cropStartFW, newH = cropStartFH, newX = cropStartFX, newY = cropStartFY;
-    if (cropResizeHandle === 'br') { newW = Math.max(60, cropStartFW + dx); newH = lockRatio ? newW/lockRatio : Math.max(40, cropStartFH + dy); }
-    else if (cropResizeHandle === 'bl') { newW = Math.max(60, cropStartFW - dx); newH = lockRatio ? newW/lockRatio : Math.max(40, cropStartFH + dy); newX = cropStartFX + cropStartFW - newW; }
-    else if (cropResizeHandle === 'tr') { newW = Math.max(60, cropStartFW + dx); newH = lockRatio ? newW/lockRatio : Math.max(40, cropStartFH - dy); newY = lockRatio ? cropStartFY + cropStartFH - newH : cropStartFY + cropStartFH - newH; }
-    else if (cropResizeHandle === 'tl') { newW = Math.max(60, cropStartFW - dx); newH = lockRatio ? newW/lockRatio : Math.max(40, cropStartFH - dy); newX = cropStartFX + cropStartFW - newW; newY = cropStartFY + cropStartFH - newH; }
-    newX = Math.max(0, newX); newY = Math.max(0, newY);
-    if (newX + newW > cw) newW = cw - newX;
-    if (newY + newH > ch) newH = ch - newY;
-    cropFrameX = newX; cropFrameY = newY; cropFrameW = newW; cropFrameH = newH;
+    // ล็อกสัดส่วนกรอบตาม cropTargetRatio ที่วัดจากพื้นที่แสดงผลจริง (คำนวณครั้งเดียวตอนเปิดครอปใน openCropOverlay)
+    const ratio = cropTargetRatio;
+    // มุมตรงข้ามกับ handle ที่กำลังลากต้องอยู่กับที่เสมอ (จุดยึด)
+    let anchorX, anchorY, growRight, growDown;
+    if (cropResizeHandle === 'br') { anchorX = cropStartFX; anchorY = cropStartFY; growRight = true; growDown = true; }
+    else if (cropResizeHandle === 'bl') { anchorX = cropStartFX + cropStartFW; anchorY = cropStartFY; growRight = false; growDown = true; }
+    else if (cropResizeHandle === 'tr') { anchorX = cropStartFX; anchorY = cropStartFY + cropStartFH; growRight = true; growDown = false; }
+    else { anchorX = cropStartFX + cropStartFW; anchorY = cropStartFY + cropStartFH; growRight = false; growDown = false; }
+
+    let wantW = Math.max(60, growRight ? (cropStartFW + dx) : (cropStartFW - dx));
+    // จำกัดไม่ให้กรอบล้นขอบพื้นที่รูป โดยคำนวณเพดานของทั้งสองแกนแล้วแปลงเป็น "ความกว้างสูงสุดที่ยังคงสัดส่วนได้" แล้วเลือกค่าที่จำกัดสุด
+    const maxWByX = growRight ? (cw - anchorX) : anchorX;
+    const maxHByY = growDown ? (ch - anchorY) : anchorY;
+    wantW = Math.min(wantW, maxWByX, maxHByY * ratio);
+    wantW = Math.max(60, wantW);
+    const wantH = wantW / ratio;
+
+    cropFrameW = wantW; cropFrameH = wantH;
+    cropFrameX = growRight ? anchorX : anchorX - wantW;
+    cropFrameY = growDown ? anchorY : anchorY - wantH;
     updateCropFrame();
   }
 });
@@ -1942,7 +1956,7 @@ window.confirmCrop = async function() {
   const cropW = cropFrameW * scaleX, cropH = cropFrameH * scaleY;
 
   let outW = 800, outH = 800;
-  if (cropShape === 'banner') { outW = 1200; outH = 675; }
+  if (cropShape === 'banner') { outW = 1200; outH = Math.round(outW / cropTargetRatio); }
   canvas.width = outW; canvas.height = outH;
   const ctx = canvas.getContext('2d');
   ctx.drawImage(cropImgEl, cropX, cropY, cropW, cropH, 0, 0, outW, outH);
