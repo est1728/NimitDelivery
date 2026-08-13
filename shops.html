@@ -287,16 +287,19 @@ document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, initializeFirestore, collection, getDocs, doc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const db = getFirestore(initializeApp({
+const _app = initializeApp({
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
   authDomain:"nimit-delivery.firebaseapp.com",
   projectId:"nimit-delivery",
   storageBucket:"nimit-delivery.firebasestorage.app",
   messagingSenderId:"233476256130",
   appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
-}));
+});
+// สำคัญมาก: บังคับใช้ long-polling กัน iOS Safari เชื่อมต่อ Firestore ค้าง/ล้มเหลวแบบเงียบๆ (ปัญหาที่รู้จัก
+// กันแล้วของ Safari เวอร์ชันล่าสุด) ตรงกับอาการ "หน้าร้านค้า/เมนู ใช้งานไม่ได้เลยบน iOS" ที่เจอ
+const db = initializeFirestore(_app, { experimentalAutoDetectLongPolling: true });
 
 const SL={pending:"รอรับออเดอร์",accepted:"รับงานแล้ว",picking:"ไรเดอร์กำลังมา",arrived:"ถึงร้านแล้ว",delivering:"กำลังส่ง",done:"ส่งเสร็จแล้ว"};
 const SS=["pending","accepted","picking","arrived","delivering","done"];
