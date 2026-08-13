@@ -79,7 +79,7 @@ textarea.input{height:90px;padding:12px 16px;resize:none;line-height:1.5;}
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, initializeFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -90,7 +90,9 @@ const firebaseConfig = {
   appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
 };
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+// สำคัญมาก: ดูคำอธิบายเดียวกับใน menu.html — บังคับใช้ long-polling กัน iOS Safari เชื่อมต่อ Firestore
+// ค้าง/ล้มเหลวแบบเงียบๆ ซึ่งตรงกับอาการ "กรอกข้อมูลสมัครแล้วเหมือนสำเร็จ แต่ไม่มีลูกค้าใหม่ขึ้นในระบบจริง"
+const db = initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
 
 const map = L.map('map').setView([13.7563,100.5018],13);
 const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles &copy; Esri',maxZoom:19,maxNativeZoom:19});
