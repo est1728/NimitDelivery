@@ -822,9 +822,9 @@ async function loadEditOrder(){
     const snap = await getDoc(doc(db,'orders',editOrderId));
     if(!snap.exists()){ alert('ไม่พบออเดอร์นี้ อาจถูกลบไปแล้ว'); return; }
     const o = snap.data();
-    editOrig = {orderId:o.orderId, groupId:o.groupId, createdAt:o.createdAt, createdBy:o.createdBy, status:o.status};
+    editOrig = {orderId:o.orderId||editOrderId, groupId:o.groupId||genGroupId(), createdAt:o.createdAt||serverTimestamp(), createdBy:o.createdBy||'admin', status:o.status||'pending'};
     // ร้าน — ใช้ข้อมูลที่เก็บไว้ในออเดอร์เองก่อนเลย ไม่ต้องรอโหลดรายชื่อร้านทั้งหมด
-    selShop = {id:o.shopId, name:o.shopName, phone:o.shopPhone||'', address:o.shopAddress||'', lat:o.shopLat||null, lng:o.shopLng||null};
+    selShop = {id:o.shopId||'', name:o.shopName||'', phone:o.shopPhone||'', address:o.shopAddress||'', lat:o.shopLat||null, lng:o.shopLng||null};
     try{ const shopSnap = await getDoc(doc(db,'shops',o.shopId)); if(shopSnap.exists()) selShop.shopType = shopSnap.data().shopType||'normal'; }catch(e){}
     document.getElementById('shopBox').classList.add('done');
     document.getElementById('shopBoxTxt').textContent = '✓ '+selShop.name;
@@ -903,7 +903,7 @@ window.createOrder=async function(){
       price:Number(it.price)||0,
       basePrice:Number(it.basePrice)||0,
       qty:Number(it.qty)||1,
-      options:(it.options||[]).filter(Boolean).map(function(o){return {groupTitle:o.groupTitle||'',name:o.name,price:Number(o.price)||0};}),
+      options:(it.options||[]).filter(Boolean).map(function(o){return {groupTitle:o.groupTitle||'',name:o.name||'',price:Number(o.price)||0};}),
       note:String(it.note||''),
       imgUrl:'',
       category:String(it.category||'')
