@@ -72,6 +72,10 @@ body{background:var(--g);min-height:100vh;}
 .ftabs{display:flex;gap:6px;padding:12px 16px;overflow-x:auto;scrollbar-width:none;background:#fff;border-bottom:1px solid #f0f2f5;position:sticky;top:52px;z-index:100;}
 .ftabs::-webkit-scrollbar{display:none;}
 .ftab{padding:7px 14px;border-radius:20px;border:none;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;background:var(--g);color:var(--s);}
+.cf-fault-btn{flex:1;padding:10px 6px;border-radius:14px;border:2px solid #e2e8f0;background:#fff;color:var(--s);font-size:13px;font-weight:800;cursor:pointer;text-align:center;line-height:1.5;}
+.cf-fault-btn.on{border-color:#dc2626;background:#fef2f2;color:#dc2626;}
+.cf-fault-btn:not(.on){border-color:#e2e8f0;}
+.cf-fault-btn.on[id="cfBtnShop"]{border-color:#16a34a;background:#f0fdf4;color:#16a34a;}
 .ftab.on{background:var(--p);color:#fff;}
 
 /* ORDER CARD — rider style */
@@ -520,8 +524,13 @@ document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
 <div class="cfm-ov" id="cancelOv">
   <div class="cfm-box">
     <div class="cfm-title">ยกเลิกออเดอร์</div>
+    <div class="cfm-sub" style="margin-bottom:8px">สาเหตุการยกเลิก</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button type="button" id="cfBtnCustomer" class="cf-fault-btn on" onclick="setCancelFault('customer')">ลูกค้าผิด<br><span style="font-weight:600;font-size:11px">หักเครดิตลูกค้า</span></button>
+      <button type="button" id="cfBtnShop" class="cf-fault-btn" onclick="setCancelFault('shop')">ร้าน/เหตุอื่น<br><span style="font-weight:600;font-size:11px">ไม่หักเครดิตลูกค้า</span></button>
+    </div>
     <div class="cfm-sub" style="margin-bottom:10px">กรุณาระบุเหตุผล (บังคับ)</div>
-    <textarea id="cancelNote" style="width:100%;height:80px;border:2px solid #e2e8f0;border-radius:12px;padding:10px;font-size:14px;outline:none;resize:none;font-family:inherit" placeholder="เช่น ลูกค้ายกเลิก, ร้านปิด..."></textarea>
+    <textarea id="cancelNote" style="width:100%;height:80px;border:2px solid #e2e8f0;border-radius:12px;padding:10px;font-size:14px;outline:none;resize:none;font-family:inherit" placeholder="เช่น ลูกค้ายกเลิก, ร้านของหมด..."></textarea>
     <div class="cfm-btns" style="margin-top:12px">
       <button class="cfm-cancel" onclick="closeCancelOrder()">ปิด</button>
       <button class="cfm-ok" style="background:linear-gradient(135deg,#dc2626,#b91c1c)" onclick="confirmCancelOrder()">ยืนยันยกเลิก</button>
@@ -572,6 +581,7 @@ document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
     <div class="dr"><span class="drl">การจ่ายเงิน</span><span class="drv" id="dtPay">-</span></div>
     <div class="dr"><span class="drl">เวลา</span><span class="drv" id="dtTime">-</span></div>
     <div class="dr"><span class="drl">สถานะ</span><span class="drv" id="dtStatus">-</span></div>
+    <div class="dr" id="dtCancelRow" style="display:none"><span class="drl">เหตุยกเลิก</span><span class="drv" id="dtCancelInfo" style="text-align:right;max-width:60%">-</span></div>
     <div class="dr" id="dtRiderRow"><span class="drl">ไรเดอร์</span><span class="drv" id="dtRider">ยังไม่มี</span></div>
   <div class="dr"><span class="drl">อ่านออเดอร์</span><span class="drv" id="dtRiderRead" style="color:var(--s)">ยังไม่อ่าน</span></div>
   </div>
@@ -980,6 +990,7 @@ function toast(msg,type){
   el.innerHTML='<svg viewBox="0 0 24 24">'+(ic[type]||ic.in)+'</svg><span>'+msg+'</span>';
   $('tw').appendChild(el);setTimeout(()=>el.remove(),2500);
 }
+window.toast = toast; // สำคัญ: ต้อง expose ออกมาที่ window ด้วย เพราะทั้งไฟล์เรียกใช้เป็น window.toast(...) เกือบทุกจุด (script เป็น type="module" ฟังก์ชันธรรมดาจะไม่ถูกมองเห็นจาก scope อื่น/โมดูลที่สอง)
 const closeMov=id=>$(id).classList.remove('show');
 
 // CONFIRM POPUP — compact bottom sheet
@@ -1178,6 +1189,13 @@ function renderDetail(o){
   $('dtPay').textContent=o.paymentMethod==='cash'?'เงินสด':o.paymentMethod||'เงินสด';
   $('dtTime').textContent=t;
   $('dtStatus').textContent=SL[o.status]||o.status;
+  const cancelRow=$('dtCancelRow');
+  if(o.status==='rejected'&&cancelRow){
+    cancelRow.style.display='';
+    const faultTxt=o.cancelFault==='shop'?'ไม่หักเครดิตลูกค้า':'หักเครดิตลูกค้า';
+    $('dtCancelInfo').textContent=(o.cancelNote||'-')+' ('+faultTxt+')';
+    $('dtCancelInfo').style.color=o.cancelFault==='shop'?'#16a34a':'#dc2626';
+  } else if(cancelRow){ cancelRow.style.display='none'; }
   $('dtRider').textContent=o.riderName||'ยังไม่มี';
   $('dtShopName').textContent=o.shopName||'-';
   $('dtShopPhone').textContent=o.shopPhone||'-';
@@ -1191,7 +1209,7 @@ function renderDetail(o){
   if(o.customer?.phone){
     getDocs(query(collection(db,'orders'),where('customer.phone','==',o.customer.phone))).then(snap=>{
       let done=0,cancel=0;
-      snap.forEach(d=>{const st=d.data().status;if(st==='done')done++;else if(st==='rejected')cancel++;});
+      snap.forEach(d=>{const dd=d.data();const st=dd.status;if(st==='done')done++;else if(st==='rejected'&&dd.cancelFault!=='shop')cancel++;});
       $('dtCusDone').textContent=done+' ครั้ง';
       $('dtCusCancel').textContent=cancel+' ครั้ง';
     }).catch(()=>{$('dtCusDone').textContent='-';$('dtCusCancel').textContent='-';});
@@ -1341,11 +1359,18 @@ async function confirmAssign(){
 }
 
 // CANCEL ORDER
+let cancelFault='customer'; // ค่าเริ่มต้น: ยกเลิกเพราะลูกค้า (หักเครดิต) — แอดมินเปลี่ยนได้ก่อนยืนยัน
+window.setCancelFault=function(type){
+  cancelFault=type;
+  $('cfBtnCustomer').classList.toggle('on',type==='customer');
+  $('cfBtnShop').classList.toggle('on',type==='shop');
+}
 window.openCancelOrder=function(){
   if(!curDocId)return;
   const o=orders.find(x=>x.docId===curDocId)||curOrder;
   if(o&&['done','rejected'].includes(o.status)){window.toast('ออเดอร์นี้เสร็จสิ้นแล้ว','er');return;}
   document.getElementById('cancelNote').value='';
+  window.setCancelFault('customer'); // รีเซ็ตกลับค่าเริ่มต้นทุกครั้งที่เปิด กันจำค่าจากออเดอร์ก่อนหน้าค้าง
   document.getElementById('cancelOv').classList.add('show');
 }
 window.closeCancelOrder=function(){document.getElementById('cancelOv').classList.remove('show');}
@@ -1353,21 +1378,24 @@ window.confirmCancelOrder=async function(){
   const note=document.getElementById('cancelNote').value.trim();
   if(!note){document.getElementById('cancelNote').style.borderColor='#dc2626';document.getElementById('cancelNote').focus();window.toast('กรุณาใส่เหตุผล','er');return;}
   document.getElementById('cancelNote').style.borderColor='#e2e8f0';
+  const targetDocId=curDocId, faultType=cancelFault; // เก็บไว้ก่อนเผื่อ closeDetail() เคลียร์ curDocId ระหว่างทาง
   try{
     const cancelledOrder = curOrder; // เก็บไว้ก่อนโดน filter ออกจากลิสต์ ใช้แจ้งเตือนต่อ
-    await updateDoc(doc(db,'orders',curDocId),{status:'rejected',cancelNote:note,updatedAt:serverTimestamp()});
-    orders=orders.filter(o=>o.docId!==curDocId); // เอาออกจากลิสต์ทันที ไม่ต้องรอ poll รอบถัดไป
-    renderOrders();
+    await updateDoc(doc(db,'orders',targetDocId),{status:'rejected',cancelNote:note,cancelFault:faultType,updatedAt:serverTimestamp()});
+    // สำคัญ: พาออกจากหน้ารายละเอียดกลับหน้าหลักทันทีตอนบันทึกสำเร็จ ก่อนโค้ดผลข้างเคียงอื่นๆ ข้างล่าง
+    // (เคยเป็นบัคที่ทำให้ค้างอยู่หน้ารายละเอียดเดิม เพราะโค้ดที่ควรจะพาออกถูกวางไว้หลังจุดที่พังก่อน)
     window.closeCancelOrder();
-    window.toast('ยกเลิกออเดอร์แล้ว','ok');
     closeDetail();
     swPg('ordersPage');
+    window.toast(faultType==='shop'?'ยกเลิกแล้ว (ไม่หักเครดิตลูกค้า)':'ยกเลิกออเดอร์แล้ว','ok');
+    orders=orders.filter(o=>o.docId!==targetDocId); // เอาออกจากลิสต์ทันที ไม่ต้องรอ poll รอบถัดไป
+    renderOrders();
     // ทุกอย่างข้างล่างนี้เป็นแค่ผลข้างเคียง (แจ้งเตือน/แบนเนอร์) ไม่เกี่ยวกับการยกเลิกที่สำเร็จไปแล้วข้างบน
     // แยก try/catch ของตัวเองไว้ต่างหาก กันไม่ให้อะไรพลาดตรงนี้ไปทำให้เข้าใจผิดว่าการยกเลิกล้มเหลว หรือค้างหน้าเดิมไม่ไปไหน
     try{
       showNotif('❌','ยกเลิกออเดอร์แล้ว',note,'linear-gradient(135deg,#dc2626,#b91c1c)');
       if(cancelledOrder){
-        const oid = cancelledOrder.orderId||curDocId;
+        const oid = cancelledOrder.orderId||targetDocId;
         sendPush(['admin'],'❌ ออเดอร์ถูกยกเลิก',oid+' — '+note,{url:'/admin.html'});
         if(cancelledOrder.riderId) sendPush({uid:cancelledOrder.riderId,role:'rider'},'❌ ออเดอร์ถูกยกเลิก',oid+' — '+note,{url:'/rider.html'});
         if(cancelledOrder.shopId) sendPush({uid:cancelledOrder.shopId,role:'shop'},'❌ ออเดอร์ถูกยกเลิก',oid+' — '+note,{url:'/shop-admin.html'});
@@ -1389,7 +1417,7 @@ async function saveEdit(){
 
 // EDIT CUSTOMER INFO
 let cusPinMap=null, cusPinMarker=null;
-function openEditCus(){
+window.openEditCus = function(){
   if(!curOrder){ window.toast('กำลังโหลดข้อมูลออเดอร์ กรุณารอสักครู่แล้วลองใหม่','er'); return; }
   $('cusName').value=curOrder.customer?.name||'';
   $('cusPhone').value=curOrder.customer?.phone||'';
@@ -1457,7 +1485,7 @@ async function loadHistory(){
   }catch(e){window.toast('โหลดประวัติไม่ได้','er');}
 }
 function openRecall(docId,orderId,shopName){recallDocId=docId;$('recallInfo').textContent='#'+orderId+' · '+shopName;$('recallNote').value='';$('recallMov').classList.add('show');}
-async function doRecall(){
+window.doRecall = async function(){
   const note=$('recallNote').value.trim();if(!note){window.toast('กรุณาใส่หมายเหตุ','er');return;}
   try{await updateDoc(doc(db,'orders',recallDocId),{status:'pending',riderId:null,riderName:null,riderPhone:null,adminNote:note,recalledAt:serverTimestamp(),updatedAt:serverTimestamp()});closeMov('recallMov');window.toast('เรียกกลับสำเร็จ','ok');swPg('ordersPage');}
   catch(e){window.toast('เรียกกลับไม่สำเร็จ','er');}
@@ -1693,8 +1721,8 @@ async function saveRider(){
 }
 
 // TOPUP
-function openTopup(id,name,wallet){topupRiderId=id;$('topupName').textContent=name;$('topupBal').textContent='ยอดปัจจุบัน: ฿'+wallet;$('topupAmt').value='';$('topupMov').classList.add('show');}
-async function doTopup(){
+window.openTopup = function(id,name,wallet){topupRiderId=id;$('topupName').textContent=name;$('topupBal').textContent='ยอดปัจจุบัน: ฿'+wallet;$('topupAmt').value='';$('topupMov').classList.add('show');}
+window.doTopup = async function(){
   const amt=parseFloat($('topupAmt').value)||0;if(amt<=0){window.toast('กรุณากรอกจำนวนเงิน','er');return;}
   try{const snap=await getDoc(doc(db,'riders',topupRiderId));const cur=snap.data()?.wallet||0;await updateDoc(doc(db,'riders',topupRiderId),{wallet:cur+amt,updatedAt:serverTimestamp()});closeMov('topupMov');loadRiders();window.toast('เติมเงิน ฿'+amt+' สำเร็จ','ok');}
   catch(e){window.toast('เติมเงินไม่สำเร็จ','er');}
