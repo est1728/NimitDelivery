@@ -960,7 +960,7 @@ window.acceptJobFromModal=async function(){
   try{
     await updateDoc(doc(db,'orders',curJobDocId),{
       status:'accepted', riderId:riderData.id, riderName:riderData.name,
-      riderPhone:riderData.phone||''
+      riderPhone:riderData.phone||'', riderReadAt:null, riderViewingAt:null
     });
     window.closeJobModal();
     window.showNotif('✅','รับงานแล้ว!','ออเดอร์ '+curJobDocId,'assigned');
@@ -1167,13 +1167,46 @@ window.openDetail=function(docId,isFromHistory){
     const bdg=document.getElementById("riderChatBdg");
     if(bdg){bdg.textContent=unread;bdg.style.display=unread>0?'flex':'none';}
   });
+  markOrderRead(docId);
+  startPresenceHeartbeat(docId);
   showPage("detailPage");
 }
 window.showMain=function(){
+  stopPresenceHeartbeat();
   document.getElementById("mainBottomNav").style.display='flex';
   document.getElementById("statusBarWrap").style.display='none';
   showPage("mainPage");
 }
+
+// มาร์คว่าไรเดอร์เปิดดูออเดอร์นี้แล้ว (ให้แอดมินเห็นเป็นจุดเขียว) — เขียนแค่ครั้งแรกครั้งเดียว
+// เช็คก่อนว่ายังไม่เคยมีเวลาที่อ่านมาก่อน กันไม่ให้เวลาที่อ่านครั้งแรกถูกเขียนทับทุกครั้งที่เปิดซ้ำ
+async function markOrderRead(docId){
+  try{
+    const snap=await getDoc(doc(db,"orders",docId));
+    if(snap.exists() && !snap.data().riderReadAt){
+      await updateDoc(doc(db,"orders",docId),{riderReadAt:serverTimestamp()});
+    }
+  }catch(e){}
+}
+
+// ระบบ presence: ส่งสัญญาณบอกแอดมินทุก 10 วิว่า "ยังอยู่หน้าออเดอร์นี้อยู่" ฝั่งแอดมินถือว่าออกจากหน้าแล้วถ้าเงียบไปเกิน ~20 วิ
+let presenceInterval=null, presenceDocId=null;
+function startPresenceHeartbeat(docId){
+  stopPresenceHeartbeat(); // กันซ้อนถ้าเปิดออเดอร์อื่นต่อโดยยังไม่ได้ปิดของเดิม
+  presenceDocId=docId;
+  const ping=()=>{ if(!document.hidden) updateDoc(doc(db,"orders",docId),{riderViewingAt:serverTimestamp()}).catch(()=>{}); };
+  ping(); // ยิงทันทีตอนเปิด ไม่ต้องรอรอบแรกของ interval
+  presenceInterval=setInterval(ping,10000);
+}
+function stopPresenceHeartbeat(){
+  if(presenceInterval){ clearInterval(presenceInterval); presenceInterval=null; }
+  presenceDocId=null;
+}
+// หยุดส่ง heartbeat ตอนสลับแอปไปพื้นหลัง (เหมือนกับการหยุดแชร์ตำแหน่ง) กลับมาก็ส่งต่อทันทีถ้ายังอยู่หน้ารายละเอียด
+document.addEventListener('visibilitychange', ()=>{
+  if(!presenceDocId) return;
+  if(!document.hidden) updateDoc(doc(db,"orders",presenceDocId),{riderViewingAt:serverTimestamp()}).catch(()=>{});
+});
 
 function renderDetail(o){
   try{
