@@ -85,6 +85,9 @@ body{background:var(--g);min-height:100vh;}
 .oc-head{padding:12px 14px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f5f6f8;}
 .oc-id{font-size:18px;font-weight:900;color:var(--p);letter-spacing:1px;}
 .sp{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;}
+.oc-rdots{display:flex;align-items:center;gap:5px;margin-right:8px;}
+.oc-dot{width:9px;height:9px;border-radius:50%;background:#dc2626;flex-shrink:0;}
+.oc-dot.on{background:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.15);}
 .sp-pending{background:var(--ol);color:var(--o);}
 .sp-accepted,.sp-picking{background:var(--pl);color:var(--p);}
 .sp-arrived{background:var(--yl);color:var(--y);}
@@ -1121,10 +1124,18 @@ function renderOrders(){
     const t=o.createdAt?.toDate?o.createdAt.toDate().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):'-';
     const qty=(o.items||[]).reduce((s,i)=>s+i.qty,0);
     const addr=o.customer?.address?o.customer.address.substring(0,30)+(o.customer.address.length>30?'...':''):'-';
+    const isViewing = o.riderViewingAt && (Date.now() - o.riderViewingAt.toMillis()) < 20000; // ถือว่า "กำลังดูอยู่" ถ้า heartbeat ล่าสุดไม่เกิน 20 วิ
+    const rdots = o.riderId ? `<div class="oc-rdots" title="${o.riderReadAt?'ไรเดอร์อ่านแล้ว':'ไรเดอร์ยังไม่อ่าน'} · ${isViewing?'กำลังดูหน้านี้อยู่':'ไม่ได้อยู่หน้านี้ตอนนี้'}">
+      <span class="oc-dot ${o.riderReadAt?'on':''}"></span>
+      <span class="oc-dot ${isViewing?'on':''}"></span>
+    </div>` : '';
     return `<div class="ocard" data-docid="${o.docId}">
       <div class="oc-head">
         <div class="oc-id">#${esc(o.orderId||'-')}</div>
-        <div class="sp ${PC[o.status]||''}">${SL[o.status]||o.status}</div>
+        <div style="display:flex;align-items:center">
+          ${rdots}
+          <div class="sp ${PC[o.status]||''}">${SL[o.status]||o.status}</div>
+        </div>
       </div>
       <div class="oc-body">
         <div class="oc-row">
@@ -1316,7 +1327,7 @@ async function confirmAssign(){
   if(selRider==='__unassign__'){
     const btn2=$('cfmAsgnBtn');btn2.disabled=true;btn2.textContent='กำลังถอด...';
     try{
-      await updateDoc(doc(db,'orders',asgDocId),{riderId:'',riderName:'',riderPhone:'',status:'pending',updatedAt:serverTimestamp()});
+      await updateDoc(doc(db,'orders',asgDocId),{riderId:'',riderName:'',riderPhone:'',status:'pending',riderReadAt:null,riderViewingAt:null,updatedAt:serverTimestamp()});
       // ป้องกันการแจ้งเตือนซ้ำ — เพิ่มเข้า known set
       knownOrders.add(asgDocId);sessionStorage.setItem('ka',JSON.stringify([...knownOrders]));
       closeAssign();window.loadOrders();window.toast('ถอดไรเดอร์แล้ว','ok');
@@ -1334,7 +1345,7 @@ async function confirmAssign(){
   const keepStatus=['pending','done','rejected'].includes(curSt)?'accepted':curSt;
   try{
     const asgOrder=orders.find(o=>o.docId===asgDocId)||curOrder;
-    await updateDoc(doc(db,'orders',asgDocId),{riderId:r.id,riderName:r.name,riderPhone:r.phone||'',status:keepStatus,updatedAt:serverTimestamp()});
+    await updateDoc(doc(db,'orders',asgDocId),{riderId:r.id,riderName:r.name,riderPhone:r.phone||'',status:keepStatus,riderReadAt:null,riderViewingAt:null,updatedAt:serverTimestamp()});
     closeAssign();
     window.loadOrders(); // refresh ทันทีหลัง assign
     window.toast('โยนงานให้ '+r.name+' แล้ว','ok');
@@ -1487,7 +1498,7 @@ async function loadHistory(){
 function openRecall(docId,orderId,shopName){recallDocId=docId;$('recallInfo').textContent='#'+orderId+' · '+shopName;$('recallNote').value='';$('recallMov').classList.add('show');}
 window.doRecall = async function(){
   const note=$('recallNote').value.trim();if(!note){window.toast('กรุณาใส่หมายเหตุ','er');return;}
-  try{await updateDoc(doc(db,'orders',recallDocId),{status:'pending',riderId:null,riderName:null,riderPhone:null,adminNote:note,recalledAt:serverTimestamp(),updatedAt:serverTimestamp()});closeMov('recallMov');window.toast('เรียกกลับสำเร็จ','ok');swPg('ordersPage');}
+  try{await updateDoc(doc(db,'orders',recallDocId),{status:'pending',riderId:null,riderName:null,riderPhone:null,riderReadAt:null,riderViewingAt:null,adminNote:note,recalledAt:serverTimestamp(),updatedAt:serverTimestamp()});closeMov('recallMov');window.toast('เรียกกลับสำเร็จ','ok');swPg('ordersPage');}
   catch(e){window.toast('เรียกกลับไม่สำเร็จ','er');}
 }
 
@@ -1916,7 +1927,7 @@ document.addEventListener('click', e => {
     if(!asgDocId&&!curDocId)return;
     const tid=asgDocId||curDocId;
     confirm2('ถอดไรเดอร์','ถอดไรเดอร์ออกจากงานนี้?','ถอด','er',async()=>{
-      try{await updateDoc(doc(db,'orders',tid),{riderId:'',riderName:'',riderPhone:'',status:'pending',updatedAt:serverTimestamp()});closeAssign();window.toast('ถอดไรเดอร์แล้ว','ok');showNotif('✅','ถอดงานแล้ว','ออเดอร์กลับสู่รอรับ','linear-gradient(135deg,#16a34a,#15803d)');}catch(e){window.toast('ไม่สำเร็จ','er');}
+      try{await updateDoc(doc(db,'orders',tid),{riderId:'',riderName:'',riderPhone:'',status:'pending',riderReadAt:null,riderViewingAt:null,updatedAt:serverTimestamp()});closeAssign();window.toast('ถอดไรเดอร์แล้ว','ok');showNotif('✅','ถอดงานแล้ว','ออเดอร์กลับสู่รอรับ','linear-gradient(135deg,#16a34a,#15803d)');}catch(e){window.toast('ไม่สำเร็จ','er');}
     });
   }
   else if(id==='cfmOk'){if(cfmCallback){cfmCallback();closeCfm();}else closeCfm();}
@@ -1928,6 +1939,10 @@ document.addEventListener('click', e => {
 updPrev();document.getElementById('statDate').max = new Date().toISOString().split('T')[0];
 reqNotifPerm();
 listenOrders();
+// เช็คซ้ำเป็นระยะให้จุด "กำลังดูอยู่" เปลี่ยนเป็นแดงเองเมื่อ heartbeat เงียบไปนานเกินไป
+// (ปกติ re-render จะเกิดตาม snapshot ใหม่อยู่แล้ว แต่ถ้าไรเดอร์ปิดแอปกะทันหันจะไม่มี snapshot ใหม่เข้ามาอีกเลย
+// ต้องมีตัวนี้ไว้เช็คด้วยตัวเองเทียบกับเวลาปัจจุบัน ไม่งั้นจุดจะค้างเขียวตลอดไปทั้งที่ไรเดอร์ออกจากหน้าไปนานแล้ว)
+setInterval(()=>{ if($('ordersPage')?.classList.contains('on')) renderOrders(); }, 8000);
 
 // ===== ADS MANAGEMENT =====
 window.openAdCreate=function(){
