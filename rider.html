@@ -1408,8 +1408,21 @@ window.toggleNotif=async function(){
         // ขอไม่สำเร็จ (ผู้ใช้กดปฏิเสธ หรือมีปัญหาอื่น) ปิดสวิตช์กลับ ไม่ให้ดูเหมือนเปิดสำเร็จทั้งที่จริงๆยังไม่ได้
         notifOn=false;
         document.getElementById("notifToggle").className="sidebar-toggle";
-        if(res?.reason==='unsupported-browser'){
-          document.getElementById("notifStatusText").textContent="เบราว์เซอร์นี้ใช้แจ้งเตือนไม่ได้ ลองเปิดผ่าน Chrome ปกติแทน";
+        // สำคัญ: เดิมโชว์เหตุผลจริงแค่กรณีเดียว (unsupported-browser) ที่เหลือทุกกรณีโชว์ข้อความเดิมซ้ำเฉยๆ
+        // ทำให้เดารากปัญหาจริงไม่ได้เลยว่าล้มเหลวเพราะอะไร (ไม่มี VAPID key / ผู้ใช้กดปฏิเสธ / หาโทเคนไม่ได้ ฯลฯ)
+        // ตอนนี้โชว์เหตุผลจริงทุกกรณีตรงๆ บนหน้าจอเลย จะได้วินิจฉัยได้จากมือถือเครื่องจริงโดยไม่ต้องเปิด dev tools
+        const reasonText={
+          'unsupported-browser':'เบราว์เซอร์นี้ใช้แจ้งเตือนไม่ได้ ลองเปิดผ่าน Chrome ปกติแทน',
+          'no-serviceworker':'เบราว์เซอร์นี้ไม่รองรับ Service Worker',
+          'no-vapid-key':'ระบบยังไม่ได้ตั้งค่า VAPID key (แจ้งแอดมินให้ตั้งค่าในหน้า settings)',
+          'no-token':'ขอโทเคนแจ้งเตือนไม่สำเร็จ ลองใหม่อีกครั้ง',
+        };
+        if(res?.reason?.startsWith('permission-')){
+          document.getElementById("notifStatusText").textContent="ไม่ได้รับอนุญาตให้แจ้งเตือน ("+res.reason.replace('permission-','')+")";
+        } else if(res?.reason && reasonText[res.reason]){
+          document.getElementById("notifStatusText").textContent=reasonText[res.reason];
+        } else if(res?.reason==='error'){
+          document.getElementById("notifStatusText").textContent="เกิดข้อผิดพลาด: "+(res.message||'ไม่ทราบสาเหตุ');
         } else {
           document.getElementById("notifStatusText").textContent="การแจ้งเตือน: ปิดอยู่";
         }
@@ -1436,8 +1449,6 @@ window.closeExtraPanel=function(id){
   document.getElementById(id)?.classList.remove('show');
   if(id==='panelWallet'&&window._walletUnsub){window._walletUnsub();window._walletUnsub=null;}
 };
-
-window.closeExtraPanel=function(id){ document.getElementById(id)?.classList.remove('show'); }
 
 function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
@@ -1648,61 +1659,6 @@ function renderStmtChart(){
     <div class="legend-item"><div class="legend-dot" style="background:#cbd5e1"></div><div style="flex:1">ยอดรวมทั้งหมด</div><div style="font-weight:700">฿${totalGrand.toLocaleString()}</div></div>
   `;
 }
-window.openMsgTab=function(){
-  window.switchMainTab('messages');
-};
-window.openOrderChat=function(){
-  if(!currentOrderDocId) return;
-  location.href='chat.html?orderId='+currentOrderDocId+'&role=rider';
-};
-
-window.closeConfirm=function(){ document.getElementById("confirmOverlay").classList.remove("on"); pendingNextStatus=null; }
-window.openSidebar=function(){ document.getElementById("sidebar").classList.add("open"); document.getElementById("sidebarOverlay").classList.add("show"); }
-window.closeSidebar=function(){ document.getElementById("sidebar").classList.remove("open"); document.getElementById("sidebarOverlay").classList.remove("show"); }
-window.toggleNotif=async function(){
-  notifOn=!notifOn;
-  document.getElementById("notifToggle").className=`sidebar-toggle ${notifOn?'on':''}`;
-  document.getElementById("notifStatusText").textContent=`การแจ้งเตือน: ${notifOn?'เปิดอยู่':'ปิดอยู่'}`;
-  // ตอนเปิดสวิตช์ ผูกไปขอสิทธิ์แจ้งเตือนจริง (push) เลย ไม่ใช่แค่เสียง/ป๊อปอัพในแอปเหมือนเดิม
-  if(notifOn){
-    if(typeof Notification!=='undefined' && Notification.permission==='denied'){
-      alert('เบราว์เซอร์เคยปฏิเสธการแจ้งเตือนไว้ก่อนแล้ว ต้องไปเปิดเองในตั้งค่าเบราว์เซอร์/แอปก่อนถึงจะเปิดจากตรงนี้ได้');
-      return;
-    }
-    if(typeof window.enableFcmNotifications==='function'){
-      const res = await window.enableFcmNotifications();
-      if(!res?.ok){
-        // ขอไม่สำเร็จ (ผู้ใช้กดปฏิเสธ หรือมีปัญหาอื่น) ปิดสวิตช์กลับ ไม่ให้ดูเหมือนเปิดสำเร็จทั้งที่จริงๆยังไม่ได้
-        notifOn=false;
-        document.getElementById("notifToggle").className="sidebar-toggle";
-        if(res?.reason==='unsupported-browser'){
-          document.getElementById("notifStatusText").textContent="เบราว์เซอร์นี้ใช้แจ้งเตือนไม่ได้ ลองเปิดผ่าน Chrome ปกติแทน";
-        } else {
-          document.getElementById("notifStatusText").textContent="การแจ้งเตือน: ปิดอยู่";
-        }
-      }
-    }
-  }
-}
-window.openExtraPanel=function(id){
-  document.getElementById(id)?.classList.add('show');
-  if(id==='panelWallet'&&riderData?.id){
-    loadWalletHistory();
-    // real-time balance
-    if(window._walletUnsub) window._walletUnsub();
-    window._walletUnsub=onSnapshot(doc(db,'riders',riderData.id),snap=>{
-      if(snap.exists()){
-        const bal=snap.data().wallet||0;
-        const el=document.getElementById('walletBal');
-        if(el)el.textContent=bal.toLocaleString();
-      }
-    });
-  }
-};
-window.closeExtraPanel=function(id){
-  document.getElementById(id)?.classList.remove('show');
-  if(id==='panelWallet'&&window._walletUnsub){window._walletUnsub();window._walletUnsub=null;}
-};
 async function loadWalletHistory(){
   const el=document.getElementById('walletHistory');
   if(!el||!riderData?.id)return;
@@ -1725,7 +1681,6 @@ async function loadWalletHistory(){
   }catch(e){el.innerHTML='<div style="text-align:center;padding:16px;color:#94a3b8;font-size:12px">โหลดไม่ได้</div>';}
 }
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');}
-window.closeExtraPanel=function(id){ document.getElementById(id)?.classList.remove('show'); }
 
 initRider();
 </script>
