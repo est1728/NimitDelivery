@@ -1189,7 +1189,8 @@ async function markOrderRead(docId){
   }catch(e){}
 }
 
-// ระบบ presence: ส่งสัญญาณบอกแอดมินทุก 10 วิว่า "ยังอยู่หน้าออเดอร์นี้อยู่" ฝั่งแอดมินถือว่าออกจากหน้าแล้วถ้าเงียบไปเกิน ~20 วิ
+// ระบบ presence: ส่งสัญญาณบอกแอดมินทุก 10 วิว่า "ยังอยู่หน้าออเดอร์นี้อยู่จริงตอนนี้" ออกจากหน้า/สลับแอปไปพื้นหลัง
+// (ไม่ว่าจะกดย้อนกลับ หรือแค่สลับไปแอปอื่น/ล็อกจอโดยไม่ได้ปัดปิด) ต้องเคลียร์ค่าทันที ไม่ใช่แค่หยุดส่งแล้วรอให้เก่าไปเอง
 let presenceInterval=null, presenceDocId=null;
 function startPresenceHeartbeat(docId){
   stopPresenceHeartbeat(); // กันซ้อนถ้าเปิดออเดอร์อื่นต่อโดยยังไม่ได้ปิดของเดิม
@@ -1200,12 +1201,21 @@ function startPresenceHeartbeat(docId){
 }
 function stopPresenceHeartbeat(){
   if(presenceInterval){ clearInterval(presenceInterval); presenceInterval=null; }
+  if(presenceDocId){
+    // ออกจากหน้ารายละเอียด (กดย้อนกลับ) ต้องเคลียร์ทันที ไม่รอ 20 วิ
+    updateDoc(doc(db,"orders",presenceDocId),{riderViewingAt:null}).catch(()=>{});
+  }
   presenceDocId=null;
 }
-// หยุดส่ง heartbeat ตอนสลับแอปไปพื้นหลัง (เหมือนกับการหยุดแชร์ตำแหน่ง) กลับมาก็ส่งต่อทันทีถ้ายังอยู่หน้ารายละเอียด
 document.addEventListener('visibilitychange', ()=>{
   if(!presenceDocId) return;
-  if(!document.hidden) updateDoc(doc(db,"orders",presenceDocId),{riderViewingAt:serverTimestamp()}).catch(()=>{});
+  if(document.hidden){
+    // สลับแอปไปพื้นหลัง/ล็อกจอ โดยไม่ได้กดย้อนกลับ (ไม่ได้ปัดปิดแอปด้วยซ้ำ) ก็ต้องขึ้นแดงทันทีเหมือนกัน
+    // ไม่ใช่ปล่อยให้ค้างเขียวรอ heartbeat หมดอายุ (เดิมพลาดจุดนี้ — แค่ "หยุดส่งต่อ" ไม่ได้ "เคลียร์ค่าเดิม")
+    updateDoc(doc(db,"orders",presenceDocId),{riderViewingAt:null}).catch(()=>{});
+  } else {
+    updateDoc(doc(db,"orders",presenceDocId),{riderViewingAt:serverTimestamp()}).catch(()=>{});
+  }
 });
 
 function renderDetail(o){
