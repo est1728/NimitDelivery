@@ -244,6 +244,17 @@ body{background:var(--g);min-height:100vh;padding-bottom:90px;}
 <div class="mask" id="shopMask">
   <div class="sheet">
     <div class="sh-hd"><div class="sh-t" id="shT">เลือกร้านค้า</div><button class="sh-x" onclick="closeMask('shopMask')">✕</button></div>
+    <div id="tempItemToggleWrap" style="display:none;padding:10px 16px;border-bottom:1px solid #f0f2f5;flex-shrink:0">
+      <button type="button" id="tempItemToggleBtn" onclick="window.toggleTempItemForm()" style="width:100%;height:38px;border:1.5px dashed var(--p);border-radius:10px;background:var(--pl);color:var(--p);font-size:13px;font-weight:700;cursor:pointer">+ เพิ่มเมนูชั่วคราว (ใช้ครั้งเดียว ไม่บันทึกเข้าเมนูร้าน)</button>
+      <div id="tempItemForm" style="display:none;margin-top:8px;gap:8px;flex-direction:column">
+        <input id="tempItemName" placeholder="ชื่อเมนู เช่น ข้าวผัดหมู" style="height:38px;border:1.5px solid #e2e8f0;border-radius:10px;padding:0 12px;font-size:13px;outline:none">
+        <div style="display:flex;gap:8px">
+          <input id="tempItemPrice" type="number" placeholder="ราคา (บาท)" style="flex:1;height:38px;border:1.5px solid #e2e8f0;border-radius:10px;padding:0 12px;font-size:13px;outline:none">
+          <button type="button" onclick="window.addTempMenuItem()" style="height:38px;padding:0 16px;border:none;border-radius:10px;background:var(--p);color:#fff;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">เพิ่ม</button>
+        </div>
+        <div id="tempItemHint" style="font-size:11px;color:var(--s)"></div>
+      </div>
+    </div>
     <div class="sh-body" id="shBody"></div>
     <div class="sh-foot" id="shFoot" style="display:none"><button class="sh-ok" onclick="confirmMenu()">ยืนยันเมนู</button></div>
   </div>
@@ -370,6 +381,7 @@ window.openShopSheet=function(){
   document.getElementById('shT').textContent='เลือกร้านค้า';
   document.getElementById('shFoot').style.display='none';
   document.getElementById('shopMask').classList.add('show');
+  document.getElementById('tempItemToggleWrap').style.display='none';
   var body=document.getElementById('shBody');
   if(!allShops.length){body.innerHTML='<div class="lt">กำลังโหลด...</div>';
     getDocs(collection(db,'shops')).then(snap=>{allShops=[];snap.forEach(d=>allShops.push({id:d.id,...d.data()}));renderShopList();}).catch(e=>{body.innerHTML='<div class="lt">'+e.message+'</div>';});return;}
@@ -384,7 +396,7 @@ function renderShopList(){
 window.pickShop=function(shopId){
   var shop=allShops.find(s=>s.id===shopId);if(!shop)return;
   if(selShop&&selShop.id!==shopId)selItems={};
-  selShop={id:shopId,name:shop.name,phone:shop.phone||'',address:shop.address||'',lat:shop.lat||null,lng:shop.lng||null};
+  selShop={id:shopId,name:shop.name,phone:shop.phone||'',address:shop.address||'',lat:shop.lat||null,lng:shop.lng||null,shopType:shop.shopType||'normal'};
   document.getElementById('shopBox').classList.add('done');
   document.getElementById('shopBoxTxt').textContent='✓ '+shop.name;
   document.getElementById('rShopName').textContent=shop.name;
@@ -398,6 +410,12 @@ window.openMenuSheet=function(){
   document.getElementById('shT').textContent=selShop.name;
   document.getElementById('shFoot').style.display='block';
   document.getElementById('shopMask').classList.add('show');
+  var isProxy=selShop.shopType==='proxy';
+  document.getElementById('tempItemToggleWrap').style.display='block';
+  document.getElementById('tempItemHint').textContent=isProxy?'ร้านนี้เป็นร้านฝากซื้อ — ราคาที่ใส่คือราคาสุทธิ ไม่บวก GP':'ราคาที่ใส่จะถูกบวก GP ตามปกติเหมือนเมนูทั่วไปของร้านนี้';
+  document.getElementById('tempItemForm').style.display='none';
+  document.getElementById('tempItemName').value='';
+  document.getElementById('tempItemPrice').value='';
   var body=document.getElementById('shBody');
   body.innerHTML='<div class="lt">กำลังโหลดเมนู...</div>';
   getDocs(collection(db,'shops',selShop.id,'menus')).then(snap=>{
@@ -423,6 +441,26 @@ window.openMenuSheet=function(){
   }).catch(e=>{body.innerHTML='<div class="lt">'+e.message+'</div>';});
 };
 // POPUP
+window.toggleTempItemForm=function(){
+  var f=document.getElementById('tempItemForm');
+  var showing=f.style.display==='flex';
+  f.style.display=showing?'none':'flex';
+  if(!showing) document.getElementById('tempItemName').focus();
+};
+window.addTempMenuItem=function(){
+  var name=document.getElementById('tempItemName').value.trim();
+  var price=parseFloat(document.getElementById('tempItemPrice').value)||0;
+  if(!name){ alert('กรุณาใส่ชื่อเมนู'); return; }
+  if(price<=0){ alert('กรุณาใส่ราคาที่ถูกต้อง'); return; }
+  // ราคาที่ลูกค้าจ่ายจริง: ร้านฝากซื้อ = ราคาดิบเป๊ะๆ ไม่บวก GP, ร้านปกติ = บวก GP ตามชั้นราคา+GP หลักของร้าน (เมนูชั่วคราวไม่มี GP เพิ่มเติมเฉพาะตัว ใช้ตามมาตรฐานร้าน)
+  var disp=calcPrice(price,0);
+  var key='temp_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+  selItems[key]={name:name,basePrice:price,price:disp,qty:1,options:[],category:'เมนูชั่วคราว'};
+  document.getElementById('tempItemName').value='';
+  document.getElementById('tempItemPrice').value='';
+  document.getElementById('tempItemName').focus();
+  renderMenuItemsList(); calcRev(); checkCreate();
+};
 window.openMenuPopup=function(menuId){
   const m=window._menus&&window._menus[menuId]; if(!m){alert('โหลดเมนูไม่ได้ กดใหม่');return;}
   popupMenu=m; popupSelections={}; popupSubSelections={}; popupSubQty={};
@@ -824,7 +862,7 @@ async function loadEditOrder(){
     const o = snap.data();
     editOrig = {orderId:o.orderId||editOrderId, groupId:o.groupId||genGroupId(), createdAt:o.createdAt||serverTimestamp(), createdBy:o.createdBy||'admin', status:o.status||'pending'};
     // ร้าน — ใช้ข้อมูลที่เก็บไว้ในออเดอร์เองก่อนเลย ไม่ต้องรอโหลดรายชื่อร้านทั้งหมด
-    selShop = {id:o.shopId||'', name:o.shopName||'', phone:o.shopPhone||'', address:o.shopAddress||'', lat:o.shopLat||null, lng:o.shopLng||null};
+    selShop = {id:o.shopId||'', name:o.shopName||'', phone:o.shopPhone||'', address:o.shopAddress||'', lat:o.shopLat||null, lng:o.shopLng||null, shopType:o.shopType||'normal'};
     try{ const shopSnap = await getDoc(doc(db,'shops',o.shopId)); if(shopSnap.exists()) selShop.shopType = shopSnap.data().shopType||'normal'; }catch(e){}
     document.getElementById('shopBox').classList.add('done');
     document.getElementById('shopBoxTxt').textContent = '✓ '+selShop.name;
@@ -917,7 +955,7 @@ window.createOrder=async function(){
     var optBase=(i.options||[]).reduce(function(os,o){return os+(o.price||0);},0);
     return s+(i.basePrice+optBase)*i.qty;
   },0);
-  var deliveryFee=calcDeliveryFee();
+  var deliveryFee=isProxy?0:calcDeliveryFee(); // ร้านฝากซื้อ: ราคาที่ลูกค้าเห็น = ราคาที่พิมพ์เป๊ะๆ ไม่บวกค่าส่งเพิ่มเลย
   var grandTotal=subtotal+deliveryFee;
   // ร้านฝากซื้อ: ไม่มี GP ราคาลูกค้า = ราคาดิบ ใช้ราคาดิบทั้งหมดเป็นยอดหักแบ่งแทนส่วนต่าง GP (เหมือน checkout.html)
   var totalDiff=isProxy?(subtotal+deliveryFee):((subtotal-baseCost)+deliveryFee);
@@ -926,7 +964,7 @@ window.createOrder=async function(){
   var groupId=editOrig?editOrig.groupId:genGroupId();
   var orderData={
     orderId:editOrig?editOrig.orderId:orderId,groupId:groupId,
-    shopId:selShop.id,shopName:selShop.name,
+    shopId:selShop.id,shopName:selShop.name,shopType:selShop.shopType||'normal',
     shopPhone:selShop.phone||'',shopAddress:selShop.address||'',shopLat:selShop.lat||null,shopLng:selShop.lng||null,
     customer:{name:selCus.name||'',phone:selCus.phone||'',address:selCus.address||'',lat:selCus.lat||null,lng:selCus.lng||null},
     items:items,
