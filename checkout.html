@@ -384,6 +384,13 @@ window.placeOrder=async function(){
   try{
     const groupId=genGroupId(); const orderDocs=[];
     const customerData={name:addr.name||'',phone:addr.phone||'',address:addr.address||'',lat:addr.lat||null,lng:addr.lng||null};
+    // สำคัญ: บัคจริงที่เจอ — address.html (จุดเดียวที่ลูกค้าใช้แก้ไขชื่อ/ที่อยู่) ไม่เคยเขียนกลับ Firestore
+    // customers/{phone} เลย มีแต่ localStorage ทำให้โปรไฟล์ลูกค้าฝั่งแอดมินค้างว่างแม้ลูกค้าจะสั่งของได้ปกติ
+    // (แก้ต้นตอที่ address.html แล้ว) เพิ่ม sync ซ้ำอีกจุดตรงนี้ด้วย เผื่อลูกค้าเก่าที่โปรไฟล์ยังค้างว่างอยู่
+    // จะได้ถูกเติมข้อมูลให้อัตโนมัติทันทีที่สั่งซื้อครั้งถัดไป โดยไม่ต้องกลับไปหน้าที่อยู่อีกรอบ
+    if(customerData.phone){
+      setDoc(doc(db,"customers",customerData.phone),{...customerData,updatedAt:serverTimestamp()},{merge:true}).catch(()=>{});
+    }
     for(const shopId of checkoutShops){
       const grp=cart[shopId]; if(!grp) continue;
       const meta=shopMeta[shopId]||{};
@@ -409,7 +416,7 @@ window.placeOrder=async function(){
         const optBase=(i.options||[]).reduce((os,o)=>os+(o.price||0),0);
         return s+(i.basePrice+optBase)*i.qty;
       },0)-(loyaltyDiscount?loyaltyDiscount:0); // เมนูที่แลกฟรีไม่ต้องหักต้นทุนคืนร้านส่วนนั้น (ร้านให้ฟรีเอง)
-      const deliveryFee=getDeliveryFee(shopId);
+      const deliveryFee=isProxy?0:getDeliveryFee(shopId); // ร้านฝากซื้อ: ราคาที่ลูกค้าเห็น = ราคาที่พิมพ์เป๊ะๆ ไม่บวกค่าส่งเพิ่มเลย
       const grandTotal=subtotal+deliveryFee;
       // ร้านฝากซื้อ (proxy): ไม่มี GP ราคาลูกค้า = ราคาดิบ ดังนั้น subtotal-baseCost จะเท่ากับ 0 เสมอ
       // ให้ใช้ราคาดิบ (subtotal) ทั้งหมดเป็นยอดหักแบ่งไรเดอร์/แอดมินแทน ไม่ใช่ส่วนต่าง GP
@@ -421,7 +428,7 @@ window.placeOrder=async function(){
       // ในโครงสร้างเมนู/ตัวเลือกที่ซับซ้อนก็ตาม — ป้องกันไว้ล่วงหน้าด้วยการแปลงผ่าน JSON ก่อนเขียนจริง
       // (JSON.stringify ตัดคีย์ที่เป็น undefined ทิ้งไปเองอัตโนมัติ ไม่ว่าจะซ้อนลึกแค่ไหนก็ตาม)
       const orderPayload=JSON.parse(JSON.stringify({
-        orderId,groupId,shopId,shopName:grp.shopName,
+        orderId,groupId,shopId,shopName:grp.shopName,shopType:meta.shopType||'normal',
         shopPhone:meta.phone||'',shopAddress:meta.address||'',shopLat:meta.lat||null,shopLng:meta.lng||null,
         customer:customerData,items:orderItems,
         subtotal,baseCost,deliveryFee,grandTotal,totalDiff,walletCut,riderEarn,
