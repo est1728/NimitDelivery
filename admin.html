@@ -636,6 +636,17 @@ document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
     <div class="price-row"><span>รายได้รอบนี้</span><span id="pEarn">฿0</span></div>
   </div>
 
+  <!-- แก้ไขราคาแบบเรียลไทม์ (เฉพาะออเดอร์ร้านฝากซื้อ) -->
+  <div class="ds" id="proxyPriceEditWrap" style="display:none">
+    <div class="dsh"><div class="dst"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>แก้ไขราคา (ร้านฝากซื้อ)</div></div>
+    <div style="font-size:12px;color:var(--s);margin-bottom:10px">ร้านฝากซื้อ: ราคาที่ตั้งใหม่ = ยอดเรียกเก็บลูกค้าทั้งหมดเป๊ะๆ ไม่มีค่าส่งเพิ่ม ระบบจะคำนวณส่วนแบ่งไรเดอร์/หักกระเป๋าใหม่ให้อัตโนมัติตามเปอร์เซ็นต์ปัจจุบัน</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="number" id="proxyPriceInput" style="flex:1;height:44px;border:2px solid #e2e8f0;border-radius:12px;padding:0 14px;font-size:16px;font-weight:800;outline:none">
+      <button id="proxyPriceSaveBtn" style="height:44px;padding:0 18px;border:none;border-radius:12px;background:var(--p);color:#fff;font-size:14px;font-weight:800;cursor:pointer;white-space:nowrap">บันทึกราคาใหม่</button>
+    </div>
+    <div id="proxyPriceHint" style="font-size:11px;color:var(--s);margin-top:8px"></div>
+  </div>
+
   <!-- ACTION BAR -->
   <div class="dab">
     <button class="bprev" id="prevBtn" title="ย้อนสถานะ"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
@@ -1251,7 +1262,48 @@ function renderDetail(o){
   $('callCusBtn').onclick=()=>{ if(o.customer?.phone)location.href='tel:'+o.customer.phone; else window.toast('ไม่มีเบอร์ลูกค้า','in'); };
   $('chatCusBtn').onclick=()=>{ if(curDocId)location.href='chat.html?orderId='+curDocId+'&role=admin'; else window.toast('ไม่มีออเดอร์','in'); };
   $('navCusBtn').onclick=()=>{ if(o.customer?.lat&&o.customer?.lng)window.open('https://maps.google.com?q='+o.customer.lat+','+o.customer.lng,'_blank'); else if(o.customer?.address)window.open('https://maps.google.com?q='+encodeURIComponent(o.customer.address),'_blank'); else window.toast('ไม่มีพิกัดลูกค้า','in'); };
+
+  // แก้ไขราคาแบบเรียลไทม์ — เฉพาะออเดอร์ร้านฝากซื้อ (proxy) และยังไม่จบงาน (จบแล้วหักกระเป๋าไรเดอร์ไปแล้วจริง แก้ราคาย้อนหลังจะไม่ตรงกับที่หักไปแล้ว)
+  const proxyWrap=$('proxyPriceEditWrap');
+  const isProxyOrder = o.shopType==='proxy';
+  const orderLocked = o.status==='done'||o.status==='rejected';
+  if(proxyWrap){
+    if(isProxyOrder && !orderLocked){
+      proxyWrap.style.display='block';
+      $('proxyPriceInput').value = o.grandTotal||0;
+      $('proxyPriceHint').textContent='ราคาปัจจุบัน ฿'+(o.grandTotal||0)+' · แก้ไขล่าสุด: '+(o.priceEditedAt?.toDate?o.priceEditedAt.toDate().toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'ยังไม่เคยแก้');
+    } else {
+      proxyWrap.style.display='none';
+    }
+  }
 }
+
+window.saveProxyPrice=async function(){
+  if(!curDocId||!curOrder) return;
+  if(curOrder.shopType!=='proxy'){ window.toast('ใช้ได้เฉพาะออเดอร์ร้านฝากซื้อ','er'); return; }
+  if(curOrder.status==='done'||curOrder.status==='rejected'){ window.toast('ออเดอร์นี้จบงานแล้ว แก้ไขราคาไม่ได้','er'); return; }
+  const newPrice=Math.round(parseFloat($('proxyPriceInput').value));
+  if(!newPrice||newPrice<=0){ window.toast('กรุณาใส่ราคาที่ถูกต้อง','er'); return; }
+  const btn=$('proxyPriceSaveBtn'); btn.disabled=true; btn.textContent='กำลังบันทึก...';
+  try{
+    // ดึงเปอร์เซ็นต์ส่วนแบ่งล่าสุดจาก settings เสมอ (ไม่ใช้ค่าที่อาจค้างอยู่ในฟอร์มตั้งค่าที่ยังไม่เคยเปิด)
+    const psnap = await getDoc(doc(db,'settings','pricing'));
+    const wp = psnap.exists() ? (psnap.data().walletPercent??30) : 30;
+    const rp = psnap.exists() ? (psnap.data().riderPercent??70) : 70;
+    // ร้านฝากซื้อ: ราคาที่ตั้งใหม่ = ยอดทั้งหมด (ไม่มีค่าส่งแยก) และเป็นยอดหักแบ่งทั้งก้อนเหมือนตอนสร้างออเดอร์
+    const walletCut=Math.round(newPrice*wp/100);
+    const riderEarn=Math.round(newPrice*rp/100);
+    await updateDoc(doc(db,'orders',curDocId),{
+      subtotal:newPrice, grandTotal:newPrice, totalDiff:newPrice, deliveryFee:0,
+      walletCut, riderEarn,
+      priceEditedAt:serverTimestamp(), priceEditedBy:'admin',
+      updatedAt:serverTimestamp()
+    });
+    window.toast('บันทึกราคาใหม่แล้ว ฿'+newPrice,'ok');
+  }catch(e){ window.toast('บันทึกไม่สำเร็จ: '+e.message,'er'); }
+  btn.disabled=false; btn.textContent='บันทึกราคาใหม่';
+}
+$('proxyPriceSaveBtn')?.addEventListener('click', window.saveProxyPrice);
 
 
 // STATUS CHANGE WITH CONFIRM
