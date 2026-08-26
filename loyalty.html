@@ -21,6 +21,12 @@ body{background:var(--g);min-height:100vh;padding-bottom:28px;}
 .bar-track{height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden}
 .bar-fill{height:100%;border-radius:4px}
 .card-note{font-size:11px;font-weight:700;margin-top:6px}
+.shop-group{margin-bottom:18px}
+.shop-group-name{font-size:15px;font-weight:800;color:var(--t);margin-bottom:8px}
+.card.full .card-name{color:#16a34a}
+.shop-loyalty-block{margin-bottom:18px}
+.full-cards-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.full-card-badge{display:flex;align-items:center;gap:5px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:8px 12px;font-size:12px;font-weight:800;color:#16a34a}
 .empty{text-align:center;padding:60px 24px;color:var(--s);font-size:14px;line-height:1.7}
 .loading{text-align:center;padding:60px 24px;color:var(--s);font-size:13px}
 </style>
@@ -70,16 +76,20 @@ async function load(){
     listEl.innerHTML = cards.map(c=>{
       const target = shopTargets[c.shopId]||10;
       const pts = c.points||0;
-      const full = pts>=target;
-      const pct = Math.min(100, Math.round(pts/target*100));
-      return `<div class="card${full?' full':''}">
-        <div class="card-top">
-          <div class="card-name">${esc(c.shopName)}</div>
-          <div class="card-pts" style="color:${full?'#16a34a':'#c2410c'}">${pts}/${target}${full?' ✓':''}</div>
-        </div>
-        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${full?'#16a34a':'#f97316'}"></div></div>
-        ${full?'<div class="card-note" style="color:#16a34a">แต้มเต็มแล้ว! ใช้สิทธิ์รับฟรีได้ตอนชำระเงินร้านนี้</div>':''}
-      </div>`;
+      const full = Math.floor(pts/target);
+      const partial = pts%target;
+      const pct = target>0 ? Math.round(partial/target*100) : 0;
+      let html = `<div class="shop-loyalty-block">
+        <div class="shop-group-name">${esc(c.shopName)}</div>`;
+      if(full>0){
+        html += `<div class="full-cards-row">${Array(full).fill(0).map(()=>'<div class="full-card-badge">🎫 ครบแล้ว</div>').join('')}</div>
+        <div class="card-note" style="color:#16a34a;margin-bottom:8px">มี ${full} ใบที่ใช้สิทธิ์รับฟรีได้ตอนชำระเงินร้านนี้ (ใช้ได้ครั้งละ 1 ใบต่อออเดอร์)</div>`;
+      }
+      html += `<div class="card">
+        <div class="card-top"><div class="card-pts" style="color:#c2410c">กำลังสะสม ${partial}/${target}</div></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:#f97316"></div></div>
+      </div></div>`;
+      return html;
     }).join("");
   }catch(e){
     listEl.innerHTML = '<div class="empty">โหลดไม่สำเร็จ: '+esc(e.message)+'</div>';
