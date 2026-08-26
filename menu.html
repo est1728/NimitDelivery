@@ -249,7 +249,7 @@ body{background:var(--bg);min-height:100vh;padding-bottom:120px;}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, initializeFirestore, collection, getDocs, doc, getDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, getDoc, query, where, onSnapshot, enableIndexedDbPersistence} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 // local aliases for cross-scope calls
 const closePopup=(...a)=>window.closePopup(...a);
 
@@ -261,12 +261,11 @@ const firebaseConfig = {
   messagingSenderId:"233476256130",
   appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"};
 const app = initializeApp(firebaseConfig);
-// สำคัญมาก: iOS Safari (โดยเฉพาะเวอร์ชันล่าสุด) มีปัญหาที่รู้จักกันแล้วเรื่องการเชื่อมต่อ Firestore ค้าง/ช้า
-// มากผิดปกติ (ทั้งอ่านและเขียนข้อมูล) ทั้งที่เครือข่ายปกติดี ตรงกับอาการที่เจอเป๊ะ (ทำงานได้ปกติบน Android
-// แต่ iOS ใช้ไม่ได้เลย) วิธีแก้ที่ Firebase แนะนำอย่างเป็นทางการคือบังคับให้ใช้การเชื่อมต่อแบบ long-polling
-// แทนการเชื่อมต่อสตรีมแบบปกติ ซึ่งเข้ากันได้ดีกว่ากับเบราว์เซอร์/เครือข่ายบางประเภทที่มีปัญหากับการเชื่อมต่อ
-// สตรีมแบบต่อเนื่อง
-const db = initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
+const db = getFirestore(app);
+// เปิดระบบแคชข้อมูลออฟไลน์ (IndexedDB) ไว้ในเครื่อง — โหลดครั้งก่อนไว้แล้วจะดึงจากแคชได้ทันทีแม้เน็ตหลุด/ช้า
+// ถ้าเบราว์เซอร์ไม่รองรับ หรือเปิดหลายแท็บพร้อมกัน จะข้ามไปเงียบๆ ไม่กระทบการทำงานปกติของหน้านี้เลย
+enableIndexedDbPersistence(db).catch(()=>{});
+
 
 // ล็อกการเลื่อนพื้นหลังตอนมีป๊อบอัพเปิดอยู่ (บัคเดียวกับที่เจอและแก้ไปแล้วใน shop-manage.html)
 (function(){
@@ -887,7 +886,13 @@ function updateCartBar(){
   badge.textContent=qty; badge.style.display=qty>0?"flex":"none";}
 
 updateCartBar();
-loadMenu();
+// สำคัญ: ถ้าหารหัสร้านไม่เจอจริงๆ (ทั้ง URL และ localStorage) ต้องบอกลูกค้าตรงๆ ไม่ปล่อยให้ค้างที่
+// "กำลังโหลดเมนู..." ไปตลอดกาลแบบเงียบๆ เหมือนแอปพัง (เคยเป็นบัคที่ทำให้ดูเหมือนข้อมูลไม่โหลด)
+if(!shopId){
+  document.getElementById("menuContainer").innerHTML='<div class="loading">ไม่พบร้านค้า กรุณากลับไปเลือกร้านใหม่อีกครั้ง<br><br><span style="color:var(--primary,#0c4aa6);font-weight:700;text-decoration:underline;cursor:pointer" onclick="location.href=\'shops.html\'">กลับไปหน้าร้านค้า</span></div>';
+} else {
+  loadMenu();
+}
 
 function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 </script>
