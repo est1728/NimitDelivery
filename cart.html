@@ -232,7 +232,7 @@ body { background:var(--gray); min-height:100vh; padding-bottom:120px; }
 </script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, doc, getDoc, query, where, getDocs, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, getDoc, query, where, getDocs, orderBy, serverTimestamp, enableIndexedDbPersistence} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -244,6 +244,10 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+// เปิดระบบแคชข้อมูลออฟไลน์ (IndexedDB) ไว้ในเครื่อง — โหลดครั้งก่อนไว้แล้วจะดึงจากแคชได้ทันทีแม้เน็ตหลุด/ช้า
+// ถ้าเบราว์เซอร์ไม่รองรับ หรือเปิดหลายแท็บพร้อมกัน จะข้ามไปเงียบๆ ไม่กระทบการทำงานปกติของหน้านี้เลย
+enableIndexedDbPersistence(db).catch(()=>{});
+
 
 // cart = { shopId: { shopName, items:[{id,name,basePrice,price,qty,options:[],note}] } }
 let cart = JSON.parse(localStorage.getItem("cart") || "{}");
