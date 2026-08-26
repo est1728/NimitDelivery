@@ -5,100 +5,69 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>ค้นหา - Nimit Delivery</title>
 <style>
-:root{
-  --p:#0c4aa6;--pd:#083570;--pl:#e8f0fe;
-  --warm:#ea580c;--warml:#fff1e6;
-  --g:#f5f6f8;--t:#0f172a;--s:#64748b;
-  --gn:#16a34a;--gnl:#dcfce7;
-  --star:#f59e0b;
-}
-*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
-body{background:#fff;min-height:100vh;color:var(--t);}
-@media (prefers-reduced-motion: reduce){*{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;}}
+:root{--p:#0c4aa6;--pd:#083570;--pl:#e8f0fe;--g:#f5f6f8;--t:#0f172a;--s:#64748b;--gn:#16a34a;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
+body{background:#fff;min-height:100vh;}
 
 /* HEADER */
 .hd{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;position:sticky;top:0;z-index:10;border-bottom:1px solid #f0f2f5;}
-.back{width:38px;height:38px;flex-shrink:0;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:background .15s;}
+.back{width:38px;height:38px;flex-shrink:0;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:50%;}
 .back:active{background:var(--g);}
 .back svg{width:20px;height:20px;fill:none;stroke:var(--t);stroke-width:2.5;}
 .srch-wrap{flex:1;position:relative;}
-.srch-ico{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:16px;height:16px;fill:none;stroke:#94a3b8;stroke-width:2;stroke-linecap:round;pointer-events:none;transition:stroke .18s;}
-.srch-input{width:100%;height:46px;border:2px solid transparent;border-radius:23px;background:var(--g);padding:0 40px 0 42px;font-size:15px;outline:none;color:var(--t);transition:background .18s,border-color .18s,box-shadow .18s;}
-.srch-input::placeholder{color:#a4adb8;}
-.srch-input:focus{background:#fff;border-color:var(--p);box-shadow:0 0 0 4px var(--pl);}
-.srch-input:focus ~ .srch-ico{stroke:var(--p);}
-.clear-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:20px;height:20px;border:none;background:#cbd5e1;border-radius:50%;cursor:pointer;color:#fff;font-size:11px;display:none;align-items:center;justify-content:center;line-height:1;transition:background .15s,transform .15s;}
+.srch-ico{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:16px;height:16px;fill:none;stroke:#94a3b8;stroke-width:2;stroke-linecap:round;pointer-events:none;}
+.srch-input{width:100%;height:44px;border:none;border-radius:22px;background:var(--g);padding:0 40px 0 42px;font-size:15px;outline:none;color:var(--t);}
+.srch-input::placeholder{color:#b0b8c1;}
+.clear-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:20px;height:20px;border:none;background:#b0b8c1;border-radius:50%;cursor:pointer;color:#fff;font-size:12px;display:none;align-items:center;justify-content:center;line-height:1;}
 .clear-btn.show{display:flex;}
-.clear-btn:active{background:#94a3b8;transform:translateY(-50%) scale(.9);}
 
 /* SECTIONS */
-.sec{padding:18px 16px 8px;}
-.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-.sec-t{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:var(--s);text-transform:uppercase;letter-spacing:.5px;}
-.sec-t svg{width:15px;height:15px;flex-shrink:0;}
-.sec-t.pop svg{fill:var(--warm);}
-.sec-t.hist svg{fill:var(--s);}
-.sec-clear{font-size:12.5px;color:var(--p);cursor:pointer;font-weight:700;padding:4px 2px;}
-.sec-clear:active{opacity:.6;}
+.sec{padding:14px 16px 4px;}
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.sec-t{font-size:13px;font-weight:800;color:var(--s);text-transform:uppercase;letter-spacing:.4px;}
+.sec-clear{font-size:12px;color:var(--p);cursor:pointer;font-weight:700;}
 
 /* CHIPS (ประวัติ / ยอดนิยม) */
-.chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 16px;}
-.chip{display:flex;align-items:center;gap:6px;height:36px;padding:0 15px;border:none;border-radius:20px;background:var(--g);font-size:13.5px;color:var(--t);cursor:pointer;font-weight:600;transition:transform .12s,background .12s;animation:chipIn .32s ease both;}
-.chip:active{transform:scale(.94);}
-.chip svg{width:14px;height:14px;fill:var(--s);flex-shrink:0;}
-.chip.popular{background:var(--warml);color:var(--warm);}
-.chip.popular svg{fill:var(--warm);}
-.chip.popular .rank{font-weight:800;opacity:.55;}
+.chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 12px;}
+.chip{display:flex;align-items:center;gap:6px;height:34px;padding:0 14px;border:none;border-radius:20px;background:var(--g);font-size:14px;color:var(--t);cursor:pointer;font-weight:600;}
+.chip:active{opacity:.8;}
+.chip svg{width:14px;height:14px;fill:var(--s);}
+.chip.history svg{fill:var(--s);}
+.chip.popular svg{fill:var(--p);}
+.chip.popular{background:var(--pl);color:var(--p);}
 
 /* RESULTS */
 .results{padding:0 0 80px;}
-.divider{font-size:12px;font-weight:800;color:var(--s);padding:14px 16px 8px;background:#fff;text-transform:uppercase;letter-spacing:.5px;}
+.divider{font-size:12px;font-weight:800;color:var(--s);padding:10px 16px 6px;background:#fff;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid #f5f6f8;}
 
 /* SHOP ROW */
-.shop-row{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;transition:background .12s;animation:rowIn .3s ease both;}
+.shop-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #f5f6f8;cursor:pointer;}
 .shop-row:active{background:var(--g);}
-.shop-ava{width:50px;height:50px;border-radius:15px;background:var(--pl);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(15,23,42,.08);}
+.shop-ava{width:48px;height:48px;border-radius:14px;background:var(--pl);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
 .shop-ava img{width:100%;height:100%;object-fit:cover;}
 .shop-ava svg{width:22px;height:22px;fill:var(--p);}
 .shop-info{flex:1;min-width:0;}
 .shop-name{font-size:15px;font-weight:800;color:var(--t);}
-.shop-meta{font-size:12.5px;color:var(--s);margin-top:3px;display:flex;align-items:center;gap:4px;}
-.shop-meta .star{color:var(--star,#f59e0b);}
-.shop-badge{font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:20px;background:var(--gnl);color:var(--gn);flex-shrink:0;}
+.shop-meta{font-size:12px;color:var(--s);margin-top:2px;}
+.shop-badge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:20px;background:var(--gnl);color:var(--gn);flex-shrink:0;}
 
 /* MENU ROW */
-.menu-row{display:flex;align-items:center;gap:12px;padding:11px 16px;cursor:pointer;transition:background .12s;animation:rowIn .3s ease both;}
+.menu-row{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid #f5f6f8;cursor:pointer;}
 .menu-row:active{background:var(--g);}
-.menu-ico{width:46px;height:46px;border-radius:13px;background:#fff3e0;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.menu-ico{width:44px;height:44px;border-radius:12px;background:#fff3e0;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;}
 .menu-ico img{width:100%;height:100%;object-fit:cover;}
 .menu-info{flex:1;min-width:0;}
 .menu-name{font-size:14px;font-weight:700;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.menu-shop{font-size:12px;color:var(--s);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.menu-shop{font-size:12px;color:var(--s);margin-top:2px;}
 .menu-price{font-size:14px;font-weight:800;color:var(--p);flex-shrink:0;}
 
-@keyframes rowIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-@keyframes chipIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
-
 /* HIGHLIGHT */
-.hl{background:#fef08a;border-radius:3px;padding:0 2px;}
+.hl{background:#fff9c4;border-radius:3px;padding:0 1px;}
 
-/* SKELETON LOADING */
-.skel-row{display:flex;align-items:center;gap:12px;padding:12px 16px;}
-.skel-box{border-radius:14px;background:linear-gradient(100deg,#f0f2f5 30%,#e6e9ee 45%,#f0f2f5 60%);background-size:250% 100%;animation:shine 1.3s ease infinite;flex-shrink:0;}
-.skel-lines{flex:1;display:flex;flex-direction:column;gap:8px;}
-.skel-line{height:11px;border-radius:6px;background:linear-gradient(100deg,#f0f2f5 30%,#e6e9ee 45%,#f0f2f5 60%);background-size:250% 100%;animation:shine 1.3s ease infinite;}
-@keyframes shine{0%{background-position:200% 0}100%{background-position:-50% 0}}
-
-/* EMPTY / ERROR */
-.empty{text-align:center;padding:60px 24px;color:var(--s);}
-.empty svg{width:52px;height:52px;fill:none;stroke:#cbd5e1;stroke-width:1.5;display:block;margin:0 auto 16px;}
-.empty p{font-size:15.5px;font-weight:800;color:var(--t);margin-bottom:6px;}
-.empty span{font-size:13.5px;}
-.empty-cta{display:inline-flex;align-items:center;gap:6px;margin-top:18px;height:40px;padding:0 20px;border-radius:20px;background:var(--pl);color:var(--p);font-size:13.5px;font-weight:800;border:none;cursor:pointer;}
-.empty-cta:active{opacity:.7;}
-.empty.err svg{stroke:#fca5a5;}
-.retry-btn{display:inline-flex;align-items:center;gap:6px;margin-top:18px;height:40px;padding:0 20px;border-radius:20px;background:var(--p);color:#fff;font-size:13.5px;font-weight:800;border:none;cursor:pointer;}
-.retry-btn:active{opacity:.8;}
+/* EMPTY */
+.empty{text-align:center;padding:52px 20px;color:var(--s);}
+.empty svg{width:48px;height:48px;fill:#cbd5e1;display:block;margin:0 auto 12px;}
+.empty p{font-size:15px;font-weight:700;color:var(--t);margin-bottom:6px;}
 </style>
 </head>
 <body>
@@ -115,11 +84,11 @@ body{background:#fff;min-height:100vh;color:var(--t);}
 <!-- HOME STATE (ก่อนพิมพ์) -->
 <div id="homeState">
   <div id="historySec" style="display:none">
-    <div class="sec"><div class="sec-hd"><span class="sec-t hist"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 10.41 4.29 4.3-1.41 1.41L11 13V7h2v5.41z"/></svg>ค้นหาล่าสุด</span><span class="sec-clear" onclick="clearHistory()">ล้างทั้งหมด</span></div></div>
+    <div class="sec"><div class="sec-hd"><span class="sec-t">🕐 ค้นหาล่าสุด</span><span class="sec-clear" onclick="clearHistory()">ล้างทั้งหมด</span></div></div>
     <div class="chips" id="historyChips"></div>
   </div>
   <div id="popularSec" style="display:none">
-    <div class="sec"><div class="sec-hd"><span class="sec-t pop"><svg viewBox="0 0 24 24"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>ค้นหายอดนิยม</span></div></div>
+    <div class="sec"><div class="sec-hd"><span class="sec-t">🔥 ค้นหายอดนิยม</span></div></div>
     <div class="chips" id="popularChips"></div>
   </div>
 </div>
@@ -131,7 +100,7 @@ body{background:#fff;min-height:100vh;color:var(--t);}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, collectionGroup, query, getDocs, doc, setDoc, getDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, query, getDocs, doc, setDoc, getDoc, increment, serverTimestamp, enableIndexedDbPersistence} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const db = getFirestore(initializeApp({
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -141,6 +110,10 @@ const db = getFirestore(initializeApp({
   messagingSenderId:"233476256130",
   appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
 }));
+// เปิดระบบแคชข้อมูลออฟไลน์ (IndexedDB) ไว้ในเครื่อง — โหลดครั้งก่อนไว้แล้วจะดึงจากแคชได้ทันทีแม้เน็ตหลุด/ช้า
+// ถ้าเบราว์เซอร์ไม่รองรับ หรือเปิดหลายแท็บพร้อมกัน จะข้ามไปเงียบๆ ไม่กระทบการทำงานปกติของหน้านี้เลย
+enableIndexedDbPersistence(db).catch(()=>{});
+
 
 const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 function hl(text, q) {
@@ -151,9 +124,10 @@ function hl(text, q) {
 
 let allShops = [], allMenus = [], searchTimer = null;
 let priceSettings = {gpPercent:0, gpTiers:[]};
-let dataReady = false, loadError = false;
 
 // ราคาที่โชว์ในผลค้นหาต้องตรงกับราคาที่ลูกค้าเห็นจริงในหน้าเมนู (menu.html) เป๊ะๆ
+// เดิมใช้ตัวคูณ 1.38 ตายตัว ไม่เชื่อมกับระบบ GP ตามช่วงราคา/GP ต่อเมนู/ร้านฝากซื้อเลย
+// ทำให้ราคาที่เห็นตอนค้นหา กับราคาจริงตอนเปิดเข้าไปดูเมนู ไม่ตรงกัน
 function tierGpPercent(base){
   if(Array.isArray(priceSettings.gpTiers) && priceSettings.gpTiers.length){
     const sorted=[...priceSettings.gpTiers].sort((a,b)=>(a.min??0)-(b.min??0));
@@ -173,25 +147,29 @@ function calcPrice(base, menuGp, shopType){
 }
 
 // โหลดข้อมูล
-// สำคัญ: บัคความไม่เสถียรตัวจริง — เดิมยิง getDocs แยกทีละร้านสำหรับ subcollection เมนู (Promise.all วนทุกร้าน)
-// ถ้ามีร้านเยอะ เท่ากับยิง request พร้อมกันเป็นสิบเป็นร้อยตัวในจังหวะเดียว บนเน็ตมือถือมีโอกาสหลุด/ช้า/timeout
-// เป็นบางตัวสูงมาก และแต่ละตัว catch(e){} เงียบไว้ ทำให้บางครั้งค้นหาเจอเมนู บางครั้งไม่เจอ (ร้านเดียวกัน คำค้นเดียวกัน)
-// ขึ้นอยู่กับดวงว่ารอบนั้น request ของร้านไหนหลุดไปบ้าง — แก้เป็น query เดียว (collectionGroup) ดึงเมนูทุกร้านพร้อมกันทีเดียว
 async function loadData(){
+  // โหลดค่าตั้งราคา (GP ตามช่วงราคา) ให้ตรงกับที่ menu.html ใช้จริง
   try{
     const s = await getDoc(doc(db,'settings','pricing'));
     if(s.exists()){ const d=s.data(); priceSettings.gpPercent=d.gpPercent||0; priceSettings.gpTiers=Array.isArray(d.gpTiers)?d.gpTiers:[]; }
   }catch(e){}
+  // โหลด shops
   try{
     const snap = await getDocs(collection(db,'shops'));
     snap.forEach(d => allShops.push({id:d.id,...d.data()}));
-  }catch(e){ console.warn('shops:',e.message); loadError = true; }
+  }catch(e){ console.warn('shops:',e.message); }
+  // โหลดเมนูจาก subcollection ของแต่ละร้าน
   try{
-    const snap = await getDocs(collectionGroup(db,'menus'));
-    snap.forEach(d => allMenus.push({id:d.id, shopId:d.ref.parent.parent.id, ...d.data()}));
-  }catch(e){ console.warn('menus:',e.message); }
+    await Promise.all(allShops.map(async s=>{
+      try{
+        const snap = await getDocs(collection(db,'shops',s.id,'menus'));
+        snap.forEach(d=>allMenus.push({id:d.id,shopId:s.id,...d.data()}));
+      }catch(e){}
+    }));
+  }catch(e){}
   dataReady = true;
 }
+let dataReady = false;
 
 // HISTORY (localStorage)
 function getHistory(){ return JSON.parse(localStorage.getItem('searchHistory')||'[]'); }
@@ -207,10 +185,10 @@ window.clearHistory = function(){
 
 function renderHistory(){
   const h = getHistory();
-  document.getElementById('historySec').style.display = h.length ? 'block' : 'none';
-  if(!h.length) return;
-  document.getElementById('historyChips').innerHTML = h.map((q,i)=>`
-    <button class="chip history" style="animation-delay:${i*25}ms" onclick="setSearch('${esc(q)}')">
+  if(!h.length){ document.getElementById('historySec').style.display='none'; return; }
+  document.getElementById('historySec').style.display='block';
+  document.getElementById('historyChips').innerHTML = h.map(q=>`
+    <button class="chip history" onclick="setSearch('${esc(q)}')">
       <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18z"/></svg>
       ${esc(q)}
     </button>`).join('');
@@ -226,8 +204,9 @@ async function loadPopular(){
     const top = items.slice(0,8);
     if(!top.length){ document.getElementById('popularSec').style.display='none'; return; }
     document.getElementById('popularSec').style.display='block';
-    document.getElementById('popularChips').innerHTML = top.map((i,idx)=>`
-      <button class="chip popular" style="animation-delay:${idx*25}ms" onclick="setSearch('${esc(i.q)}')">
+    document.getElementById('popularChips').innerHTML = top.map(i=>`
+      <button class="chip popular" onclick="setSearch('${esc(i.q)}')">
+        <svg viewBox="0 0 24 24"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L9.8 8.9z"/></svg>
         ${esc(i.q)}
       </button>`).join('');
   }catch(e){}
@@ -250,27 +229,22 @@ window.setSearch = function(q){
 function fuzzyMatch(text, query){
   if(!text||!query) return false;
   const t = text.toLowerCase(), q = query.toLowerCase();
+  // ตรงเป๊ะ
   if(t.includes(q)) return {match:true, score:100};
+  // ตัวอักษรน้อยหรือหายไป 1-2 ตัว (Levenshtein distance)
   if(Math.abs(t.length-q.length) > 4) return false;
+  // เช็ค bigram overlap (คู่ตัวอักษร)
   function bigrams(s){ const b=new Set(); for(let i=0;i<s.length-1;i++) b.add(s[i]+s[i+1]); return b; }
   const tb=bigrams(t), qb=bigrams(q);
   let common=0; qb.forEach(b=>{if(tb.has(b)) common++;});
   const score = qb.size>0 ? common/qb.size : 0;
   if(score>=0.5) return {match:true, score:Math.round(score*100)};
+  // เช็ค subsequence — ตัวอักษรเรียงไม่ครบ
   let ti=0,qi=0,matched=0;
   while(ti<t.length&&qi<q.length){if(t[ti]===q[qi]){matched++;qi++;} ti++;}
   const subScore = matched/q.length;
   if(subScore>=0.75) return {match:true, score:Math.round(subScore*80)};
   return false;
-}
-
-function skeletonHTML(n){
-  let h='';
-  for(let i=0;i<n;i++){
-    h+=`<div class="skel-row"><div class="skel-box" style="width:50px;height:50px"></div>
-      <div class="skel-lines"><div class="skel-line" style="width:${55+Math.random()*30}%"></div><div class="skel-line" style="width:${30+Math.random()*20}%"></div></div></div>`;
-  }
-  return h;
 }
 
 function doSearch(q){
@@ -286,48 +260,42 @@ function doSearch(q){
   document.getElementById('homeState').style.display='none';
   document.getElementById('resultState').style.display='block';
   const ql = q.toLowerCase();
-  const list = document.getElementById('resultList');
 
-  // ข้อมูลยังโหลดไม่เสร็จ (หรือโหลดพลาด) — โชว์สถานะที่ตรงกับความจริง แทนการรีบสรุปว่า "ไม่พบ" ทั้งที่ยังไม่ได้ค้นหาจริง
-  // (ต้นเหตุอีกจุดที่ทำให้รู้สึกไม่เสถียร: เดิมพิมพ์ปุ๊บขึ้น "ไม่พบ" ทันทีถ้าข้อมูลยังโหลดไม่เสร็จ แล้วพอโหลดเสร็จค่อยมาโผล่ผลจริงทีหลัง ดูเหมือนระบบสั่นๆ)
-  if(loadError){
-    list.innerHTML = `<div class="empty err"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16.5" x2="12" y2="16.51"/></svg>
-      <p>โหลดข้อมูลไม่สำเร็จ</p><span>เช็คสัญญาณอินเทอร์เน็ตแล้วลองใหม่</span>
-      <div><button class="retry-btn" onclick="location.reload()">ลองใหม่</button></div></div>`;
-    return;
-  }
-  if(!dataReady){
-    list.innerHTML = skeletonHTML(5);
-    return; // loadData() เสร็จแล้วจะเรียก doSearch ซ้ำอัตโนมัติเอง (ดูท้ายไฟล์)
-  }
-
-  const shopRes = allShops.filter(s=>fuzzyMatch(s.name||'',ql)||fuzzyMatch(s.desc||'',ql));
+  // กรองร้าน
+  const shopRes = allShops.filter(s=>fuzzyMatch(s.name||'',ql)||fuzzyMatch(s.desc||'',ql)||fuzzyMatch((s.name||'')+(s.desc||''),ql));
+  // กรองเมนู + หา shopName
   const menuRes = allMenus.filter(m=>fuzzyMatch(m.name||'',ql)||fuzzyMatch(m.desc||'',ql));
 
+  const list = document.getElementById('resultList');
   let html = '';
+
   if(shopRes.length){
     html += `<div class="divider">ร้านค้า (${shopRes.length})</div>`;
-    html += shopRes.slice(0,5).map((s,i)=>{
+    html += shopRes.slice(0,5).map(s=>{
+      const shop = allShops.find(x=>x.id===s.id)||s;
       const ava = s.avatarUrl?`<img src="${s.avatarUrl}">`:'<svg viewBox="0 0 24 24"><path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/></svg>';
       const rating = (parseFloat(s.rating)||0).toFixed(2);
-      return `<div class="shop-row" style="animation-delay:${i*25}ms" onclick="pickShop('${s.id}','${esc(s.name).replace(/'/g,"\\'")}','${esc(q)}')">
+      return `<div class="shop-row" onclick="pickShop('${s.id}','${esc(s.name).replace(/'/g,"\\'")}','${esc(q)}')">
         <div class="shop-ava">${ava}</div>
         <div class="shop-info">
           <div class="shop-name">${hl(s.name||'',ql)}</div>
-          <div class="shop-meta"><span class="star">⭐</span>${rating} · ${s.deliveryTime||'20-30'} นาที</div>
+          <div class="shop-meta">⭐${rating} · ${s.deliveryTime||'20-30'} นาที</div>
         </div>
         ${s.isOpen?'<span class="shop-badge">เปิด</span>':''}
       </div>`;
     }).join('');
   }
 
+  if(!dataReady){
+    html += '<div class="lt" style="padding:16px;font-size:13px">⏳ กำลังโหลดเมนู...</div>';
+  }
   if(menuRes.length){
     html += `<div class="divider">เมนู (${menuRes.length})</div>`;
-    html += menuRes.slice(0,10).map((m,i)=>{
+    html += menuRes.slice(0,10).map(m=>{
       const shop = allShops.find(s=>s.id===m.shopId);
       const ico = m.imageUrl?`<img src="${m.imageUrl}">`:'🍽';
       const price = calcPrice(m.price||0, m.gp||0, shop?.shopType);
-      return `<div class="menu-row" style="animation-delay:${i*20}ms" onclick="pickMenu('${m.shopId||''}','${esc(shop?.name||'').replace(/'/g,"\\'")}','${esc(q)}')">
+      return `<div class="menu-row" onclick="pickMenu('${m.shopId||''}','${esc(shop?.name||'').replace(/'/g,"\\'")}','${esc(q)}')">
         <div class="menu-ico">${ico}</div>
         <div class="menu-info">
           <div class="menu-name">${hl(m.name||'',ql)}</div>
@@ -339,10 +307,9 @@ function doSearch(q){
   }
 
   if(!shopRes.length && !menuRes.length){
-    html = `<div class="empty"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="21" y1="21" x2="15.5" y2="15.5"/></svg>
+    html = `<div class="empty"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
       <p>ไม่พบ "${esc(q)}"</p>
-      <span>ลองค้นหาด้วยคำอื่น หรือสะกดใหม่อีกครั้ง</span>
-      <div><button class="empty-cta" onclick="location.href='shops.html'">เรียกดูร้านทั้งหมด</button></div>
+      <span>ลองค้นหาด้วยคำอื่น</span>
     </div>`;
   }
   list.innerHTML = html;
@@ -353,7 +320,7 @@ window.pickShop = function(id, name, q){
   logSearch(q||name);
   localStorage.setItem('selectedShopId', id);
   localStorage.setItem('selectedShopName', name);
-  location.href = 'menu.html';
+  location.href = 'menu.html?id='+encodeURIComponent(id);
 };
 
 window.pickMenu = function(shopId, shopName, q){
@@ -361,7 +328,7 @@ window.pickMenu = function(shopId, shopName, q){
   logSearch(q);
   localStorage.setItem('selectedShopId', shopId);
   localStorage.setItem('selectedShopName', shopName);
-  location.href = 'menu.html';
+  location.href = 'menu.html?id='+encodeURIComponent(shopId);
 };
 
 window.clearSearch = function(){
@@ -377,13 +344,15 @@ document.getElementById('srch').addEventListener('input', e=>{
   clearTimeout(searchTimer);
   searchTimer = setTimeout(()=>doSearch(e.target.value), 250);
 });
-// กดปุ่ม "ค้นหา" บนคีย์บอร์ดมือถือ (หรือ Enter) ให้ค้นหาทันที ไม่ต้องรอ debounce 250ms ของ event input
+// สำคัญ: เดิมกดปุ่ม "ค้นหา" บนคีย์บอร์ดมือถือ (หรือ Enter) แล้วไม่มีอะไรเกิดขึ้นทันที ต้องรอ debounce
+// 250ms ของ event input เดิมก่อน ถ้ากดตอนที่ debounce ยังไม่ทันทำงาน จะรู้สึกเหมือนกดค้นหาแล้ว "ไม่ขึ้น"
+// ทั้งที่จริงๆแค่ต้องรออีกเสี้ยววินาที — เพิ่มตัวจับกดค้นหา/Enter ให้ค้นหาทันทีไปเลย ไม่ต้องรอ debounce
 document.getElementById('srch').addEventListener('keydown', e=>{
   if(e.key==='Enter' || e.key==='Search' || e.keyCode===13){
     e.preventDefault();
     clearTimeout(searchTimer);
     doSearch(e.target.value);
-    e.target.blur();
+    e.target.blur(); // ปิดคีย์บอร์ดมือถือ ให้เห็นผลค้นหาเต็มจอ
   }
 });
 
@@ -392,6 +361,7 @@ document.getElementById('srch').focus();
 renderHistory();
 loadPopular();
 loadData().then(()=>{
+  // ถ้าพิมพ์ไปก่อน data โหลด — search ใหม่อีกรอบ
   const q = document.getElementById('srch').value.trim();
   if(q) doSearch(q);
 });
