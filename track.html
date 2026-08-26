@@ -186,7 +186,7 @@ body{background:var(--gray);min-height:100vh;}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, onSnapshot, collection, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, onSnapshot, collection, query, where, enableIndexedDbPersistence} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 // local aliases for cross-scope calls
 const openDetail=(...a)=>window.openDetail(...a);
 
@@ -200,6 +200,10 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+// เปิดระบบแคชข้อมูลออฟไลน์ (IndexedDB) ไว้ในเครื่อง — โหลดครั้งก่อนไว้แล้วจะดึงจากแคชได้ทันทีแม้เน็ตหลุด/ช้า
+// ถ้าเบราว์เซอร์ไม่รองรับ หรือเปิดหลายแท็บพร้อมกัน จะข้ามไปเงียบๆ ไม่กระทบการทำงานปกติของหน้านี้เลย
+enableIndexedDbPersistence(db).catch(()=>{});
+
 
 const statusSteps = [
   { key:"pending",    label:"รอรับ",      icon:'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>' },
