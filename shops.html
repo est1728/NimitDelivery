@@ -287,19 +287,20 @@ document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, initializeFirestore, collection, getDocs, doc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, onSnapshot, query, where, enableIndexedDbPersistence} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const _app = initializeApp({
+const db = getFirestore(initializeApp({
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
   authDomain:"nimit-delivery.firebaseapp.com",
   projectId:"nimit-delivery",
   storageBucket:"nimit-delivery.firebasestorage.app",
   messagingSenderId:"233476256130",
   appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
-});
-// สำคัญมาก: บังคับใช้ long-polling กัน iOS Safari เชื่อมต่อ Firestore ค้าง/ล้มเหลวแบบเงียบๆ (ปัญหาที่รู้จัก
-// กันแล้วของ Safari เวอร์ชันล่าสุด) ตรงกับอาการ "หน้าร้านค้า/เมนู ใช้งานไม่ได้เลยบน iOS" ที่เจอ
-const db = initializeFirestore(_app, { experimentalAutoDetectLongPolling: true });
+}));
+// เปิดระบบแคชข้อมูลออฟไลน์ (IndexedDB) ไว้ในเครื่อง — โหลดครั้งก่อนไว้แล้วจะดึงจากแคชได้ทันทีแม้เน็ตหลุด/ช้า
+// ถ้าเบราว์เซอร์ไม่รองรับ หรือเปิดหลายแท็บพร้อมกัน จะข้ามไปเงียบๆ ไม่กระทบการทำงานปกติของหน้านี้เลย
+enableIndexedDbPersistence(db).catch(()=>{});
+
 
 const SL={pending:"รอรับออเดอร์",accepted:"รับงานแล้ว",picking:"ไรเดอร์กำลังมา",arrived:"ถึงร้านแล้ว",delivering:"กำลังส่ง",done:"ส่งเสร็จแล้ว"};
 const SS=["pending","accepted","picking","arrived","delivering","done"];
@@ -602,7 +603,10 @@ window.pick=function(id,name){
   if(!id) return;
   localStorage.setItem("selectedShopId",id);
   localStorage.setItem("selectedShopName",name);
-  location.href="menu.html";
+  // สำคัญ: ส่งรหัสร้านผ่าน URL ด้วยเสมอ ไม่พึ่ง localStorage อย่างเดียว — บางเบราว์เซอร์ (โดยเฉพาะ
+  // in-app browser ของ LINE/Facebook/IG บน iOS) มีโอกาสอ่าน localStorage ข้ามหน้าแบบ full page reload
+  // ไม่ได้ในบางสถานการณ์ ทำให้หน้าเมนูหารหัสร้านไม่เจอแล้วค้างไม่ขึ้นเมนู URL parameter ไม่มีเบราว์เซอร์ไหนบล็อกได้
+  location.href="menu.html?id="+encodeURIComponent(id);
 };
 
 window.loadShops=loadShops;
