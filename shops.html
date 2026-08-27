@@ -495,8 +495,28 @@ function isWithinSchedule(openTime, closeTime){
   if(openMin===closeMin) return true;
   return openMin<closeMin ? (nowMin>=openMin && nowMin<closeMin) : (nowMin>=openMin || nowMin<closeMin);
 }
+// เช็คว่าวันนี้ตรงกับ "วันปิดพิเศษ" ที่ร้านตั้งไว้มั้ย (ปิดซ้ำทุกเดือน หรือเจาะจงวันที่)
+function isClosedDateToday(closedDates){
+  if(!Array.isArray(closedDates)||!closedDates.length) return false;
+  const now=new Date();
+  const day=now.getDate();
+  const y=now.getFullYear(), m=String(now.getMonth()+1).padStart(2,'0'), d=String(now.getDate()).padStart(2,'0');
+  const localDate=`${y}-${m}-${d}`;
+  return closedDates.some(cd=> cd.type==='monthly' ? cd.day===day : cd.date===localDate);
+}
 function effectiveOpen(s){
-  if(s.isOpen===false) return false; // ปิดฉุกเฉินเองต้องปิดจริงเสมอ ไม่ว่าจะอยู่ในช่วงเวลาที่ตั้งอัตโนมัติไว้หรือไม่
+  if(isClosedDateToday(s.closedDates)) return false; // วันปิดพิเศษ ปิดเสมอไม่ว่าอะไรจะตั้งไว้
+  if(s.isOpen===false){
+    if(s.closeType==='temp' && s.closeUntil){
+      if(Date.now() < s.closeUntil) return false; // ยังไม่ครบเวลาปิดชั่วคราว
+      // ครบเวลาแล้ว ตกไปเช็คตารางเวลาปกติด้านล่างต่อ
+    } else if(s.closeType==='long'){
+      if(!s.autoSchedule) return false; // ปิดยาวแบบไม่ได้ตั้งเวลาอัตโนมัติ ต้องรอแอดมินกดเปิดเอง
+      // ตั้งเวลาอัตโนมัติไว้แล้ว ตกไปเช็คว่าอยู่ในรอบเปิดหรือยัง
+    } else {
+      return false; // ปิดฉุกเฉินแบบเดิม ไม่มีประเภท ต้องกดเปิดเอง
+    }
+  }
   if(!s.autoSchedule) return true;
   const days = Array.isArray(s.openDays) && s.openDays.length ? s.openDays : [0,1,2,3,4,5,6];
   if(!days.includes(new Date().getDay())) return false;
@@ -522,6 +542,7 @@ function card(s){
   const badgeEl=shopBadgeType?`<span class="sc-badge sc-badge-${shopBadgeType}">${shopBadgeLabels[shopBadgeType]}</span>`:'';
   const openNow = effectiveOpen(s);
   const badge=openNow?`<div class="sc-open">เปิด</div>`:`<div class="sc-close">ปิด</div>`;
+  const closeReasonTxt = (!openNow && s.closeReason) ? `<div class="mi" style="color:#dc2626">🔒 ${esc(s.closeReason)}</div>` : '';
   const oc=openNow?`onclick="window.pick('${s.id}','${sn}')"` :"";
   const dayLabels=['อา','จ','อ','พ','พฤ','ศ','ส'];
   const sDays = Array.isArray(s.openDays)&&s.openDays.length ? s.openDays : [0,1,2,3,4,5,6];
@@ -539,6 +560,7 @@ function card(s){
         </div>
       </div>
       <div class="sc-meta">${time}${star}${loyaltyBadge}</div>
+      ${closeReasonTxt}
       ${schTxt}
     </div>
   </div>`;
