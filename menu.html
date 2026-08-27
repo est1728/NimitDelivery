@@ -310,6 +310,55 @@ function isShopWithinSchedule(d){
   if(openMin===closeMin) return true;
   return openMin<closeMin ? (nowMin>=openMin && nowMin<closeMin) : (nowMin>=openMin || nowMin<closeMin);
 }
+// เช็คว่าวันนี้ตรงกับ "วันปิดพิเศษ" ที่ร้านตั้งไว้มั้ย (ปิดซ้ำทุกเดือน หรือเจาะจงวันที่)
+function isClosedDateToday(closedDates){
+  if(!Array.isArray(closedDates)||!closedDates.length) return false;
+  const now=new Date();
+  const day=now.getDate();
+  const y=now.getFullYear(), m=String(now.getMonth()+1).padStart(2,'0'), d=String(now.getDate()).padStart(2,'0');
+  const localDate=`${y}-${m}-${d}`;
+  return closedDates.some(cd=> cd.type==='monthly' ? cd.day===day : cd.date===localDate);
+}
+// รวมทุกเงื่อนไข: ปิดพิเศษ, ปิดยาว, ปิดชั่วคราว, ตารางเวลาปกติ — ใช้แทนการเช็ค isOpen/autoSchedule แบบเดิมตรงๆ
+function computeShopOpenNow(d){
+  if(isClosedDateToday(d.closedDates)) return false;
+  if(d.isOpen===false){
+    if(d.closeType==='temp' && d.closeUntil){
+      if(Date.now() < d.closeUntil) return false;
+    } else if(d.closeType==='long'){
+      if(!d.autoSchedule) return false;
+    } else {
+      return false;
+    }
+  }
+  return d.autoSchedule ? isShopWithinSchedule(d) : true;
+}
+// เมนูตั้งเวลาขายเฉพาะช่วงไว้หรือเปล่า ถ้าตั้งไว้แล้วตอนนี้อยู่นอกช่วง ให้ถือว่าปิดขายชั่วคราว
+function isMenuWithinSchedule(m){
+  if(!m.schedEnabled || !m.schedOpen || !m.schedClose) return true;
+  const now=new Date();
+  const [oh,om]=m.schedOpen.split(':').map(Number), [ch,cm]=m.schedClose.split(':').map(Number);
+  const nowMin=now.getHours()*60+now.getMinutes(), openMin=oh*60+om, closeMin=ch*60+cm;
+  if(openMin===closeMin) return true;
+  return openMin<closeMin ? (nowMin>=openMin && nowMin<closeMin) : (nowMin>=openMin || nowMin<closeMin);
+}
+// แสดง/ซ่อน banner ร้านปิดตามสถานะจริง (เรียกซ้ำได้ ใช้ทั้งตอนโหลดครั้งแรกและเช็คซ้ำเป็นระยะ)
+function updateShopClosedBanner(d){
+  const banner=document.getElementById("closedBanner");
+  if(!banner) return;
+  const shopOpenNow = computeShopOpenNow(d);
+  if(!shopOpenNow){
+    banner.textContent = d.closeReason ? "ร้านปิดอยู่ เหตุผล: "+d.closeReason : "ร้านนี้ปิดอยู่ในขณะนี้";
+    banner.style.display="block";
+  } else {
+    banner.style.display="none";
+  }
+}
+// เช็คทุก 30 วิ ว่าสถานะร้าน/เมนูตามเวลาที่ตั้งไว้เปลี่ยนไปหรือยัง (เผื่อลูกค้าเปิดหน้าเมนูค้างไว้ข้ามช่วงเวลาที่ตั้ง)
+setInterval(()=>{
+  if(shopFullData) updateShopClosedBanner(shopFullData);
+  if(Array.isArray(allMenus) && allMenus.length) renderMenus();
+}, 30000);
 
 async function loadShopInfo(){
   try{
@@ -337,8 +386,7 @@ async function loadShopInfo(){
       shopCategories = Array.isArray(d.categories) ? d.categories : [];
       shopType = d.shopType || "normal";
       if(d.desc) document.getElementById("shopDescText").textContent=d.desc;
-      const shopOpenNow = d.isOpen===false ? false : (d.autoSchedule ? isShopWithinSchedule(d) : true);
-      if(!shopOpenNow) document.getElementById("closedBanner").style.display="block";
+      updateShopClosedBanner(d);
       const avatar=document.getElementById("shopAvatar");
       if(d.avatarUrl) avatar.innerHTML=`<img src="${d.avatarUrl}">`;
       const banner=document.getElementById("bannerArea");
@@ -357,7 +405,7 @@ window.openShopProfile=function(){
   const avatarEl=document.getElementById("shopProfileAvatar");
   avatarEl.innerHTML=d.avatarUrl?`<img src="${d.avatarUrl}" style="width:100%;height:100%;object-fit:cover">`:`<svg viewBox="0 0 24 24" style="width:32px;height:32px;fill:#94a3b8"><path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/></svg>`;
   document.getElementById("shopProfileName").textContent=shopName||"ร้านค้า";
-  const openNow = d.isOpen===false ? false : (d.autoSchedule ? isShopWithinSchedule(d) : true);
+  const openNow = computeShopOpenNow(d);
   const statusEl=document.getElementById("shopProfileStatus");
   statusEl.textContent = openNow ? "เปิดอยู่ตอนนี้" : "ปิดอยู่ในขณะนี้";
   statusEl.style.color = openNow ? "#16a34a" : "#dc2626";
@@ -484,7 +532,7 @@ function renderMenus(){
 function renderMenuCardHtml(m){
     const dp=calcPrice(m.price,m.gp);
     const qty=qtyInCart(m.id);
-    const soldOut = m.available===false;
+    const soldOut = m.available===false || !isMenuWithinSchedule(m);
     return `<div class="menu-card ${soldOut?'sold-out':''}" onclick="${soldOut?'':`openMenuPopup('${m.id}')`}">
       <div class="menu-img">
         ${m.imgUrl
