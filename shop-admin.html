@@ -360,13 +360,6 @@ document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
     <span class="open-toggle-label" id="openLabel">ร้านปิดอยู่</span>
     <button class="open-switch" id="openSwitch" onclick="toggleOpen()"></button>
   </div>
-  <div id="loyaltyStrip" style="display:none;margin:0 16px 12px;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:14px;padding:12px 14px">
-    <div style="display:flex;align-items:center;justify-content:between;gap:8px;margin-bottom:8px">
-      <div style="font-size:13px;font-weight:800;color:#9a3412;flex:1">🎫 สมาชิกสะสมแต้ม</div>
-      <div style="font-size:11px;color:#c2410c" id="loyaltyMemberCount">0 คน</div>
-    </div>
-    <div id="loyaltyMemberList" style="max-height:160px;overflow-y:auto"></div>
-  </div>
   <div class="tabs-row">
     <button class="tab-link active" id="tab-orders" onclick="switchTab('orders')">ออเดอร์</button>
     <button class="tab-link" id="tab-history" onclick="switchTab('history')">ประวัติ</button>
@@ -563,11 +556,41 @@ document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
       </div>
     </div>
     <div class="confirm-title">ปิดร้าน</div>
-    <div class="confirm-sub">กรุณาระบุเหตุผลที่ปิดร้าน (บังคับ)</div>
-    <textarea id="closeShopReason" style="width:100%;height:70px;border:2px solid #eef0f4;border-radius:12px;padding:10px;font-size:14px;outline:none;resize:none;font-family:inherit;margin-top:6px" placeholder="เช่น ของหมด, พักร้าน, ปิดปรับปรุง..."></textarea>
-    <div class="confirm-btns">
-      <button class="confirm-cancel" onclick="window.closeCloseShopModal()">ยกเลิก</button>
-      <button class="confirm-ok" style="background:#dc2626" onclick="window.confirmCloseShop()">ยืนยันปิดร้าน</button>
+
+    <div id="closeTypeChooser">
+      <div class="confirm-sub">เลือกรูปแบบการปิดร้าน</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
+        <button type="button" onclick="window.chooseCloseType('long')" style="text-align:left;padding:12px 14px;border:2px solid #eef0f4;border-radius:12px;background:#fff;cursor:pointer">
+          <div style="font-size:14px;font-weight:800;color:var(--text,#0f172a)">ปิดยาว</div>
+          <div style="font-size:11px;color:var(--subtext,#94a3b8);margin-top:2px;line-height:1.5">ปิดจนกว่าจะถึงรอบเปิดร้านถัดไปตามเวลาที่ตั้งไว้ (ถ้าไม่ได้เปิด "เวลาเปิด-ปิดอัตโนมัติ" ไว้ จะปิดค้างจนกว่าจะกดเปิดเอง)</div>
+        </button>
+        <button type="button" onclick="window.chooseCloseType('temp')" style="text-align:left;padding:12px 14px;border:2px solid #eef0f4;border-radius:12px;background:#fff;cursor:pointer">
+          <div style="font-size:14px;font-weight:800;color:var(--text,#0f172a)">ปิดชั่วคราว</div>
+          <div style="font-size:11px;color:var(--subtext,#94a3b8);margin-top:2px;line-height:1.5">ตั้งเวลานับถอยหลัง ครบเวลาแล้วร้านเปิดเองอัตโนมัติ</div>
+        </button>
+      </div>
+      <div class="confirm-btns">
+        <button class="confirm-cancel" onclick="window.closeCloseShopModal()">ยกเลิก</button>
+      </div>
+    </div>
+
+    <div id="closeTypeDetail" style="display:none">
+      <button type="button" onclick="window.backCloseType()" style="border:none;background:none;color:var(--primary,#2563eb);font-size:12px;font-weight:700;cursor:pointer;padding:0;margin-bottom:10px">‹ กลับ</button>
+      <div id="closeTempPicker" style="display:none;margin-bottom:12px">
+        <div class="field-label" style="font-size:11px;font-weight:700;color:var(--subtext,#94a3b8);margin-bottom:6px">ปิดนานเท่าไหร่</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="number" id="closeTempHour" min="0" max="23" value="0" style="width:70px;height:42px;border:2px solid #eef0f4;border-radius:10px;text-align:center;font-size:15px;font-weight:700">
+          <span style="font-size:13px;color:var(--subtext,#94a3b8)">ชม.</span>
+          <input type="number" id="closeTempMinute" min="0" max="59" value="30" style="width:70px;height:42px;border:2px solid #eef0f4;border-radius:10px;text-align:center;font-size:15px;font-weight:700">
+          <span style="font-size:13px;color:var(--subtext,#94a3b8)">นาที</span>
+        </div>
+      </div>
+      <div class="confirm-sub" style="text-align:left">กรุณาระบุเหตุผลที่ปิดร้าน (บังคับ)</div>
+      <textarea id="closeShopReason" style="width:100%;height:70px;border:2px solid #eef0f4;border-radius:12px;padding:10px;font-size:14px;outline:none;resize:none;font-family:inherit;margin-top:6px" placeholder="เช่น ของหมด, พักร้าน, ปิดปรับปรุง..."></textarea>
+      <div class="confirm-btns">
+        <button class="confirm-cancel" onclick="window.closeCloseShopModal()">ยกเลิก</button>
+        <button class="confirm-ok" style="background:#dc2626" onclick="window.confirmCloseShop()">ยืนยันปิดร้าน</button>
+      </div>
     </div>
   </div>
 </div>
@@ -829,6 +852,8 @@ async function initShop(){
       document.getElementById("sbAvatar").innerHTML='<img src="'+shopData.avatarUrl+'">';
     }
     isOpen=shopData.isOpen||false; updateOpenUI(); updateLoyaltyUI();
+    checkAutoReopen();
+    setInterval(checkAutoReopen,30000);
     showPage("mainPage"); listenOrders();
   }catch(e){
     console.error('initShop error:',e);
@@ -848,7 +873,8 @@ function updateOpenUI(){
   const nav=document.getElementById("mainBottomNav");
   if(banner){
     if(!isOpen && shopData?.closeReason){
-      banner.textContent="ร้านปิดอยู่ เหตุผล: "+shopData.closeReason;
+      const typeNote = shopData?.closeType==='temp' ? " (จะเปิดเองอัตโนมัติ)" : shopData?.closeType==='long' ? " (จะเปิดเองตามรอบเวลาถัดไป)" : "";
+      banner.textContent="ร้านปิดอยู่ เหตุผล: "+shopData.closeReason+typeNote;
       banner.style.bottom=(nav?nav.offsetHeight:60)+"px";
       banner.style.display="block";
     } else {
@@ -856,18 +882,66 @@ function updateOpenUI(){
     }
   }
 }
+
+// ============ CLOSE-DATE / AUTO-REOPEN HELPERS ============
+// เช็คว่าวันนี้ตรงกับ "วันปิดพิเศษ" ที่ตั้งไว้ใน shop-manage.html มั้ย (ปิดซ้ำทุกเดือน หรือเจาะจงวันที่)
+function isClosedDateToday(closedDates){
+  if(!Array.isArray(closedDates)||!closedDates.length) return false;
+  const now=new Date();
+  const day=now.getDate();
+  const y=now.getFullYear(), m=String(now.getMonth()+1).padStart(2,'0'), d=String(now.getDate()).padStart(2,'0');
+  const localDate=`${y}-${m}-${d}`;
+  return closedDates.some(cd=> cd.type==='monthly' ? cd.day===day : cd.date===localDate);
+}
+// เหมือน isWithinSchedule ใน shops.html/menu.html เป๊ะ (รองรับช่วงเวลาข้ามเที่ยงคืน)
+function isWithinScheduleAdmin(openTime,closeTime){
+  if(!openTime||!closeTime) return true;
+  const now=new Date();
+  const [oh,om]=openTime.split(':').map(Number), [ch,cm]=closeTime.split(':').map(Number);
+  const nowMin=now.getHours()*60+now.getMinutes(), openMin=oh*60+om, closeMin=ch*60+cm;
+  if(openMin===closeMin) return true;
+  return openMin<closeMin ? (nowMin>=openMin && nowMin<closeMin) : (nowMin>=openMin || nowMin<closeMin);
+}
+// คำนวณว่า "ตอนนี้ควรเปิดจริงหรือยัง" จากเงื่อนไขทั้งหมด (ปิดพิเศษ, ปิดชั่วคราว, ปิดยาว, ตารางเวลาปกติ)
+function computeEffectiveOpen(s){
+  if(isClosedDateToday(s.closedDates)) return false;
+  if(s.isOpen===false){
+    if(s.closeType==='temp' && s.closeUntil){
+      if(Date.now() < s.closeUntil) return false;
+      // ครบเวลาแล้ว ให้ตกไปเช็คตารางเวลาปกติต่อด้านล่าง
+    } else if(s.closeType==='long'){
+      if(!s.autoSchedule) return false; // ไม่ได้ตั้งเวลาอัตโนมัติไว้ ต้องกดเปิดเอง
+      // ตั้งไว้แล้ว ให้ตกไปเช็คว่าตอนนี้อยู่ในรอบเปิดหรือยัง
+    } else {
+      return false; // ปิดฉุกเฉินแบบเดิม ไม่มีประเภท ต้องกดเปิดเอง
+    }
+  }
+  if(!s.autoSchedule) return true;
+  const days=Array.isArray(s.openDays)&&s.openDays.length ? s.openDays : [0,1,2,3,4,5,6];
+  if(!days.includes(new Date().getDay())) return false;
+  return isWithinScheduleAdmin(s.scheduleOpen,s.scheduleClose);
+}
+// เช็คทุก 30 วิ ว่าถึงเวลาที่ควรเปิดร้านเองอัตโนมัติหรือยัง (สำหรับปิดยาว/ปิดชั่วคราว)
+async function checkAutoReopen(){
+  if(!shopData || shopData.isOpen!==false) return;
+  if(!computeEffectiveOpen(shopData)) return;
+  try{
+    await updateDoc(doc(db,"shops",shopData.id),{isOpen:true,closeReason:"",closeType:null,closeUntil:null});
+    shopData.isOpen=true; shopData.closeReason=""; shopData.closeType=null; shopData.closeUntil=null;
+    isOpen=true; updateOpenUI();
+    showToast("ร้านเปิดอัตโนมัติแล้ว","info");
+  }catch(e){}
+}
 // ============ LOYALTY CARD ============
 let loyaltyMembersUnsub=null;
 function updateLoyaltyUI(){
   const toggleEl=document.getElementById("loyaltyToggle");
   const statusEl=document.getElementById("loyaltyToggleStatus");
-  const stripEl=document.getElementById("loyaltyStrip");
   const bnavEl=document.getElementById("bnav-loyalty");
   const on=!!shopData?.loyaltyEnabled;
   if(toggleEl) toggleEl.className="sidebar-toggle"+(on?" on":"");
   if(statusEl) statusEl.textContent=on?"เปิดอยู่":"ปิดอยู่";
   if(bnavEl) bnavEl.style.display=on?"flex":"none";
-  if(stripEl) stripEl.style.display=on?"block":"none";
   if(on){ startLoyaltyMembersListener(); } else if(loyaltyMembersUnsub){ loyaltyMembersUnsub(); loyaltyMembersUnsub=null; }
 }
 window.toggleLoyalty=async function(){
@@ -884,10 +958,7 @@ function startLoyaltyMembersListener(){
   loyaltyMembersUnsub=onSnapshot(query(collection(db,"loyaltyCards"),where("shopId","==",shopData.id)),snap=>{
     const members=[]; snap.forEach(d=>members.push(d.data()));
     members.sort((a,b)=>(b.points||0)-(a.points||0));
-    renderLoyaltyMembers(members,"loyaltyMemberList",false);
     renderLoyaltyMembers(members,"loyaltySettingsMemberList",true);
-    const countEl=document.getElementById("loyaltyMemberCount");
-    if(countEl) countEl.textContent=members.length+" คน";
   });
 }
 function loyaltyBreakdown(points,target){
@@ -958,20 +1029,38 @@ window.addLoyaltyPoints=async function(){
     alert("เพิ่มแต้มสำเร็จ");
   }catch(e){ alert("เพิ่มแต้มไม่สำเร็จ: "+e.message); }
 };
+let pendingCloseType=null;
 window.toggleOpen=async function(){
   if(isOpen){
-    // ปิดร้าน: ต้องใส่เหตุผลก่อนเสมอ
+    // ปิดร้าน: ต้องเลือกรูปแบบ + ใส่เหตุผลก่อนเสมอ
+    pendingCloseType=null;
     document.getElementById("closeShopReason").value="";
+    document.getElementById("closeShopReason").style.borderColor="#eef0f4";
+    document.getElementById("closeTempHour").value="0";
+    document.getElementById("closeTempMinute").value="30";
+    document.getElementById("closeTypeChooser").style.display="block";
+    document.getElementById("closeTypeDetail").style.display="none";
     document.getElementById("closeShopOverlay").classList.add("show");
     return;
   }
   // เปิดร้าน: ไม่ต้องใส่เหตุผล
   isOpen=true; updateOpenUI();
   try{
-    await updateDoc(doc(db,"shops",shopData.id),{isOpen:true,closeReason:""});
+    await updateDoc(doc(db,"shops",shopData.id),{isOpen:true,closeReason:"",closeType:null,closeUntil:null});
     await addDoc(collection(db,"shops",shopData.id,"statusLogs"),{action:"open",reason:"",at:serverTimestamp()});
     showToast("เปิดร้านแล้ว","info");
   }catch(e){}
+}
+window.chooseCloseType=function(type){
+  pendingCloseType=type;
+  document.getElementById("closeTypeChooser").style.display="none";
+  document.getElementById("closeTypeDetail").style.display="block";
+  document.getElementById("closeTempPicker").style.display = type==='temp' ? 'block' : 'none';
+}
+window.backCloseType=function(){
+  pendingCloseType=null;
+  document.getElementById("closeTypeDetail").style.display="none";
+  document.getElementById("closeTypeChooser").style.display="block";
 }
 window.closeCloseShopModal=function(){
   document.getElementById("closeShopOverlay").classList.remove("show");
@@ -983,11 +1072,22 @@ window.confirmCloseShop=async function(){
     document.getElementById("closeShopReason").focus();
     return;
   }
+  let closeUntil=null;
+  if(pendingCloseType==='temp'){
+    const hrs=parseInt(document.getElementById("closeTempHour").value)||0;
+    const mins=parseInt(document.getElementById("closeTempMinute").value)||0;
+    if(hrs<=0 && mins<=0){
+      alert("กรุณาตั้งเวลาปิดชั่วคราวอย่างน้อย 1 นาที");
+      return;
+    }
+    closeUntil=Date.now()+(hrs*3600+mins*60)*1000;
+  }
   document.getElementById("closeShopOverlay").classList.remove("show");
   isOpen=false; updateOpenUI();
   try{
-    await updateDoc(doc(db,"shops",shopData.id),{isOpen:false,closeReason:reason});
-    await addDoc(collection(db,"shops",shopData.id,"statusLogs"),{action:"close",reason,at:serverTimestamp()});
+    await updateDoc(doc(db,"shops",shopData.id),{isOpen:false,closeReason:reason,closeType:pendingCloseType||'long',closeUntil});
+    shopData.closeType=pendingCloseType||'long'; shopData.closeUntil=closeUntil; shopData.closeReason=reason;
+    await addDoc(collection(db,"shops",shopData.id,"statusLogs"),{action:"close",reason,closeType:pendingCloseType||'long',at:serverTimestamp()});
     showToast("ปิดร้านแล้ว","info");
   }catch(e){}
 }
