@@ -556,11 +556,41 @@ document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
 <div class="cfm-ov" id="shopCloseOv">
   <div class="cfm-box">
     <div class="cfm-title">ปิดร้าน</div>
-    <div class="cfm-sub" style="margin-bottom:10px">กรุณาระบุเหตุผลที่ปิดร้าน (บังคับ)</div>
-    <textarea id="shopCloseReason" style="width:100%;height:80px;border:2px solid #e2e8f0;border-radius:12px;padding:10px;font-size:14px;outline:none;resize:none;font-family:inherit" placeholder="เช่น ของหมด, พักร้าน, ปิดปรับปรุง..."></textarea>
-    <div class="cfm-btns" style="margin-top:12px">
-      <button class="cfm-cancel" onclick="window.closeShopCloseModal()">ยกเลิก</button>
-      <button class="cfm-ok" style="background:linear-gradient(135deg,#dc2626,#b91c1c)" onclick="window.confirmShopClose()">ยืนยันปิดร้าน</button>
+
+    <div id="acdTypeChooser">
+      <div class="cfm-sub">เลือกรูปแบบการปิดร้าน</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
+        <button type="button" onclick="window.chooseAcdCloseType('long')" style="text-align:left;padding:12px 14px;border:2px solid #e2e8f0;border-radius:12px;background:#fff;cursor:pointer">
+          <div style="font-size:14px;font-weight:800;color:#0f172a">ปิดยาว</div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:2px;line-height:1.5">ปิดจนกว่าจะถึงรอบเปิดร้านถัดไปตามเวลาที่ตั้งไว้ (ถ้าร้านไม่ได้เปิด "เวลาเปิด-ปิดอัตโนมัติ" ไว้ จะปิดค้างจนกว่าจะมีคนกดเปิดเอง)</div>
+        </button>
+        <button type="button" onclick="window.chooseAcdCloseType('temp')" style="text-align:left;padding:12px 14px;border:2px solid #e2e8f0;border-radius:12px;background:#fff;cursor:pointer">
+          <div style="font-size:14px;font-weight:800;color:#0f172a">ปิดชั่วคราว</div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:2px;line-height:1.5">ตั้งเวลานับถอยหลัง ครบเวลาแล้วร้านเปิดเองอัตโนมัติ</div>
+        </button>
+      </div>
+      <div class="cfm-btns" style="margin-top:12px">
+        <button class="cfm-cancel" onclick="window.closeShopCloseModal()">ยกเลิก</button>
+      </div>
+    </div>
+
+    <div id="acdDetail" style="display:none">
+      <button type="button" onclick="window.backAcdCloseType()" style="border:none;background:none;color:#1565C0;font-size:12px;font-weight:700;cursor:pointer;padding:0;margin-bottom:10px">‹ กลับ</button>
+      <div id="acdTempPicker" style="display:none;margin-bottom:12px">
+        <div style="font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:6px">ปิดนานเท่าไหร่</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="number" id="acdTempHour" min="0" max="23" value="0" style="width:70px;height:42px;border:2px solid #e2e8f0;border-radius:10px;text-align:center;font-size:15px;font-weight:700">
+          <span style="font-size:13px;color:#94a3b8">ชม.</span>
+          <input type="number" id="acdTempMinute" min="0" max="59" value="30" style="width:70px;height:42px;border:2px solid #e2e8f0;border-radius:10px;text-align:center;font-size:15px;font-weight:700">
+          <span style="font-size:13px;color:#94a3b8">นาที</span>
+        </div>
+      </div>
+      <div class="cfm-sub" style="text-align:left">กรุณาระบุเหตุผลที่ปิดร้าน (บังคับ)</div>
+      <textarea id="shopCloseReason" style="width:100%;height:80px;border:2px solid #e2e8f0;border-radius:12px;padding:10px;font-size:14px;outline:none;resize:none;font-family:inherit;margin-top:6px" placeholder="เช่น ของหมด, พักร้าน, ปิดปรับปรุง..."></textarea>
+      <div class="cfm-btns" style="margin-top:12px">
+        <button class="cfm-cancel" onclick="window.closeShopCloseModal()">ยกเลิก</button>
+        <button class="cfm-ok" style="background:linear-gradient(135deg,#dc2626,#b91c1c)" onclick="window.confirmShopClose()">ยืนยันปิดร้าน</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1713,41 +1743,63 @@ async function loadRiders(){
     }).join('')+'</div>';
   }catch(e){window.toast('โหลดไรเดอร์ไม่ได้','er');}
 }
-let shopCloseTargetId=null, shopCloseTargetCb=null;
+let shopCloseTargetId=null, shopCloseTargetCb=null, pendingAcdCloseType=null;
 window.toggleShopOpen=async function(sid,currentOpen,cb){
   if(currentOpen){
-    // ปิดร้าน: ต้องใส่เหตุผลก่อนเสมอ (เหมือนฝั่งร้านค้าเอง)
-    shopCloseTargetId=sid; shopCloseTargetCb=cb;
+    // ปิดร้าน: ต้องเลือกรูปแบบ + ใส่เหตุผลก่อนเสมอ (เหมือนฝั่งร้านค้าเอง)
+    shopCloseTargetId=sid; shopCloseTargetCb=cb; pendingAcdCloseType=null;
     $('shopCloseReason').value='';
     $('shopCloseReason').style.borderColor='#e2e8f0';
+    $('acdTempHour').value='0'; $('acdTempMinute').value='30';
+    $('acdTypeChooser').style.display='block';
+    $('acdDetail').style.display='none';
     $('shopCloseOv').classList.add('show');
     return;
   }
   // เปิดร้าน: ไม่ต้องใส่เหตุผล
   try{
-    await updateDoc(doc(db,'shops',sid),{isOpen:true,closeReason:'',updatedAt:serverTimestamp()});
+    await updateDoc(doc(db,'shops',sid),{isOpen:true,closeReason:'',closeType:null,closeUntil:null,updatedAt:serverTimestamp()});
     await addDoc(collection(db,'shops',sid,'statusLogs'),{action:'open',reason:'',at:serverTimestamp(),by:'Admin'});
     window.toast('เปิดร้านแล้ว','ok');
     loadShops();
   }catch(e){window.toast('ไม่สำเร็จ','er'); if(cb) cb.checked=true;}
 };
+window.chooseAcdCloseType=function(type){
+  pendingAcdCloseType=type;
+  $('acdTypeChooser').style.display='none';
+  $('acdDetail').style.display='block';
+  $('acdTempPicker').style.display = type==='temp' ? 'block' : 'none';
+}
+window.backAcdCloseType=function(){
+  pendingAcdCloseType=null;
+  $('acdDetail').style.display='none';
+  $('acdTypeChooser').style.display='block';
+}
 window.closeShopCloseModal=function(){
   $('shopCloseOv').classList.remove('show');
   if(shopCloseTargetCb) shopCloseTargetCb.checked=true; // ยกเลิก คืนสวิตช์กลับเป็นเปิด
-  shopCloseTargetId=null; shopCloseTargetCb=null;
+  shopCloseTargetId=null; shopCloseTargetCb=null; pendingAcdCloseType=null;
 }
 window.confirmShopClose=async function(){
   const reason=$('shopCloseReason').value.trim();
   if(!reason){ $('shopCloseReason').style.borderColor='#dc2626'; $('shopCloseReason').focus(); window.toast('กรุณาใส่เหตุผล','er'); return; }
+  let closeUntil=null;
+  if(pendingAcdCloseType==='temp'){
+    const hrs=parseInt($('acdTempHour').value)||0;
+    const mins=parseInt($('acdTempMinute').value)||0;
+    if(hrs<=0 && mins<=0){ window.toast('กรุณาตั้งเวลาปิดชั่วคราวอย่างน้อย 1 นาที','er'); return; }
+    closeUntil=Date.now()+(hrs*3600+mins*60)*1000;
+  }
   const sid=shopCloseTargetId;
+  const closeType=pendingAcdCloseType||'long';
   $('shopCloseOv').classList.remove('show');
   try{
-    await updateDoc(doc(db,'shops',sid),{isOpen:false,closeReason:reason,updatedAt:serverTimestamp()});
-    await addDoc(collection(db,'shops',sid,'statusLogs'),{action:'close',reason,at:serverTimestamp(),by:'Admin'});
+    await updateDoc(doc(db,'shops',sid),{isOpen:false,closeReason:reason,closeType,closeUntil,updatedAt:serverTimestamp()});
+    await addDoc(collection(db,'shops',sid,'statusLogs'),{action:'close',reason,closeType,at:serverTimestamp(),by:'Admin'});
     window.toast('ปิดร้านแล้ว','ok');
     loadShops();
   }catch(e){window.toast('ไม่สำเร็จ','er'); if(shopCloseTargetCb) shopCloseTargetCb.checked=true;}
-  shopCloseTargetId=null; shopCloseTargetCb=null;
+  shopCloseTargetId=null; shopCloseTargetCb=null; pendingAcdCloseType=null;
 }
 window.toggleShopType=async function(sid,isCurrentlyProxy,cb){
   const newType=isCurrentlyProxy?'normal':'proxy';
