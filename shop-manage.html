@@ -246,6 +246,20 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
   </div>
 </div>
 
+<!-- APPLY MENU SCHEDULE TO MULTIPLE MENUS MODAL -->
+<div class="modal-overlay" id="applyScheduleModal" onclick="if(event.target===this) closeModal('applyScheduleModal')">
+  <div class="modal" style="max-height:88vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div class="modal-title">ใช้เวลาขายนี้กับหลายเมนู</div>
+    <div class="field-label">เวลาที่จะนำไปใช้</div>
+    <div id="asTimePreview" style="font-size:13px;font-weight:800;color:var(--primary);margin-bottom:14px"></div>
+    <div class="field-label">เลือกเมนูปลายทางที่จะใช้เวลานี้</div>
+    <div id="asMenuList" style="max-height:260px;overflow-y:auto;border:1.5px solid #eef0f4;border-radius:12px;padding:4px 8px"></div>
+    <button class="modal-cancel-btn" style="margin-top:12px;background:var(--primary);color:#fff" onclick="confirmApplySchedule()">ตกลง</button>
+    <button class="modal-cancel-btn" onclick="closeModal('applyScheduleModal')">ยกเลิก</button>
+  </div>
+</div>
+
 <!-- COPY GROUPS TO MULTIPLE MENUS MODAL -->
 <div class="modal-overlay" id="copyGroupModal" onclick="if(event.target===this) closeModal('copyGroupModal')">
   <div class="modal" style="max-height:88vh;overflow-y:auto">
@@ -257,6 +271,37 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
     <div id="cgMenuList" style="max-height:220px;overflow-y:auto;border:1.5px solid #eef0f4;border-radius:12px;padding:4px 8px"></div>
     <button class="modal-cancel-btn" style="margin-top:12px;background:var(--primary);color:#fff" onclick="confirmCopyApply()">ตกลง</button>
     <button class="modal-cancel-btn" onclick="closeModal('copyGroupModal')">ยกเลิก</button>
+  </div>
+</div>
+
+<!-- ADD CLOSED DATE MODAL -->
+<div class="modal-overlay" id="closedDateModal" onclick="if(event.target===this) closeModal('closedDateModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">เพิ่มวันปิด</div>
+    <div id="cdTypeChooser" style="display:flex;flex-direction:column;gap:10px;margin-bottom:6px">
+      <button type="button" onclick="chooseClosedDateType('monthly')" style="text-align:left;padding:12px 14px;border:2px solid #eef0f4;border-radius:12px;background:#fff;cursor:pointer">
+        <div style="font-size:14px;font-weight:800;color:var(--text)">🔁 ปิดซ้ำทุกเดือน</div>
+        <div style="font-size:11px;color:var(--subtext);margin-top:2px">เลือกวันที่ (เช่น 1, 16) จะปิดวันนั้นทุกเดือน</div>
+      </button>
+      <button type="button" onclick="chooseClosedDateType('date')" style="text-align:left;padding:12px 14px;border:2px solid #eef0f4;border-radius:12px;background:#fff;cursor:pointer">
+        <div style="font-size:14px;font-weight:800;color:var(--text)">📅 เจาะจงวันที่</div>
+        <div style="font-size:11px;color:var(--subtext);margin-top:2px">เลือกวันที่จริงจากปฏิทิน ปิดแค่ครั้งเดียว</div>
+      </button>
+    </div>
+    <div id="cdDetail" style="display:none">
+      <button type="button" onclick="backClosedDateType()" style="border:none;background:none;color:var(--primary);font-size:12px;font-weight:700;cursor:pointer;padding:0;margin-bottom:10px">‹ กลับ</button>
+      <div id="cdMonthlyField" style="display:none">
+        <div class="field-label">วันที่ (1-31) ของทุกเดือน</div>
+        <input class="field-input" type="number" id="cdMonthlyDay" min="1" max="31" placeholder="เช่น 1">
+      </div>
+      <div id="cdDateField" style="display:none">
+        <div class="field-label">เลือกวันที่</div>
+        <input class="field-input" type="date" id="cdDateValue">
+      </div>
+      <button class="modal-cancel-btn" style="margin-top:14px;background:var(--primary);color:#fff" onclick="confirmAddClosedDate()">เพิ่ม</button>
+    </div>
+    <button class="modal-cancel-btn" onclick="closeModal('closedDateModal')">ยกเลิก</button>
   </div>
 </div>
 
@@ -381,6 +426,13 @@ body { background:var(--gray); min-height:100vh; padding-bottom:100px; }
     <div style="font-size:11px;color:var(--subtext);line-height:1.6">ระบบจะเปิด-ปิดร้านให้อัตโนมัติตามเวลาและวันนี้ โดยไม่ต้องกดสวิตช์เปิด/ปิดเอง (ปุ่มด้านบนยังกดปิดฉุกเฉินเองได้เสมอ แต่ถึงรอบเปิดถัดไประบบจะเปิดให้อัตโนมัติ)</div>
   </div>
   <div id="autoSchOffNote" style="font-size:11px;color:var(--subtext)">ปิดอยู่ — ร้านจะเปิด/ปิดตามที่กดสวิตช์ด้านบนเองเท่านั้น</div>
+</div>
+
+<div class="section">
+  <div class="section-title">วันปิดพิเศษ</div>
+  <div style="font-size:11px;color:var(--subtext);margin-bottom:10px;line-height:1.6">ร้านจะปิดทั้งวันในวันที่กำหนดไว้นี้เสมอ ไม่ว่าจะตั้งเวลาเปิด-ปิดร้านแบบไหนไว้ก็ตาม</div>
+  <div id="closedDatesList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px"></div>
+  <button type="button" onclick="openAddClosedDate()" style="width:100%;height:42px;border:2px dashed #c7d7f5;border-radius:12px;background:var(--primary-light);color:var(--primary);font-weight:800;font-size:13px;cursor:pointer">+ เพิ่มวันปิด</button>
 </div>
 
 <div class="menu-list-section">
@@ -515,6 +567,7 @@ const db = getFirestore(app);
 const params = new URLSearchParams(window.location.search);
 let shopId = params.get("id");
 let isOpen = false, bannerUrl = "", avatarUrl = "";
+let openToggleTouched = false; // เพิ่งกดสวิตช์เปิด/ปิดร้านจากหน้านี้เองหรือเปล่า (ใช้เคลียร์ค่าปิดชั่วคราว/ปิดยาวเก่าตอนบันทึก)
 let shopLocMap = null, shopLocMarker = null, shopLocLat = 13.7563, shopLocLng = 100.5018;
 let autoSchedule = false;
 let everyDay = true;
@@ -637,8 +690,10 @@ async function loadShop() {
   document.getElementById("schCloseTime").value = s.scheduleClose||"";
   openDays = Array.isArray(s.openDays) && s.openDays.length ? s.openDays : [0,1,2,3,4,5,6];
   everyDay = openDays.length===7;
+  closedDates = Array.isArray(s.closedDates) ? s.closedDates : [];
   updateAutoScheduleUI();
   updateDayPickerUI();
+  renderClosedDates();
   shopType = s.shopType==='proxy' ? 'proxy' : 'normal';
   updateOpenToggle(); updateBanner(); updateAvatar();
   loadMenus();
@@ -750,6 +805,72 @@ function updateDayPickerUI(){
     chip.style.color = on?'#fff':'var(--subtext)';
   }
 }
+// ============ CLOSED DATES (วันปิดพิเศษ) ============
+let closedDates = []; // [{type:'monthly',day:1}] | [{type:'date',date:'YYYY-MM-DD'}]
+let pendingClosedDateType = null;
+window.openAddClosedDate = function(){
+  pendingClosedDateType = null;
+  document.getElementById('cdTypeChooser').style.display = 'flex';
+  document.getElementById('cdDetail').style.display = 'none';
+  document.getElementById('cdMonthlyDay').value = '';
+  document.getElementById('cdDateValue').value = '';
+  document.getElementById('closedDateModal').classList.add('show');
+}
+window.chooseClosedDateType = function(type){
+  pendingClosedDateType = type;
+  document.getElementById('cdTypeChooser').style.display = 'none';
+  document.getElementById('cdDetail').style.display = 'block';
+  document.getElementById('cdMonthlyField').style.display = type==='monthly' ? 'block' : 'none';
+  document.getElementById('cdDateField').style.display = type==='date' ? 'block' : 'none';
+}
+window.backClosedDateType = function(){
+  pendingClosedDateType = null;
+  document.getElementById('cdDetail').style.display = 'none';
+  document.getElementById('cdTypeChooser').style.display = 'flex';
+}
+window.confirmAddClosedDate = function(){
+  if(pendingClosedDateType==='monthly'){
+    const day = parseInt(document.getElementById('cdMonthlyDay').value);
+    if(!day || day<1 || day>31){ alert('กรุณาใส่วันที่ 1-31'); return; }
+    if(closedDates.some(c=>c.type==='monthly' && c.day===day)){ alert('มีวันนี้อยู่แล้ว'); return; }
+    closedDates.push({type:'monthly', day});
+  } else if(pendingClosedDateType==='date'){
+    const dateVal = document.getElementById('cdDateValue').value;
+    if(!dateVal){ alert('กรุณาเลือกวันที่'); return; }
+    if(closedDates.some(c=>c.type==='date' && c.date===dateVal)){ alert('มีวันที่นี้อยู่แล้ว'); return; }
+    closedDates.push({type:'date', date:dateVal});
+  } else { return; }
+  closedDates.sort((a,b)=>{
+    if(a.type!==b.type) return a.type==='monthly' ? -1 : 1;
+    return a.type==='monthly' ? a.day-b.day : a.date.localeCompare(b.date);
+  });
+  renderClosedDates();
+  markShopDirty();
+  closeModal('closedDateModal');
+}
+window.removeClosedDate = function(idx){
+  closedDates.splice(idx,1);
+  renderClosedDates();
+  markShopDirty();
+}
+function formatClosedDate(dateStr){
+  if(!dateStr) return '';
+  const [y,m,d] = dateStr.split('-');
+  return `${parseInt(d)}/${parseInt(m)}/${y}`;
+}
+function renderClosedDates(){
+  const el = document.getElementById('closedDatesList');
+  if(!el) return;
+  if(!closedDates.length){ el.innerHTML = '<div style="font-size:12px;color:var(--subtext)">ยังไม่มีวันปิดพิเศษ</div>'; return; }
+  el.innerHTML = closedDates.map((c,i)=>{
+    const label = c.type==='monthly' ? `🔁 ทุกวันที่ ${c.day}` : `📅 ${formatClosedDate(c.date)}`;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1.5px solid #eef0f4;border-radius:12px">
+      <span style="font-size:13px;font-weight:700;color:var(--text)">${label}</span>
+      <button type="button" onclick="removeClosedDate(${i})" style="border:none;background:none;color:#dc2626;font-size:12px;font-weight:700;cursor:pointer">ลบ</button>
+    </div>`;
+  }).join('');
+}
+
 function updateBanner() {
   document.getElementById("bannerInner").innerHTML = bannerUrl
     ? `<img src="${bannerUrl}" style="width:100%;height:100%;object-fit:cover">`
@@ -761,7 +882,7 @@ function updateAvatar() {
     : `<svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:var(--primary)"><path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/></svg>`;
 }
 
-window.toggleOpen = function() { isOpen=!isOpen; updateOpenToggle(); markShopDirty(); }
+window.toggleOpen = function() { isOpen=!isOpen; openToggleTouched=true; updateOpenToggle(); markShopDirty(); }
 
 // ============ MENU LOAD (เรียลไทม์) ============
 let menusUnsub = null;
@@ -907,6 +1028,14 @@ function renderCatGroup(c, itemsOverride){
 }
 window.toggleCat = function(id){ openCatId = (openCatId===id) ? null : id; renderMenuGroups(); }
 
+window.toggleMenuSched = function(menuId){
+  const m = menus.find(x=>x.id===menuId); if(!m) return;
+  m.schedEnabled = !m.schedEnabled;
+  document.getElementById(`fi-sched-tgl-${menuId}`).className = `toggle ${m.schedEnabled?'on':''}`;
+  document.getElementById(`fi-sched-fields-${menuId}`).style.display = m.schedEnabled?'flex':'none';
+  markMenuDirty(menuId);
+}
+
 function renderMenuCard(m,idx,total) {
   const isOpen = openMenuId === m.id;
   const avail = m.available !== false;
@@ -1004,6 +1133,25 @@ function renderMenuForm(m, hideSaveBtn) {
       </div>
       <input type="file" accept="image/*" id="imgFile-${m.id}" style="display:none" onchange="onCropFileSelect(event,'menu','imgPreview-${m.id}','fi-img-${m.id}')">
       <input type="hidden" id="fi-img-${m.id}" value="${esc(m.imgUrl)}">
+    </div>
+
+    <div class="form-field" style="border:1.5px solid #eef0f4;border-radius:12px;padding:12px 14px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="form-label" style="margin:0">ตั้งเวลาขายอัตโนมัติ</div>
+        <button type="button" class="toggle ${m.schedEnabled?'on':''}" id="fi-sched-tgl-${m.id}" onclick="toggleMenuSched('${m.id}')" style="width:40px;height:22px"></button>
+      </div>
+      <div id="fi-sched-fields-${m.id}" style="display:${m.schedEnabled?'flex':'none'};gap:8px;margin-top:10px;align-items:flex-end">
+        <div class="form-field" style="flex:1;margin:0">
+          <div class="form-label" style="font-size:11px">เวลาเปิดขาย</div>
+          <input class="form-input" id="fi-sched-open-${m.id}" type="time" value="${m.schedOpen||''}" style="height:38px">
+        </div>
+        <div class="form-field" style="flex:1;margin:0">
+          <div class="form-label" style="font-size:11px">เวลาปิดขาย</div>
+          <input class="form-input" id="fi-sched-close-${m.id}" type="time" value="${m.schedClose||''}" style="height:38px">
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--subtext);margin-top:8px;line-height:1.5">นอกช่วงเวลานี้ระบบจะขึ้น "สินค้าหมด" ให้อัตโนมัติ (รองรับข้ามเที่ยงคืน เช่น 20:00-02:00)</div>
+      <button type="button" onclick="openApplyScheduleTo('${m.id}')" style="margin-top:10px;width:100%;height:36px;border:none;border-radius:10px;background:var(--primary-light);color:var(--primary);font-weight:800;font-size:12px;cursor:pointer">ใช้เวลานี้กับหลายเมนู</button>
     </div>
 
     <div class="option-groups-wrap">
@@ -1308,12 +1456,16 @@ function saveFormState(menuId) {
   const gp = document.getElementById(`fi-gp-${menuId}`)?.value;
   const desc = document.getElementById(`fi-desc-${menuId}`)?.value;
   const img = document.getElementById(`fi-img-${menuId}`)?.value;
+  const schedOpen = document.getElementById(`fi-sched-open-${menuId}`)?.value;
+  const schedClose = document.getElementById(`fi-sched-close-${menuId}`)?.value;
   if (name !== undefined) m.name = name;
   if (price !== undefined) m.price = parseFloat(price)||0;
   if (cat !== undefined) { m.categoryId = cat; m.category = catName(cat); }
   if (gp !== undefined) m.gp = parseFloat(gp)||0;
   if (desc !== undefined) m.desc = desc;
   if (img !== undefined) m.imgUrl = img;
+  if (schedOpen !== undefined) m.schedOpen = schedOpen;
+  if (schedClose !== undefined) m.schedClose = schedClose;
   // groups
   (m.optionGroups||[]).forEach((g,gi)=>{
     const title = document.getElementById(`gt-${menuId}-${gi}`)?.value;
@@ -1434,6 +1586,42 @@ window.confirmCopyApply = function(){
   closeModal('copyGroupModal');
   alert(`เพิ่ม ${groupCount} กลุ่มตัวเลือกให้ ${menuCount} เมนูแล้ว\nอย่าลืมกดปุ่ม "บันทึก" ด้านบนเพื่อบันทึกจริงด้วยนะครับ`);
 }
+let asSourceMenuId = null;
+let asSelectedMenuIds = new Set();
+window.openApplyScheduleTo = function(menuId){
+  saveFormState(menuId); // เก็บเวลาที่เพิ่งพิมพ์ค้างไว้ก่อน กันใช้ค่าเก่าที่ยังไม่ sync เข้า memory
+  const m = menus.find(x=>x.id===menuId); if(!m) return;
+  if(!m.schedOpen || !m.schedClose){ alert('กรุณาตั้งเวลาเปิด-ปิดขายของเมนูนี้ก่อน'); return; }
+  asSourceMenuId = menuId;
+  asSelectedMenuIds = new Set();
+  document.getElementById('asTimePreview').textContent = `${m.schedOpen} - ${m.schedClose} น.`;
+  const list = menus.filter(m2=>!m2.id.startsWith('_new_') && !m2.id.startsWith('_bulk_') && m2.id!==asSourceMenuId)
+    .sort((a,b)=>(a.category||'').localeCompare(b.category||'','th') || (a.name||'').localeCompare(b.name||'','th'));
+  document.getElementById('asMenuList').innerHTML = list.length ? list.map(m2=>`
+    <label style="display:flex;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid #f5f6f8;cursor:pointer">
+      <input type="checkbox" onchange="toggleAsMenu('${m2.id}',this.checked)" style="width:18px;height:18px;flex-shrink:0">
+      <span style="font-size:13px;color:var(--text)">${esc(m2.name||'(ยังไม่ตั้งชื่อ)')}${m2.category?' <span style="color:var(--subtext);font-weight:400">· '+esc(m2.category)+'</span>':''}</span>
+    </label>`).join('') : '<div style="padding:14px;text-align:center;color:var(--subtext);font-size:13px">ยังไม่มีเมนูอื่นในร้าน</div>';
+  document.getElementById('applyScheduleModal').classList.add('show');
+}
+window.toggleAsMenu = function(menuId,checked){
+  if(checked) asSelectedMenuIds.add(menuId); else asSelectedMenuIds.delete(menuId);
+}
+window.confirmApplySchedule = function(){
+  const src = menus.find(x=>x.id===asSourceMenuId); if(!src) return;
+  if(asSelectedMenuIds.size===0){ alert('กรุณาเลือกอย่างน้อย 1 เมนูปลายทาง'); return; }
+  asSelectedMenuIds.forEach(menuId=>{
+    const target = menus.find(x=>x.id===menuId); if(!target) return;
+    target.schedEnabled = true;
+    target.schedOpen = src.schedOpen;
+    target.schedClose = src.schedClose;
+    markMenuDirty(menuId);
+    updateCardInPlace(menuId);
+  });
+  const menuCount = asSelectedMenuIds.size;
+  closeModal('applyScheduleModal');
+  alert(`ใช้เวลาขาย ${src.schedOpen}-${src.schedClose} น. กับ ${menuCount} เมนูแล้ว\nอย่าลืมกดปุ่ม "บันทึก" ด้านบนเพื่อบันทึกจริงด้วยนะครับ`);
+}
 window.addGroup = function(menuId) {
   saveFormState(menuId);
   gtypeMenuId = menuId;
@@ -1539,6 +1727,7 @@ function buildMenuSaveData(m){
     name:m.name, price:m.price||0, category:m.category||'', categoryId:m.categoryId||'',
     available:m.available!==false, order:m.order||0,
     gp:m.gp||0, gpIsMain:shopType==='proxy', desc:m.desc||'', imgUrl:m.imgUrl||'',
+    schedEnabled:!!m.schedEnabled, schedOpen:m.schedOpen||'', schedClose:m.schedClose||'',
     optionGroups: (m.optionGroups||[]).filter(g=>g.title).map(g=>{
       const type=g.type||'normal';
       if(type==='price') return {type:'price', title:g.title, priceMin:g.priceMin||0, priceMax:g.priceMax||0, priceStep:g.priceStep||5};
@@ -1571,8 +1760,9 @@ async function saveEverything(){
       address:document.getElementById("shopAddress").value.trim(),
       lat:shopLocLat, lng:shopLocLng,
       isOpen, bannerUrl, avatarUrl,
+      ...(openToggleTouched ? {closeType:null, closeUntil:null, closeReason:""} : {}),
       autoSchedule, scheduleOpen:document.getElementById("schOpenTime").value||"", scheduleClose:document.getElementById("schCloseTime").value||"",
-      openDays,
+      openDays, closedDates,
       updatedAt:serverTimestamp()
     });
     for(const menuId of Array.from(dirtyMenuIds)){
@@ -1590,7 +1780,7 @@ async function saveEverything(){
   } finally {
     loadMenus(); // เปิดตัวรับข้อมูลเรียลไทม์กลับมาใหม่เสมอ ไม่ว่าบันทึกสำเร็จหรือพังระหว่างทาง
   }
-  shopInfoDirty=false; dirtyMenuIds.clear();
+  shopInfoDirty=false; dirtyMenuIds.clear(); openToggleTouched=false;
   openMenuId=null;
   renderMenuGroups();
 }
