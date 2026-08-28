@@ -438,7 +438,7 @@ document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
 </div>
 
 <div id="mainPage" class="page">
-  <div class="topbar">
+  <div class="topbar" id="mainTopbar">
     <div class="topbar-side"></div>
     <div class="topbar-center">
       <div class="rider-name-topbar" id="riderNameTop">ไรเดอร์</div>
@@ -449,7 +449,7 @@ document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
   </div>
 
   <!-- ORDER / HISTORY TAB BAR -->
-  <div class="main-tab-bar">
+  <div class="main-tab-bar" id="mainTabBarWrap">
     <button class="main-tab-btn active" id="mainTabOrders" onclick="window.switchOHTab('orders')">ออเดอร์</button>
     <button class="main-tab-btn" id="mainTabHistory" onclick="window.switchOHTab('history')">ประวัติ</button>
   </div>
@@ -1055,12 +1055,18 @@ function renderOrders(orders){
 // TABS
 window.switchMainTab=function(tab){
   if(tab==='messages') window.loadChatList();
-  ['food','income','messages'].forEach(t=>{
+  // กันเผื่อหน้ารายได้ (statement) เปิดค้างอยู่ ให้ปิดก่อนเสมอเวลาสลับแท็บนี้
+  const stmt=document.getElementById('tabStatement');
+  if(stmt && stmt.style.display!=='none'){
+    stmt.style.display='none';
+    document.getElementById('mainTopbar').style.display='';
+    document.getElementById('mainTabBarWrap').style.display='';
+  }
+  ['food','messages'].forEach(t=>{
     document.getElementById(`tab${t.charAt(0).toUpperCase()+t.slice(1)}`).style.display=t===tab?'block':'none';
     document.getElementById(`bnav-${t}`).classList.toggle('active',t===tab);
   });
   document.getElementById('bnav-more').classList.remove('active');
-  if(tab==='income') window.loadIncome();
 }
 
 // DATE PICKER
@@ -1467,6 +1473,13 @@ window.switchOHTab=function(tab){
   const isOrders=tab==='orders';
   document.getElementById('mainTabOrders').className='main-tab-btn'+(isOrders?' active':'');
   document.getElementById('mainTabHistory').className='main-tab-btn'+(!isOrders?' active':'');
+  // กันเผื่อหน้ารายได้ (statement) เปิดค้างอยู่ ให้ปิดก่อนเสมอเวลาสลับแท็บนี้
+  const stmt=document.getElementById('tabStatement');
+  if(stmt && stmt.style.display!=='none'){
+    stmt.style.display='none';
+    document.getElementById('mainTopbar').style.display='';
+    document.getElementById('mainTabBarWrap').style.display='';
+  }
   // แสดง/ซ่อน tabFood, tabIncome, tabMessages ตาม tab
   const food=document.getElementById('tabFood');
   const inc=document.getElementById('tabIncome');
@@ -1483,6 +1496,7 @@ window.switchOHTab=function(tab){
     if(inc)inc.style.display='';
     if(msg)msg.style.display='none';
     document.getElementById('mainBottomNav').style.display='none';
+    window.loadIncome(); // โหลดข้อมูลของวันที่เลือกไว้ทันที ไม่ต้องรอกดเลือกวันซ้ำ
   }
 };
 
@@ -1498,8 +1512,10 @@ window.switchStmtTab=function(tab){
 };
 
 window.openStatement=function(){
-  // ซ่อน bottom nav, แสดง statement
+  // ซ่อน bottom nav + หัวข้อ/แถบออเดอร์-ประวัติของหน้าหลัก แล้วแสดง statement แบบเต็มจอ
   document.getElementById('mainBottomNav').style.display='none';
+  document.getElementById('mainTopbar').style.display='none';
+  document.getElementById('mainTabBarWrap').style.display='none';
   ['tabFood','tabIncome','tabMessages'].forEach(id=>{
     const el=document.getElementById(id);
     if(el)el.style.display='none';
@@ -1526,8 +1542,10 @@ window.openStatement=function(){
 window.closeStatement=function(){
   const stmt=document.getElementById('tabStatement');
   if(stmt)stmt.style.display='none';
+  document.getElementById('mainTopbar').style.display='';
+  document.getElementById('mainTabBarWrap').style.display='';
   document.getElementById('mainBottomNav').style.display='flex';
-  window.switchMainTab('food');
+  window.switchOHTab('orders');
 };
 
 let _stmtOrders=[];
