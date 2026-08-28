@@ -735,10 +735,23 @@ dpDay=now.getDate(); dpMonth=now.getMonth()+1; dpYear=now.getFullYear();
 
 function showPage(id){ ["loadingPage","notFoundPage","mainPage","detailPage"].forEach(p=>document.getElementById(p).classList.toggle("active",p===id)); }
 
+// ดึงข้อมูลไรเดอร์จากฐานข้อมูล ถ้าเน็ตช้า/หลุดตอนแรก ลองใหม่ให้เองอัตโนมัติ (กันปัญหาค้างหน้า "กำลังโหลด..." ต้องรีเฟรชเองหลายรอบ)
+async function fetchRiderData(retriesLeft=2){
+  const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000));
+  try{
+    return await Promise.race([getDocs(query(collection(db,"riders"),where("slug","==",riderSlug))),timeout]);
+  }catch(e){
+    if(retriesLeft>0){
+      await new Promise(r=>setTimeout(r,1500));
+      return fetchRiderData(retriesLeft-1);
+    }
+    throw e;
+  }
+}
 async function initRider(){
   if(!riderSlug){ showPage("notFoundPage"); return; }
   try{
-    const snap=await getDocs(query(collection(db,"riders"),where("slug","==",riderSlug)));
+    const snap=await fetchRiderData();
     if(snap.empty){ showPage("notFoundPage"); return; }
     riderData={id:snap.docs[0].id,...snap.docs[0].data()};
     document.getElementById("riderNameTop").textContent=riderData.name||"ไรเดอร์";
@@ -1055,6 +1068,7 @@ function renderOrders(orders){
 // TABS
 window.switchMainTab=function(tab){
   if(tab==='messages') window.loadChatList();
+  document.getElementById('bnav-income').classList.remove('active');
   // กันเผื่อหน้ารายได้ (statement) เปิดค้างอยู่ ให้ปิดก่อนเสมอเวลาสลับแท็บนี้
   const stmt=document.getElementById('tabStatement');
   if(stmt && stmt.style.display!=='none'){
@@ -1512,8 +1526,7 @@ window.switchStmtTab=function(tab){
 };
 
 window.openStatement=function(){
-  // ซ่อน bottom nav + หัวข้อ/แถบออเดอร์-ประวัติของหน้าหลัก แล้วแสดง statement แบบเต็มจอ
-  document.getElementById('mainBottomNav').style.display='none';
+  // ซ่อนหัวข้อ/แถบออเดอร์-ประวัติของหน้าหลัก แล้วแสดง statement แบบเต็มจอ (แถบเมนูล่างให้แสดงตลอด ไม่ซ่อน)
   document.getElementById('mainTopbar').style.display='none';
   document.getElementById('mainTabBarWrap').style.display='none';
   ['tabFood','tabIncome','tabMessages'].forEach(id=>{
@@ -1522,6 +1535,10 @@ window.openStatement=function(){
   });
   const stmt=document.getElementById('tabStatement');
   if(stmt)stmt.style.display='block';
+  document.getElementById('bnav-food').classList.remove('active');
+  document.getElementById('bnav-income').classList.add('active');
+  document.getElementById('bnav-messages').classList.remove('active');
+  document.getElementById('bnav-more').classList.remove('active');
   // init year selector
   const yr=document.getElementById('stmtYear');
   if(yr&&!yr.options.length){
