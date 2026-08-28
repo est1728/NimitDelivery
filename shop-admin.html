@@ -1096,12 +1096,13 @@ let allShopOrders=[];
 let shopOrdersUnsub=null;
 function listenOrders(){
   if(shopOrdersUnsub) shopOrdersUnsub();
-  shopOrdersUnsub=onSnapshot(collection(db,"orders"), snap=>{
+  // ดึงเฉพาะออเดอร์ของร้านนี้จากฐานข้อมูลตั้งแต่ต้นทาง (เดิมดึงทุกร้านมาก่อนแล้วค่อยกรองทีหลัง ทำให้ช้าลงเรื่อยๆ ตามจำนวนร้าน/ออเดอร์ทั้งระบบ)
+  const shopIds=[...new Set([shopData.id,shopData.slug].filter(Boolean))];
+  shopOrdersUnsub=onSnapshot(query(collection(db,"orders"),where("shopId","in",shopIds)), snap=>{
     allShopOrders=[];
     if(!window._knownOrders) window._knownOrders=new Set();
     snap.forEach(d=>{
       const o={docId:d.id,...d.data()};
-      if(o.shopId!==shopData.id&&o.shopId!==shopData.slug)return;
       if(!ACTIVE_STATUSES.includes(o.status))return;
       allShopOrders.push(o);
       if(!window._knownOrders.has(d.id)&&window._knownOrders.size>0){
