@@ -237,7 +237,7 @@ body{background:var(--gray);min-height:100vh;overscroll-behavior-y:none;}
 .price-row.main{font-size:18px;font-weight:800;color:var(--primary);border-top:2px solid rgba(12,74,166,0.15);margin-top:8px;padding-top:12px;}
 
 /* CONFIRM DIALOG */
-.confirm-overlay{position:fixed;inset:0;z-index:700;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);}
+.confirm-overlay{position:fixed;inset:0;z-index:700;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,0.5);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
 .confirm-overlay.show{display:flex;}
 .confirm-box{background:#fff;border-radius:24px;width:100%;max-width:360px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.25);animation:popIn 0.2s ease-out;}
 .confirm-icon-wrap{padding:28px 20px 0;display:flex;justify-content:center;}
@@ -903,17 +903,29 @@ function isWithinScheduleAdmin(openTime,closeTime){
   return openMin<closeMin ? (nowMin>=openMin && nowMin<closeMin) : (nowMin>=openMin || nowMin<closeMin);
 }
 // คำนวณว่า "ตอนนี้ควรเปิดจริงหรือยัง" จากเงื่อนไขทั้งหมด (ปิดพิเศษ, ปิดชั่วคราว, ปิดยาว, ตารางเวลาปกติ)
+// คำนวณเวลา (timestamp) ของรอบเปิดร้านถัดไปจริงๆ ตามเวลา+วันที่ตั้งไว้ (ใช้ตอนกด "ปิดยาว" เพื่อรู้ว่าจะเปิดเองเมื่อไหร่แน่ๆ)
+function computeNextOpenTime(s){
+  if(!s.autoSchedule || !s.scheduleOpen || !s.scheduleClose) return null;
+  const days = Array.isArray(s.openDays) && s.openDays.length ? s.openDays : [0,1,2,3,4,5,6];
+  const [oh,om] = s.scheduleOpen.split(':').map(Number);
+  const now = new Date();
+  for(let addDays=0; addDays<=8; addDays++){
+    const d = new Date(now);
+    d.setDate(d.getDate()+addDays);
+    d.setHours(oh,om,0,0);
+    if(d.getTime() <= now.getTime()) continue; // ต้องเป็นรอบเปิดที่ยังไม่ถึงเท่านั้น (ไม่นับรอบเปิดวันนี้ที่ผ่านไปแล้ว)
+    if(days.includes(d.getDay())) return d.getTime();
+  }
+  return null;
+}
 function computeEffectiveOpen(s){
   if(isClosedDateToday(s.closedDates)) return false;
   if(s.isOpen===false){
-    if(s.closeType==='temp' && s.closeUntil){
-      if(Date.now() < s.closeUntil) return false;
-      // ครบเวลาแล้ว ให้ตกไปเช็คตารางเวลาปกติต่อด้านล่าง
-    } else if(s.closeType==='long'){
-      if(!s.autoSchedule) return false; // ไม่ได้ตั้งเวลาอัตโนมัติไว้ ต้องกดเปิดเอง
-      // ตั้งไว้แล้ว ให้ตกไปเช็คว่าตอนนี้อยู่ในรอบเปิดหรือยัง
+    if(s.closeUntil){
+      if(Date.now() < s.closeUntil) return false; // ยังไม่ถึงเวลาที่กำหนดให้เปิดเอง (ทั้งปิดยาวและปิดชั่วคราว)
+      // ถึงเวลาแล้ว ให้ตกไปเช็คตารางเวลาปกติต่อด้านล่าง
     } else {
-      return false; // ปิดฉุกเฉินแบบเดิม ไม่มีประเภท ต้องกดเปิดเอง
+      return false; // ปิดค้างไม่มีกำหนดเปิดเอง (ปิดฉุกเฉินเดิม หรือปิดยาวแบบไม่ได้ตั้งเวลาอัตโนมัติไว้) ต้องกดเปิดเอง
     }
   }
   if(!s.autoSchedule) return true;
@@ -1081,6 +1093,8 @@ window.confirmCloseShop=async function(){
       return;
     }
     closeUntil=Date.now()+(hrs*3600+mins*60)*1000;
+  } else if(pendingCloseType==='long'){
+    closeUntil=computeNextOpenTime(shopData); // null ถ้าไม่ได้ตั้งเวลาอัตโนมัติไว้ = ปิดค้างจนกว่าจะกดเปิดเอง
   }
   document.getElementById("closeShopOverlay").classList.remove("show");
   isOpen=false; updateOpenUI();
