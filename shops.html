@@ -507,14 +507,11 @@ function isClosedDateToday(closedDates){
 function effectiveOpen(s){
   if(isClosedDateToday(s.closedDates)) return false; // วันปิดพิเศษ ปิดเสมอไม่ว่าอะไรจะตั้งไว้
   if(s.isOpen===false){
-    if(s.closeType==='temp' && s.closeUntil){
-      if(Date.now() < s.closeUntil) return false; // ยังไม่ครบเวลาปิดชั่วคราว
-      // ครบเวลาแล้ว ตกไปเช็คตารางเวลาปกติด้านล่างต่อ
-    } else if(s.closeType==='long'){
-      if(!s.autoSchedule) return false; // ปิดยาวแบบไม่ได้ตั้งเวลาอัตโนมัติ ต้องรอแอดมินกดเปิดเอง
-      // ตั้งเวลาอัตโนมัติไว้แล้ว ตกไปเช็คว่าอยู่ในรอบเปิดหรือยัง
+    if(s.closeUntil){
+      if(Date.now() < s.closeUntil) return false; // ยังไม่ถึงเวลาที่กำหนดให้เปิดเอง (ทั้งปิดยาวและปิดชั่วคราว)
+      // ถึงเวลาแล้ว ตกไปเช็คตารางเวลาปกติด้านล่างต่อ
     } else {
-      return false; // ปิดฉุกเฉินแบบเดิม ไม่มีประเภท ต้องกดเปิดเอง
+      return false; // ปิดค้างไม่มีกำหนดเปิดเอง ต้องรอแอดมินกดเปิดเอง
     }
   }
   if(!s.autoSchedule) return true;
