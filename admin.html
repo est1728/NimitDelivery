@@ -1780,17 +1780,35 @@ window.closeShopCloseModal=function(){
   if(shopCloseTargetCb) shopCloseTargetCb.checked=true; // ยกเลิก คืนสวิตช์กลับเป็นเปิด
   shopCloseTargetId=null; shopCloseTargetCb=null; pendingAcdCloseType=null;
 }
+// คำนวณเวลา (timestamp) ของรอบเปิดร้านถัดไปจริงๆ ตามเวลา+วันที่ร้านตั้งไว้ (ใช้ตอนกด "ปิดยาว" เพื่อรู้ว่าจะเปิดเองเมื่อไหร่แน่ๆ)
+function computeNextOpenTime(s){
+  if(!s.autoSchedule || !s.scheduleOpen || !s.scheduleClose) return null;
+  const days = Array.isArray(s.openDays) && s.openDays.length ? s.openDays : [0,1,2,3,4,5,6];
+  const [oh,om] = s.scheduleOpen.split(':').map(Number);
+  const now = new Date();
+  for(let addDays=0; addDays<=8; addDays++){
+    const d = new Date(now);
+    d.setDate(d.getDate()+addDays);
+    d.setHours(oh,om,0,0);
+    if(d.getTime() <= now.getTime()) continue;
+    if(days.includes(d.getDay())) return d.getTime();
+  }
+  return null;
+}
 window.confirmShopClose=async function(){
   const reason=$('shopCloseReason').value.trim();
   if(!reason){ $('shopCloseReason').style.borderColor='#dc2626'; $('shopCloseReason').focus(); window.toast('กรุณาใส่เหตุผล','er'); return; }
+  const sid=shopCloseTargetId;
+  const targetShop=shops.find(s=>s.id===sid)||{};
   let closeUntil=null;
   if(pendingAcdCloseType==='temp'){
     const hrs=parseInt($('acdTempHour').value)||0;
     const mins=parseInt($('acdTempMinute').value)||0;
     if(hrs<=0 && mins<=0){ window.toast('กรุณาตั้งเวลาปิดชั่วคราวอย่างน้อย 1 นาที','er'); return; }
     closeUntil=Date.now()+(hrs*3600+mins*60)*1000;
+  } else if(pendingAcdCloseType==='long'){
+    closeUntil=computeNextOpenTime(targetShop); // null ถ้าร้านไม่ได้ตั้งเวลาอัตโนมัติไว้ = ปิดค้างจนกว่าจะกดเปิดเอง
   }
-  const sid=shopCloseTargetId;
   const closeType=pendingAcdCloseType||'long';
   $('shopCloseOv').classList.remove('show');
   try{
