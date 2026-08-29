@@ -203,7 +203,7 @@ body{background:var(--gray);min-height:100vh;}
 .next-status-btn:disabled{background:#cbd5e1;box-shadow:none;cursor:not-allowed;}
 
 /* CONFIRM */
-.confirm-overlay{position:fixed;inset:0;z-index:600;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);}
+.confirm-overlay{position:fixed;inset:0;z-index:600;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,0.5);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
 .confirm-overlay.show{display:flex;}
 .confirm-box{background:#fff;border-radius:24px;width:100%;max-width:360px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.25);animation:popIn 0.2s ease-out;}
 .confirm-icon-wrap{padding:28px 20px 0;display:flex;align-items:center;justify-content:center;}
@@ -737,10 +737,14 @@ function showPage(id){ ["loadingPage","notFoundPage","mainPage","detailPage"].fo
 
 // ดึงข้อมูลไรเดอร์จากฐานข้อมูล ถ้าเน็ตช้า/หลุดตอนแรก ลองใหม่ให้เองอัตโนมัติ (กันปัญหาค้างหน้า "กำลังโหลด..." ต้องรีเฟรชเองหลายรอบ)
 async function fetchRiderData(retriesLeft=2){
-  const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000));
+  let timer;
+  const timeout=new Promise((_,rej)=>{ timer=setTimeout(()=>rej(new Error('timeout')),10000); });
   try{
-    return await Promise.race([getDocs(query(collection(db,"riders"),where("slug","==",riderSlug))),timeout]);
+    const result = await Promise.race([getDocs(query(collection(db,"riders"),where("slug","==",riderSlug))),timeout]);
+    clearTimeout(timer);
+    return result;
   }catch(e){
+    clearTimeout(timer);
     if(retriesLeft>0){
       await new Promise(r=>setTimeout(r,1500));
       return fetchRiderData(retriesLeft-1);
