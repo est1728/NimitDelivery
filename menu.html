@@ -81,7 +81,7 @@ body{background:var(--bg);min-height:100vh;padding-bottom:120px;}
 .qty-num{font-size:15px;font-weight:800;min-width:24px;text-align:center;color:var(--text);}
 
 /* POPUP */
-.popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:500;display:none;align-items:flex-end;backdrop-filter:blur(2px);}
+.popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:500;display:none;align-items:flex-end;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);}
 .popup-overlay.show{display:flex;}
 .popup-box{background:#fff;width:100%;border-radius:24px 24px 0 0;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;}
 .popup-img-wrap{height:200px;background:var(--bg);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;}
@@ -290,7 +290,10 @@ if(urlShopId) localStorage.setItem("selectedShopId", urlShopId);
 const shopName = localStorage.getItem("selectedShopName");
 document.getElementById("shopNameTitle").textContent = shopName || "ร้านค้า";
 
-let cart = JSON.parse(localStorage.getItem("cart") || "{}");
+// กันหน้าเว็บพังทั้งหน้าถ้าข้อมูลตะกร้าที่เก็บไว้ในเครื่องเพี้ยน/เสียหาย (เช่น จากเวอร์ชันเก่า หรือเบราว์เซอร์ค้างตอนบันทึก)
+let cart = {};
+try{ cart = JSON.parse(localStorage.getItem("cart") || "{}"); }
+catch(e){ localStorage.removeItem("cart"); }
 let allMenus = [], filteredMenus = [], categories = [], currentCat = "ทั้งหมด";
 let shopCategories = []; // [{id,name}] จาก shop-manage.html ถ้ามี
 let gpPercent = 0, gpSubPercent = 0, gpTiers = [], gpSubTiers = [], shopType = "normal", popupMenu = null, popupSelections = {}, popupSubSelections = {}, popupSubQty = {}, popupQty = 1, shopFullData = null;
@@ -323,12 +326,10 @@ function isClosedDateToday(closedDates){
 function computeShopOpenNow(d){
   if(isClosedDateToday(d.closedDates)) return false;
   if(d.isOpen===false){
-    if(d.closeType==='temp' && d.closeUntil){
-      if(Date.now() < d.closeUntil) return false;
-    } else if(d.closeType==='long'){
-      if(!d.autoSchedule) return false;
+    if(d.closeUntil){
+      if(Date.now() < d.closeUntil) return false; // ยังไม่ถึงเวลาที่กำหนดให้เปิดเอง (ทั้งปิดยาวและปิดชั่วคราว)
     } else {
-      return false;
+      return false; // ปิดค้างไม่มีกำหนดเปิดเอง ต้องรอแอดมินกดเปิดเอง
     }
   }
   return d.autoSchedule ? isShopWithinSchedule(d) : true;
@@ -867,7 +868,10 @@ function updatePopupTotal(){
 window.addToCartFromPopup=function(){
   const m=popupMenu; if(!m) return;
   // เช็คว่าเข้าสู่ระบบหรือยังก่อนใส่ตะกร้า (แบบเดียวกับ Shopee — ดูเมนูได้แต่กดใส่ตะกร้าต้องเข้าสู่ระบบก่อน)
-  const _phone = JSON.parse(localStorage.getItem("customerData")||"{}").phone || localStorage.getItem("customerPhone");
+  let _custData = {};
+  try{ _custData = JSON.parse(localStorage.getItem("customerData")||"{}"); }
+  catch(e){ localStorage.removeItem("customerData"); }
+  const _phone = _custData.phone || localStorage.getItem("customerPhone");
   if(!_phone){
     sessionStorage.setItem("loginReturnUrl", location.href);
     sessionStorage.setItem("addrBack", location.href);
