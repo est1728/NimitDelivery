@@ -340,6 +340,25 @@ window.installApp = async function(){
 document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
 </script>
 
+<!-- ===== AUTH GATE — บล็อกหน้าจอทั้งหมดจนกว่าจะล็อกอินและได้รับสิทธิ์แอดมินยืนยันแล้ว ===== -->
+<div id="authGate" style="position:fixed;inset:0;background:#fff;z-index:9000;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:24px;">
+  <div style="width:100%;max-width:340px">
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="font-size:22px;font-weight:900;color:#0c4aa6">Nimit Delivery</div>
+      <div style="font-size:13px;color:#64748b;margin-top:4px">เข้าสู่ระบบหลังบ้าน</div>
+    </div>
+    <div id="authLoginBox">
+      <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px">อีเมล</div>
+      <input id="authEmail" type="email" autocomplete="username" placeholder="you@email.com" style="width:100%;height:48px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:15px;margin-bottom:14px;outline:none">
+      <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px">รหัสผ่าน</div>
+      <input id="authPassword" type="password" autocomplete="current-password" placeholder="••••••••" style="width:100%;height:48px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:15px;margin-bottom:8px;outline:none">
+      <div id="authError" style="color:#dc2626;font-size:13px;font-weight:600;min-height:18px;margin-bottom:8px"></div>
+      <button id="authLoginBtn" onclick="window.doAdminLogin()" style="width:100%;height:50px;border:none;border-radius:16px;background:linear-gradient(135deg,#0c4aa6,#083570);color:#fff;font-size:15px;font-weight:800;cursor:pointer">เข้าสู่ระบบ</button>
+    </div>
+    <div id="authChecking" style="display:none;text-align:center;color:#64748b;font-size:13px;padding:20px 0">กำลังตรวจสอบ...</div>
+  </div>
+</div>
+
 <div id="notifBanner" style="position:fixed;top:0;left:0;right:0;z-index:999;color:#fff;padding:14px 16px;transform:translateY(-100%);transition:transform .35s cubic-bezier(.34,1.56,.64,1);box-shadow:0 4px 20px rgba(0,0,0,.3);display:flex;align-items:center;gap:10px;">
   <span id="notifIco" style="font-size:20px">🔔</span>
   <div style="flex:1"><div id="notifTitle" style="font-size:14px;font-weight:800;color:#fff"></div><div id="notifSub" style="font-size:12px;opacity:.85;color:#fff;margin-top:2px"></div></div>
@@ -381,6 +400,34 @@ document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
       <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
       <div class="sidebar-item-text"><div class="sidebar-item-title" id="installBtnText">ติดตั้งแอป</div><div class="sidebar-item-sub">เพิ่มไอคอนไว้หน้าจอโฮม เปิดใช้ไวขึ้น</div></div>
     </button>
+    <button class="sidebar-item" id="manageAdminsBtn" style="display:none" onclick="window.closeSidebar();window.openAdminMgmt()">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4zm7.5-6.5l1.5 1.5-3 3-1.5-1.5L18 8l1.5-1.5z"/></svg>
+      <div class="sidebar-item-text"><div class="sidebar-item-title">จัดการแอดมิน</div><div class="sidebar-item-sub">เพิ่ม/ปิดสิทธิ์บัญชีแอดมิน</div></div>
+    </button>
+    <button class="sidebar-item" onclick="window.doAdminLogout()">
+      <svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+      <div class="sidebar-item-text"><div class="sidebar-item-title">ออกจากระบบ</div><div class="sidebar-item-sub" id="sidebarCurrentEmail"></div></div>
+    </button>
+  </div>
+</div>
+
+<!-- ===== ADMIN MANAGEMENT SHEET (owner only) ===== -->
+<div id="adminMgmtSheet" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:220;align-items:flex-end;">
+  <div style="background:#fff;border-radius:24px 24px 0 0;width:100%;padding:20px 20px 44px;max-height:90vh;overflow-y:auto">
+    <div style="width:36px;height:4px;border-radius:2px;background:#e2e8f0;margin:0 auto 14px"></div>
+    <div style="font-size:17px;font-weight:800;color:#0f172a;margin-bottom:4px">จัดการแอดมิน</div>
+    <div style="font-size:12px;color:#64748b;margin-bottom:16px">เพิ่มอีเมลของคนที่จะให้เข้าใช้งานหลังบ้านได้ ระบบจะส่งลิงก์ยืนยันไปที่อีเมลนั้น เขากดยืนยันแล้วตั้งรหัสผ่านเอง หลังจากนั้นถึงจะเข้าใช้งานได้</div>
+
+    <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">อีเมลแอดมินใหม่</div>
+    <input id="newAdminEmail" type="email" placeholder="name@email.com" style="width:100%;height:48px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:14px;margin-bottom:10px;outline:none">
+    <div id="adminMgmtMsg" style="font-size:13px;font-weight:600;min-height:18px;margin-bottom:10px"></div>
+    <button id="addAdminBtn" onclick="window.inviteAdmin()" style="width:100%;height:50px;border:none;border-radius:16px;background:linear-gradient(135deg,#083570,#1565C0);color:#fff;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:8px">ส่งคำเชิญ</button>
+    <button onclick="window.closeAdminMgmt()" style="width:100%;height:42px;border:none;background:none;color:#64748b;font-size:14px;font-weight:600;cursor:pointer">ปิด</button>
+
+    <div style="border-top:1px solid #f0f2f5;margin-top:16px;padding-top:12px">
+      <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:10px">รายชื่อแอดมินทั้งหมด</div>
+      <div id="adminList"><div style="color:#94a3b8;font-size:13px">กำลังโหลด...</div></div>
+    </div>
   </div>
 </div>
 
@@ -897,6 +944,7 @@ window.confirmCrop=function(){
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, query, where, onSnapshot, doc, getDocs, updateDoc, setDoc, addDoc, deleteDoc, getDoc, serverTimestamp, orderBy, limit, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendSignInLinkToEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 window.previewAdFile=function(input,type){
   const file=input.files[0]; if(!file)return;
@@ -1003,14 +1051,16 @@ async function reqNotifPerm(){
 }
 
 
-const db = getFirestore(initializeApp({
+const fbApp = initializeApp({
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
   authDomain:"nimit-delivery.firebaseapp.com",
   projectId:"nimit-delivery",
   storageBucket:"nimit-delivery.firebasestorage.app",
   messagingSenderId:"233476256130",
   appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
-}));
+});
+const db = getFirestore(fbApp);
+const auth = getAuth(fbApp);
 
 const SL={pending:"รอรับ",accepted:"รับแล้ว",picking:"ไปร้าน",arrived:"ถึงร้าน",delivering:"กำลังส่ง",done:"เสร็จสิ้น",rejected:"ยกเลิก"};
 const SN={pending:"accepted",accepted:"picking",picking:"arrived",arrived:"delivering",delivering:"done"};
@@ -2059,8 +2109,171 @@ document.addEventListener('click', e => {
 ['walletPct','riderPct'].forEach(id=>$(id)?.addEventListener('input',updPrev));
 
 updPrev();document.getElementById('statDate').max = new Date().toISOString().split('T')[0];
-reqNotifPerm();
-listenOrders();
+// หมายเหตุ: reqNotifPerm() และ listenOrders() ไม่เรียกทันทีตรงนี้แล้ว —
+// ย้ายไปเรียกใน window.__startAdminDashboard() ซึ่งจะถูกเรียกก็ต่อเมื่อ
+// ผ่านการยืนยันตัวตน + มีสิทธิ์แอดมิน (สถานะ active) เท่านั้น ดูบล็อก AUTH ด้านล่าง
+window.__startAdminDashboard = function(){
+  reqNotifPerm();
+  listenOrders();
+};
+
+// ============================================================
+// ===== AUTH GATE — ล็อกอิน + เช็คสิทธิ์จาก collection 'admins' =====
+// โครงสร้าง Firestore: admins/{email} = { email, role:'owner'|'admin', status:'active'|'pending_verification'|'disabled', invitedBy, createdAt }
+// role ปัจจุบันรองรับ 'owner' (สร้าง/ปิดแอดมินได้, เข้าได้ทุกอย่าง) และ 'admin' (เข้าใช้งานหลังบ้านปกติ)
+// เผื่อไว้สำหรับระบบแฟรนไชส์ในอนาคต: จะเพิ่ม role อื่น เช่น 'franchise_owner' ได้โดยไม่ต้องแก้โครงสร้างนี้
+// ⚠️ หน้าจอนี้เป็นแค่ชั้นป้องกันฝั่ง UI เท่านั้น การป้องกันข้อมูลจริงต้องอาศัย Firestore Security Rules
+// (ดูไฟล์ firestore-rules-admin.txt ที่แนบมาด้วย) — ถ้ายังไม่ตั้ง rules ให้ถูกต้อง คนที่รู้เทคนิคยังเรียก
+// Firestore SDK ตรงจาก console ของเบราว์เซอร์เพื่อดึง/แก้ข้อมูลได้อยู่ดี แม้จะผ่านหน้า login นี้ไม่ได้
+// ============================================================
+let __currentAdminEmail = null;
+let __currentAdminRole = null;
+
+function showAuthGate(){ document.getElementById('authGate').style.display='flex'; }
+function hideAuthGate(){ document.getElementById('authGate').style.display='none'; }
+function setAuthChecking(on){
+  document.getElementById('authLoginBox').style.display = on?'none':'block';
+  document.getElementById('authChecking').style.display = on?'block':'none';
+}
+
+window.doAdminLogin = async function(){
+  const email = document.getElementById('authEmail').value.trim().toLowerCase();
+  const pw = document.getElementById('authPassword').value;
+  const errEl = document.getElementById('authError');
+  errEl.textContent = '';
+  if(!email || !pw){ errEl.textContent = 'กรุณากรอกอีเมลและรหัสผ่าน'; return; }
+  setAuthChecking(true);
+  try{
+    await signInWithEmailAndPassword(auth, email, pw);
+    // onAuthStateChanged ด้านล่างจะรับช่วงต่อเอง (เช็คสิทธิ์ + เปิดแดชบอร์ด)
+  }catch(e){
+    setAuthChecking(false);
+    if(e.code==='auth/invalid-credential' || e.code==='auth/wrong-password' || e.code==='auth/user-not-found'){
+      errEl.textContent = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
+    } else if(e.code==='auth/too-many-requests'){
+      errEl.textContent = 'ลองผิดหลายครั้งเกินไป กรุณารอสักครู่แล้วลองใหม่';
+    } else {
+      errEl.textContent = 'เข้าสู่ระบบไม่สำเร็จ: '+e.message;
+    }
+  }
+};
+
+window.doAdminLogout = async function(){
+  try{ await signOut(auth); }catch(e){}
+  location.reload();
+};
+
+// เรียกทุกครั้งที่สถานะล็อกอินเปลี่ยน (ล็อกอินสำเร็จ / ล็อกอินอยู่แล้วตอนรีเฟรชหน้า / ออกจากระบบ)
+onAuthStateChanged(auth, async (user) => {
+  if(!user){
+    __currentAdminEmail = null; __currentAdminRole = null;
+    setAuthChecking(false);
+    showAuthGate();
+    return;
+  }
+  setAuthChecking(true);
+  const email = (user.email||'').toLowerCase();
+  try{
+    const snap = await getDoc(doc(db,'admins',email));
+    if(!snap.exists() || snap.data().status !== 'active'){
+      // ล็อกอินผ่าน Firebase ได้ แต่ไม่มีสิทธิ์ในระบบแอดมิน (หรือถูกปิดสิทธิ์ไปแล้ว) → เด้งออกทันที
+      await signOut(auth);
+      setAuthChecking(false);
+      document.getElementById('authError').textContent = 'บัญชีนี้ยังไม่ได้รับสิทธิ์เข้าใช้งานหลังบ้าน หรือถูกระงับสิทธิ์แล้ว';
+      showAuthGate();
+      return;
+    }
+    __currentAdminEmail = email;
+    __currentAdminRole = snap.data().role || 'admin';
+    document.getElementById('sidebarCurrentEmail').textContent = email;
+    document.getElementById('manageAdminsBtn').style.display = (__currentAdminRole === 'owner') ? 'flex' : 'none';
+    hideAuthGate();
+    setAuthChecking(false);
+    window.__startAdminDashboard();
+  }catch(e){
+    setAuthChecking(false);
+    document.getElementById('authError').textContent = 'ตรวจสอบสิทธิ์ไม่สำเร็จ: '+e.message;
+    showAuthGate();
+  }
+});
+
+// ===== ADMIN MANAGEMENT (owner เท่านั้น) =====
+window.openAdminMgmt = function(){
+  if(__currentAdminRole !== 'owner'){ window.toast?.('เฉพาะเจ้าของระบบเท่านั้น','er'); return; }
+  document.getElementById('adminMgmtSheet').style.display = 'flex';
+  document.getElementById('newAdminEmail').value = '';
+  document.getElementById('adminMgmtMsg').textContent = '';
+  loadAdminList();
+};
+window.closeAdminMgmt = function(){ document.getElementById('adminMgmtSheet').style.display = 'none'; };
+
+async function loadAdminList(){
+  const el = document.getElementById('adminList');
+  el.innerHTML = '<div style="color:#94a3b8;font-size:13px">กำลังโหลด...</div>';
+  try{
+    const snap = await getDocs(collection(db,'admins'));
+    if(snap.empty){ el.innerHTML = '<div style="color:#94a3b8;font-size:13px">ยังไม่มีแอดมิน</div>'; return; }
+    const statusLabel = {active:'ใช้งานอยู่ ✓',pending_verification:'รอยืนยันอีเมล',setting_password:'รอตั้งรหัสผ่าน',disabled:'ปิดสิทธิ์แล้ว'};
+    let html = '';
+    snap.forEach(d=>{
+      const a = d.data();
+      const isOwner = a.role === 'owner';
+      const canToggle = !isOwner && a.email !== __currentAdminEmail;
+      html += `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f5f6f8">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.email}${isOwner?' 👑':''}</div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:2px">${statusLabel[a.status]||a.status||'-'}</div>
+        </div>
+        ${canToggle ? `<button onclick="window.toggleAdminStatus('${a.email}','${a.status==='disabled'?'active':'disabled'}')" style="height:32px;padding:0 12px;border:1.5px solid ${a.status==='disabled'?'#16a34a':'#dc2626'};border-radius:16px;background:#fff;color:${a.status==='disabled'?'#16a34a':'#dc2626'};font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">${a.status==='disabled'?'เปิดใช้':'ปิดสิทธิ์'}</button>` : ''}
+      </div>`;
+    });
+    el.innerHTML = html;
+  }catch(e){
+    el.innerHTML = '<div style="color:#dc2626;font-size:13px">โหลดไม่ได้: '+e.message+'</div>';
+  }
+}
+
+window.toggleAdminStatus = async function(email, newStatus){
+  if(__currentAdminRole !== 'owner') return;
+  try{
+    await updateDoc(doc(db,'admins',email), { status:newStatus });
+    loadAdminList();
+  }catch(e){ window.toast?.('แก้ไขไม่สำเร็จ: '+e.message,'er'); }
+};
+
+window.inviteAdmin = async function(){
+  if(__currentAdminRole !== 'owner') return;
+  const email = document.getElementById('newAdminEmail').value.trim().toLowerCase();
+  const msgEl = document.getElementById('adminMgmtMsg');
+  msgEl.style.color = '#dc2626';
+  if(!email || !email.includes('@')){ msgEl.textContent = 'กรอกอีเมลให้ถูกต้อง'; return; }
+  msgEl.style.color = '#64748b'; msgEl.textContent = 'กำลังส่งคำเชิญ...';
+  try{
+    const existing = await getDoc(doc(db,'admins',email));
+    if(existing.exists() && existing.data().status === 'active'){
+      msgEl.style.color = '#dc2626'; msgEl.textContent = 'อีเมลนี้เป็นแอดมินอยู่แล้ว';
+      return;
+    }
+    await setDoc(doc(db,'admins',email), {
+      email, role:'admin', status:'pending_verification',
+      invitedBy: __currentAdminEmail, createdAt: serverTimestamp()
+    });
+    // Firebase จะส่งอีเมลที่มีลิงก์ยืนยันให้เอง (ไม่ต้องมีระบบส่งอีเมลแยก)
+    // ปลายทางของลิงก์คือ admin-setup.html ซึ่งต้อง deploy ไว้ที่โดเมนเดียวกัน และต้องเพิ่มโดเมนนี้ใน
+    // Firebase Console > Authentication > Settings > Authorized domains ด้วย (ปกติ vercel.app จะอยู่แล้ว)
+    await sendSignInLinkToEmail(auth, email, {
+      url: window.location.origin + '/admin-setup.html',
+      handleCodeInApp: true
+    });
+    msgEl.style.color = '#16a34a';
+    msgEl.textContent = 'ส่งคำเชิญไปที่ '+email+' แล้ว รอเขายืนยันอีเมลและตั้งรหัสผ่าน';
+    document.getElementById('newAdminEmail').value = '';
+    loadAdminList();
+  }catch(e){
+    msgEl.style.color = '#dc2626';
+    msgEl.textContent = 'ส่งคำเชิญไม่สำเร็จ: '+e.message;
+  }
+};
 // เช็คซ้ำเป็นระยะให้จุด "กำลังดูอยู่" เปลี่ยนเป็นแดงเองเมื่อ heartbeat เงียบไปนานเกินไป
 // (ปกติ re-render จะเกิดตาม snapshot ใหม่อยู่แล้ว แต่ถ้าไรเดอร์ปิดแอปกะทันหันจะไม่มี snapshot ใหม่เข้ามาอีกเลย
 // ต้องมีตัวนี้ไว้เช็คด้วยตัวเองเทียบกับเวลาปัจจุบัน ไม่งั้นจุดจะค้างเขียวตลอดไปทั้งที่ไรเดอร์ออกจากหน้าไปนานแล้ว)
