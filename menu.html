@@ -82,14 +82,15 @@ body{background:var(--bg);min-height:100vh;padding-bottom:120px;}
 
 /* POPUP */
 .popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:500;display:none;align-items:flex-end;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);}
+#optionPopup{align-items:flex-start;}
 .popup-overlay.show{display:flex;}
 .popup-box{background:#fff;width:100%;border-radius:16px 16px 0 0;max-height:96vh;max-height:96dvh;display:flex;flex-direction:column;overflow:hidden;position:relative;}
 .popup-img-wrap{height:280px;background:var(--bg);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:pointer;}
 .popup-img-wrap img{width:100%;height:100%;object-fit:cover;filter:url(#sharpenFilter);}
-.popup-img-shade{position:absolute;top:0;left:0;right:0;height:280px;background:linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,.4) 100%);pointer-events:none;}
+.popup-img-shade{position:absolute;top:0;left:0;right:0;height:280px;background:linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,.55) 45%);pointer-events:none;}
 .popup-img-placeholder{display:flex;align-items:center;justify-content:center;width:100%;height:100%;}
 .popup-img-placeholder svg{width:48px;height:48px;fill:#c7d7f0;}
-.popup-header{padding:16px 20px 0;flex-shrink:0;background:#fff;position:relative;margin-top:-110px;border-radius:16px 16px 0 0;}
+.popup-header{padding:16px 20px 0;flex-shrink:0;background:#fff;position:relative;margin-top:-170px;border-radius:16px 16px 0 0;}
 .popup-name{font-size:18px;font-weight:800;color:var(--text);}
 .popup-price{font-size:15px;font-weight:700;color:var(--primary);margin-top:4px;}
 .popup-body{flex:1;overflow-y:auto;padding:16px 20px;background:#fff;position:relative;}
@@ -655,9 +656,9 @@ function renderPopupBody(){
               if(sg.required && popupSubSelections[key]==null) popupSubSelections[key]=min;
               const engaged = popupSubSelections[key]!=null;
               html+=`<div class="option-group-section" style="margin-left:16px;margin-top:6px;padding:10px;background:#f8fafc;border-radius:10px" id="sog-${key}">
-                <div class="og-title-row"><div class="og-title" style="font-size:13px">${sg.title}</div>${badge}</div>`;
+                <div class="og-title-row"><div class="og-title" style="font-size:14px">${sg.title}</div>${badge}</div>`;
               if(!sg.required){
-                html+=`<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);margin-bottom:${engaged?'8px':'0'};cursor:pointer">
+                html+=`<label style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text);margin-bottom:${engaged?'8px':'0'};cursor:pointer">
                   <input type="checkbox" ${engaged?'checked':''} onchange="toggleSubPriceEnabled('${key}',${min},this.checked)" style="width:18px;height:18px">
                   เพิ่ม ${sg.title}
                 </label>`;
@@ -676,9 +677,9 @@ function renderPopupBody(){
               if(sg.required && !popupSubSelections[key]) popupSubSelections[key]={kg:0,kheed:0};
               const engaged = popupSubSelections[key]!=null;
               html+=`<div class="option-group-section" style="margin-left:16px;margin-top:6px;padding:10px;background:#f8fafc;border-radius:10px" id="sog-${key}">
-                <div class="og-title-row"><div class="og-title" style="font-size:13px">${sg.title}</div>${badge}</div>`;
+                <div class="og-title-row"><div class="og-title" style="font-size:14px">${sg.title}</div>${badge}</div>`;
               if(!sg.required){
-                html+=`<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);margin-bottom:${engaged?'8px':'0'};cursor:pointer">
+                html+=`<label style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text);margin-bottom:${engaged?'8px':'0'};cursor:pointer">
                   <input type="checkbox" ${engaged?'checked':''} onchange="toggleSubKgEnabled('${key}',this.checked)" style="width:18px;height:18px">
                   เพิ่ม ${sg.title}
                 </label>`;
@@ -697,7 +698,7 @@ function renderPopupBody(){
               if(!(popupSubSelections[key] instanceof Set)) popupSubSelections[key]=new Set();
               const sgMax=sgMaxCount(sg);
               html+=`<div class="option-group-section" style="margin-left:16px;margin-top:6px;padding:10px;background:#f8fafc;border-radius:10px" id="sog-${key}">
-                <div class="og-title-row"><div class="og-title" style="font-size:13px">${sg.title}</div>${badge}
+                <div class="og-title-row"><div class="og-title" style="font-size:14px">${sg.title}</div>${badge}
                 <div class="og-select-hint" style="font-size:11px">${sgMax?`เลือกได้สูงสุด ${sgMax} อัน`:'เลือกได้หลายอย่าง'}</div></div>`;
               (sg.options||[]).forEach((so,soi)=>{
                 const ssel=popupSubSelections[key].has(soi);
@@ -718,7 +719,7 @@ function renderPopupBody(){
               // แบบเลือกได้ตัวเลือกเดียว (ค่าเริ่มต้น) — คล้าย radio ไม่มีจำนวน เลือกใหม่แทนที่ตัวเก่าเสมอ
               const selIdx = popupSubSelections[key];
               html+=`<div class="option-group-section" style="margin-left:16px;margin-top:6px;padding:10px;background:#f8fafc;border-radius:10px" id="sog-${key}">
-                <div class="og-title-row"><div class="og-title" style="font-size:13px">${sg.title}</div>${badge}</div>`;
+                <div class="og-title-row"><div class="og-title" style="font-size:14px">${sg.title}</div>${badge}</div>`;
               (sg.options||[]).forEach((so,soi)=>{
                 const ssel=selIdx===soi;
                 const sShownPrice=so.price?calcSubPrice(so.price):0;
