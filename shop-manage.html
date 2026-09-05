@@ -1220,12 +1220,11 @@ function renderGroupCard(menuId, g, gi, total) {
       <button class="mini-toggle ${g.required?'on':''}" id="greq-${menuId}-${gi}" onclick="toggleReq('${menuId}',${gi})"></button>
       <span class="req-badge ${g.required?'on':'off'}" id="greq-badge-${menuId}-${gi}">${g.required?'บังคับ':'ไม่บังคับ'}</span>
     </div>
-    ${!g.required?`
     <div class="maxsel-row">
       <span style="font-size:12px;color:var(--subtext)">จำนวนที่เลือกได้:</span>
       <input class="maxsel-input" id="gmax-${menuId}-${gi}" type="number" min="0" value="${g.maxSelect||''}" placeholder="ทุกอัน">
       <span style="font-size:11px;color:var(--subtext)">(เว้นว่าง = เลือกได้ทุกอัน)</span>
-    </div>`:''}
+    </div>
     <div class="option-list" id="opts-${menuId}-${gi}">
       ${opts.map((o,oi) => renderOptionRow(menuId,gi,oi,o)).join('')}
     </div>
@@ -1275,7 +1274,10 @@ function renderSubGroupCard(menuId,gi,oi,sgi,sg) {
   const type = sg.type||'normal';
   const typeLabel = type==='price'?'ตั้งราคา':type==='kg'?'กิโลกรัม':'';
   const reqId = `sgreq-${menuId}-${gi}-${oi}-${sgi}`;
-  const msId = `sgms-${menuId}-${gi}-${oi}-${sgi}`;
+  const sgMaxId = `sgmax-${menuId}-${gi}-${oi}-${sgi}`;
+  // รองรับข้อมูลเก่า: ถ้ายังไม่เคยตั้ง maxSelect ไว้ (เมนูเก่าที่ยังไม่ได้เปิดแก้หลังอัปเดต) ให้แปลความจาก multiSelect เดิม
+  // multiSelect:true (เดิม) = เลือกได้ไม่จำกัด (ค่าว่าง), false/ไม่มี (เดิม) = เลือกได้ตัวเดียว (ค่า 1)
+  const sgMaxDisplay = sg.maxSelect!==undefined ? (sg.maxSelect||'') : (sg.multiSelect?'':'1');
   const head = `
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">
       <input value="${esc(sg.title)}" id="sgt-${menuId}-${gi}-${oi}-${sgi}" placeholder="ชื่อกลุ่มย่อย เช่น เพิ่มชีส" style="flex:1;min-width:100px;height:32px;border:1.5px solid #eef0f4;border-radius:8px;padding:0 8px;font-size:12px;outline:none">
@@ -1285,10 +1287,13 @@ function renderSubGroupCard(menuId,gi,oi,sgi,sg) {
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
       <button class="mini-toggle ${sg.required?'on':''}" id="${reqId}" onclick="toggleSubGroupReq('${menuId}',${gi},${oi},${sgi})" style="transform:scale(0.85)"></button>
       <span class="req-badge ${sg.required?'on':'off'}" id="${reqId}-badge">${sg.required?'บังคับ':'ไม่บังคับ'}</span>
-      ${type==='normal'?`
-      <button class="mini-toggle ${sg.multiSelect?'on':''}" id="${msId}" onclick="toggleSubGroupMulti('${menuId}',${gi},${oi},${sgi})" style="transform:scale(0.85);margin-left:8px"></button>
-      <span class="req-badge ${sg.multiSelect?'on':'off'}" id="${msId}-badge">${sg.multiSelect?'เลือกได้หลายตัวเลือก':'เลือกได้ตัวเลือกเดียว'}</span>`:''}
-    </div>`;
+    </div>
+    ${type==='normal'?`
+    <div class="maxsel-row" style="margin-bottom:6px">
+      <span style="font-size:11px;color:var(--subtext)">จำนวนที่เลือกได้:</span>
+      <input class="maxsel-input" id="${sgMaxId}" type="number" min="0" value="${sgMaxDisplay}" placeholder="ทุกอัน" style="width:70px;height:30px;font-size:12px">
+      <span style="font-size:10px;color:var(--subtext)">(เว้นว่าง=หลายอัน)</span>
+    </div>`:''}`;
   if(type==='price'){
     return `<div style="background:#fff;border:1.5px solid #eef0f4;border-radius:10px;padding:8px;margin-bottom:8px" id="sgc-${menuId}-${gi}-${oi}-${sgi}">
       ${head}
@@ -1344,7 +1349,7 @@ window.chooseSubGroupType = function(type){
   if(!o.subGroups) o.subGroups=[];
   if(type==='price') o.subGroups.push({type:'price', title:'', required:false, priceMin:10, priceMax:50, priceStep:5});
   else if(type==='kg') o.subGroups.push({type:'kg', title:'', required:false, kgRate:0});
-  else o.subGroups.push({type:'normal', title:'', required:false, options:[{name:'',price:0}]});
+  else o.subGroups.push({type:'normal', title:'', required:false, maxSelect:1, options:[{name:'',price:0}]});
   expandedSubOpts.add(`${gi}-${oi}`); // เปิดโชว์ให้เห็นกลุ่มที่เพิ่งเพิ่มเลย
   updateCardInPlace(menuId);
 }
@@ -1353,13 +1358,6 @@ window.toggleSubGroupReq = function(menuId,gi,oi,sgi){
   const m = menus.find(x=>x.id===menuId); if(!m) return;
   const sg = m.optionGroups?.[gi]?.options?.[oi]?.subGroups?.[sgi]; if(!sg) return;
   sg.required = !sg.required;
-  updateCardInPlace(menuId);
-}
-window.toggleSubGroupMulti = function(menuId,gi,oi,sgi){
-  saveFormState(menuId);
-  const m = menus.find(x=>x.id===menuId); if(!m) return;
-  const sg = m.optionGroups?.[gi]?.options?.[oi]?.subGroups?.[sgi]; if(!sg) return;
-  sg.multiSelect = !sg.multiSelect;
   updateCardInPlace(menuId);
 }
 window.delSubGroup = function(menuId,gi,oi,sgi){
@@ -1391,7 +1389,7 @@ function mapSubGroupForSave(sg){
   const type = sg.type||'normal';
   if(type==='price') return {type:'price', title:sg.title, required:!!sg.required, priceMin:sg.priceMin||0, priceMax:sg.priceMax||0, priceStep:sg.priceStep||5};
   if(type==='kg') return {type:'kg', title:sg.title, required:!!sg.required, kgRate:sg.kgRate||0};
-  return {type:'normal', title:sg.title, required:!!sg.required, multiSelect:!!sg.multiSelect, options:(sg.options||[]).filter(so=>so.name)};
+  return {type:'normal', title:sg.title, required:!!sg.required, maxSelect:sg.maxSelect!==undefined?(sg.maxSelect||0):(sg.multiSelect?0:1), options:(sg.options||[]).filter(so=>so.name)};
 }
 
 window.updateGpPreview = function(menuId){
@@ -1505,6 +1503,8 @@ function saveFormState(menuId) {
             const rate = document.getElementById(`sgkgrate-${menuId}-${gi}-${oi}-${sgi}`)?.value;
             if(rate!==undefined) sg.kgRate = parseFloat(rate)||0;
           } else {
+            const sgMax = document.getElementById(`sgmax-${menuId}-${gi}-${oi}-${sgi}`)?.value;
+            if(sgMax !== undefined) sg.maxSelect = parseInt(sgMax)||0;
             (sg.options||[]).forEach((so,soi)=>{
               const son = document.getElementById(`son-${menuId}-${gi}-${oi}-${sgi}-${soi}`)?.value;
               const sop = document.getElementById(`sop-${menuId}-${gi}-${oi}-${sgi}-${soi}`)?.value;
