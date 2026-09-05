@@ -83,9 +83,9 @@ body{background:var(--bg);min-height:100vh;padding-bottom:120px;}
 /* POPUP */
 .popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:500;display:none;align-items:flex-end;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);}
 .popup-overlay.show{display:flex;}
-.popup-box{background:#fff;width:100%;border-radius:24px 24px 0 0;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;}
+.popup-box{background:#fff;width:100%;border-radius:24px 24px 0 0;max-height:96vh;display:flex;flex-direction:column;overflow:hidden;}
 .popup-img-wrap{height:200px;background:var(--bg);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;}
-.popup-img-wrap img{width:100%;height:100%;object-fit:cover;}
+.popup-img-wrap img{width:100%;height:100%;object-fit:cover;filter:url(#sharpenFilter);}
 .popup-img-placeholder{display:flex;align-items:center;justify-content:center;width:100%;height:100%;}
 .popup-img-placeholder svg{width:48px;height:48px;fill:#c7d7f0;}
 .popup-header{padding:16px 20px 0;flex-shrink:0;}
@@ -147,6 +147,13 @@ body{background:var(--bg);min-height:100vh;padding-bottom:120px;}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="sharpenFilter" color-interpolation-filters="sRGB">
+    <!-- unsharp mask แบบอ่อนๆ (ผลรวมเมทริกซ์ = 1 คงความสว่างเดิม สีไม่เพี้ยน) เพิ่มความคมขอบภาพเฉยๆ -->
+    <feConvolveMatrix order="3" preserveAlpha="true" edgeMode="duplicate"
+      kernelMatrix="0 -0.5 0 -0.5 3 -0.5 0 -0.5 0" />
+  </filter>
+</svg>
 
 <!-- BANNER + TOPBAR FLOAT -->
 <div class="banner-area" id="bannerArea">
@@ -608,14 +615,15 @@ function renderPopupBody(){
         <div class="kg-price-hint">฿${g.kgRate||0}/ขีด ${totalKheed?` · ราคาที่ต้องจ่าย <b>฿${custAmt}</b>`:''}</div>
       </div>`;
     } else {
+      const isSingle = (g.maxSelect||0)===1; // เลือกได้ทีละ 1 = แบบวงกลม, อื่นๆ (ว่าง/มากกว่า1) = แบบเลือกได้หลายอันจำกัดจำนวน
       html+=`<div class="option-group-section" id="og-${gi}">
         <div class="og-title-row"><div class="og-title">${g.title}</div>
         ${g.required?`<div class="og-required-badge">บังคับ</div>`:`<div class="og-optional-badge">ไม่บังคับ</div>`}
-        <div class="og-select-hint">${g.required?'เลือก 1':(g.maxSelect?`เลือกได้สูงสุด ${g.maxSelect} อัน`:'เลือกได้หลายอย่าง')}</div></div>`;
+        <div class="og-select-hint">${isSingle?'เลือก 1':(g.maxSelect?`เลือกได้สูงสุด ${g.maxSelect} อัน`:'เลือกได้หลายอย่าง')}${g.required&&!isSingle?' (อย่างน้อย 1)':''}</div></div>`;
       (g.options||[]).forEach((o,oi)=>{
-        const sel=g.required?popupSelections[gi]===oi:(popupSelections[gi] instanceof Set&&popupSelections[gi].has(oi));
+        const sel=isSingle?popupSelections[gi]===oi:(popupSelections[gi] instanceof Set&&popupSelections[gi].has(oi));
         const shownPrice=o.price?calcSubPrice(o.price):0;
-        if(g.required){
+        if(isSingle){
           html+=`<div class="option-item ${sel?'selected':''}" onclick="selectOption(${gi},${oi},${o.price||0},true)">
             <div class="opt-radio ${sel?'checked':''}"></div>
             <div class="opt-name-text">${o.name}</div>
@@ -675,10 +683,12 @@ function renderPopupBody(){
                 <div class="kg-price-hint">฿${sg.kgRate||0}/ขีด ${totalKheed?` · ราคาที่ต้องจ่าย <b>฿${custAmt}</b>`:''}</div>`;
               }
               html+=`</div>`;
-            } else if(sg.multiSelect){
+            } else if(sgIsMulti(sg)){
               if(!(popupSubSelections[key] instanceof Set)) popupSubSelections[key]=new Set();
+              const sgMax=sgMaxCount(sg);
               html+=`<div class="option-group-section" style="margin-left:16px;margin-top:6px;padding:10px;background:#f8fafc;border-radius:10px" id="sog-${key}">
-                <div class="og-title-row"><div class="og-title" style="font-size:13px">${sg.title}</div>${badge}</div>`;
+                <div class="og-title-row"><div class="og-title" style="font-size:13px">${sg.title}</div>${badge}
+                <div class="og-select-hint" style="font-size:11px">${sgMax?`เลือกได้สูงสุด ${sgMax} อัน`:'เลือกได้หลายอย่าง'}</div></div>`;
               (sg.options||[]).forEach((so,soi)=>{
                 const ssel=popupSubSelections[key].has(soi);
                 const qty=popupSubQty[`${key}-${soi}`]||1;
@@ -718,6 +728,16 @@ function renderPopupBody(){
   html+=`<div class="popup-note"><div class="popup-note-label">คำแนะนำเพิ่มเติม</div><textarea class="popup-note-input" id="popupNote" placeholder="เช่น ไม่ใส่ผัก, หวานน้อย"></textarea></div>`;
   document.getElementById("popupBody").innerHTML=html;}
 
+// ตัดสินว่ากลุ่มตัวเลือกย่อยควรใช้โหมด "เลือกได้หลายอัน" หรือ "เลือกได้ตัวเดียว"
+// ข้อมูลใหม่ (แก้จากหน้าแอดมินหลังอัปเดต) จะมี maxSelect เป็นตัวเลขเสมอ: 1=เลือกเดียว, อื่นๆ/0=หลายอัน
+// ข้อมูลเก่า (ยังไม่เคยเปิดแก้) จะไม่มี maxSelect เลย ใช้ multiSelect เดิมแทน
+function sgIsMulti(sg){
+  if(sg.maxSelect!==undefined) return sg.maxSelect!==1;
+  return !!sg.multiSelect;
+}
+function sgMaxCount(sg){
+  return sg.maxSelect!==undefined ? (sg.maxSelect||0) : 0; // ข้อมูลเก่า multiSelect:true ไม่เคยมีจำกัดจำนวน ถือเป็น 0 (ไม่จำกัด)
+}
 window.selectOption=function(gi,oi,optPrice,isSingle){
   const g=(popupMenu.optionGroups||[])[gi]; if(!g) return;
   if(isSingle){
@@ -744,7 +764,13 @@ window.selectSubOptionSingle=function(key,soi){
 window.selectSubOption=function(key,soi){
   if(!(popupSubSelections[key] instanceof Set)) popupSubSelections[key]=new Set();
   if(popupSubSelections[key].has(soi)){ popupSubSelections[key].delete(soi); delete popupSubQty[`${key}-${soi}`]; }
-  else{ popupSubSelections[key].add(soi); popupSubQty[`${key}-${soi}`]=1; }
+  else{
+    const [gi,oi,sgi]=key.split('-').map(Number);
+    const sg=(popupMenu?.optionGroups||[])[gi]?.options?.[oi]?.subGroups?.[sgi];
+    const sgMax=sg?sgMaxCount(sg):0;
+    if(sgMax && popupSubSelections[key].size>=sgMax) return;
+    popupSubSelections[key].add(soi); popupSubQty[`${key}-${soi}`]=1;
+  }
   renderPopupBody(); updatePopupTotal();
 }
 window.adjustSubOptQty=function(key,soi,delta){
@@ -889,21 +915,23 @@ window.addToCartFromPopup=function(){
       const sel=popupSubSelections[key];
       const sgMissing = sgType==='price' ? (sel==null)
         : sgType==='kg' ? (!sel || ((sel.kg||0)*10+(sel.kheed||0))===0)
-        : sg.multiSelect ? (!(sel instanceof Set) || sel.size===0)
+        : sgIsMulti(sg) ? (!(sel instanceof Set) || sel.size===0)
         : (typeof sel!=='number');
       if(sgMissing){ missing=true; const el=document.getElementById(`sog-${key}`); if(el){el.classList.remove('error-shake');void el.offsetWidth;el.classList.add('error-shake');} }
     });
   }
   (m.optionGroups||[]).forEach((g,gi)=>{
     const type=g.type||'normal';
+    const isSingle=(g.maxSelect||0)===1;
     const isMissing = type==='price' ? false
       : type==='kg' ? (g.required && (!popupSelections[gi] || ((popupSelections[gi].kg||0)*10+(popupSelections[gi].kheed||0))===0))
-      : (g.required && popupSelections[gi]==null);
+      : isSingle ? (g.required && popupSelections[gi]==null)
+      : (g.required && (!(popupSelections[gi] instanceof Set) || popupSelections[gi].size===0));
     if(isMissing){ missing=true; const el=document.getElementById(`og-${gi}`); if(el){el.classList.remove('error-shake');void el.offsetWidth;el.classList.add('error-shake');} }
-    // เช็คตัวเลือกย่อยที่บังคับของตัวเลือกที่กำลังถูกเลือกอยู่ตอนนี้
+    // เช็คตัวเลือกย่อยที่บังคับของตัวเลือกที่กำลังถูกเลือกอยู่ตอนนี้ (ครอบคลุมทั้งเลือกเดียวและเลือกหลายอัน)
     if(type==='normal'){
-      if(g.required && popupSelections[gi]!=null) checkSubGroupsMissing(g,gi,popupSelections[gi]);
-      else if(!g.required && popupSelections[gi] instanceof Set) popupSelections[gi].forEach(oi=>checkSubGroupsMissing(g,gi,oi));
+      if(isSingle && popupSelections[gi]!=null) checkSubGroupsMissing(g,gi,popupSelections[gi]);
+      else if(!isSingle && popupSelections[gi] instanceof Set) popupSelections[gi].forEach(oi=>checkSubGroupsMissing(g,gi,oi));
     }
   });
   if(missing) return;
