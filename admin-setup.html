@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ตั้งรหัสผ่าน - Nimit Delivery Admin</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;}
+body{background:#f5f6f8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.box{width:100%;max-width:340px;}
+.title{text-align:center;margin-bottom:28px;}
+.title .t1{font-size:22px;font-weight:900;color:#0c4aa6;}
+.title .t2{font-size:13px;color:#64748b;margin-top:4px;}
+label{font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;display:block;}
+input{width:100%;height:48px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:15px;margin-bottom:14px;outline:none;}
+button{width:100%;height:50px;border:none;border-radius:16px;background:linear-gradient(135deg,#0c4aa6,#083570);color:#fff;font-size:15px;font-weight:800;cursor:pointer;}
+button:disabled{opacity:.6;cursor:default;}
+.msg{font-size:13px;font-weight:600;min-height:18px;margin-bottom:8px;text-align:center;}
+.msg.err{color:#dc2626;}
+.msg.ok{color:#16a34a;}
+.msg.info{color:#64748b;}
+.card{background:#fff;border-radius:20px;padding:24px;box-shadow:0 1px 6px rgba(0,0,0,.06);}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="title">
+    <div class="t1">Nimit Delivery</div>
+    <div class="t2">ยืนยันบัญชีแอดมิน</div>
+  </div>
+  <div class="card">
+    <div id="step_checking" class="msg info">กำลังตรวจสอบลิงก์ยืนยัน...</div>
+
+    <div id="step_needEmail" style="display:none">
+      <div class="msg info">เปิดลิงก์นี้จากอุปกรณ์/เบราว์เซอร์คนละตัวกับที่กดขอคำเชิญ กรุณายืนยันอีเมลของคุณอีกครั้ง</div>
+      <label>อีเมลที่ได้รับคำเชิญ</label>
+      <input id="confirmEmail" type="email" placeholder="you@email.com">
+      <div id="needEmailMsg" class="msg err"></div>
+      <button onclick="window.__confirmEmailAndVerify()">ยืนยัน</button>
+    </div>
+
+    <div id="step_setPassword" style="display:none">
+      <div class="msg ok">ยืนยันอีเมลสำเร็จ ✓ ตั้งรหัสผ่านของคุณเพื่อใช้เข้าสู่ระบบครั้งต่อไป</div>
+      <label>รหัสผ่านใหม่ (อย่างน้อย 8 ตัว)</label>
+      <input id="newPw" type="password" autocomplete="new-password">
+      <label>ยืนยันรหัสผ่านอีกครั้ง</label>
+      <input id="newPw2" type="password" autocomplete="new-password">
+      <div id="setPwMsg" class="msg err"></div>
+      <button id="setPwBtn" onclick="window.__setNewPassword()">ตั้งรหัสผ่านและเข้าใช้งาน</button>
+    </div>
+
+    <div id="step_done" style="display:none">
+      <div class="msg ok">ตั้งรหัสผ่านสำเร็จแล้ว 🎉</div>
+      <button onclick="location.href='admin.html'">ไปหน้าเข้าสู่ระบบ</button>
+    </div>
+
+    <div id="step_error" style="display:none">
+      <div id="errorMsg" class="msg err"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, isSignInWithEmailLink, signInWithEmailLink, updatePassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const fbApp = initializeApp({
+  apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
+  authDomain:"nimit-delivery.firebaseapp.com",
+  projectId:"nimit-delivery",
+  storageBucket:"nimit-delivery.firebasestorage.app",
+  messagingSenderId:"233476256130",
+  appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
+});
+const db = getFirestore(fbApp);
+const auth = getAuth(fbApp);
+
+function show(id){
+  ['step_checking','step_needEmail','step_setPassword','step_done','step_error'].forEach(s=>{
+    document.getElementById(s).style.display = (s===id) ? 'block' : 'none';
+  });
+}
+
+let pendingEmail = null;
+
+async function finishSignIn(email){
+  try{
+    await signInWithEmailLink(auth, email, window.location.href);
+    window.localStorage.removeItem('nimitAdminInviteEmail');
+    // อัปเดตสถานะใน Firestore ว่ายืนยันอีเมลแล้ว รอแค่ตั้งรหัสผ่าน
+    try{ await updateDoc(doc(db,'admins',email.toLowerCase()), { status:'setting_password' }); }catch(e){}
+    pendingEmail = email;
+    show('step_setPassword');
+  }catch(e){
+    document.getElementById('errorMsg').textContent = 'ลิงก์นี้ใช้ไม่ได้แล้ว (อาจหมดอายุหรือถูกใช้ไปแล้ว) กรุณาขอคำเชิญใหม่จากเจ้าของระบบ: '+e.message;
+    show('step_error');
+  }
+}
+
+window.__confirmEmailAndVerify = function(){
+  const email = document.getElementById('confirmEmail').value.trim();
+  if(!email || !email.includes('@')){
+    document.getElementById('needEmailMsg').textContent = 'กรอกอีเมลให้ถูกต้อง';
+    return;
+  }
+  finishSignIn(email);
+};
+
+window.__setNewPassword = async function(){
+  const pw = document.getElementById('newPw').value;
+  const pw2 = document.getElementById('newPw2').value;
+  const msgEl = document.getElementById('setPwMsg');
+  const btn = document.getElementById('setPwBtn');
+  msgEl.textContent = '';
+  if(pw.length < 8){ msgEl.textContent = 'รหัสผ่านต้องมีอย่างน้อย 8 ตัว'; return; }
+  if(pw !== pw2){ msgEl.textContent = 'รหัสผ่านทั้งสองช่องไม่ตรงกัน'; return; }
+  btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+  try{
+    await updatePassword(auth.currentUser, pw);
+    await updateDoc(doc(db,'admins',pendingEmail.toLowerCase()), { status:'active' });
+    show('step_done');
+  }catch(e){
+    btn.disabled = false; btn.textContent = 'ตั้งรหัสผ่านและเข้าใช้งาน';
+    if(e.code === 'auth/requires-recent-login'){
+      msgEl.textContent = 'ลิงก์นี้ใช้เวลานานเกินไป กรุณาขอคำเชิญใหม่แล้วลองอีกครั้งทันที';
+    } else {
+      msgEl.textContent = 'ตั้งรหัสผ่านไม่สำเร็จ: '+e.message;
+    }
+  }
+};
+
+// ===== เริ่มต้น: เช็คว่าลิงก์ที่เปิดมาเป็นลิงก์ยืนยันที่ถูกต้องไหม =====
+if(isSignInWithEmailLink(auth, window.location.href)){
+  const savedEmail = window.localStorage.getItem('nimitAdminInviteEmail');
+  if(savedEmail){
+    finishSignIn(savedEmail);
+  } else {
+    // เปิดลิงก์จากเบราว์เซอร์/อุปกรณ์คนละตัว (เช่น เปิดจากแอปอีเมลในมือถือ) — ต้องให้กรอกอีเมลยืนยันอีกที
+    show('step_needEmail');
+  }
+} else {
+  document.getElementById('errorMsg').textContent = 'ไม่พบลิงก์ยืนยันที่ถูกต้องในหน้านี้ กรุณาเปิดผ่านลิงก์ในอีเมลที่ได้รับเชิญเท่านั้น';
+  show('step_error');
+}
+</script>
+</body>
+</html>
