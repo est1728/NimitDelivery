@@ -1485,7 +1485,7 @@ function saveFormState(menuId) {
       (g.options||[]).forEach((o,oi)=>{
         const oname = document.getElementById(`on-${menuId}-${gi}-${oi}`)?.value;
         const oprice = document.getElementById(`op-${menuId}-${gi}-${oi}`)?.value;
-        if (oname !== undefined) o.name = oname.trim() || `ตัวเลือกที่ ${oi+1}`;
+        if (oname !== undefined) o.name = oname;
         if (oprice !== undefined) o.price = parseFloat(oprice)||0;
         // กลุ่มตัวเลือกย่อยที่ผูกกับตัวเลือกนี้ (ถ้ากำลังเปิดอยู่)
         (o.subGroups||[]).forEach((sg,sgi)=>{
@@ -1508,7 +1508,7 @@ function saveFormState(menuId) {
             (sg.options||[]).forEach((so,soi)=>{
               const son = document.getElementById(`son-${menuId}-${gi}-${oi}-${sgi}-${soi}`)?.value;
               const sop = document.getElementById(`sop-${menuId}-${gi}-${oi}-${sgi}-${soi}`)?.value;
-              if(son !== undefined) so.name = son.trim() || `ตัวเลือกย่อยที่ ${soi+1}`;
+              if(son !== undefined) so.name = son;
               if(sop !== undefined) so.price = parseFloat(sop)||0;
             });
           }
