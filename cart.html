@@ -384,7 +384,7 @@ function renderFood(){
             ${(item.options&&item.options.length)?`
               <div class="option-chip" onclick="window.openEditModal('${shopId}',${idx})">
                 <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                ${item.options.map(o=>o.name).join(', ')}
+                ${item.options.filter(o=>o.name).map(o=>o.name).join(', ')}
               </div>`:``}
             <div class="price-qty-row">
               <div class="item-price">฿${item.price}</div>
@@ -616,7 +616,7 @@ function renderModalBody(){
         html+=`<div class="option-item ${sel?"selected":""}" onclick="window.selectModalOption(${gi},${oi},${g.required})">
           <div class="option-item-left">
             <div class="option-radio ${sel?"filled":""}"></div>
-            <div class="option-name">${esc(opt.name)}</div>
+            <div class="option-name">${esc(opt.name)||'ตัวเลือก'}</div>
           </div>
           ${shownPrice?`<div class="option-extra-price">+฿${shownPrice}</div>`:""}
         </div>`;
