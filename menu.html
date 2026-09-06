@@ -864,19 +864,21 @@ function subGroupSelectedOptionsFor(g,gi,oi){
 }
 function groupExtra(m,g,gi){
   const type=g.type||'normal';
+  const isSingle=(g.maxSelect||0)===1;
   if(type==='price'){ const val=popupSelections[gi]; return val==null?0:calcPrice(val,m.gp); }
   if(type==='kg'){ const cur=popupSelections[gi]; if(!cur) return 0; const totalKheed=(cur.kg||0)*10+(cur.kheed||0); const baseAmt=totalKheed*(g.kgRate||0); return baseAmt?calcPrice(baseAmt,m.gp):0; }
-  if(g.required&&popupSelections[gi]!=null){ const opt=g.options[popupSelections[gi]]; return calcSubPrice(opt?.price||0)+subGroupExtraFor(g,gi,popupSelections[gi]); }
-  if(!g.required&&popupSelections[gi] instanceof Set){ let s=0; popupSelections[gi].forEach(oi=>{ const opt=g.options[oi]; s+=calcSubPrice(opt?.price||0)+subGroupExtraFor(g,gi,oi); }); return s; }
+  if(isSingle&&popupSelections[gi]!=null){ const opt=g.options[popupSelections[gi]]; return calcSubPrice(opt?.price||0)+subGroupExtraFor(g,gi,popupSelections[gi]); }
+  if(!isSingle&&popupSelections[gi] instanceof Set){ let s=0; popupSelections[gi].forEach(oi=>{ const opt=g.options[oi]; s+=calcSubPrice(opt?.price||0)+subGroupExtraFor(g,gi,oi); }); return s; }
   return 0;
 }
 function groupSelectedOptions(g,gi){
   const type=g.type||'normal';
+  const isSingle=(g.maxSelect||0)===1;
   const out=[];
   if(type==='price'){ const val=popupSelections[gi]; if(val!=null) out.push({groupTitle:g.title,name:`${g.title} ฿${val}`,price:val}); return out; }
   if(type==='kg'){ const cur=popupSelections[gi]; if(cur){ const totalKheed=(cur.kg||0)*10+(cur.kheed||0); if(totalKheed>0) out.push({groupTitle:g.title,name:`${cur.kg||0} กก. ${cur.kheed||0} ขีด`,price:totalKheed*(g.kgRate||0)}); } return out; }
-  if(g.required&&popupSelections[gi]!=null){ const opt=g.options[popupSelections[gi]]; out.push({groupTitle:g.title,name:opt?.name||'',price:opt?.price||0}); out.push(...subGroupSelectedOptionsFor(g,gi,popupSelections[gi])); return out; }
-  if(!g.required&&popupSelections[gi] instanceof Set){ popupSelections[gi].forEach(oi=>{ const opt=g.options[oi]; out.push({groupTitle:g.title,name:opt?.name||'',price:opt?.price||0}); out.push(...subGroupSelectedOptionsFor(g,gi,oi)); }); }
+  if(isSingle&&popupSelections[gi]!=null){ const opt=g.options[popupSelections[gi]]; out.push({groupTitle:g.title,name:opt?.name||'',price:opt?.price||0}); out.push(...subGroupSelectedOptionsFor(g,gi,popupSelections[gi])); return out; }
+  if(!isSingle&&popupSelections[gi] instanceof Set){ popupSelections[gi].forEach(oi=>{ const opt=g.options[oi]; out.push({groupTitle:g.title,name:opt?.name||'',price:opt?.price||0}); out.push(...subGroupSelectedOptionsFor(g,gi,oi)); }); }
   return out;
 }
 
