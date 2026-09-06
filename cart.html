@@ -519,7 +519,7 @@ function reconstructSubSelections(item,g,gi,oi){
         const m2=matches[0].name.match(/^(\d+(?:\.\d+)?)\s*กก\.\s*(\d+(?:\.\d+)?)\s*ขีด$/);
         if(m2) modalSubSelections[key]={kg:parseFloat(m2[1])||0,kheed:parseFloat(m2[2])||0};
       }
-    } else if(sg.multiSelect){
+    } else if(sgIsMulti(sg)){
       const set=new Set();
       matches.forEach(mo=>{
         const qm=mo.name.match(/^(.*) x(\d+)$/);
@@ -553,7 +553,7 @@ window.openEditModal=function(shopId,idx){
         const m2=matches[0].name.match(/^(\d+)\s*กก\.\s*(\d+)\s*ขีด$/);
         if(m2) modalSelections[gi]={kg:parseInt(m2[1])||0,kheed:parseInt(m2[2])||0};
       }
-    } else if(g.required){
+    } else if((g.maxSelect||0)===1){
       if(matches[0]){ const oi=(g.options||[]).findIndex(o=>o.name===matches[0].name); if(oi>=0){ modalSelections[gi]=oi; reconstructSubSelections(item,g,gi,oi); } }
     } else {
       const set=new Set();
@@ -606,14 +606,15 @@ function renderModalBody(){
         <div class="kg-price-hint">฿${g.kgRate||0}/ขีด ${totalKheed?` · ราคาที่ต้องจ่าย <b>฿${custAmt}</b>`:''}</div>
       </div>`;
     } else {
+      const isSingle=(g.maxSelect||0)===1;
       html+=`<div class="option-group" id="mog-${gi}">
         <div class="og-title-row"><div class="og-title">${esc(g.title)}</div>
         ${g.required?`<span class="required-badge">บังคับ</span>`:`<span class="og-optional-badge">ไม่บังคับ</span>`}
-        <div class="og-select-hint">${g.required?'เลือก 1':(g.maxSelect?`เลือกได้สูงสุด ${g.maxSelect} อัน`:'เลือกได้หลายอย่าง')}</div></div>`;
+        <div class="og-select-hint">${isSingle?'เลือก 1':(g.maxSelect?`เลือกได้สูงสุด ${g.maxSelect} อัน`:'เลือกได้หลายอย่าง')}${g.required&&!isSingle?' (อย่างน้อย 1)':''}</div></div>`;
       (g.options||[]).forEach((opt,oi)=>{
-        const sel=g.required?modalSelections[gi]===oi:(modalSelections[gi] instanceof Set&&modalSelections[gi].has(oi));
+        const sel=isSingle?modalSelections[gi]===oi:(modalSelections[gi] instanceof Set&&modalSelections[gi].has(oi));
         const shownPrice=opt.price?calcSubPrice(opt.price,modalShopType()):0;
-        html+=`<div class="option-item ${sel?"selected":""}" onclick="window.selectModalOption(${gi},${oi},${g.required})">
+        html+=`<div class="option-item ${sel?"selected":""}" onclick="window.selectModalOption(${gi},${oi},${isSingle})">
           <div class="option-item-left">
             <div class="option-radio ${sel?"filled":""}"></div>
             <div class="option-name">${esc(opt.name)||'ตัวเลือก'}</div>
@@ -668,7 +669,7 @@ function renderModalBody(){
                 <div class="kg-price-hint">฿${sg.kgRate||0}/ขีด ${totalKheed?` · ราคาที่ต้องจ่าย <b>฿${custAmt}</b>`:''}</div>`;
               }
               html+=`</div>`;
-            } else if(sg.multiSelect){
+            } else if(sgIsMulti(sg)){
               if(!(modalSubSelections[key] instanceof Set)) modalSubSelections[key]=new Set();
               html+=`<div class="option-group" style="margin-left:16px;margin-top:6px;padding:10px;background:#f8fafc" id="mog-sub-${key}">
                 <div class="og-title-row"><div class="og-title" style="font-size:13px">${esc(sg.title)}</div>${badge}</div>`;
@@ -741,7 +742,13 @@ window.selectModalSubOptionSingle=function(key,soi){
 window.selectModalSubOption=function(key,soi){
   if(!(modalSubSelections[key] instanceof Set)) modalSubSelections[key]=new Set();
   if(modalSubSelections[key].has(soi)){ modalSubSelections[key].delete(soi); delete modalSubQty[`${key}-${soi}`]; }
-  else{ modalSubSelections[key].add(soi); modalSubQty[`${key}-${soi}`]=1; }
+  else{
+    const [gi,oi,sgi]=key.split('-').map(Number);
+    const sg=(modalItem?.optionGroups||[])[gi]?.options?.[oi]?.subGroups?.[sgi];
+    const sgMax=sg?sgMaxCount(sg):0;
+    if(sgMax && modalSubSelections[key].size>=sgMax) return;
+    modalSubSelections[key].add(soi); modalSubQty[`${key}-${soi}`]=1;
+  }
   renderModalBody(); updateModalBtn();
 }
 window.adjustModalSubOptQty=function(key,soi,delta){
@@ -805,6 +812,15 @@ window.setModalKg=function(gi,field,value){
   }
 }
 
+// ตัดสินว่ากลุ่มตัวเลือกย่อยควรใช้โหมด "เลือกได้หลายอัน" หรือ "เลือกได้ตัวเดียว" (เหมือนใน menu.html)
+// ข้อมูลใหม่จะมี maxSelect เป็นตัวเลขเสมอ: 1=เลือกเดียว, อื่นๆ/0=หลายอัน / ข้อมูลเก่าไม่มี maxSelect ใช้ multiSelect เดิมแทน
+function sgIsMulti(sg){
+  if(sg.maxSelect!==undefined) return sg.maxSelect!==1;
+  return !!sg.multiSelect;
+}
+function sgMaxCount(sg){
+  return sg.maxSelect!==undefined ? (sg.maxSelect||0) : 0;
+}
 function modalSubGroupExtraFor(g,gi,oi,shopType){
   const o=g.options[oi]; if(!o||!(o.subGroups||[]).length) return 0;
   let s=0;
@@ -835,19 +851,21 @@ function modalSubGroupSelectedOptionsFor(g,gi,oi){
 function modalGroupExtra(g,gi){
   const type=g.type||'normal';
   const shopType=modalShopType();
+  const isSingle=(g.maxSelect||0)===1;
   if(type==='price'){ const val=modalSelections[gi]; return val==null?0:calcPrice(val,modalItem.gp,shopType); }
   if(type==='kg'){ const cur=modalSelections[gi]; if(!cur) return 0; const totalKheed=(cur.kg||0)*10+(cur.kheed||0); const baseAmt=totalKheed*(g.kgRate||0); return baseAmt?calcPrice(baseAmt,modalItem.gp,shopType):0; }
-  if(g.required&&modalSelections[gi]!=null){ const opt=g.options[modalSelections[gi]]; return calcSubPrice(opt?.price||0,shopType)+modalSubGroupExtraFor(g,gi,modalSelections[gi],shopType); }
-  if(!g.required&&modalSelections[gi] instanceof Set){ let s=0; modalSelections[gi].forEach(oi=>{ const opt=g.options[oi]; s+=calcSubPrice(opt?.price||0,shopType)+modalSubGroupExtraFor(g,gi,oi,shopType); }); return s; }
+  if(isSingle&&modalSelections[gi]!=null){ const opt=g.options[modalSelections[gi]]; return calcSubPrice(opt?.price||0,shopType)+modalSubGroupExtraFor(g,gi,modalSelections[gi],shopType); }
+  if(!isSingle&&modalSelections[gi] instanceof Set){ let s=0; modalSelections[gi].forEach(oi=>{ const opt=g.options[oi]; s+=calcSubPrice(opt?.price||0,shopType)+modalSubGroupExtraFor(g,gi,oi,shopType); }); return s; }
   return 0;
 }
 function modalGroupSelectedOptions(g,gi){
   const type=g.type||'normal';
+  const isSingle=(g.maxSelect||0)===1;
   const out=[];
   if(type==='price'){ const val=modalSelections[gi]; if(val!=null) out.push({groupTitle:g.title,name:`${g.title} ฿${val}`,price:val}); return out; }
   if(type==='kg'){ const cur=modalSelections[gi]; if(cur){ const totalKheed=(cur.kg||0)*10+(cur.kheed||0); if(totalKheed>0) out.push({groupTitle:g.title,name:`${cur.kg||0} กก. ${cur.kheed||0} ขีด`,price:totalKheed*(g.kgRate||0)}); } return out; }
-  if(g.required&&modalSelections[gi]!=null){ const opt=g.options[modalSelections[gi]]; out.push({groupTitle:g.title,name:opt?.name||'',price:opt?.price||0}); out.push(...modalSubGroupSelectedOptionsFor(g,gi,modalSelections[gi])); return out; }
-  if(!g.required&&modalSelections[gi] instanceof Set){ modalSelections[gi].forEach(oi=>{ const opt=g.options[oi]; out.push({groupTitle:g.title,name:opt?.name||'',price:opt?.price||0}); out.push(...modalSubGroupSelectedOptionsFor(g,gi,oi)); }); }
+  if(isSingle&&modalSelections[gi]!=null){ const opt=g.options[modalSelections[gi]]; out.push({groupTitle:g.title,name:opt?.name||'',price:opt?.price||0}); out.push(...modalSubGroupSelectedOptionsFor(g,gi,modalSelections[gi])); return out; }
+  if(!isSingle&&modalSelections[gi] instanceof Set){ modalSelections[gi].forEach(oi=>{ const opt=g.options[oi]; out.push({groupTitle:g.title,name:opt?.name||'',price:opt?.price||0}); out.push(...modalSubGroupSelectedOptionsFor(g,gi,oi)); }); }
   return out;
 }
 
@@ -872,20 +890,22 @@ window.addToCartFromModal=function(){
       const sel=modalSubSelections[key];
       const sgMissing = sgType==='price' ? (sel==null)
         : sgType==='kg' ? (!sel || ((sel.kg||0)*10+(sel.kheed||0))===0)
-        : sg.multiSelect ? (!(sel instanceof Set) || sel.size===0)
+        : sgIsMulti(sg) ? (!(sel instanceof Set) || sel.size===0)
         : (typeof sel!=='number');
       if(sgMissing){ missing=true; const el=document.getElementById(`mog-sub-${key}`); if(el){el.classList.remove('error-shake');void el.offsetWidth;el.classList.add('error-shake');} }
     });
   }
   (modalItem.optionGroups||[]).forEach((g,gi)=>{
     const type=g.type||'normal';
+    const isSingle=(g.maxSelect||0)===1;
     const isMissing = type==='price' ? false
       : type==='kg' ? (g.required && (!modalSelections[gi] || ((modalSelections[gi].kg||0)*10+(modalSelections[gi].kheed||0))===0))
-      : (g.required && modalSelections[gi]==null);
+      : isSingle ? (g.required && modalSelections[gi]==null)
+      : (g.required && (!(modalSelections[gi] instanceof Set) || modalSelections[gi].size===0));
     if(isMissing){ missing=true; const el=document.getElementById(`mog-${gi}`); if(el){el.classList.remove('error-shake');void el.offsetWidth;el.classList.add('error-shake');} }
     if(type==='normal'){
-      if(g.required && modalSelections[gi]!=null) checkSubGroupsMissing(g,gi,modalSelections[gi]);
-      else if(!g.required && modalSelections[gi] instanceof Set) modalSelections[gi].forEach(oi=>checkSubGroupsMissing(g,gi,oi));
+      if(isSingle && modalSelections[gi]!=null) checkSubGroupsMissing(g,gi,modalSelections[gi]);
+      else if(!isSingle && modalSelections[gi] instanceof Set) modalSelections[gi].forEach(oi=>checkSubGroupsMissing(g,gi,oi));
     }
   });
   if(missing) return;
