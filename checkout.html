@@ -295,7 +295,7 @@ function renderItems(){
       +loyaltyHtml
       +grp.items.map((i,idx)=>{
         const isFreeItem=redeemedShop===shopId&&redeemedExistingIdx===idx;
-        return '<div class="order-item"><div class="order-item-img">'+(i.imgUrl?'<img src="'+i.imgUrl+'">':"")+'</div><div class="order-item-info"><div class="order-item-name">'+i.name+(isFreeItem?' <span style="color:#16a34a;font-weight:800">(ฟรี 1 ชิ้น)</span>':'')+'</div>'+(i.options?.length?'<div class="order-item-opts">'+i.options.map(o=>o.name).join(', ')+'</div>':'')+'</div><div style="text-align:right"><div class="order-item-price">฿'+i.price*i.qty+'</div><div class="order-item-qty">x'+i.qty+'</div></div></div>';
+        return '<div class="order-item"><div class="order-item-img">'+(i.imgUrl?'<img src="'+i.imgUrl+'">':"")+'</div><div class="order-item-info"><div class="order-item-name">'+i.name+(isFreeItem?' <span style="color:#16a34a;font-weight:800">(ฟรี 1 ชิ้น)</span>':'')+'</div>'+(i.options?.length?'<div class="order-item-opts">'+i.options.filter(o=>o.name).map(o=>o.name).join(', ')+'</div>':'')+'</div><div style="text-align:right"><div class="order-item-price">฿'+i.price*i.qty+'</div><div class="order-item-qty">x'+i.qty+'</div></div></div>';
       }).join('')
       +(redeemedShop===shopId&&redeemedNewItem?'<div class="order-item"><div class="order-item-img"></div><div class="order-item-info"><div class="order-item-name">'+esc(redeemedNewItem.name)+' <span style="color:#16a34a;font-weight:800">(ฟรี)</span></div></div><div style="text-align:right"><div class="order-item-price">฿0</div><div class="order-item-qty">x1</div></div></div>':'')
       +'</div>';
@@ -403,7 +403,13 @@ window.placeOrder=async function(){
       // (ไม่ใช่แค่ลิงก์) ตัวนึงอาจหนักหลายร้อย KB พอมีหลายรายการในออเดอร์เดียว รวมกันเกิน 1MB ที่ Firestore
       // อนุญาตให้บันทึกต่อ 1 เอกสารได้ทันที (เจอจริงกับลูกค้าที่สั่งเยอะ — เอกสารหนักถึง 3.4MB จนบันทึกไม่ผ่านเลย)
       // ไม่กระทบอะไรเลยเพราะหน้ารายละเอียดออเดอร์ (แอดมิน/ไรเดอร์/ร้านค้า/ลูกค้าเอง) ไม่เคยเอารูปจากออเดอร์มาโชว์อยู่แล้ว
-      let orderItems=grp.items.slice().map(it=>{ const {imgUrl,...rest}=it; return rest; }); // สำเนา ไม่แก้ของเดิมในตะกร้า
+      let orderItems=grp.items.slice().map(it=>{
+        const {imgUrl,...rest}=it;
+        // กันไว้อีกชั้น: ถ้า option ไหนมีชื่อเป็น undefined ให้เป็นค่าว่างแทนเสมอ
+        // ไม่งั้น JSON.stringify (ด้านล่าง) จะตัดคีย์ name ทิ้งไปทั้งคีย์ ทำให้หลังบ้านอ่านไม่เจอชื่อเลย
+        if(Array.isArray(rest.options)) rest.options=rest.options.map(o=>({...o,name:o.name||''}));
+        return rest;
+      }); // สำเนา ไม่แก้ของเดิมในตะกร้า
       let loyaltyDiscount=0;
       if(isRedeemingThisShop && redeemedExistingIdx!=null){
         const it=orderItems[redeemedExistingIdx];
