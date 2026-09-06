@@ -1324,7 +1324,7 @@ function renderDetail(o){
 
   // items table
   $('dtItems').innerHTML=(o.items||[]).map(i=>{
-    const opts=i.options?.length?'<div class="item-opts">'+i.options.map(op=>typeof op==='string'?'<div>- '+esc(op)+'</div>':'<div>- '+esc(op.name||op)+'</div>').join('')+'</div>':'';
+    const opts=i.options?.length?'<div class="item-opts">'+i.options.map(op=>typeof op==='string'?'<div>- '+esc(op)+'</div>':'<div>- '+esc(op.name||'')+(op.price?' +฿'+op.price:'')+'</div>').join('')+'</div>':'';
     const note=i.note?'<div style="font-size:12px;color:#dc2626;font-weight:700;margin-top:3px">📝 '+esc(i.note)+'</div>':'';
     const cat=i.category?'<div style="font-size:11px;color:#94a3b8;margin-top:1px">หมวด: '+esc(i.category)+'</div>':'';
     return `<tr><td><div>${esc(i.name)}</div>${cat}${opts}${note}</td><td>${i.qty}</td><td>฿${i.price||i.basePrice||0}</td><td>฿${(i.price||i.basePrice||0)*i.qty}</td></tr>`;
