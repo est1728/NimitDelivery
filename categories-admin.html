@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>จัดการปุ่มหมวดหมู่ - Nimit Delivery</title>
+<style>
+:root{--p:#0c4aa6;--pd:#083570;--pl:#e8f0fe;--g:#f5f6f8;--t:#0f172a;--s:#64748b;--gn:#16a34a;--gnl:#dcfce7;--r:#dc2626;--rl:#fee2e2;--o:#ea580c;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
+body{background:var(--g);min-height:100vh;padding-bottom:60px;}
+
+.tb{background:linear-gradient(135deg,var(--p),var(--pd));padding:14px 16px;color:#fff;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;}
+.back-btn{width:38px;height:38px;border:none;border-radius:12px;background:rgba(255,255,255,.18);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.back-btn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2.5;}
+.tb-title{font-size:17px;font-weight:800;}
+
+.sec{background:#fff;margin:14px;border-radius:16px;padding:16px;box-shadow:0 1px 3px rgba(15,23,42,.06);}
+.sec-title{font-size:14px;font-weight:800;color:var(--t);margin-bottom:4px;}
+.sec-sub{font-size:12px;color:var(--s);margin-bottom:14px;line-height:1.6;}
+
+/* รายการปุ่ม — ลากสลับตำแหน่งได้ */
+.btn-row{display:flex;flex-wrap:wrap;gap:12px;}
+.btn-card{width:76px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:grab;padding:6px;border-radius:12px;border:2px solid transparent;}
+.btn-card.dragging{opacity:.4;}
+.btn-card.selected{border-color:var(--p);background:var(--pl);}
+.btn-ic{width:52px;height:52px;border-radius:50%;background:var(--pl);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.btn-ic svg{width:26px;height:26px;fill:var(--p);}
+.btn-ic img{width:100%;height:100%;object-fit:cover;}
+.btn-card-name{font-size:11px;font-weight:700;color:var(--t);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:76px;}
+.btn-card-tag{font-size:9.5px;color:var(--s);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:76px;}
+.add-card{width:76px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding:6px;}
+.add-ic{width:52px;height:52px;border-radius:50%;background:#f1f5f9;border:2px dashed #cbd5e1;display:flex;align-items:center;justify-content:center;}
+.add-ic svg{width:22px;height:22px;fill:none;stroke:var(--s);stroke-width:2.5;}
+
+/* แผงแก้ไข */
+.field-label{font-size:12px;font-weight:700;color:var(--s);margin:12px 0 6px;}
+.field-label:first-child{margin-top:0;}
+input.f-input{width:100%;height:46px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 14px;font-size:14px;outline:none;}
+.icon-gallery{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+.icon-opt{aspect-ratio:1;border-radius:12px;border:2px solid #e2e8f0;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.icon-opt.active{border-color:var(--p);background:var(--pl);}
+.icon-opt svg{width:22px;height:22px;fill:var(--s);}
+.icon-opt.active svg{fill:var(--p);}
+.upload-row{display:flex;align-items:center;gap:12px;margin-top:10px;}
+.upload-preview{width:52px;height:52px;border-radius:50%;background:#f1f5f9;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.upload-preview img{width:100%;height:100%;object-fit:cover;}
+.upload-btn{height:38px;padding:0 16px;border:1.5px solid var(--p);border-radius:10px;background:#fff;color:var(--p);font-size:13px;font-weight:700;cursor:pointer;}
+.action-row{display:flex;gap:10px;margin-top:16px;}
+.btn-primary{flex:1;height:46px;border:none;border-radius:12px;background:var(--p);color:#fff;font-size:14px;font-weight:800;cursor:pointer;}
+.btn-danger{height:46px;padding:0 18px;border:none;border-radius:12px;background:var(--rl);color:var(--r);font-size:14px;font-weight:800;cursor:pointer;}
+.btn-ghost{height:46px;padding:0 18px;border:1.5px solid #e2e8f0;border-radius:12px;background:#fff;color:var(--s);font-size:14px;font-weight:700;cursor:pointer;}
+
+/* เลือกร้าน */
+.shop-list{display:flex;flex-direction:column;gap:8px;max-height:260px;overflow:auto;}
+.shop-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1.5px solid #e2e8f0;cursor:pointer;}
+.shop-row.active{border-color:var(--p);background:var(--pl);}
+.shop-row-name{font-size:13px;font-weight:700;color:var(--t);flex:1;}
+
+/* การ์ดเมนูให้เลือกติดแท็ก (สไตล์การ์ดพรีวิว) */
+.menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px;}
+.menu-card{border-radius:12px;overflow:hidden;border:2px solid #e2e8f0;cursor:pointer;position:relative;background:#fff;}
+.menu-card.tagged{border-color:var(--gn);}
+.menu-card-img{width:100%;aspect-ratio:1;background:#f1f5f9;display:flex;align-items:center;justify-content:center;}
+.menu-card-img img{width:100%;height:100%;object-fit:cover;}
+.menu-card-img svg{width:26px;height:26px;fill:#cbd5e1;}
+.menu-card-name{font-size:11px;font-weight:700;color:var(--t);padding:6px 6px 2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.menu-card-price{font-size:11px;font-weight:800;color:var(--p);padding:0 6px 6px;}
+.menu-card-check{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:var(--gn);display:none;align-items:center;justify-content:center;}
+.menu-card.tagged .menu-card-check{display:flex;}
+.menu-card-check svg{width:12px;height:12px;fill:none;stroke:#fff;stroke-width:3;}
+
+.empty-note{font-size:12px;color:var(--s);text-align:center;padding:20px;}
+.loading{font-size:12px;color:var(--s);text-align:center;padding:20px;}
+.tw{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:900;display:flex;flex-direction:column;gap:8px;align-items:center;width:100%;padding:0 16px;pointer-events:none;}
+.tst{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:14px;font-size:14px;font-weight:700;color:#fff;box-shadow:0 8px 20px rgba(0,0,0,.18);max-width:380px;width:100%;}
+.tst svg{width:20px;height:20px;fill:#fff;flex-shrink:0;}
+.tst.ok{background:var(--gn);}
+.tst.er{background:var(--r);}
+.tst.in{background:var(--p);}
+
+#authGate{position:fixed;inset:0;background:rgba(255,255,255,0.05);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:9000;display:flex;align-items:center;justify-content:center;padding:24px;}
+#authLoginCard{width:100%;max-width:340px;background:#fff;border-radius:20px;padding:28px 24px;box-shadow:0 20px 50px rgba(0,0,0,.25);display:none}
+#authCheckingBox{display:flex;flex-direction:column;align-items:center;gap:10px;background:#fff;border-radius:16px;padding:20px 28px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+@keyframes authSpin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- AUTH GATE (เหมือน admin.html ทุกประการ — เช็คสิทธิ์จาก admins/{email} ) -->
+<div id="authGate">
+  <div id="authLoginCard">
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="font-size:22px;font-weight:900;color:#0c4aa6">Nimit Delivery</div>
+      <div style="font-size:13px;color:#64748b;margin-top:4px">เข้าสู่ระบบหลังบ้าน</div>
+    </div>
+    <div id="authLoginBox">
+      <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px">อีเมล</div>
+      <input id="authEmail" type="email" autocomplete="username" placeholder="you@email.com" style="width:100%;height:48px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:15px;margin-bottom:14px;outline:none">
+      <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px">รหัสผ่าน</div>
+      <div style="position:relative;margin-bottom:8px">
+        <input id="authPassword" type="password" autocomplete="current-password" placeholder="••••••••" style="width:100%;height:48px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 44px 0 16px;font-size:15px;outline:none;box-sizing:border-box">
+      </div>
+      <div id="authError" style="color:#dc2626;font-size:13px;font-weight:600;min-height:18px;margin-bottom:8px"></div>
+      <button id="authLoginBtn" onclick="window.doAdminLogin()" style="width:100%;height:50px;border:none;border-radius:16px;background:linear-gradient(135deg,#0c4aa6,#083570);color:#fff;font-size:15px;font-weight:800;cursor:pointer">เข้าสู่ระบบ</button>
+    </div>
+  </div>
+  <div id="authCheckingBox">
+    <div style="width:26px;height:26px;border:3px solid #e2e8f0;border-top-color:#0c4aa6;border-radius:50%;animation:authSpin 0.8s linear infinite"></div>
+    <div style="color:#64748b;font-size:12px">กำลังตรวจสอบ...</div>
+  </div>
+</div>
+
+<div class="tw" id="tw"></div>
+
+<div class="tb">
+  <button class="back-btn" onclick="location.href='admin.html'"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+  <div class="tb-title">จัดการปุ่มหมวดหมู่</div>
+</div>
+
+<div class="sec">
+  <div class="sec-title">ปุ่มหมวดหมู่ทั้งหมด</div>
+  <div class="sec-sub">ลากไอคอนเพื่อสลับลำดับ (ลำดับนี้จะตรงกับที่ลูกค้าเห็นในหน้าร้านค้า) กดที่ปุ่มเพื่อแก้ไข</div>
+  <div class="btn-row" id="btnRow"><div class="loading">กำลังโหลด...</div></div>
+</div>
+
+<div class="sec" id="editSec" style="display:none">
+  <div class="sec-title" id="editSecTitle">เพิ่มปุ่มใหม่</div>
+  <div class="field-label">ชื่อ (ลูกค้าจะเห็นข้อความนี้ใต้ไอคอนปุ่ม และเป็นหัวข้อหน้าหมวดหมู่)</div>
+  <input class="f-input" id="btnNameInput" placeholder="เช่น เมนูเผ็ด, ของหวาน, โปรโมชั่นเดือนนี้">
+  <div class="field-label">ชื่อแท็ก (ใช้ภายในเท่านั้น สำหรับแอดมินจำตอนติดแท็กเมนู — ลูกค้าและร้านค้าจะไม่เห็นข้อความนี้เลย)</div>
+  <input class="f-input" id="btnTagInput" placeholder="เช่น spicy-menu, promo-nov">
+  <div class="field-label">เลือกไอคอน (ถ้าไม่อัปโหลดรูปเอง จะใช้ไอคอนที่เลือกไว้นี้)</div>
+  <div class="icon-gallery" id="iconGallery"></div>
+  <div class="upload-row">
+    <div class="upload-preview" id="uploadPreview"></div>
+    <button class="upload-btn" onclick="document.getElementById('iconFileInput').click()">อัปโหลดรูปไอคอนเอง</button>
+    <input type="file" id="iconFileInput" accept="image/*" style="display:none" onchange="window.onIconFile(event)">
+  </div>
+  <div class="action-row">
+    <button class="btn-ghost" onclick="window.cancelEdit()">ยกเลิก</button>
+    <button class="btn-danger" id="deleteBtnBtn" style="display:none" onclick="window.deleteCurrentButton()">ลบปุ่มนี้</button>
+    <button class="btn-primary" onclick="window.saveButton()">บันทึก</button>
+  </div>
+</div>
+
+<div class="sec" id="tagSec" style="display:none">
+  <div class="sec-title">ติดแท็กเมนูให้ปุ่มนี้</div>
+  <div class="sec-sub">เลือกร้านค้า แล้วแตะเมนูที่ต้องการให้ขึ้นในหมวดหมู่นี้ (แตะซ้ำเพื่อเอาออก)</div>
+  <div class="shop-list" id="shopList"><div class="loading">กำลังโหลดร้านค้า...</div></div>
+  <div class="menu-grid" id="menuGrid"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const fbApp = initializeApp({
+  apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
+  authDomain:"nimit-delivery.firebaseapp.com",
+  projectId:"nimit-delivery",
+  storageBucket:"nimit-delivery.firebasestorage.app",
+  messagingSenderId:"233476256130",
+  appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
+});
+const db = getFirestore(fbApp);
+const auth = getAuth(fbApp);
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const $=id=>document.getElementById(id);
+
+function toast(msg,type){
+  const ic={ok:'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>',er:'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z"/>',in:'<path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>'};
+  const el=document.createElement('div');el.className='tst '+(type||'in');
+  el.innerHTML='<svg viewBox="0 0 24 24">'+(ic[type]||ic.in)+'</svg><span>'+msg+'</span>';
+  $('tw').appendChild(el);setTimeout(()=>el.remove(),2500);
+}
+window.toast=toast;
+
+// ===== AUTH GATE (ตรรกะเดียวกับ admin.html) =====
+function showAuthGate(){ $('authGate').style.display='flex'; }
+function hideAuthGate(){ $('authGate').style.display='none'; }
+function setAuthChecking(on){ $('authLoginCard').style.display = on?'none':'block'; $('authCheckingBox').style.display = on?'flex':'none'; }
+window.doAdminLogin = async function(){
+  const email=$('authEmail').value.trim().toLowerCase(), pw=$('authPassword').value, errEl=$('authError');
+  errEl.textContent='';
+  if(!email||!pw){errEl.textContent='กรุณากรอกอีเมลและรหัสผ่าน';return;}
+  setAuthChecking(true);
+  try{ await signInWithEmailAndPassword(auth,email,pw); }
+  catch(e){
+    setAuthChecking(false);
+    if(e.code==='auth/invalid-credential'||e.code==='auth/wrong-password'||e.code==='auth/user-not-found') errEl.textContent='อีเมลหรือรหัสผ่านไม่ถูกต้อง';
+    else if(e.code==='auth/too-many-requests') errEl.textContent='ลองผิดหลายครั้งเกินไป กรุณารอสักครู่แล้วลองใหม่';
+    else errEl.textContent='เข้าสู่ระบบไม่สำเร็จ: '+e.message;
+  }
+};
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){ setAuthChecking(false); showAuthGate(); return; }
+  setAuthChecking(true);
+  try{
+    const snap = await getDoc(doc(db,'admins',(user.email||'').toLowerCase()));
+    if(!snap.exists() || snap.data().status!=='active'){
+      await signOut(auth); setAuthChecking(false);
+      $('authError').textContent='บัญชีนี้ยังไม่ได้รับสิทธิ์เข้าใช้งานหลังบ้าน หรือถูกระงับสิทธิ์แล้ว';
+      showAuthGate(); return;
+    }
+    hideAuthGate(); setAuthChecking(false);
+    initPage();
+  }catch(e){
+    setAuthChecking(false); $('authError').textContent='ตรวจสอบสิทธิ์ไม่สำเร็จ: '+e.message; showAuthGate();
+  }
+});
+
+// ===== อัปโหลดรูปไปที่ Firebase Storage (เหมือน admin.html) =====
+async function uploadFile(file, path){
+  const bucket='nimit-delivery.firebasestorage.app';
+  const fname=path+'/'+Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9.]/g,'_');
+  const url='https://firebasestorage.googleapis.com/v0/b/'+bucket+'/o?uploadType=media&name='+encodeURIComponent(fname);
+  const res=await fetch(url,{method:'POST',headers:{'Content-Type':file.type||'application/octet-stream'},body:file});
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  const data=await res.json();
+  return 'https://firebasestorage.googleapis.com/v0/b/'+bucket+'/o/'+encodeURIComponent(fname)+'?alt=media&token='+(data.downloadTokens||'');
+}
+
+// ===== ไอคอนสำเร็จรูป =====
+const PRESETS={
+  fastfood:{label:'เบอร์เกอร์',path:'M8.1 13.34l2.83-2.83L3.91 3.5c-1.56 1.56-1.56 4.09 0 5.66l4.19 4.18zm6.78-1.81c1.53.71 3.68.21 5.27-1.38 1.91-1.91 2.28-4.65.81-6.12-1.46-1.46-4.2-1.1-6.12.81-1.59 1.59-2.09 3.74-1.38 5.27L3.7 19.87l1.41 1.41L12 14.41l6.88 6.88 1.41-1.41L13.41 13l1.47-1.47z'},
+  cafe:{label:'กาแฟ',path:'M2 21h18v-2H2v2zM20 8h-2V5h2v3zm0-5H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.89 2-2V5c0-1.1-.89-2-2-2z'},
+  cake:{label:'ของหวาน',path:'M12 6c1.11 0 2-.9 2-2 0-.39-.1-.76-.29-1.08L12 0l-1.71 2.92c-.19.32-.29.69-.29 1.08 0 1.1.9 2 2 2zM3 13v7c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-7c0-1.66-1.34-3-3-3h-5V8h-2v2H6c-1.66 0-3 1.34-3 3zm9 0c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z'},
+  tag:{label:'คูปอง',path:'M22 10V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v4c1.1 0 2 .9 2 2s-.9 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2zm-9 7.5h-2v-2h2v2zm0-4.5h-2v-2h2v2zm0-4.5h-2v-2h2v2z'},
+  restaurant:{label:'อาหารทั่วไป',path:'M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z'},
+  spicy:{label:'เผ็ด',path:'M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z'},
+  star:{label:'เมนูเด่น',path:'M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z'},
+  heart:{label:'ถูกใจ',path:'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'},
+  bag:{label:'ถุงช้อปปิ้ง',path:'M18 6h-2c0-2.21-1.79-4-4-4S8 3.79 8 6H6c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2c1.1 0 2 .9 2 2h-4c0-1.1.9-2 2-2zm6 16H6V8h2v2c0 .55.45 1 1 1s1-.45 1-1V8h4v2c0 .55.45 1 1 1s1-.45 1-1V8h2v12z'},
+  grid:{label:'หมวดหมู่ทั่วไป',path:'M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z'}
+};
+
+let buttons=[];      // ปุ่มทั้งหมด เรียงตาม order
+let editing=null;    // ปุ่มที่กำลังแก้ไข {id,name,iconType,iconPreset,iconUrl} หรือ null=ปุ่มใหม่
+let draft={iconType:'preset',iconPreset:'fastfood',iconUrl:''};
+let dragFromIdx=null;
+let curShopId=null, curMenus=[];
+
+function iconSvg(b){
+  if(b.iconType==='custom' && b.iconUrl) return `<img src="${b.iconUrl}">`;
+  const p=PRESETS[b.iconPreset]||PRESETS.grid;
+  return `<svg viewBox="0 0 24 24"><path d="${p.path}"/></svg>`;
+}
+
+async function loadButtons(){
+  try{
+    const snap=await getDocs(collection(db,'categoryButtons'));
+    buttons=[]; snap.forEach(d=>buttons.push({id:d.id,...d.data()}));
+    buttons.sort((a,b)=>(a.order||0)-(b.order||0));
+    renderButtons();
+  }catch(e){ $('btnRow').innerHTML='<div class="empty-note">โหลดไม่สำเร็จ: '+esc(e.message)+'</div>'; }
+}
+
+function renderButtons(){
+  const cards = buttons.map((b,idx)=>`
+    <div class="btn-card${editing&&editing.id===b.id?' selected':''}" draggable="true" data-idx="${idx}" onclick="window.openEdit('${b.id}')">
+      <div class="btn-ic">${iconSvg(b)}</div>
+      <div class="btn-card-name">${esc(b.name)}</div>
+      <div class="btn-card-tag">${esc(b.tagName||'')}</div>
+    </div>`).join('');
+  $('btnRow').innerHTML = cards + `
+    <div class="add-card" onclick="window.openNew()">
+      <div class="add-ic"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>
+      <div class="btn-card-name">เพิ่มปุ่ม</div>
+    </div>`;
+  // drag & drop reorder
+  document.querySelectorAll('.btn-card').forEach(el=>{
+    el.addEventListener('dragstart',e=>{ dragFromIdx=+el.dataset.idx; el.classList.add('dragging'); });
+    el.addEventListener('dragend',e=>{ el.classList.remove('dragging'); });
+    el.addEventListener('dragover',e=>e.preventDefault());
+    el.addEventListener('drop',async e=>{
+      e.preventDefault();
+      const toIdx=+el.dataset.idx;
+      if(dragFromIdx===null||dragFromIdx===toIdx) return;
+      const moved=buttons.splice(dragFromIdx,1)[0];
+      buttons.splice(toIdx,0,moved);
+      renderButtons();
+      try{ await Promise.all(buttons.map((b,i)=>updateDoc(doc(db,'categoryButtons',b.id),{order:i}))); toast('บันทึกลำดับแล้ว','ok'); }
+      catch(err){ toast('บันทึกลำดับไม่สำเร็จ: '+err.message,'er'); }
+    });
+  });
+}
+
+function renderIconGallery(){
+  $('iconGallery').innerHTML = Object.keys(PRESETS).map(k=>`
+    <div class="icon-opt${draft.iconType==='preset'&&draft.iconPreset===k?' active':''}" onclick="window.pickPreset('${k}')" title="${PRESETS[k].label}">
+      <svg viewBox="0 0 24 24"><path d="${PRESETS[k].path}"/></svg>
+    </div>`).join('');
+  $('uploadPreview').innerHTML = draft.iconType==='custom' && draft.iconUrl ? `<img src="${draft.iconUrl}">` : `<svg viewBox="0 0 24 24" width="24" height="24" style="fill:#cbd5e1"><path d="${(PRESETS[draft.iconPreset]||PRESETS.grid).path}"/></svg>`;
+}
+window.pickPreset=function(k){ draft.iconType='preset'; draft.iconPreset=k; draft.iconUrl=''; renderIconGallery(); };
+window.onIconFile=async function(ev){
+  const file=ev.target.files[0]; if(!file) return;
+  try{
+    toast('กำลังอัปโหลดไอคอน...','in');
+    const url=await uploadFile(file,'categoryIcons');
+    draft.iconType='custom'; draft.iconUrl=url;
+    renderIconGallery();
+    toast('อัปโหลดสำเร็จ','ok');
+  }catch(e){ toast('อัปโหลดไม่สำเร็จ: '+e.message,'er'); }
+};
+
+window.openNew=function(){
+  editing=null; draft={iconType:'preset',iconPreset:'fastfood',iconUrl:''};
+  $('editSecTitle').textContent='เพิ่มปุ่มใหม่';
+  $('btnNameInput').value='';
+  $('btnTagInput').value='';
+  $('deleteBtnBtn').style.display='none';
+  $('editSec').style.display='block';
+  $('tagSec').style.display='none';
+  renderIconGallery();
+  renderButtons();
+  $('editSec').scrollIntoView({behavior:'smooth'});
+};
+window.openEdit=function(id){
+  const b=buttons.find(x=>x.id===id); if(!b) return;
+  editing=b; draft={iconType:b.iconType||'preset',iconPreset:b.iconPreset||'fastfood',iconUrl:b.iconUrl||''};
+  $('editSecTitle').textContent='แก้ไขปุ่ม';
+  $('btnNameInput').value=b.name||'';
+  $('btnTagInput').value=b.tagName||'';
+  $('deleteBtnBtn').style.display='inline-block';
+  $('editSec').style.display='block';
+  renderIconGallery();
+  renderButtons();
+  openTagSection();
+  $('editSec').scrollIntoView({behavior:'smooth'});
+};
+window.cancelEdit=function(){
+  editing=null; $('editSec').style.display='none'; $('tagSec').style.display='none';
+  renderButtons();
+};
+window.saveButton=async function(){
+  const name=$('btnNameInput').value.trim();
+  const tagName=$('btnTagInput').value.trim();
+  if(!name){ toast('กรุณาตั้งชื่อปุ่ม','er'); return; }
+  const data={ name, tagName, iconType:draft.iconType, iconPreset:draft.iconPreset, iconUrl:draft.iconUrl||'' };
+  try{
+    if(editing){
+      await updateDoc(doc(db,'categoryButtons',editing.id), data);
+      toast('บันทึกแล้ว','ok');
+    } else {
+      data.order=buttons.length; data.itemRefs=[]; data.createdAt=serverTimestamp();
+      const ref=await addDoc(collection(db,'categoryButtons'), data);
+      editing={id:ref.id,...data};
+      toast('เพิ่มปุ่มแล้ว','ok');
+    }
+    await loadButtons();
+    openEditAfterSave();
+  }catch(e){ toast('บันทึกไม่สำเร็จ: '+e.message,'er'); }
+};
+function openEditAfterSave(){
+  // เปิดค้างไว้ที่ปุ่มเดิม เผื่อจะติดแท็กเมนูต่อทันทีหลังเพิ่มปุ่มใหม่
+  if(editing && editing.id){ window.openEdit(editing.id); }
+}
+window.deleteCurrentButton=async function(){
+  if(!editing) return;
+  if(!confirm('ลบปุ่มนี้? เมนูที่เคยติดแท็กไว้กับปุ่มนี้จะถูกเอาแท็กออกด้วย')) return;
+  try{
+    // เอาแท็กนี้ออกจากทุกเมนูที่เคยติดไว้ (รู้ที่อยู่ตรงๆ จาก itemRefs ที่เก็บไว้ที่ปุ่มอยู่แล้ว ไม่ต้องค้นหาข้ามร้าน)
+    const refs = editing.itemRefs||[];
+    await Promise.all(refs.map(r=>updateDoc(doc(db,'shops',r.shopId,'menus',r.menuId),{tags:arrayRemove(editing.id)}).catch(()=>{})));
+    await deleteDoc(doc(db,'categoryButtons',editing.id));
+    toast('ลบปุ่มแล้ว','ok');
+    editing=null;
+    $('editSec').style.display='none'; $('tagSec').style.display='none';
+    await loadButtons();
+  }catch(e){ toast('ลบไม่สำเร็จ: '+e.message,'er'); }
+};
+
+// ===== ติดแท็กเมนู =====
+async function openTagSection(){
+  $('tagSec').style.display='block';
+  $('menuGrid').innerHTML='';
+  curShopId=null;
+  $('shopList').innerHTML='<div class="loading">กำลังโหลดร้านค้า...</div>';
+  try{
+    const snap=await getDocs(collection(db,'shops'));
+    const shops=[]; snap.forEach(d=>shops.push({id:d.id,...d.data()}));
+    if(!shops.length){ $('shopList').innerHTML='<div class="empty-note">ยังไม่มีร้านค้าในระบบ</div>'; return; }
+    $('shopList').innerHTML = shops.map(s=>`<div class="shop-row" data-id="${s.id}" onclick="window.pickShop('${s.id}')"><div class="shop-row-name">${esc(s.name||'(ไม่มีชื่อ)')}</div></div>`).join('');
+  }catch(e){ $('shopList').innerHTML='<div class="empty-note">โหลดร้านค้าไม่สำเร็จ: '+esc(e.message)+'</div>'; }
+}
+window.pickShop=async function(shopId){
+  curShopId=shopId;
+  document.querySelectorAll('.shop-row').forEach(el=>el.classList.toggle('active', el.dataset.id===shopId));
+  $('menuGrid').innerHTML='<div class="loading">กำลังโหลดเมนู...</div>';
+  try{
+    const snap=await getDocs(collection(db,'shops',shopId,'menus'));
+    curMenus=[]; snap.forEach(d=>curMenus.push({id:d.id,...d.data()}));
+    renderMenuGrid();
+  }catch(e){ $('menuGrid').innerHTML='<div class="empty-note">โหลดเมนูไม่สำเร็จ: '+esc(e.message)+'</div>'; }
+};
+function renderMenuGrid(){
+  if(!curMenus.length){ $('menuGrid').innerHTML='<div class="empty-note">ร้านนี้ยังไม่มีเมนู</div>'; return; }
+  $('menuGrid').innerHTML = curMenus.map(m=>{
+    const tagged = Array.isArray(m.tags) && editing && m.tags.includes(editing.id);
+    return `<div class="menu-card${tagged?' tagged':''}" data-mid="${m.id}" onclick="window.toggleMenuTag('${m.id}')">
+      <div class="menu-card-img">${m.imgUrl?`<img src="${esc(m.imgUrl)}">`:`<svg viewBox="0 0 24 24"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7z"/></svg>`}</div>
+      <div class="menu-card-name">${esc(m.name||'(ไม่มีชื่อ)')}</div>
+      <div class="menu-card-price">฿${m.price||0}</div>
+      <div class="menu-card-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+    </div>`;
+  }).join('');
+}
+window.toggleMenuTag=async function(menuId){
+  if(!editing){ toast('กรุณาบันทึกปุ่มนี้ก่อน แล้วค่อยติดแท็กเมนู','er'); return; }
+  const m=curMenus.find(x=>x.id===menuId); if(!m) return;
+  const has = Array.isArray(m.tags) && m.tags.includes(editing.id);
+  const ref={shopId:curShopId,menuId};
+  try{
+    await Promise.all([
+      updateDoc(doc(db,'shops',curShopId,'menus',menuId), { tags: has?arrayRemove(editing.id):arrayUnion(editing.id) }),
+      updateDoc(doc(db,'categoryButtons',editing.id), { itemRefs: has?arrayRemove(ref):arrayUnion(ref) })
+    ]);
+    m.tags = has ? (m.tags||[]).filter(t=>t!==editing.id) : [...(m.tags||[]),editing.id];
+    editing.itemRefs = has ? (editing.itemRefs||[]).filter(r=>!(r.shopId===ref.shopId&&r.menuId===ref.menuId)) : [...(editing.itemRefs||[]),ref];
+    renderMenuGrid();
+  }catch(e){ toast('บันทึกแท็กไม่สำเร็จ: '+e.message,'er'); }
+};
+
+function initPage(){ loadButtons(); }
+</script>
+</body>
+</html>
