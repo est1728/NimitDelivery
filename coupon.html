@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>คูปอง - Nimit Delivery</title>
+<style>
+:root{--p:#0c4aa6;--pd:#083570;--pl:#e8f0fe;--g:#f5f6f8;--t:#0f172a;--s:#64748b;--gn:#16a34a;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
+body{background:var(--g);min-height:100vh;padding-bottom:80px;}
+
+.tb{background:linear-gradient(135deg,var(--p),var(--pd));padding:14px 16px;color:#fff;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;}
+.back-btn{width:38px;height:38px;border:none;border-radius:12px;background:rgba(255,255,255,.18);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.back-btn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2.5;}
+.tb-title{font-size:17px;font-weight:800;}
+
+/* COUPON BANNER (UI เผื่อไว้ — ยังไม่มีระบบคูปองจริง) */
+.coupon-banner{margin:16px;}
+.coupon-card{display:flex;align-items:stretch;background:linear-gradient(135deg,var(--p),var(--pd));border-radius:18px;position:relative;box-shadow:0 8px 20px rgba(12,74,166,.32);}
+.coupon-card-left{width:84px;flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;}
+.coupon-badge{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;}
+.coupon-badge svg{width:26px;height:26px;fill:#fff;}
+.coupon-divider{position:absolute;left:84px;top:14px;bottom:14px;border-left:2px dashed rgba(255,255,255,.55);}
+.coupon-card::before,.coupon-card::after{content:"";position:absolute;left:84px;width:18px;height:18px;background:var(--g);border-radius:50%;transform:translateX(-50%);}
+.coupon-card::before{top:-9px;}
+.coupon-card::after{bottom:-9px;}
+.coupon-card-right{flex:1;padding:18px 18px 18px 20px;color:#fff;min-width:0;}
+.coupon-top{font-size:15.5px;font-weight:800;margin-bottom:4px;}
+.coupon-sub{font-size:12px;opacity:.92;line-height:1.6;}
+.coupon-ribbon{position:absolute;top:10px;right:-4px;background:#fff;color:#ea580c;font-size:10px;font-weight:800;padding:3px 10px 3px 8px;border-radius:6px 2px 2px 6px;box-shadow:0 2px 6px rgba(0,0,0,.15);}
+.coupon-ribbon::after{content:"";position:absolute;right:-6px;top:0;border-style:solid;border-width:0 6px 12px 0;border-color:transparent #c2410c transparent transparent;}
+
+/* TABS */
+.tabs-wrap{display:flex;background:#fff;border-bottom:1px solid #e8eef5;position:sticky;top:64px;z-index:10;}
+.tab-btn{flex:1;height:46px;border:none;background:none;font-size:14px;font-weight:700;color:var(--s);cursor:pointer;position:relative;}
+.tab-btn.active{color:var(--p);}
+.tab-btn.active::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:2px;background:var(--p);border-radius:2px;}
+
+/* EMPTY STATE (คูปอง) */
+.empty{text-align:center;padding:60px 24px;color:var(--s);font-size:14px;line-height:1.7;}
+.empty-icon{width:64px;height:64px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(15,23,42,.08);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+.empty-icon svg{width:30px;height:30px;fill:#cbd5e1;}
+
+/* LOYALTY (สะสมแต้ม) — ใช้ style/โครงสร้างเดียวกับ loyalty.html เดิม */
+.list{padding:16px;}
+.card{border:1.5px solid #e2e8f0;background:#fff;border-radius:14px;padding:14px;margin-bottom:10px;}
+.card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.card-pts{font-size:13px;font-weight:800;}
+.bar-track{height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;}
+.card-note{font-size:11px;font-weight:700;margin-top:6px;}
+.shop-loyalty-block{margin-bottom:18px;}
+.shop-group-name{font-size:15px;font-weight:800;color:var(--t);margin-bottom:8px;}
+.full-cards-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+.full-card-badge{display:flex;align-items:center;gap:5px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:8px 12px;font-size:12px;font-weight:800;color:#16a34a;}
+.loading{text-align:center;padding:60px 24px;color:var(--s);font-size:13px;}
+
+/* BOTTOM NAV — sync กับ shops.html/reorder.html */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-top:1px solid #f0f2f5;z-index:199;box-shadow:0 -2px 10px rgba(0,0,0,0.06);}
+.bnav-item{flex:1;padding:8px 0 10px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:none;background:none;}
+.bnav-item svg{width:22px;height:22px;fill:var(--s);}
+.bnav-item span{font-size:10px;font-weight:700;color:var(--s);}
+.bnav-item.active svg{fill:var(--p);}
+.bnav-item.active span{color:var(--p);}
+.bnav-item.disabled{opacity:.55;}
+</style>
+</head>
+<body>
+
+<div class="tb">
+  <button class="back-btn" onclick="history.length>1?history.back():location.href='shops.html'"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+  <div class="tb-title">คูปอง & แต้มสะสม</div>
+</div>
+
+<div class="coupon-banner">
+  <div class="coupon-card">
+    <div class="coupon-card-left">
+      <div class="coupon-badge">
+        <svg viewBox="0 0 24 24" fill="#fff"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a2 2 0 0 0-2-2c-1.05 0-1.87.62-2.44 1.5L13 6.32 12.44 4.5C11.87 3.62 11.05 3 10 3a2 2 0 0 0-2 2c0 .35.07.69.18 1H6a2 2 0 0 0-2 2v2a1 1 0 0 0 1 1h1v7a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-7h1a1 1 0 0 0 1-1V8a2 2 0 0 0-2-2z"/></svg>
+      </div>
+    </div>
+    <div class="coupon-divider"></div>
+    <div class="coupon-card-right">
+      <div class="coupon-top">คูปองส่วนลด</div>
+      <div class="coupon-sub">รวมคูปองส่วนลดและสิทธิพิเศษของคุณไว้ที่นี่</div>
+    </div>
+  </div>
+</div>
+
+<div class="tabs-wrap">
+  <button class="tab-btn active" id="tab-coupon" onclick="window.switchTab('coupon')">คูปอง</button>
+  <button class="tab-btn" id="tab-loyalty" onclick="window.switchTab('loyalty')">สะสมแต้ม</button>
+</div>
+
+<div id="couponTab">
+  <div class="empty">
+    <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M22 10V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v4c1.1 0 2 .9 2 2s-.9 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2zm-9 7.5h-2v-2h2v2zm0-4.5h-2v-2h2v2zm0-4.5h-2v-2h2v2z"/></svg></div>
+    ยังไม่มีคูปองในขณะนี้<br>รอติดตามโปรโมชันเร็วๆ นี้ครับ
+  </div>
+</div>
+
+<div id="loyaltyTab" style="display:none">
+  <div class="list" id="loyaltyList"><div class="loading">กำลังโหลด...</div></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav" id="mainBottomNav">
+  <button class="bnav-item" onclick="window.Motion?window.Motion.navigate('shops.html'):location.href='shops.html'">
+    <svg viewBox="0 0 24 24"><path d="M12 3l9 8h-3v9h-4v-6h-4v6H5v-9H2z"/></svg>
+    <span>หน้าหลัก</span>
+  </button>
+  <button class="bnav-item" onclick="window.Motion?window.Motion.navigate('reorder.html'):location.href='reorder.html'">
+    <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
+    <span>ประวัติ</span>
+  </button>
+  <button class="bnav-item active">
+    <svg viewBox="0 0 24 24"><path d="M22 10V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v4c1.1 0 2 .9 2 2s-.9 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2zm-9 7.5h-2v-2h2v2zm0-4.5h-2v-2h2v2zm0-4.5h-2v-2h2v2z"/></svg>
+    <span>คูปอง</span>
+  </button>
+  <button class="bnav-item disabled" onclick="window.Motion&&window.Motion.toast?window.Motion.toast('ระบบโซเชียลเร็วๆ นี้'):alert('ระบบโซเชียลเร็วๆ นี้ครับ')">
+    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+    <span>โซเชียล</span>
+  </button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, getDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const db = getFirestore(initializeApp({
+  apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
+  authDomain:"nimit-delivery.firebaseapp.com",
+  projectId:"nimit-delivery",
+  storageBucket:"nimit-delivery.firebasestorage.app",
+  messagingSenderId:"233476256130",
+  appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
+}));
+function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+// ============ แท็บ ============
+let loyaltyLoaded=false;
+window.switchTab=function(tab){
+  document.getElementById("tab-coupon").classList.toggle("active",tab==="coupon");
+  document.getElementById("tab-loyalty").classList.toggle("active",tab==="loyalty");
+  document.getElementById("couponTab").style.display=tab==="coupon"?"block":"none";
+  document.getElementById("loyaltyTab").style.display=tab==="loyalty"?"block":"none";
+  if(tab==="loyalty" && !loyaltyLoaded){ loyaltyLoaded=true; loadLoyalty(); }
+};
+
+// ============ สะสมแต้ม — เดียวกับ loyalty.html เดิมทุกประการ ============
+async function loadLoyalty(){
+  const listEl = document.getElementById("loyaltyList");
+  const phone = JSON.parse(localStorage.getItem("customerData")||"{}").phone || localStorage.getItem("customerPhone");
+  if(!phone){ listEl.innerHTML = '<div class="empty">กรุณาเข้าสู่ระบบก่อนครับ</div>'; return; }
+  try{
+    const timeout = ms => new Promise((_,rej)=>setTimeout(()=>rej(new Error("หมดเวลารอ ลองรีเฟรชหน้าใหม่")), ms));
+    const snap = await Promise.race([
+      getDocs(query(collection(db,"loyaltyCards"), where("customerPhone","==",phone))),
+      timeout(10000)
+    ]);
+    const cards = []; snap.forEach(d=>cards.push(d.data()));
+    if(!cards.length){
+      listEl.innerHTML = '<div class="empty">ยังไม่มีบัตรสะสมแต้มเลยครับ<br>ลองสั่งร้านที่มีป้าย 🎫 สะสมแต้ม ดูได้เลย</div>';
+      return;
+    }
+    const shopIds = [...new Set(cards.map(c=>c.shopId))];
+    const shopTargets = {};
+    await Promise.all(shopIds.map(async sid=>{
+      try{ const sSnap = await getDoc(doc(db,"shops",sid)); if(sSnap.exists()) shopTargets[sid] = sSnap.data().loyaltyTarget||10; }catch(e){}
+    }));
+    listEl.innerHTML = cards.map(c=>{
+      const target = shopTargets[c.shopId]||10;
+      const pts = c.points||0;
+      const full = Math.floor(pts/target);
+      const partial = pts%target;
+      const pct = target>0 ? Math.round(partial/target*100) : 0;
+      let html = `<div class="shop-loyalty-block">
+        <div class="shop-group-name">${esc(c.shopName)}</div>`;
+      if(full>0){
+        html += `<div class="full-cards-row">${Array(full).fill(0).map(()=>'<div class="full-card-badge">🎫 ครบแล้ว</div>').join('')}</div>
+        <div class="card-note" style="color:#16a34a;margin-bottom:8px">มี ${full} ใบที่ใช้สิทธิ์รับฟรีได้ตอนชำระเงินร้านนี้ (ใช้ได้ครั้งละ 1 ใบต่อออเดอร์)</div>`;
+      }
+      html += `<div class="card">
+        <div class="card-top"><div class="card-pts" style="color:#c2410c">กำลังสะสม ${partial}/${target}</div></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:#f97316"></div></div>
+      </div></div>`;
+      return html;
+    }).join("");
+  }catch(e){
+    listEl.innerHTML = '<div class="empty">โหลดไม่สำเร็จ: '+esc(e.message)+'</div>';
+  }
+}
+</script>
+
+<script src="motion.js"></script>
+<script>window._fcmRole="customer";</script>
+<script src="fcm.js"></script>
+</body>
+</html>
