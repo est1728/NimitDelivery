@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>หมวดหมู่ - Nimit Delivery</title>
+<style>
+:root{--p:#0c4aa6;--pd:#083570;--pl:#e8f0fe;--g:#f5f6f8;--t:#0f172a;--s:#64748b;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
+body{background:var(--g);min-height:100vh;padding-bottom:80px;}
+
+.tb{background:linear-gradient(135deg,var(--p),var(--pd));padding:14px 16px;color:#fff;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;}
+.back-btn{width:38px;height:38px;border:none;border-radius:12px;background:rgba(255,255,255,.18);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.back-btn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2.5;}
+.tb-title{font-size:17px;font-weight:800;}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px;}
+.mcard{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(15,23,42,.08);cursor:pointer;}
+.mcard-img{width:100%;aspect-ratio:1;background:#f1f5f9;display:flex;align-items:center;justify-content:center;}
+.mcard-img img{width:100%;height:100%;object-fit:cover;}
+.mcard-img svg{width:34px;height:34px;fill:#cbd5e1;}
+.mcard-body{padding:10px 12px 12px;}
+.mcard-name{font-size:13px;font-weight:800;color:var(--t);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.35;min-height:35px;}
+.mcard-shop{font-size:11px;color:var(--s);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mcard-price{font-size:14px;font-weight:900;color:var(--p);margin-top:6px;}
+
+.state-box{text-align:center;padding:70px 24px;color:var(--s);}
+.state-icon{width:64px;height:64px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(15,23,42,.08);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+.state-icon svg{width:30px;height:30px;fill:#cbd5e1;}
+.state-title{font-size:15px;font-weight:800;color:var(--t);margin-bottom:6px;}
+.state-sub{font-size:13px;color:var(--s);line-height:1.6;}
+.spinner{width:34px;height:34px;border:4px solid #eef0f4;border-top-color:var(--p);border-radius:50%;margin:0 auto 14px;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="tb">
+  <button class="back-btn" onclick="history.length>1?history.back():location.href='shops.html'"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+  <div class="tb-title" id="pageTitle">หมวดหมู่</div>
+</div>
+
+<div id="content">
+  <div class="state-box"><div class="spinner"></div><div class="state-sub">กำลังโหลด...</div></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const db = getFirestore(initializeApp({
+  apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
+  authDomain:"nimit-delivery.firebaseapp.com",
+  projectId:"nimit-delivery",
+  storageBucket:"nimit-delivery.firebasestorage.app",
+  messagingSenderId:"233476256130",
+  appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
+}));
+function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+function renderState(title,sub){
+  document.getElementById("content").innerHTML = `<div class="state-box">
+    <div class="state-icon"><svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18z"/></svg></div>
+    <div class="state-title">${esc(title)}</div>
+    <div class="state-sub">${esc(sub)}</div>
+  </div>`;
+}
+
+async function load(){
+  const params = new URLSearchParams(location.search);
+  const buttonId = params.get("id");
+  const nameFromUrl = params.get("name");
+  if(!buttonId){ renderState("ไม่พบหมวดหมู่ที่ต้องการ","ลองกลับไปหน้าร้านค้าแล้วกดใหม่อีกครั้ง"); return; }
+  if(nameFromUrl) document.getElementById("pageTitle").textContent = nameFromUrl;
+
+  try{
+    // อ่านปุ่มหมวดหมู่นี้ตรงๆ (เอกสารเดียว ไม่ใช่การค้นหา) เพื่อดูว่ามีเมนูไหนถูกติดแท็กไว้บ้าง (เก็บเป็น shopId+menuId)
+    const btnSnap = await getDoc(doc(db,"categoryButtons",buttonId));
+    if(!btnSnap.exists()){ renderState("ไม่พบหมวดหมู่นี้","อาจถูกลบไปแล้ว ลองกลับไปหน้าร้านค้า"); return; }
+    if(!nameFromUrl && btnSnap.data().name) document.getElementById("pageTitle").textContent = btnSnap.data().name;
+    const refs = btnSnap.data().itemRefs || [];
+    if(!refs.length){
+      renderState("ยังไม่มีเมนูในหมวดหมู่นี้","ลองดูหมวดหมู่อื่น หรือกลับมาเช็คใหม่ภายหลัง");
+      return;
+    }
+    // ดึงข้อมูลเมนูแต่ละอันตรงๆ จากที่อยู่จริง (shops/{shopId}/menus/{menuId}) — อ่านเอกสารตรงๆ แบบนี้ไม่ต้องใช้ index เลย และได้ราคา/ชื่อล่าสุดจริงเสมอ
+    const menuDocs = await Promise.all(refs.map(async r=>{
+      try{ const s=await getDoc(doc(db,"shops",r.shopId,"menus",r.menuId)); return s.exists() ? {id:s.id,shopId:r.shopId,...s.data()} : null; }
+      catch(e){ return null; }
+    }));
+    const items = menuDocs.filter(Boolean);
+    if(!items.length){
+      renderState("ยังไม่มีเมนูในหมวดหมู่นี้","ลองดูหมวดหมู่อื่น หรือกลับมาเช็คใหม่ภายหลัง");
+      return;
+    }
+    // ดึงชื่อร้านของแต่ละ shopId ที่เกี่ยวข้อง (ครั้งเดียวต่อร้าน ไม่ query ซ้ำ)
+    const shopIds = [...new Set(items.map(i=>i.shopId))];
+    const shopNames = {};
+    await Promise.all(shopIds.map(async sid=>{
+      try{ const s = await getDoc(doc(db,"shops",sid)); if(s.exists()) shopNames[sid]=s.data().name||""; }catch(e){}
+    }));
+    document.getElementById("content").innerHTML = `<div class="grid">${items.map(it=>`
+      <div class="mcard" onclick="location.href='menu.html?id=${encodeURIComponent(it.shopId)}'">
+        <div class="mcard-img">${it.imgUrl?`<img src="${esc(it.imgUrl)}">`:`<svg viewBox="0 0 24 24"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/></svg>`}</div>
+        <div class="mcard-body">
+          <div class="mcard-name">${esc(it.name||"")}</div>
+          <div class="mcard-shop">${esc(shopNames[it.shopId]||"")}</div>
+          <div class="mcard-price">฿${it.price||0}</div>
+        </div>
+      </div>`).join('')}</div>`;
+  }catch(e){
+    console.error(e);
+    renderState("โหลดไม่สำเร็จ", e.message || "เกิดข้อผิดพลาด ลองรีเฟรชหน้าใหม่");
+  }
+}
+load();
+</script>
+
+<script src="motion.js"></script>
+</body>
+</html>
