@@ -28,8 +28,9 @@ body{background:var(--g);min-height:100vh;padding-bottom:180px;}
 .shop-hd-name{font-size:15px;font-weight:800;color:var(--t);}
 .shop-hd-sub{font-size:11px;color:var(--s);margin-top:2px;}
 
-.item-row{background:#fff;display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #f5f6f8;}
-.chk{width:22px;height:22px;border-radius:7px;border:2px solid #cbd5e1;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.item-row{background:#fff;display:flex;align-items:flex-start;gap:12px;margin:0 12px 10px;padding:14px;border-radius:16px;box-shadow:0 2px 10px rgba(15,23,42,.06);}
+.item-thumb{width:50px;height:50px;border-radius:13px;background:linear-gradient(135deg,var(--pl),#f0f5ff);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:24px;}
+.chk{width:22px;height:22px;border-radius:7px;border:2px solid #cbd5e1;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-top:2px;}
 .chk.on{background:var(--p);border-color:var(--p);}
 .chk svg{width:14px;height:14px;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;display:none;}
 .chk.on svg{display:block;}
@@ -145,6 +146,7 @@ function renderOrder(){
     const opts=(it.options||[]).filter(o=>o.name).map(o=>o.name).join(', ');
     return `<div class="item-row">
       <div class="chk${selected[idx]?' on':''}" onclick="window.toggleItem(${idx})"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="item-thumb">🍽️</div>
       <div class="item-info">
         <div class="item-name">${esc(it.name)}</div>
         ${opts?`<div class="item-opt">${esc(opts)}</div>`:''}
@@ -164,7 +166,7 @@ function renderOrder(){
       <svg viewBox="0 0 24 24"><path d="M20 4H4v2l8 5 8-5V4zm0 4.236l-8 5-8-5V20h16V8.236z"/></svg>
       <div><div class="shop-hd-name">${esc(order.shopName)}</div><div class="shop-hd-sub">จากออเดอร์ล่าสุดที่สั่งสำเร็จ · เลือกรายการที่จะสั่งซ้ำได้</div></div>
     </div>
-    ${rows}`;
+    <div style="padding-top:12px">${rows}</div>`;
   document.getElementById("bottomBar").style.display="block";
   updateTotals();
 }
@@ -212,7 +214,7 @@ async function load(){
       renderEmpty("ไม่พบรายการอาหารในออเดอร์ล่าสุด","ลองสั่งใหม่อีกครั้งได้เลยครับ",true);
       return;
     }
-    selected=order.items.map(()=>true);
+    selected=order.items.map(()=>false);
     qty=order.items.map(it=>it.qty||1);
     renderOrder();
   }catch(e){
