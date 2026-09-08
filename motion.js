@@ -10,11 +10,11 @@
 
   /* ---------- inject shared CSS once ---------- */
   const css = `
-  html{touch-action:pan-y;}body{touch-action:pan-y;overflow-x:hidden;}
+  html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;text-size-adjust:100%;}
   .m-page{opacity:0;animation:mFadeInPage .28s ease forwards;}
-  @keyframes mFadeInPage{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes mFadeInPage{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
   .m-page-out{animation:mFadeOutPage .16s ease forwards;}
-  @keyframes mFadeOutPage{to{opacity:0;transform:translateY(-4px)}}
+  @keyframes mFadeOutPage{from{transform:none}to{opacity:0;transform:translateY(-4px)}}
 
   button,[onclick],.sc,.pop-card,.cart,.addr-chip,.dot,.m-press{
     transition:transform .12s cubic-bezier(.4,0,.2,1),opacity .12s;
@@ -69,10 +69,6 @@
   document.head.appendChild(styleEl);
 
   /* ---------- page enter transition ---------- */
-  // Block pinch zoom (iOS Safari gesture events)
-  document.addEventListener('gesturestart',function(e){e.preventDefault();},{passive:false});
-  document.addEventListener('gesturechange',function(e){e.preventDefault();},{passive:false});
-
   document.addEventListener('DOMContentLoaded', ()=>{
     document.body.classList.add('m-page');
   });
