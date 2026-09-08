@@ -12,9 +12,9 @@
   const css = `
   html,body{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;text-size-adjust:100%;}
   .m-page{opacity:0;animation:mFadeInPage .28s ease forwards;}
-  @keyframes mFadeInPage{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @keyframes mFadeInPage{from{opacity:0}to{opacity:1}}
   .m-page-out{animation:mFadeOutPage .16s ease forwards;}
-  @keyframes mFadeOutPage{from{transform:none}to{opacity:0;transform:translateY(-4px)}}
+  @keyframes mFadeOutPage{from{opacity:1}to{opacity:0}}
 
   button,[onclick],.sc,.pop-card,.cart,.addr-chip,.dot,.m-press{
     transition:transform .12s cubic-bezier(.4,0,.2,1),opacity .12s;
