@@ -13,7 +13,10 @@ body{background:var(--g);min-height:100vh;padding-bottom:28px;}
 .back-btn svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .tb-title{font-size:17px;font-weight:800}
 .list{padding:16px}
-.card{border:1.5px solid #e2e8f0;background:#fff;border-radius:14px;padding:14px;margin-bottom:10px}
+.card{border:1px solid #eef1f6;background:#fff;border-radius:16px;padding:16px;margin-bottom:10px;box-shadow:0 2px 10px rgba(15,23,42,.05)}
+.star-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
+.star-ic{width:22px;height:22px;fill:#e5e9f0;flex-shrink:0}
+.star-ic.filled{fill:#f59e0b}
 .card.full{border-color:#86efac;background:#f0fdf4}
 .card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .card-name{font-size:14px;font-weight:800;color:var(--t)}
@@ -52,6 +55,15 @@ const app = initializeApp({
 });
 const db = getFirestore(app);
 function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function renderStars(partial,target){
+  let s='<div class="star-row">';
+  for(let i=0;i<target;i++){
+    const filled=i<partial;
+    s+=`<svg viewBox="0 0 24 24" class="star-ic${filled?' filled':''}"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`;
+  }
+  s+='</div>';
+  return s;
+}
 
 async function load(){
   const listEl = document.getElementById("list");
@@ -78,7 +90,6 @@ async function load(){
       const pts = c.points||0;
       const full = Math.floor(pts/target);
       const partial = pts%target;
-      const pct = target>0 ? Math.round(partial/target*100) : 0;
       let html = `<div class="shop-loyalty-block">
         <div class="shop-group-name">${esc(c.shopName)}</div>`;
       if(full>0){
@@ -87,7 +98,7 @@ async function load(){
       }
       html += `<div class="card">
         <div class="card-top"><div class="card-pts" style="color:#c2410c">กำลังสะสม ${partial}/${target}</div></div>
-        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:#f97316"></div></div>
+        ${renderStars(partial,target)}
       </div></div>`;
       return html;
     }).join("");
