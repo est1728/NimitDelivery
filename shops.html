@@ -799,6 +799,20 @@ window.openAdVideo=function(url){
 </script>
 
 <script type="module">
+// ย้าย sidebar/overlay/bottom-nav ไปเป็นลูกตรงของ body ทันทีตั้งแต่โหลดหน้า
+// กันปัญหา position:fixed เพี้ยนถ้ามี ancestor ไหนดันมี transform/filter/will-change
+// ติดอยู่โดยไม่ตั้งใจ (เช่นระบบเปลี่ยนหน้าแบบ Motion) ทำให้ fixed positioning
+// อ้างอิงผิดจุดจากวิวพอร์ตจริง กลายเป็นเลื่อน/ยืดไปตามความสูงของเนื้อหาแทน
+// เดิมทำแค่ตอนกดเปิด sidebar เท่านั้น (ช้าไป) และไม่เคยทำกับ bottom-nav เลย
+(function reparentFixedElementsToBody(){
+  const ids = ['sidebarOverlay','sidebar','mainBottomNav'];
+  ids.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el && el.parentElement!==document.body) document.body.appendChild(el);
+  });
+})();
+</script>
+<script type="module">
 window.openSidebar = function(){
   const ov=document.getElementById('sidebarOverlay'), sb=document.getElementById('sidebar');
   // ย้ายให้เป็นลูกตรงของ body เสมอ กันปัญหา position:fixed เพี้ยนถ้ามี ancestor ไหนดันมี
