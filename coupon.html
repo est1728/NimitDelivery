@@ -19,7 +19,7 @@ body{background:var(--g);min-height:100vh;padding-bottom:80px;}
 .coupon-card{display:flex;align-items:stretch;background:linear-gradient(135deg,var(--p),var(--pd));border-radius:18px;position:relative;box-shadow:0 8px 20px rgba(12,74,166,.32);}
 .coupon-card-left{width:84px;flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;}
 .coupon-badge{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;}
-.coupon-badge svg{width:26px;height:26px;fill:#fff;}
+.coupon-badge svg{width:26px;height:26px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 .coupon-divider{position:absolute;left:84px;top:14px;bottom:14px;border-left:2px dashed rgba(255,255,255,.55);}
 .coupon-card::before,.coupon-card::after{content:"";position:absolute;left:84px;width:18px;height:18px;background:var(--g);border-radius:50%;transform:translateX(-50%);}
 .coupon-card::before{top:-9px;}
@@ -31,7 +31,7 @@ body{background:var(--g);min-height:100vh;padding-bottom:80px;}
 .coupon-ribbon::after{content:"";position:absolute;right:-6px;top:0;border-style:solid;border-width:0 6px 12px 0;border-color:transparent #c2410c transparent transparent;}
 
 /* TABS */
-.tabs-wrap{display:flex;background:#fff;border-bottom:1px solid #e8eef5;position:sticky;top:64px;z-index:10;}
+.tabs-wrap{display:flex;background:#fff;border-bottom:1px solid #e8eef5;position:sticky;top:66px;z-index:10;}
 .tab-btn{flex:1;height:46px;border:none;background:none;font-size:14px;font-weight:700;color:var(--s);cursor:pointer;position:relative;}
 .tab-btn.active{color:var(--p);}
 .tab-btn.active::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:2px;background:var(--p);border-radius:2px;}
@@ -43,7 +43,10 @@ body{background:var(--g);min-height:100vh;padding-bottom:80px;}
 
 /* LOYALTY (สะสมแต้ม) — ใช้ style/โครงสร้างเดียวกับ loyalty.html เดิม */
 .list{padding:16px;}
-.card{border:1.5px solid #e2e8f0;background:#fff;border-radius:14px;padding:14px;margin-bottom:10px;}
+.card{border:1px solid #eef1f6;background:#fff;border-radius:16px;padding:16px;margin-bottom:10px;box-shadow:0 2px 10px rgba(15,23,42,.05);}
+.star-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px;}
+.star-ic{width:22px;height:22px;fill:#e5e9f0;flex-shrink:0;}
+.star-ic.filled{fill:#f59e0b;}
 .card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
 .card-pts{font-size:13px;font-weight:800;}
 .bar-track{height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden;}
@@ -76,7 +79,7 @@ body{background:var(--g);min-height:100vh;padding-bottom:80px;}
   <div class="coupon-card">
     <div class="coupon-card-left">
       <div class="coupon-badge">
-        <svg viewBox="0 0 24 24" fill="#fff"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a2 2 0 0 0-2-2c-1.05 0-1.87.62-2.44 1.5L13 6.32 12.44 4.5C11.87 3.62 11.05 3 10 3a2 2 0 0 0-2 2c0 .35.07.69.18 1H6a2 2 0 0 0-2 2v2a1 1 0 0 0 1 1h1v7a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-7h1a1 1 0 0 0 1-1V8a2 2 0 0 0-2-2z"/></svg>
+        <svg viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C9 2 12 7 12 7z"/></svg>
       </div>
     </div>
     <div class="coupon-divider"></div>
@@ -136,6 +139,15 @@ const db = getFirestore(initializeApp({
   appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
 }));
 function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function renderStars(partial,target){
+  let s='<div class="star-row">';
+  for(let i=0;i<target;i++){
+    const filled=i<partial;
+    s+=`<svg viewBox="0 0 24 24" class="star-ic${filled?' filled':''}"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`;
+  }
+  s+='</div>';
+  return s;
+}
 
 // ============ แท็บ ============
 let loyaltyLoaded=false;
@@ -173,7 +185,6 @@ async function loadLoyalty(){
       const pts = c.points||0;
       const full = Math.floor(pts/target);
       const partial = pts%target;
-      const pct = target>0 ? Math.round(partial/target*100) : 0;
       let html = `<div class="shop-loyalty-block">
         <div class="shop-group-name">${esc(c.shopName)}</div>`;
       if(full>0){
@@ -182,7 +193,7 @@ async function loadLoyalty(){
       }
       html += `<div class="card">
         <div class="card-top"><div class="card-pts" style="color:#c2410c">กำลังสะสม ${partial}/${target}</div></div>
-        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:#f97316"></div></div>
+        ${renderStars(partial,target)}
       </div></div>`;
       return html;
     }).join("");
