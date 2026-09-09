@@ -82,6 +82,20 @@ input.f-input{width:100%;height:46px;border:1.5px solid #e2e8f0;border-radius:12
 #authLoginCard{width:100%;max-width:340px;background:#fff;border-radius:20px;padding:28px 24px;box-shadow:0 20px 50px rgba(0,0,0,.25);display:none}
 #authCheckingBox{display:flex;flex-direction:column;align-items:center;gap:10px;background:#fff;border-radius:16px;padding:20px 28px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
 @keyframes authSpin{to{transform:rotate(360deg)}}
+
+/* ครอปรูปไอคอนเป็นวงกลม */
+.crop-overlay{position:fixed;inset:0;background:rgba(15,23,42,.72);z-index:5000;display:none;align-items:center;justify-content:center;padding:20px;}
+.crop-overlay.show{display:flex;}
+.crop-box{background:#fff;border-radius:20px;padding:22px 20px;max-width:320px;width:100%;text-align:center;}
+.crop-box h3{font-size:15px;font-weight:800;color:var(--t);margin-bottom:4px;}
+.crop-box p{font-size:12px;color:var(--s);margin-bottom:16px;line-height:1.5;}
+.crop-stage{width:240px;height:240px;margin:0 auto;position:relative;border-radius:50%;overflow:hidden;background:#0f172a08;touch-action:none;cursor:grab;border:3px solid var(--p);}
+.crop-stage:active{cursor:grabbing;}
+.crop-stage img{position:absolute;left:0;top:0;transform-origin:0 0;user-select:none;-webkit-user-drag:none;pointer-events:none;}
+.crop-zoom-row{display:flex;align-items:center;gap:10px;margin-top:18px;}
+.crop-zoom-row svg{flex-shrink:0;}
+.crop-zoom-row input[type=range]{flex:1;accent-color:var(--p);}
+.crop-actions{display:flex;gap:10px;margin-top:18px;}
 </style>
 </head>
 <body>
@@ -150,10 +164,30 @@ input.f-input{width:100%;height:46px;border:1.5px solid #e2e8f0;border-radius:12
   <div class="menu-grid" id="menuGrid"></div>
 </div>
 
+<!-- ครอปรูปไอคอนเป็นวงกลม ก่อนอัปโหลด -->
+<div class="crop-overlay" id="cropOverlay">
+  <div class="crop-box">
+    <h3>ปรับตำแหน่งรูปไอคอน</h3>
+    <p>ลากรูปเพื่อขยับ และเลื่อนแถบด้านล่างเพื่อซูม ให้พอดีกรอบวงกลม</p>
+    <div class="crop-stage" id="cropStage">
+      <img id="cropImg" src="" alt="">
+    </div>
+    <div class="crop-zoom-row">
+      <svg width="16" height="16" viewBox="0 0 24 24" style="fill:#94a3b8"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <input type="range" id="cropZoom" min="100" max="300" value="100" oninput="window.onCropZoom(this.value)">
+    </div>
+    <div class="crop-actions">
+      <button class="btn-ghost" style="flex:1" onclick="window.cancelCrop()">ยกเลิก</button>
+      <button class="btn-primary" style="flex:1" onclick="window.confirmCrop()">ใช้รูปนี้</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const fbApp = initializeApp({
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -165,6 +199,7 @@ const fbApp = initializeApp({
 });
 const db = getFirestore(fbApp);
 const auth = getAuth(fbApp);
+const storage = getStorage(fbApp);
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const $=id=>document.getElementById(id);
 
@@ -210,15 +245,18 @@ onAuthStateChanged(auth, async (user)=>{
   }
 });
 
-// ===== อัปโหลดรูปไปที่ Firebase Storage (เหมือน admin.html) =====
-async function uploadFile(file, path){
-  const bucket='nimit-delivery.firebasestorage.app';
-  const fname=path+'/'+Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9.]/g,'_');
-  const url='https://firebasestorage.googleapis.com/v0/b/'+bucket+'/o?uploadType=media&name='+encodeURIComponent(fname);
-  const res=await fetch(url,{method:'POST',headers:{'Content-Type':file.type||'application/octet-stream'},body:file});
-  if(!res.ok) throw new Error('HTTP '+res.status);
-  const data=await res.json();
-  return 'https://firebasestorage.googleapis.com/v0/b/'+bucket+'/o/'+encodeURIComponent(fname)+'?alt=media&token='+(data.downloadTokens||'');
+// ===== อัปโหลดรูปไปที่ Firebase Storage =====
+// เดิมใช้ fetch() ยิง REST ตรงๆ โดยไม่แนบ auth token ของผู้ใช้ที่ล็อกอินอยู่ และไม่ผ่าน SDK
+// ที่ตั้งค่า CORS ให้อัตโนมัติ ทำให้เบราว์เซอร์บล็อกคำขอ (เห็นเป็น "Failed to fetch")
+// เปลี่ยนมาใช้ Firebase Storage SDK (uploadBytes) ซึ่งแนบ auth token ของแอดมินที่ล็อกอินอยู่ให้เอง
+// และเป็นวิธีมาตรฐานที่ Firebase รองรับสำหรับอัปโหลดจากเบราว์เซอร์
+async function uploadFile(fileOrBlob, path, mimeOverride){
+  const mime = mimeOverride || fileOrBlob.type || 'application/octet-stream';
+  const ext = mime.includes('png') ? 'png' : (mime.includes('jpeg')||mime.includes('jpg')) ? 'jpg' : (mime.includes('webp') ? 'webp' : 'bin');
+  const fname = path+'/'+Date.now()+'_'+Math.random().toString(36).slice(2)+'.'+ext;
+  const sref = storageRef(storage, fname);
+  await uploadBytes(sref, fileOrBlob, { contentType: mime });
+  return await getDownloadURL(sref);
 }
 
 // ===== ไอคอนสำเร็จรูป =====
@@ -294,15 +332,87 @@ function renderIconGallery(){
   $('uploadPreview').innerHTML = draft.iconType==='custom' && draft.iconUrl ? `<img src="${draft.iconUrl}">` : `<svg viewBox="0 0 24 24" width="24" height="24" style="fill:#cbd5e1"><path d="${(PRESETS[draft.iconPreset]||PRESETS.grid).path}"/></svg>`;
 }
 window.pickPreset=function(k){ draft.iconType='preset'; draft.iconPreset=k; draft.iconUrl=''; renderIconGallery(); };
-window.onIconFile=async function(ev){
+
+// ===== ครอปรูปเป็นวงกลม ก่อนอัปโหลด (ลาก=ขยับ, แถบเลื่อน=ซูม) =====
+const CROP_STAGE=240, CROP_OUT=640; // ส่งออกที่ 640px เพื่อให้ภาพคมชัด ไม่เบลอ แม้จอแสดงผลเล็กแค่ 52px
+let cropState={natW:0,natH:0,baseScale:1,zoom:1,offX:0,offY:0,dragging:false,startX:0,startY:0,startOffX:0,startOffY:0};
+let cropDragBound=false;
+
+window.onIconFile=function(ev){
   const file=ev.target.files[0]; if(!file) return;
-  try{
-    toast('กำลังอัปโหลดไอคอน...','in');
-    const url=await uploadFile(file,'categoryIcons');
-    draft.iconType='custom'; draft.iconUrl=url;
-    renderIconGallery();
-    toast('อัปโหลดสำเร็จ','ok');
-  }catch(e){ toast('อัปโหลดไม่สำเร็จ: '+e.message,'er'); }
+  const reader=new FileReader();
+  reader.onload=()=>openCropModal(reader.result);
+  reader.readAsDataURL(file);
+  ev.target.value=''; // เคลียร์ไว้ เผื่อเลือกไฟล์เดิมซ้ำในครั้งถัดไป
+};
+
+function openCropModal(dataUrl){
+  const img=$('cropImg');
+  img.onload=()=>{
+    cropState.natW=img.naturalWidth; cropState.natH=img.naturalHeight;
+    cropState.baseScale=Math.max(CROP_STAGE/cropState.natW, CROP_STAGE/cropState.natH);
+    cropState.zoom=1; cropState.offX=0; cropState.offY=0;
+    $('cropZoom').value=100;
+    applyCropTransform();
+  };
+  img.src=dataUrl;
+  $('cropOverlay').classList.add('show');
+  bindCropDrag();
+}
+function applyCropTransform(){
+  const img=$('cropImg');
+  const scale=cropState.baseScale*cropState.zoom;
+  const dispW=cropState.natW*scale, dispH=cropState.natH*scale;
+  const maxOffX=Math.max(0,(dispW-CROP_STAGE)/2), maxOffY=Math.max(0,(dispH-CROP_STAGE)/2);
+  cropState.offX=Math.max(-maxOffX,Math.min(maxOffX,cropState.offX));
+  cropState.offY=Math.max(-maxOffY,Math.min(maxOffY,cropState.offY));
+  const left=(CROP_STAGE-dispW)/2+cropState.offX, top=(CROP_STAGE-dispH)/2+cropState.offY;
+  img.style.width=dispW+'px'; img.style.height=dispH+'px';
+  img.style.transform=`translate(${left}px, ${top}px)`;
+}
+window.onCropZoom=function(val){ cropState.zoom=val/100; applyCropTransform(); };
+function bindCropDrag(){
+  if(cropDragBound) return; cropDragBound=true;
+  const stage=$('cropStage');
+  stage.addEventListener('pointerdown',e=>{
+    cropState.dragging=true; cropState.startX=e.clientX; cropState.startY=e.clientY;
+    cropState.startOffX=cropState.offX; cropState.startOffY=cropState.offY;
+    stage.setPointerCapture(e.pointerId);
+  });
+  stage.addEventListener('pointermove',e=>{
+    if(!cropState.dragging) return;
+    cropState.offX=cropState.startOffX+(e.clientX-cropState.startX);
+    cropState.offY=cropState.startOffY+(e.clientY-cropState.startY);
+    applyCropTransform();
+  });
+  ['pointerup','pointercancel','pointerleave'].forEach(evn=>stage.addEventListener(evn,()=>{cropState.dragging=false;}));
+}
+window.cancelCrop=function(){ $('cropOverlay').classList.remove('show'); };
+window.confirmCrop=function(){
+  const canvas=document.createElement('canvas');
+  canvas.width=CROP_OUT; canvas.height=CROP_OUT;
+  const ctx=canvas.getContext('2d');
+  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+  ctx.save();
+  ctx.beginPath(); ctx.arc(CROP_OUT/2,CROP_OUT/2,CROP_OUT/2,0,Math.PI*2); ctx.closePath(); ctx.clip();
+  const scale=cropState.baseScale*cropState.zoom;
+  const dispW=cropState.natW*scale, dispH=cropState.natH*scale;
+  const imgLeft=(CROP_STAGE-dispW)/2+cropState.offX, imgTop=(CROP_STAGE-dispH)/2+cropState.offY;
+  const srcSize=CROP_STAGE/scale;
+  const srcX=(0-imgLeft)/scale, srcY=(0-imgTop)/scale;
+  ctx.drawImage($('cropImg'), srcX, srcY, srcSize, srcSize, 0, 0, CROP_OUT, CROP_OUT);
+  ctx.restore();
+  $('cropOverlay').classList.remove('show');
+  canvas.toBlob(async blob=>{
+    if(!blob){ toast('ครอปรูปไม่สำเร็จ','er'); return; }
+    try{
+      toast('กำลังอัปโหลดไอคอน...','in');
+      const url=await uploadFile(blob,'categoryIcons','image/png');
+      draft.iconType='custom'; draft.iconUrl=url;
+      renderIconGallery();
+      toast('อัปโหลดสำเร็จ','ok');
+    }catch(e){ toast('อัปโหลดไม่สำเร็จ: '+e.message,'er'); }
+  }, 'image/png', 0.95);
 };
 
 window.openNew=function(){
