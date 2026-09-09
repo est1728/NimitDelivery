@@ -290,6 +290,7 @@ body{background:var(--g);min-height:100vh;padding-bottom:90px;}
 </html><script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, serverTimestamp, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 // local aliases for cross-scope calls
 const closePopup=(...a)=>window.closePopup(...a);
 const updatePopupTotal=(...a)=>window.updatePopupTotal(...a);
@@ -303,6 +304,9 @@ const app = initializeApp({
   appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
 });
 const db = getFirestore(app);
+const auth = getAuth(app);
+let __authReady = false;
+onAuthStateChanged(auth, ()=>{ __authReady = true; });
 
 var orderId='NM-'+String(Math.floor(1000+Math.random()*9000));
 var editOrderId = new URLSearchParams(location.search).get('editOrderId');
@@ -828,10 +832,11 @@ window.confirmMenu=function(){
 };
 
 // ========== CUSTOMER ==========
-window.openCusSheet=function(){
+window.openCusSheet=async function(){
   document.getElementById('cusMask').classList.add('show');
   if(!allCus.length){
     document.getElementById('cusList').innerHTML='<div class="lt">กำลังโหลด...</div>';
+    if(!__authReady){ await new Promise(res=>{ const unsub=onAuthStateChanged(auth,()=>{unsub();res();}); }); }
     getDocs(collection(db,'customers')).then(snap=>{
       allCus=[];snap.forEach(d=>allCus.push({phone:d.id,...d.data()}));renderCusList(allCus);
     }).catch(e=>{document.getElementById('cusList').innerHTML='<div class="lt">'+e.message+'</div>';});
