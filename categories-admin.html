@@ -143,6 +143,13 @@ input.f-input{width:100%;height:46px;border:1.5px solid #e2e8f0;border-radius:12
   <input class="f-input" id="btnNameInput" placeholder="เช่น เมนูเผ็ด, ของหวาน, โปรโมชั่นเดือนนี้">
   <div class="field-label">ชื่อแท็ก (ใช้ภายในเท่านั้น สำหรับแอดมินจำตอนติดแท็กเมนู — ลูกค้าและร้านค้าจะไม่เห็นข้อความนี้เลย)</div>
   <input class="f-input" id="btnTagInput" placeholder="เช่น spicy-menu, promo-nov">
+  <div class="field-label">ปลายทางเมื่อลูกค้ากดปุ่มนี้</div>
+  <select class="f-input" id="btnDestSelect" onchange="window.onDestChange()">
+    <option value="category.html">แสดงเมนู/ร้านที่ติดแท็กไว้ (ค่าเริ่มต้น)</option>
+    <option value="shops.html">ไปหน้ารวมร้านค้าทั้งหมด</option>
+    <option value="custom">ลิงก์ / หน้าอื่นในเว็บ (ระบุเอง)</option>
+  </select>
+  <input class="f-input" id="btnDestCustom" placeholder="เช่น menu.html?id=xxxx หรือ https://..." style="display:none;margin-top:8px">
   <div class="field-label">เลือกไอคอน (ถ้าไม่อัปโหลดรูปเอง จะใช้ไอคอนที่เลือกไว้นี้)</div>
   <div class="icon-gallery" id="iconGallery"></div>
   <div class="upload-row">
@@ -158,17 +165,23 @@ input.f-input{width:100%;height:46px;border:1.5px solid #e2e8f0;border-radius:12
 </div>
 
 <div class="sec" id="tagSec" style="display:none">
-  <div class="sec-title">ติดแท็กเมนูให้ปุ่มนี้</div>
-  <div class="sec-sub">เลือกร้านค้า แล้วแตะเมนูที่ต้องการให้ขึ้นในหมวดหมู่นี้ (แตะซ้ำเพื่อเอาออก)</div>
+  <div class="sec-title">ติดแท็กเมนู/ร้านให้ปุ่มนี้</div>
+  <div class="sec-sub">เลือกร้านค้า แล้วแตะเมนูที่ต้องการให้ขึ้นในหมวดหมู่นี้ (แตะซ้ำเพื่อเอาออก) หรือกด "เลือกทั้งร้าน" เพื่อติดแท็กเมนูทุกอันของร้านนั้นในทีเดียว — ติดแท็กได้หลายร้านในปุ่มเดียวกัน</div>
   <div class="shop-list" id="shopList"><div class="loading">กำลังโหลดร้านค้า...</div></div>
+  <div id="bulkShopRow" style="display:none;margin-bottom:10px">
+    <button class="btn-ghost" style="width:100%" id="bulkShopBtn" onclick="window.toggleWholeShop()">✓ เลือกทั้งร้านนี้ (ติดแท็กทุกเมนู)</button>
+  </div>
   <div class="menu-grid" id="menuGrid"></div>
 </div>
+<div class="sec" id="tagSecDisabled" style="display:none">
+  <div class="sec-sub">ปุ่มนี้ตั้งปลายทางไว้เป็นหน้าอื่นแล้ว จึงไม่ใช้ระบบติดแท็กเมนู/ร้าน — เปลี่ยนปลายทางกลับเป็น "แสดงเมนู/ร้านที่ติดแท็กไว้" ด้านบน ถ้าต้องการติดแท็ก</div>
+</div>
 
-<!-- ครอปรูปไอคอนเป็นวงกลม ก่อนอัปโหลด -->
+<!-- ครอปรูปไอคอนเป็นวงกลม ก่อนอัปโหลด (ปรับความคมชัดให้อัตโนมัติตามระดับซูม ไม่ต้องปรับเอง) -->
 <div class="crop-overlay" id="cropOverlay">
   <div class="crop-box">
     <h3>ปรับตำแหน่งรูปไอคอน</h3>
-    <p>ลากรูปเพื่อขยับ และเลื่อนแถบด้านล่างเพื่อซูม ให้พอดีกรอบวงกลม</p>
+    <p>ลากรูปเพื่อขยับ และเลื่อนแถบด้านล่างเพื่อซูม ให้พอดีกรอบวงกลม (ระบบจะปรับความคมชัดให้อัตโนมัติ)</p>
     <div class="crop-stage" id="cropStage">
       <img id="cropImg" src="" alt="">
     </div>
@@ -178,25 +191,6 @@ input.f-input{width:100%;height:46px;border:1.5px solid #e2e8f0;border-radius:12
     </div>
     <div class="crop-actions">
       <button class="btn-ghost" style="flex:1" onclick="window.cancelCrop()">ยกเลิก</button>
-      <button class="btn-primary" style="flex:1" onclick="window.goToSharpenStep()">ถัดไป</button>
-    </div>
-  </div>
-</div>
-
-<!-- ปรับความคมชัดหลังครอป (แก้ภาพเบลอจากการซูม/รูปต้นฉบับความละเอียดต่ำ) -->
-<div class="crop-overlay" id="sharpenOverlay">
-  <div class="crop-box">
-    <h3>ปรับความคมชัด</h3>
-    <p>ถ้าภาพดูเบลอ (มักเกิดจากการซูมเข้ามาก หรือรูปต้นฉบับความละเอียดต่ำ) เลื่อนแถบเพื่อเพิ่มความคมชัดได้</p>
-    <div class="crop-stage" style="border-radius:50%">
-      <img id="sharpenPreview" src="" style="width:100%;height:100%;object-fit:cover">
-    </div>
-    <div class="crop-zoom-row">
-      <svg width="16" height="16" viewBox="0 0 24 24" style="fill:#94a3b8"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0L19.2 12l-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
-      <input type="range" id="sharpenAmt" min="0" max="100" value="0" oninput="window.onSharpenChange(this.value)">
-    </div>
-    <div class="crop-actions">
-      <button class="btn-ghost" style="flex:1" onclick="window.backToCrop()">ย้อนกลับ</button>
       <button class="btn-primary" style="flex:1" onclick="window.confirmCrop()">ใช้รูปนี้</button>
     </div>
   </div>
@@ -206,7 +200,6 @@ input.f-input{width:100%;height:46px;border:1.5px solid #e2e8f0;border-radius:12
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const fbApp = initializeApp({
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -218,7 +211,6 @@ const fbApp = initializeApp({
 });
 const db = getFirestore(fbApp);
 const auth = getAuth(fbApp);
-const storage = getStorage(fbApp);
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const $=id=>document.getElementById(id);
 
@@ -264,18 +256,18 @@ onAuthStateChanged(auth, async (user)=>{
   }
 });
 
-// ===== อัปโหลดรูปไปที่ Firebase Storage =====
-// เดิมใช้ fetch() ยิง REST ตรงๆ โดยไม่แนบ auth token ของผู้ใช้ที่ล็อกอินอยู่ และไม่ผ่าน SDK
-// ที่ตั้งค่า CORS ให้อัตโนมัติ ทำให้เบราว์เซอร์บล็อกคำขอ (เห็นเป็น "Failed to fetch")
-// เปลี่ยนมาใช้ Firebase Storage SDK (uploadBytes) ซึ่งแนบ auth token ของแอดมินที่ล็อกอินอยู่ให้เอง
-// และเป็นวิธีมาตรฐานที่ Firebase รองรับสำหรับอัปโหลดจากเบราว์เซอร์
-async function uploadFile(fileOrBlob, path, mimeOverride){
-  const mime = mimeOverride || fileOrBlob.type || 'application/octet-stream';
-  const ext = mime.includes('png') ? 'png' : (mime.includes('jpeg')||mime.includes('jpg')) ? 'jpg' : (mime.includes('webp') ? 'webp' : 'bin');
-  const fname = path+'/'+Date.now()+'_'+Math.random().toString(36).slice(2)+'.'+ext;
-  const sref = storageRef(storage, fname);
-  await uploadBytes(sref, fileOrBlob, { contentType: mime });
-  return await getDownloadURL(sref);
+// ===== อัปโหลดรูปขึ้น Cloudinary (เหมือน shop-manage.html ที่ใช้งานได้จริงอยู่แล้ว) =====
+// เดิมไฟล์นี้ใช้ Firebase Storage ซึ่งยังตั้งค่าไม่สมบูรณ์ในโปรเจกต์นี้ (เจอปัญหา CORS/permission ซ้ำๆ)
+// เช็คโค้ดที่ใช้งานได้จริงจาก shop-manage.html แล้วพบว่าระบบเก็บรูปจริงของเว็บนี้คือ Cloudinary
+// (unsigned upload preset "nimit_menu") จึงเปลี่ยนมาใช้วิธีเดียวกันเพื่อความชัวร์
+async function uploadFile(fileOrBlob){
+  const formData = new FormData();
+  formData.append('file', fileOrBlob);
+  formData.append('upload_preset', 'nimit_menu');
+  const cloudRes = await fetch('https://api.cloudinary.com/v1_1/ltthcvpf/image/upload', { method:'POST', body:formData });
+  if(!cloudRes.ok) throw new Error('อัปโหลดไม่สำเร็จ (HTTP '+cloudRes.status+')');
+  const cloudData = await cloudRes.json();
+  return cloudData.secure_url;
 }
 
 // ===== ไอคอนสำเร็จรูป =====
@@ -356,7 +348,6 @@ window.pickPreset=function(k){ draft.iconType='preset'; draft.iconPreset=k; draf
 const CROP_STAGE=240, CROP_OUT=640; // ส่งออกที่ 640px เพื่อให้ภาพคมชัด ไม่เบลอ แม้จอแสดงผลเล็กแค่ 52px
 let cropState={natW:0,natH:0,baseScale:1,zoom:1,offX:0,offY:0,dragging:false,startX:0,startY:0,startOffX:0,startOffY:0};
 let cropDragBound=false;
-let cleanCropCanvas=null; // canvas ที่ครอปแล้วแต่ยังไม่ปรับความคมชัด (ใช้คำนวณใหม่ทุกครั้งที่เลื่อนสไลเดอร์ กันภาพเสื่อมคุณภาพซ้ำ)
 
 window.onIconFile=function(ev){
   const file=ev.target.files[0]; if(!file) return;
@@ -409,38 +400,12 @@ function bindCropDrag(){
 }
 window.cancelCrop=function(){ $('cropOverlay').classList.remove('show'); };
 
-// วาดครอปลง canvas สะอาด (ยังไม่ปรับความคมชัด) แล้วไปหน้าปรับความคมชัด
-window.goToSharpenStep=function(){
-  const canvas=document.createElement('canvas');
-  canvas.width=CROP_OUT; canvas.height=CROP_OUT;
+// ทำภาพคมชัดขึ้นด้วย unsharp mask — ใช้อัตโนมัติตามระดับซูม ไม่ต้องให้แอดมินปรับเอง
+function sharpenCanvas(canvas, amount){
+  if(amount<=0) return;
+  const w=canvas.width, h=canvas.height;
   const ctx=canvas.getContext('2d');
-  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
-  ctx.save();
-  ctx.beginPath(); ctx.arc(CROP_OUT/2,CROP_OUT/2,CROP_OUT/2,0,Math.PI*2); ctx.closePath(); ctx.clip();
-  const scale=cropState.baseScale*cropState.zoom;
-  const dispW=cropState.natW*scale, dispH=cropState.natH*scale;
-  const imgLeft=(CROP_STAGE-dispW)/2+cropState.offX, imgTop=(CROP_STAGE-dispH)/2+cropState.offY;
-  const srcSize=CROP_STAGE/scale;
-  const srcX=(0-imgLeft)/scale, srcY=(0-imgTop)/scale;
-  ctx.drawImage($('cropImg'), srcX, srcY, srcSize, srcSize, 0, 0, CROP_OUT, CROP_OUT);
-  ctx.restore();
-  cleanCropCanvas=canvas;
-  $('sharpenAmt').value=0;
-  $('sharpenPreview').src=canvas.toDataURL('image/png');
-  $('cropOverlay').classList.remove('show');
-  $('sharpenOverlay').classList.add('show');
-};
-window.backToCrop=function(){
-  $('sharpenOverlay').classList.remove('show');
-  $('cropOverlay').classList.add('show');
-};
-
-// ทำภาพคมชัดด้วย unsharp mask (คำนวณจาก canvas สะอาดทุกครั้ง ไม่ทับซ้อนความคมชัดเดิม)
-function sharpenCanvasToDataUrl(srcCanvas, amount){
-  const w=srcCanvas.width, h=srcCanvas.height;
-  if(amount<=0) return srcCanvas.toDataURL('image/png');
-  const srcCtx=srcCanvas.getContext('2d');
-  const imgData=srcCtx.getImageData(0,0,w,h);
+  const imgData=ctx.getImageData(0,0,w,h);
   const src=imgData.data;
   const out=new Uint8ClampedArray(src.length);
   const k=[0,-1,0,-1,5,-1,0,-1,0];
@@ -461,36 +426,57 @@ function sharpenCanvasToDataUrl(srcCanvas, amount){
       out[idx+3]=src[idx+3];
     }
   }
-  const outCanvas=document.createElement('canvas');
-  outCanvas.width=w; outCanvas.height=h;
-  outCanvas.getContext('2d').putImageData(new ImageData(out,w,h),0,0);
-  return outCanvas.toDataURL('image/png');
+  ctx.putImageData(new ImageData(out,w,h),0,0);
 }
-window.onSharpenChange=function(val){
-  if(!cleanCropCanvas) return;
-  $('sharpenPreview').src=sharpenCanvasToDataUrl(cleanCropCanvas, +val);
-};
 
 window.confirmCrop=function(){
-  if(!cleanCropCanvas){ toast('เกิดข้อผิดพลาด กรุณาลองครอปใหม่','er'); return; }
-  const amt=+($('sharpenAmt').value||0);
-  const finalDataUrl=sharpenCanvasToDataUrl(cleanCropCanvas, amt);
-  $('sharpenOverlay').classList.remove('show');
-  fetch(finalDataUrl).then(r=>r.blob()).then(async blob=>{
+  // กันเคสกดยืนยันก่อนรูปโหลดเสร็จ (natW/natH ยังเป็น 0) ซึ่งเดิมจะทำให้ฟังก์ชันนี้พังเงียบๆ ไม่ขึ้น error อะไรเลย
+  if(!cropState.natW || !cropState.natH){ toast('รูปยังโหลดไม่เสร็จ กรุณารอสักครู่แล้วลองใหม่','er'); return; }
+  let canvas, srcSize;
+  try{
+    canvas=document.createElement('canvas');
+    canvas.width=CROP_OUT; canvas.height=CROP_OUT;
+    const ctx=canvas.getContext('2d');
+    ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+    ctx.save();
+    ctx.beginPath(); ctx.arc(CROP_OUT/2,CROP_OUT/2,CROP_OUT/2,0,Math.PI*2); ctx.closePath(); ctx.clip();
+    const scale=cropState.baseScale*cropState.zoom;
+    const dispW=cropState.natW*scale, dispH=cropState.natH*scale;
+    const imgLeft=(CROP_STAGE-dispW)/2+cropState.offX, imgTop=(CROP_STAGE-dispH)/2+cropState.offY;
+    srcSize=CROP_STAGE/scale;
+    const srcX=(0-imgLeft)/scale, srcY=(0-imgTop)/scale;
+    ctx.drawImage($('cropImg'), srcX, srcY, srcSize, srcSize, 0, 0, CROP_OUT, CROP_OUT);
+    ctx.restore();
+    // ยิ่งซูมลึก (พิกเซลต้นทางยิ่งน้อยเทียบกับภาพส่งออก 640px) ยิ่งใส่ความคมชัดอัตโนมัติมากขึ้นตามสัดส่วน
+    const upscale=CROP_OUT/srcSize;
+    const autoAmt=Math.min(90,Math.max(0,(upscale-1)*35));
+    sharpenCanvas(canvas, autoAmt);
+  }catch(e){
+    toast('ครอปรูปไม่สำเร็จ: '+e.message,'er');
+    return;
+  }
+  $('cropOverlay').classList.remove('show');
+  // แสดงตัวอย่างที่ครอปไว้ทันที ระหว่างรออัปโหลดขึ้นเซิร์ฟเวอร์ กันเคส "ไม่รู้ว่าเกิดอะไรขึ้น"
+  const prevIconType=draft.iconType, prevIconUrl=draft.iconUrl;
+  $('uploadPreview').innerHTML=`<img src="${canvas.toDataURL('image/png')}" style="opacity:.55">`;
+  canvas.toBlob(async blob=>{
+    if(!blob){
+      toast('ครอปรูปไม่สำเร็จ','er');
+      draft.iconType=prevIconType; draft.iconUrl=prevIconUrl; renderIconGallery();
+      return;
+    }
     try{
       toast('กำลังอัปโหลดไอคอน...','in');
-      const url=await uploadFile(blob,'categoryIcons','image/png');
+      const url=await uploadFile(blob);
       draft.iconType='custom'; draft.iconUrl=url;
       renderIconGallery();
       toast('อัปโหลดสำเร็จ','ok');
     }catch(e){
-      console.error('อัปโหลดไอคอนไม่สำเร็จ:', e);
-      toast('อัปโหลดไม่สำเร็จ: '+(e.message||e), 'er');
+      draft.iconType=prevIconType; draft.iconUrl=prevIconUrl;
+      renderIconGallery();
+      toast('อัปโหลดไม่สำเร็จ: '+e.message,'er');
     }
-  }).catch(e=>{
-    console.error('แปลงรูปไม่สำเร็จ:', e);
-    toast('เกิดข้อผิดพลาดในการเตรียมรูป: '+(e.message||e), 'er');
-  });
+  }, 'image/png', 0.95);
 };
 
 window.openNew=function(){
@@ -498,9 +484,11 @@ window.openNew=function(){
   $('editSecTitle').textContent='เพิ่มปุ่มใหม่';
   $('btnNameInput').value='';
   $('btnTagInput').value='';
+  $('btnDestSelect').value='category.html';
+  $('btnDestCustom').style.display='none'; $('btnDestCustom').value='';
   $('deleteBtnBtn').style.display='none';
   $('editSec').style.display='block';
-  $('tagSec').style.display='none';
+  $('tagSec').style.display='none'; $('tagSecDisabled').style.display='none';
   renderIconGallery();
   renderButtons();
   $('editSec').scrollIntoView({behavior:'smooth'});
@@ -511,22 +499,44 @@ window.openEdit=function(id){
   $('editSecTitle').textContent='แก้ไขปุ่ม';
   $('btnNameInput').value=b.name||'';
   $('btnTagInput').value=b.tagName||'';
+  const dp=b.destPage||'category.html';
+  if(dp==='category.html'||dp==='shops.html'){ $('btnDestSelect').value=dp; $('btnDestCustom').style.display='none'; $('btnDestCustom').value=''; }
+  else { $('btnDestSelect').value='custom'; $('btnDestCustom').style.display='block'; $('btnDestCustom').value=dp; }
   $('deleteBtnBtn').style.display='inline-block';
   $('editSec').style.display='block';
   renderIconGallery();
   renderButtons();
-  openTagSection();
+  updateTagSecVisibility();
   $('editSec').scrollIntoView({behavior:'smooth'});
 };
+window.onDestChange=function(){
+  $('btnDestCustom').style.display = $('btnDestSelect').value==='custom' ? 'block' : 'none';
+  updateTagSecVisibility();
+};
+function getDestPageValue(){
+  const v=$('btnDestSelect').value;
+  if(v==='custom') return $('btnDestCustom').value.trim()||'category.html';
+  return v;
+}
+function updateTagSecVisibility(){
+  // ระบบติดแท็กเมนู/ร้าน ใช้ได้เฉพาะตอนปลายทางเป็น category.html (หน้าที่อ่าน itemRefs) เท่านั้น
+  if(getDestPageValue()==='category.html'){
+    $('tagSecDisabled').style.display='none';
+    if(editing) openTagSection(); else $('tagSec').style.display='none';
+  } else {
+    $('tagSec').style.display='none';
+    $('tagSecDisabled').style.display='block';
+  }
+}
 window.cancelEdit=function(){
-  editing=null; $('editSec').style.display='none'; $('tagSec').style.display='none';
+  editing=null; $('editSec').style.display='none'; $('tagSec').style.display='none'; $('tagSecDisabled').style.display='none';
   renderButtons();
 };
 window.saveButton=async function(){
   const name=$('btnNameInput').value.trim();
   const tagName=$('btnTagInput').value.trim();
   if(!name){ toast('กรุณาตั้งชื่อปุ่ม','er'); return; }
-  const data={ name, tagName, iconType:draft.iconType, iconPreset:draft.iconPreset, iconUrl:draft.iconUrl||'' };
+  const data={ name, tagName, destPage:getDestPageValue(), iconType:draft.iconType, iconPreset:draft.iconPreset, iconUrl:draft.iconUrl||'' };
   try{
     if(editing){
       await updateDoc(doc(db,'categoryButtons',editing.id), data);
@@ -555,15 +565,16 @@ window.deleteCurrentButton=async function(){
     await deleteDoc(doc(db,'categoryButtons',editing.id));
     toast('ลบปุ่มแล้ว','ok');
     editing=null;
-    $('editSec').style.display='none'; $('tagSec').style.display='none';
+    $('editSec').style.display='none'; $('tagSec').style.display='none'; $('tagSecDisabled').style.display='none';
     await loadButtons();
   }catch(e){ toast('ลบไม่สำเร็จ: '+e.message,'er'); }
 };
 
-// ===== ติดแท็กเมนู =====
+// ===== ติดแท็กเมนู/ร้าน (ติดได้หลายร้าน หลายเมนูในปุ่มเดียวกัน) =====
 async function openTagSection(){
   $('tagSec').style.display='block';
   $('menuGrid').innerHTML='';
+  $('bulkShopRow').style.display='none';
   curShopId=null;
   $('shopList').innerHTML='<div class="loading">กำลังโหลดร้านค้า...</div>';
   try{
@@ -577,10 +588,12 @@ window.pickShop=async function(shopId){
   curShopId=shopId;
   document.querySelectorAll('.shop-row').forEach(el=>el.classList.toggle('active', el.dataset.id===shopId));
   $('menuGrid').innerHTML='<div class="loading">กำลังโหลดเมนู...</div>';
+  $('bulkShopRow').style.display='none';
   try{
     const snap=await getDocs(collection(db,'shops',shopId,'menus'));
     curMenus=[]; snap.forEach(d=>curMenus.push({id:d.id,...d.data()}));
     renderMenuGrid();
+    updateBulkShopBtn();
   }catch(e){ $('menuGrid').innerHTML='<div class="empty-note">โหลดเมนูไม่สำเร็จ: '+esc(e.message)+'</div>'; }
 };
 function renderMenuGrid(){
@@ -595,6 +608,41 @@ function renderMenuGrid(){
     </div>`;
   }).join('');
 }
+// ปุ่ม "เลือกทั้งร้าน" — ติดแท็ก (หรือเอาแท็กออก) เมนูทุกอันของร้านที่กำลังดูอยู่ในทีเดียว
+// แก้ปัญหาเดิมที่ต้องแตะติดแท็กทีละเมนู ทำให้รวมได้แค่ร้านที่มีเมนูน้อยๆ
+function updateBulkShopBtn(){
+  if(!curMenus.length){ $('bulkShopRow').style.display='none'; return; }
+  $('bulkShopRow').style.display='block';
+  const allTagged = editing && curMenus.every(m=>Array.isArray(m.tags)&&m.tags.includes(editing.id));
+  $('bulkShopBtn').textContent = allTagged ? '✕ เอาแท็กออกทั้งร้านนี้' : '✓ เลือกทั้งร้านนี้ (ติดแท็กทุกเมนู)';
+}
+window.toggleWholeShop=async function(){
+  if(!editing){ toast('กรุณาบันทึกปุ่มนี้ก่อน แล้วค่อยติดแท็กเมนู','er'); return; }
+  if(!curMenus.length) return;
+  const allTagged = curMenus.every(m=>Array.isArray(m.tags)&&m.tags.includes(editing.id));
+  const shouldTag = !allTagged;
+  try{
+    await Promise.all(curMenus.map(m=>{
+      const has=Array.isArray(m.tags)&&m.tags.includes(editing.id);
+      if(has===shouldTag) return Promise.resolve(); // อยู่ในสถานะที่ต้องการอยู่แล้ว ไม่ต้องยิงซ้ำ
+      const ref={shopId:curShopId,menuId:m.id};
+      return Promise.all([
+        updateDoc(doc(db,'shops',curShopId,'menus',m.id), { tags: shouldTag?arrayUnion(editing.id):arrayRemove(editing.id) }),
+        updateDoc(doc(db,'categoryButtons',editing.id), { itemRefs: shouldTag?arrayUnion(ref):arrayRemove(ref) })
+      ]);
+    }));
+    curMenus.forEach(m=>{
+      const ref={shopId:curShopId,menuId:m.id};
+      m.tags = shouldTag ? [...(m.tags||[]).filter(t=>t!==editing.id), editing.id] : (m.tags||[]).filter(t=>t!==editing.id);
+      editing.itemRefs = shouldTag
+        ? [...(editing.itemRefs||[]).filter(r=>!(r.shopId===ref.shopId&&r.menuId===ref.menuId)), ref]
+        : (editing.itemRefs||[]).filter(r=>!(r.shopId===ref.shopId&&r.menuId===ref.menuId));
+    });
+    renderMenuGrid();
+    updateBulkShopBtn();
+    toast(shouldTag?'ติดแท็กทั้งร้านแล้ว':'เอาแท็กออกทั้งร้านแล้ว','ok');
+  }catch(e){ toast('บันทึกไม่สำเร็จ: '+e.message,'er'); }
+};
 window.toggleMenuTag=async function(menuId){
   if(!editing){ toast('กรุณาบันทึกปุ่มนี้ก่อน แล้วค่อยติดแท็กเมนู','er'); return; }
   const m=curMenus.find(x=>x.id===menuId); if(!m) return;
@@ -608,6 +656,7 @@ window.toggleMenuTag=async function(menuId){
     m.tags = has ? (m.tags||[]).filter(t=>t!==editing.id) : [...(m.tags||[]),editing.id];
     editing.itemRefs = has ? (editing.itemRefs||[]).filter(r=>!(r.shopId===ref.shopId&&r.menuId===ref.menuId)) : [...(editing.itemRefs||[]),ref];
     renderMenuGrid();
+    updateBulkShopBtn();
   }catch(e){ toast('บันทึกแท็กไม่สำเร็จ: '+e.message,'er'); }
 };
 
