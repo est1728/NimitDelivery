@@ -130,7 +130,10 @@ body{background:var(--g);min-height:100vh;}
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import{getFirestore,collection,onSnapshot,doc,setDoc,deleteDoc}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-const db=getFirestore(initializeApp({apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",authDomain:"nimit-delivery.firebaseapp.com",projectId:"nimit-delivery",storageBucket:"nimit-delivery.firebasestorage.app",messagingSenderId:"233476256130",appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"}));
+import{getAuth,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+const app=initializeApp({apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",authDomain:"nimit-delivery.firebaseapp.com",projectId:"nimit-delivery",storageBucket:"nimit-delivery.firebasestorage.app",messagingSenderId:"233476256130",appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"});
+const db=getFirestore(app);
+const auth=getAuth(app);
 
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 let allCus=[],curQ='',selCus=null,fMap=null,fMarker=null,fLat=13.7563,fLng=100.5018,editMode=false;
@@ -145,15 +148,25 @@ function toMillis(v){
   return 0;
 }
 
-// REALTIME
-onSnapshot(collection(db,'customers'),snap=>{
-  allCus=[];
-  snap.forEach(d=>allCus.push({phone:d.id,...d.data()}));
-  // เดิมใช้ .localeCompare() ตรงๆ — ถ้ามีลูกค้าคนไหน updatedAt เป็น Firestore Timestamp object (ไม่ใช่ string)
-  // จะ error ทันทีจนทั้งลิสต์ไม่ขึ้นเลย ทั้งที่ข้อมูลมีอยู่จริงในฐานข้อมูล — แก้ให้แปลงเป็นตัวเลขก่อนเทียบเสมอ
-  allCus.sort((a,b)=>toMillis(b.updatedAt||b.createdAt)-toMillis(a.updatedAt||a.createdAt));
-  updateStats();render(curQ?allCus.filter(c=>(c.name||'').toLowerCase().includes(curQ)||(c.phone||'').includes(curQ)):allCus);
-},e=>{document.getElementById('cusList').innerHTML=`<div class="lt">โหลดไม่ได้: ${e.message}</div>`;});
+// REALTIME — รอให้ Firebase ยืนยันสถานะล็อกอินเสร็จก่อน ค่อยเริ่มดึงข้อมูล
+// (ป้องกัน error "Missing or insufficient permissions" ที่เกิดจากการยิง query
+// ไปก่อนที่ระบบจะทันโหลด session ล็อกอินเดิมจาก admin.html)
+let unsubCustomers = null;
+onAuthStateChanged(auth, (user) => {
+  if (unsubCustomers) { unsubCustomers(); unsubCustomers = null; }
+  if (!user) {
+    document.getElementById('cusList').innerHTML = '<div class="lt">กรุณาเข้าสู่ระบบจากหน้าแอดมินก่อน</div>';
+    return;
+  }
+  unsubCustomers = onSnapshot(collection(db,'customers'),snap=>{
+    allCus=[];
+    snap.forEach(d=>allCus.push({phone:d.id,...d.data()}));
+    // เดิมใช้ .localeCompare() ตรงๆ — ถ้ามีลูกค้าคนไหน updatedAt เป็น Firestore Timestamp object (ไม่ใช่ string)
+    // จะ error ทันทีจนทั้งลิสต์ไม่ขึ้นเลย ทั้งที่ข้อมูลมีอยู่จริงในฐานข้อมูล — แก้ให้แปลงเป็นตัวเลขก่อนเทียบเสมอ
+    allCus.sort((a,b)=>toMillis(b.updatedAt||b.createdAt)-toMillis(a.updatedAt||a.createdAt));
+    updateStats();render(curQ?allCus.filter(c=>(c.name||'').toLowerCase().includes(curQ)||(c.phone||'').includes(curQ)):allCus);
+  },e=>{document.getElementById('cusList').innerHTML=`<div class="lt">โหลดไม่ได้: ${e.message}</div>`;});
+});
 
 function updateStats(){
   document.getElementById('cusCount').textContent=allCus.length;
