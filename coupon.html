@@ -16,14 +16,14 @@ body{background:var(--g);min-height:100vh;padding-bottom:80px;}
 
 /* COUPON BANNER (UI เผื่อไว้ — ยังไม่มีระบบคูปองจริง) */
 .coupon-banner{margin:16px;}
-.coupon-card{display:flex;align-items:stretch;background:linear-gradient(135deg,var(--p),var(--pd));border-radius:18px;position:relative;box-shadow:0 8px 20px rgba(12,74,166,.32);}
+.coupon-card{display:flex;align-items:stretch;background:linear-gradient(135deg,var(--p),var(--pd));border-radius:18px;position:relative;box-shadow:0 8px 20px rgba(12,74,166,.32);overflow:hidden;}
 .coupon-card-left{width:84px;flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;}
 .coupon-badge{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;}
 .coupon-badge svg{width:26px;height:26px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 .coupon-divider{position:absolute;left:84px;top:14px;bottom:14px;border-left:2px dashed rgba(255,255,255,.55);}
-.coupon-card::before,.coupon-card::after{content:"";position:absolute;left:84px;width:18px;height:18px;background:var(--g);border-radius:50%;transform:translateX(-50%);}
-.coupon-card::before{top:-9px;}
-.coupon-card::after{bottom:-9px;}
+.coupon-card::before,.coupon-card::after{content:"";position:absolute;left:84px;width:14px;height:14px;background:var(--g);border-radius:50%;transform:translateX(-50%);}
+.coupon-card::before{top:-7px;}
+.coupon-card::after{bottom:-7px;}
 .coupon-card-right{flex:1;padding:18px 18px 18px 20px;color:#fff;min-width:0;}
 .coupon-top{font-size:15.5px;font-weight:800;margin-bottom:4px;}
 .coupon-sub{font-size:12px;opacity:.92;line-height:1.6;}
@@ -41,21 +41,24 @@ body{background:var(--g);min-height:100vh;padding-bottom:80px;}
 .empty-icon{width:64px;height:64px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(15,23,42,.08);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
 .empty-icon svg{width:30px;height:30px;fill:#cbd5e1;}
 
-/* LOYALTY (สะสมแต้ม) — ใช้ style/โครงสร้างเดียวกับ loyalty.html เดิม */
+/* LOYALTY (สะสมแต้ม) — ปรับการ์ดให้ดูพรีเมียมขึ้น: มีหัวการ์ดแยกส่วน + placeholder โลโก้ร้าน + กล่องดาวพื้นหลังนุ่มๆ */
 .list{padding:16px;}
-.card{border:1px solid #eef1f6;background:#fff;border-radius:16px;padding:16px;margin-bottom:10px;box-shadow:0 2px 10px rgba(15,23,42,.05);}
-.star-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px;}
-.star-ic{width:22px;height:22px;fill:#e5e9f0;flex-shrink:0;}
-.star-ic.filled{fill:#f59e0b;}
-.card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
-.card-pts{font-size:13px;font-weight:800;}
-.bar-track{height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden;}
-.bar-fill{height:100%;border-radius:4px;}
-.card-note{font-size:11px;font-weight:700;margin-top:6px;}
-.shop-loyalty-block{margin-bottom:18px;}
-.shop-group-name{font-size:15px;font-weight:800;color:var(--t);margin-bottom:8px;}
+.loy-block{margin-bottom:16px;}
+.loy-card{background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 4px 16px rgba(15,23,42,.08);}
+.loy-head{display:flex;align-items:center;gap:10px;padding:14px 16px;background:linear-gradient(135deg,var(--pl),#fff);}
+.loy-ava{width:42px;height:42px;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,var(--p),var(--pd));flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:800;}
+.loy-ava img{width:100%;height:100%;object-fit:cover;}
+.loy-shop-name{font-size:14.5px;font-weight:800;color:var(--t);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.loy-pts-badge{font-size:12px;font-weight:800;color:#c2410c;background:#fff7ed;border:1px solid #fed7aa;border-radius:20px;padding:5px 12px;flex-shrink:0;white-space:nowrap;}
+.loy-body{padding:14px 16px 16px;}
+.loy-stars-wrap{background:#f8fafc;border-radius:14px;padding:14px 12px;display:flex;flex-wrap:wrap;gap:7px;justify-content:center;}
+.star-row{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;}
+.star-ic{width:24px;height:24px;fill:#dfe4ec;flex-shrink:0;}
+.star-ic.filled{fill:#f59e0b;filter:drop-shadow(0 1px 3px rgba(245,158,11,.45));}
+.loy-note{font-size:11.5px;color:var(--s);margin-top:10px;text-align:center;}
 .full-cards-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
 .full-card-badge{display:flex;align-items:center;gap:5px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:8px 12px;font-size:12px;font-weight:800;color:#16a34a;}
+.full-note{font-size:11px;font-weight:700;color:#16a34a;margin:0 2px 10px;}
 .loading{text-align:center;padding:60px 24px;color:var(--s);font-size:13px;}
 
 /* BOTTOM NAV — sync กับ shops.html/reorder.html */
@@ -176,24 +179,33 @@ async function loadLoyalty(){
       return;
     }
     const shopIds = [...new Set(cards.map(c=>c.shopId))];
-    const shopTargets = {};
+    const shopInfo = {};
     await Promise.all(shopIds.map(async sid=>{
-      try{ const sSnap = await getDoc(doc(db,"shops",sid)); if(sSnap.exists()) shopTargets[sid] = sSnap.data().loyaltyTarget||10; }catch(e){}
+      try{ const sSnap = await getDoc(doc(db,"shops",sid)); if(sSnap.exists()) shopInfo[sid] = { target: sSnap.data().loyaltyTarget||10, avatarUrl: sSnap.data().avatarUrl||"" }; }catch(e){}
     }));
     listEl.innerHTML = cards.map(c=>{
-      const target = shopTargets[c.shopId]||10;
+      const info = shopInfo[c.shopId]||{};
+      const target = info.target||10;
       const pts = c.points||0;
       const full = Math.floor(pts/target);
       const partial = pts%target;
-      let html = `<div class="shop-loyalty-block">
-        <div class="shop-group-name">${esc(c.shopName)}</div>`;
+      const initial = esc((c.shopName||"?").trim().charAt(0).toUpperCase());
+      const ava = info.avatarUrl ? `<img src="${esc(info.avatarUrl)}">` : initial;
+      let html = `<div class="loy-block">`;
       if(full>0){
         html += `<div class="full-cards-row">${Array(full).fill(0).map(()=>'<div class="full-card-badge">🎫 ครบแล้ว</div>').join('')}</div>
-        <div class="card-note" style="color:#16a34a;margin-bottom:8px">มี ${full} ใบที่ใช้สิทธิ์รับฟรีได้ตอนชำระเงินร้านนี้ (ใช้ได้ครั้งละ 1 ใบต่อออเดอร์)</div>`;
+        <div class="full-note">มี ${full} ใบที่ใช้สิทธิ์รับฟรีได้ตอนชำระเงินร้านนี้ (ใช้ได้ครั้งละ 1 ใบต่อออเดอร์)</div>`;
       }
-      html += `<div class="card">
-        <div class="card-top"><div class="card-pts" style="color:#c2410c">กำลังสะสม ${partial}/${target}</div></div>
-        ${renderStars(partial,target)}
+      html += `<div class="loy-card">
+        <div class="loy-head">
+          <div class="loy-ava">${ava}</div>
+          <div class="loy-shop-name">${esc(c.shopName)}</div>
+          <div class="loy-pts-badge">กำลังสะสม ${partial}/${target}</div>
+        </div>
+        <div class="loy-body">
+          <div class="loy-stars-wrap">${renderStars(partial,target)}</div>
+          <div class="loy-note">${target-partial>0?`อีก ${target-partial} แต้ม ครบ 1 ดวง รับสิทธิ์ฟรี 🎫`:'ครบแล้ว! ใช้สิทธิ์ได้ตอนชำระเงินครั้งถัดไป'}</div>
+        </div>
       </div></div>`;
       return html;
     }).join("");
