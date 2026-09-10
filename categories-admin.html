@@ -55,6 +55,11 @@ input.f-input{width:100%;height:46px;border:1.5px solid #e2e8f0;border-radius:12
 .shop-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1.5px solid #e2e8f0;cursor:pointer;}
 .shop-row.active{border-color:var(--p);background:var(--pl);}
 .shop-row-name{font-size:13px;font-weight:700;color:var(--t);flex:1;}
+.shop-row.picked{border-color:var(--p);background:var(--pl);}
+.shop-row.picked .shop-row-check{opacity:1;}
+.shop-row-check{width:20px;height:20px;border-radius:50%;border:1.5px solid #cbd5e1;flex-shrink:0;display:flex;align-items:center;justify-content:center;opacity:.25;background:var(--p);}
+.shop-row-check svg{width:12px;height:12px;fill:#fff;}
+.mode-tab.active{border-color:var(--p)!important;background:var(--pl)!important;color:var(--p)!important;}
 
 /* การ์ดเมนูให้เลือกติดแท็ก (สไตล์การ์ดพรีวิว) */
 .menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px;}
@@ -146,10 +151,10 @@ input.f-input{width:100%;height:46px;border:1.5px solid #e2e8f0;border-radius:12
   <div class="field-label">ปลายทางเมื่อลูกค้ากดปุ่มนี้</div>
   <select class="f-input" id="btnDestSelect" onchange="window.onDestChange()">
     <option value="category.html">แสดงเมนู/ร้านที่ติดแท็กไว้ (ค่าเริ่มต้น)</option>
-    <option value="shops.html">ไปหน้ารวมร้านค้าทั้งหมด</option>
-    <option value="custom">ลิงก์ / หน้าอื่นในเว็บ (ระบุเอง)</option>
+    <option value="shops.html">หน้ารวมร้านค้าทั้งหมด</option>
+    <option value="search.html">หน้าค้นหา</option>
+    <option value="coupon.html">หน้าคูปอง/โปรโมชัน</option>
   </select>
-  <input class="f-input" id="btnDestCustom" placeholder="เช่น menu.html?id=xxxx หรือ https://..." style="display:none;margin-top:8px">
   <div class="field-label">เลือกไอคอน (ถ้าไม่อัปโหลดรูปเอง จะใช้ไอคอนที่เลือกไว้นี้)</div>
   <div class="icon-gallery" id="iconGallery"></div>
   <div class="upload-row">
@@ -165,13 +170,23 @@ input.f-input{width:100%;height:46px;border:1.5px solid #e2e8f0;border-radius:12
 </div>
 
 <div class="sec" id="tagSec" style="display:none">
-  <div class="sec-title">ติดแท็กเมนู/ร้านให้ปุ่มนี้</div>
-  <div class="sec-sub">เลือกร้านค้า แล้วแตะเมนูที่ต้องการให้ขึ้นในหมวดหมู่นี้ (แตะซ้ำเพื่อเอาออก) หรือกด "เลือกทั้งร้าน" เพื่อติดแท็กเมนูทุกอันของร้านนั้นในทีเดียว — ติดแท็กได้หลายร้านในปุ่มเดียวกัน</div>
-  <div class="shop-list" id="shopList"><div class="loading">กำลังโหลดร้านค้า...</div></div>
-  <div id="bulkShopRow" style="display:none;margin-bottom:10px">
-    <button class="btn-ghost" style="width:100%" id="bulkShopBtn" onclick="window.toggleWholeShop()">✓ เลือกทั้งร้านนี้ (ติดแท็กทุกเมนู)</button>
+  <div class="sec-title">เนื้อหาที่จะแสดงเมื่อกดปุ่มนี้</div>
+  <div class="sec-sub">เลือกได้ 2 แบบ: "การ์ดร้านค้า" (เลือกทั้งร้าน กดแล้วเข้าเมนูร้านนั้นเลย เลือกได้หลายร้าน) หรือ "การ์ดเมนู" (เลือกเมนูเฉพาะจากร้านต่างๆ มาไว้ในหน้าเดียว)</div>
+  <div class="mode-tabs" style="display:flex;gap:8px;margin-bottom:14px">
+    <button class="mode-tab" id="modeTabShops" onclick="window.setTagMode('shops')" style="flex:1;height:42px;border-radius:12px;border:1.5px solid #e2e8f0;background:#fff;font-size:13px;font-weight:700;color:#64748b;cursor:pointer">🏪 การ์ดร้านค้า</button>
+    <button class="mode-tab" id="modeTabItems" onclick="window.setTagMode('items')" style="flex:1;height:42px;border-radius:12px;border:1.5px solid #e2e8f0;background:#fff;font-size:13px;font-weight:700;color:#64748b;cursor:pointer">🍽️ การ์ดเมนู</button>
   </div>
-  <div class="menu-grid" id="menuGrid"></div>
+
+  <div id="shopModePanel" style="display:none">
+    <div class="sec-sub" style="margin-bottom:10px">แตะร้านที่ต้องการรวมไว้ในปุ่มนี้ (แตะซ้ำเพื่อเอาออก) เลือกได้หลายร้าน</div>
+    <div class="shop-list" id="shopPickList"><div class="loading">กำลังโหลดร้านค้า...</div></div>
+  </div>
+
+  <div id="itemModePanel" style="display:none">
+    <div class="sec-sub" style="margin-bottom:10px">เลือกร้านค้า แล้วแตะเมนูที่ต้องการให้ขึ้นในหมวดหมู่นี้ (แตะซ้ำเพื่อเอาออก) — ติดแท็กเมนูจากหลายร้านในปุ่มเดียวกันได้</div>
+    <div class="shop-list" id="shopList"><div class="loading">กำลังโหลดร้านค้า...</div></div>
+    <div class="menu-grid" id="menuGrid"></div>
+  </div>
 </div>
 <div class="sec" id="tagSecDisabled" style="display:none">
   <div class="sec-sub">ปุ่มนี้ตั้งปลายทางไว้เป็นหน้าอื่นแล้ว จึงไม่ใช้ระบบติดแท็กเมนู/ร้าน — เปลี่ยนปลายทางกลับเป็น "แสดงเมนู/ร้านที่ติดแท็กไว้" ด้านบน ถ้าต้องการติดแท็ก</div>
@@ -485,7 +500,6 @@ window.openNew=function(){
   $('btnNameInput').value='';
   $('btnTagInput').value='';
   $('btnDestSelect').value='category.html';
-  $('btnDestCustom').style.display='none'; $('btnDestCustom').value='';
   $('deleteBtnBtn').style.display='none';
   $('editSec').style.display='block';
   $('tagSec').style.display='none'; $('tagSecDisabled').style.display='none';
@@ -499,9 +513,7 @@ window.openEdit=function(id){
   $('editSecTitle').textContent='แก้ไขปุ่ม';
   $('btnNameInput').value=b.name||'';
   $('btnTagInput').value=b.tagName||'';
-  const dp=b.destPage||'category.html';
-  if(dp==='category.html'||dp==='shops.html'){ $('btnDestSelect').value=dp; $('btnDestCustom').style.display='none'; $('btnDestCustom').value=''; }
-  else { $('btnDestSelect').value='custom'; $('btnDestCustom').style.display='block'; $('btnDestCustom').value=dp; }
+  $('btnDestSelect').value=b.destPage||'category.html';
   $('deleteBtnBtn').style.display='inline-block';
   $('editSec').style.display='block';
   renderIconGallery();
@@ -509,17 +521,10 @@ window.openEdit=function(id){
   updateTagSecVisibility();
   $('editSec').scrollIntoView({behavior:'smooth'});
 };
-window.onDestChange=function(){
-  $('btnDestCustom').style.display = $('btnDestSelect').value==='custom' ? 'block' : 'none';
-  updateTagSecVisibility();
-};
-function getDestPageValue(){
-  const v=$('btnDestSelect').value;
-  if(v==='custom') return $('btnDestCustom').value.trim()||'category.html';
-  return v;
-}
+window.onDestChange=function(){ updateTagSecVisibility(); };
+function getDestPageValue(){ return $('btnDestSelect').value; }
 function updateTagSecVisibility(){
-  // ระบบติดแท็กเมนู/ร้าน ใช้ได้เฉพาะตอนปลายทางเป็น category.html (หน้าที่อ่าน itemRefs) เท่านั้น
+  // ระบบติดแท็กเมนู/ร้าน ใช้ได้เฉพาะตอนปลายทางเป็น category.html (หน้าที่อ่าน itemRefs/shopIds) เท่านั้น
   if(getDestPageValue()==='category.html'){
     $('tagSecDisabled').style.display='none';
     if(editing) openTagSection(); else $('tagSec').style.display='none';
@@ -542,7 +547,7 @@ window.saveButton=async function(){
       await updateDoc(doc(db,'categoryButtons',editing.id), data);
       toast('บันทึกแล้ว','ok');
     } else {
-      data.order=buttons.length; data.itemRefs=[]; data.createdAt=serverTimestamp();
+      data.order=buttons.length; data.itemRefs=[]; data.shopIds=[]; data.mode='items'; data.createdAt=serverTimestamp();
       const ref=await addDoc(collection(db,'categoryButtons'), data);
       editing={id:ref.id,...data};
       toast('เพิ่มปุ่มแล้ว','ok');
@@ -570,12 +575,61 @@ window.deleteCurrentButton=async function(){
   }catch(e){ toast('ลบไม่สำเร็จ: '+e.message,'er'); }
 };
 
-// ===== ติดแท็กเมนู/ร้าน (ติดได้หลายร้าน หลายเมนูในปุ่มเดียวกัน) =====
+// ===== เนื้อหาปุ่ม: การ์ดร้านค้า (shopIds) หรือ การ์ดเมนู (itemRefs) — เลือกได้หลายร้าน/หลายเมนูในโหมดเดียวกัน =====
+let tagMode='items', pickShopsCache=[];
 async function openTagSection(){
-  $('tagSec').style.display='block';
-  $('menuGrid').innerHTML='';
-  $('bulkShopRow').style.display='none';
   curShopId=null;
+  const initialMode = (editing && editing.mode==='shops') ? 'shops' : 'items';
+  await window.setTagMode(initialMode);
+}
+window.setTagMode=async function(mode){
+  tagMode=mode;
+  $('tagSec').style.display='block';
+  $('modeTabShops').classList.toggle('active', mode==='shops');
+  $('modeTabItems').classList.toggle('active', mode==='items');
+  $('shopModePanel').style.display = mode==='shops' ? 'block' : 'none';
+  $('itemModePanel').style.display = mode==='items' ? 'block' : 'none';
+  if(editing && editing.mode!==mode){
+    try{ await updateDoc(doc(db,'categoryButtons',editing.id), { mode }); editing.mode=mode; }
+    catch(e){ toast('บันทึกโหมดไม่สำเร็จ: '+e.message,'er'); }
+  }
+  if(mode==='shops') loadShopPickList(); else loadItemShopList();
+};
+
+// -- โหมดการ์ดร้านค้า: เลือกทั้งร้าน (หลายร้านได้) กดแล้วเข้าเมนูร้านนั้นเลย --
+async function loadShopPickList(){
+  $('shopPickList').innerHTML='<div class="loading">กำลังโหลดร้านค้า...</div>';
+  try{
+    const snap=await getDocs(collection(db,'shops'));
+    pickShopsCache=[]; snap.forEach(d=>pickShopsCache.push({id:d.id,...d.data()}));
+    renderShopPickList();
+  }catch(e){ $('shopPickList').innerHTML='<div class="empty-note">โหลดร้านค้าไม่สำเร็จ: '+esc(e.message)+'</div>'; }
+}
+function renderShopPickList(){
+  if(!pickShopsCache.length){ $('shopPickList').innerHTML='<div class="empty-note">ยังไม่มีร้านค้าในระบบ</div>'; return; }
+  const picked=(editing&&editing.shopIds)||[];
+  $('shopPickList').innerHTML = pickShopsCache.map(s=>{
+    const isPicked=picked.includes(s.id);
+    return `<div class="shop-row${isPicked?' picked':''}" data-id="${s.id}" onclick="window.toggleShopPick('${s.id}')">
+      <div class="shop-row-name">${esc(s.name||'(ไม่มีชื่อ)')}</div>
+      <div class="shop-row-check">${isPicked?'<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>
+    </div>`;
+  }).join('');
+}
+window.toggleShopPick=async function(shopId){
+  if(!editing){ toast('กรุณาบันทึกปุ่มนี้ก่อน แล้วค่อยเลือกร้าน','er'); return; }
+  const picked=editing.shopIds||[];
+  const has=picked.includes(shopId);
+  try{
+    await updateDoc(doc(db,'categoryButtons',editing.id), { shopIds: has?arrayRemove(shopId):arrayUnion(shopId) });
+    editing.shopIds = has ? picked.filter(id=>id!==shopId) : [...picked, shopId];
+    renderShopPickList();
+  }catch(e){ toast('บันทึกไม่สำเร็จ: '+e.message,'er'); }
+};
+
+// -- โหมดการ์ดเมนู: เลือกเมนูเฉพาะจากร้านต่างๆ มารวมในหน้าเดียว (ระบบเดิม) --
+async function loadItemShopList(){
+  $('menuGrid').innerHTML='';
   $('shopList').innerHTML='<div class="loading">กำลังโหลดร้านค้า...</div>';
   try{
     const snap=await getDocs(collection(db,'shops'));
@@ -586,14 +640,12 @@ async function openTagSection(){
 }
 window.pickShop=async function(shopId){
   curShopId=shopId;
-  document.querySelectorAll('.shop-row').forEach(el=>el.classList.toggle('active', el.dataset.id===shopId));
+  document.querySelectorAll('#shopList .shop-row').forEach(el=>el.classList.toggle('active', el.dataset.id===shopId));
   $('menuGrid').innerHTML='<div class="loading">กำลังโหลดเมนู...</div>';
-  $('bulkShopRow').style.display='none';
   try{
     const snap=await getDocs(collection(db,'shops',shopId,'menus'));
     curMenus=[]; snap.forEach(d=>curMenus.push({id:d.id,...d.data()}));
     renderMenuGrid();
-    updateBulkShopBtn();
   }catch(e){ $('menuGrid').innerHTML='<div class="empty-note">โหลดเมนูไม่สำเร็จ: '+esc(e.message)+'</div>'; }
 };
 function renderMenuGrid(){
@@ -608,41 +660,6 @@ function renderMenuGrid(){
     </div>`;
   }).join('');
 }
-// ปุ่ม "เลือกทั้งร้าน" — ติดแท็ก (หรือเอาแท็กออก) เมนูทุกอันของร้านที่กำลังดูอยู่ในทีเดียว
-// แก้ปัญหาเดิมที่ต้องแตะติดแท็กทีละเมนู ทำให้รวมได้แค่ร้านที่มีเมนูน้อยๆ
-function updateBulkShopBtn(){
-  if(!curMenus.length){ $('bulkShopRow').style.display='none'; return; }
-  $('bulkShopRow').style.display='block';
-  const allTagged = editing && curMenus.every(m=>Array.isArray(m.tags)&&m.tags.includes(editing.id));
-  $('bulkShopBtn').textContent = allTagged ? '✕ เอาแท็กออกทั้งร้านนี้' : '✓ เลือกทั้งร้านนี้ (ติดแท็กทุกเมนู)';
-}
-window.toggleWholeShop=async function(){
-  if(!editing){ toast('กรุณาบันทึกปุ่มนี้ก่อน แล้วค่อยติดแท็กเมนู','er'); return; }
-  if(!curMenus.length) return;
-  const allTagged = curMenus.every(m=>Array.isArray(m.tags)&&m.tags.includes(editing.id));
-  const shouldTag = !allTagged;
-  try{
-    await Promise.all(curMenus.map(m=>{
-      const has=Array.isArray(m.tags)&&m.tags.includes(editing.id);
-      if(has===shouldTag) return Promise.resolve(); // อยู่ในสถานะที่ต้องการอยู่แล้ว ไม่ต้องยิงซ้ำ
-      const ref={shopId:curShopId,menuId:m.id};
-      return Promise.all([
-        updateDoc(doc(db,'shops',curShopId,'menus',m.id), { tags: shouldTag?arrayUnion(editing.id):arrayRemove(editing.id) }),
-        updateDoc(doc(db,'categoryButtons',editing.id), { itemRefs: shouldTag?arrayUnion(ref):arrayRemove(ref) })
-      ]);
-    }));
-    curMenus.forEach(m=>{
-      const ref={shopId:curShopId,menuId:m.id};
-      m.tags = shouldTag ? [...(m.tags||[]).filter(t=>t!==editing.id), editing.id] : (m.tags||[]).filter(t=>t!==editing.id);
-      editing.itemRefs = shouldTag
-        ? [...(editing.itemRefs||[]).filter(r=>!(r.shopId===ref.shopId&&r.menuId===ref.menuId)), ref]
-        : (editing.itemRefs||[]).filter(r=>!(r.shopId===ref.shopId&&r.menuId===ref.menuId));
-    });
-    renderMenuGrid();
-    updateBulkShopBtn();
-    toast(shouldTag?'ติดแท็กทั้งร้านแล้ว':'เอาแท็กออกทั้งร้านแล้ว','ok');
-  }catch(e){ toast('บันทึกไม่สำเร็จ: '+e.message,'er'); }
-};
 window.toggleMenuTag=async function(menuId){
   if(!editing){ toast('กรุณาบันทึกปุ่มนี้ก่อน แล้วค่อยติดแท็กเมนู','er'); return; }
   const m=curMenus.find(x=>x.id===menuId); if(!m) return;
@@ -656,7 +673,6 @@ window.toggleMenuTag=async function(menuId){
     m.tags = has ? (m.tags||[]).filter(t=>t!==editing.id) : [...(m.tags||[]),editing.id];
     editing.itemRefs = has ? (editing.itemRefs||[]).filter(r=>!(r.shopId===ref.shopId&&r.menuId===ref.menuId)) : [...(editing.itemRefs||[]),ref];
     renderMenuGrid();
-    updateBulkShopBtn();
   }catch(e){ toast('บันทึกแท็กไม่สำเร็จ: '+e.message,'er'); }
 };
 
