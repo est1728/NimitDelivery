@@ -395,6 +395,11 @@ document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
       <div class="sidebar-item-text"><div class="sidebar-item-title">จัดการโฆษณา</div><div class="sidebar-item-sub">แบนเนอร์/วิดีโอโฆษณาในแอป</div></div>
       <div class="sidebar-arrow"><svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></div>
     </button>
+    <button class="sidebar-item" onclick="window.closeSidebar();window.openFlashCreate()">
+      <svg viewBox="0 0 24 24"><path d="M11 21h-1l1-7H7.5c-.58 0-.57-.32-.38-.66l.07-.12C8.48 10.94 10.42 7.54 13 3h1l-1 7h3.5c.49 0 .56.33.47.51l-.07.15C12.96 17.55 11 21 11 21z"/></svg>
+      <div class="sidebar-item-text"><div class="sidebar-item-title">ดีลลับนับถอยหลัง</div><div class="sidebar-item-sub">ตั้งเวลาลดราคาสินค้าแบบ Flash Sale</div></div>
+      <div class="sidebar-arrow"><svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></div>
+    </button>
     <button class="sidebar-item" onclick="location.href='categories-admin.html'">
       <svg viewBox="0 0 24 24"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg>
       <div class="sidebar-item-text"><div class="sidebar-item-title">จัดการปุ่มหมวดหมู่</div><div class="sidebar-item-sub">ปุ่มหน้าร้าน + ติดแท็กเมนู</div></div>
@@ -973,20 +978,24 @@ window.previewAdFile=function(input,type){
   reader.readAsDataURL(file);
 };
 
-// ===== FIREBASE STORAGE UPLOAD =====
+// ===== อัปโหลดรูป/วิดีโอขึ้น Cloudinary (พิสูจน์แล้วว่าใช้งานได้จริงจาก shop-manage.html) =====
+// เดิมยิง fetch() ตรงไปที่ Firebase Storage REST API ซึ่งยังตั้งค่าไม่สมบูรณ์ในโปรเจกต์นี้
+// (เจอปัญหา CORS/permission ซ้ำๆ) เปลี่ยนมาใช้ Cloudinary unsigned preset เหมือนระบบอัปโหลดรูปเมนู/ร้านที่ใช้งานได้จริงอยู่แล้ว
 async function uploadFile(file, path){
   const bar=document.getElementById('uploadBar');
   const txt=document.getElementById('uploadPct');
   try{
-    const bucket='nimit-delivery.firebasestorage.app';
-    const fname=path+'/'+Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9.]/g,'_');
-    const url='https://firebasestorage.googleapis.com/v0/b/'+bucket+'/o?uploadType=media&name='+encodeURIComponent(fname);
     if(bar)bar.style.width='20%';if(txt)txt.textContent='อัพโหลด...';
-    const res=await fetch(url,{method:'POST',headers:{'Content-Type':file.type||'application/octet-stream'},body:file});
-    if(!res.ok)throw new Error('HTTP '+res.status);
+    const isVideo=(file.type||'').startsWith('video/');
+    const formData=new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'nimit_menu');
+    const endpoint='https://api.cloudinary.com/v1_1/ltthcvpf/'+(isVideo?'video':'image')+'/upload';
+    const res=await fetch(endpoint, { method:'POST', body:formData });
+    if(!res.ok) throw new Error('อัปโหลดไม่สำเร็จ (HTTP '+res.status+')');
     const data=await res.json();
     if(bar)bar.style.width='100%';if(txt)txt.textContent='100%';
-    return 'https://firebasestorage.googleapis.com/v0/b/'+bucket+'/o/'+encodeURIComponent(fname)+'?alt=media&token='+(data.downloadTokens||'');
+    return data.secure_url;
   }catch(e){
     hideUploadProgress();
     throw new Error('อัพโหลดไม่สำเร็จ: '+e.message);
@@ -2310,6 +2319,7 @@ window.openAdCreate=function(){
   document.getElementById('adType').value='image';
   document.getElementById('adImgRow').style.display='';
   document.getElementById('adVidRow').style.display='none';
+  document.getElementById('adLinkUrl').value='';
 };
 window.closeAdCreate=function(){
   document.getElementById('adCreateSheet').style.display='none';
@@ -2342,6 +2352,7 @@ window.saveAd=async function(){
   const caption=document.getElementById('adCaption').value.trim();
   const shopId=document.getElementById('adShopId').value.trim();
   const shopName=document.getElementById('adShopName').value.trim();
+  const linkUrl=document.getElementById('adLinkUrl').value.trim();
   const imgFile=document.getElementById('adImgFile')?.files[0];
   const vidFile=document.getElementById('adVidFile')?.files[0];
   if(type==='image'&&!imgFile){alert('กรุณาเลือกรูปภาพ');return;}
@@ -2349,7 +2360,7 @@ window.saveAd=async function(){
   const btn=document.getElementById('adSaveBtn');
   btn.disabled=true;btn.textContent='กำลังอัพโหลด...';
   try{
-    const data={type,caption,shopId,shopName,createdAt:serverTimestamp()};
+    const data={type,caption,shopId,shopName,linkUrl,createdAt:serverTimestamp()};
     if(type==='image'){
       if(_cropBase64){
         showUploadProgress('อัพโหลดรูปภาพ...');
@@ -2394,10 +2405,96 @@ window.loadAdsList=async function(){
     </div>
     <div style="flex:1;min-width:0">
       <div style="font-size:13px;font-weight:700;color:#0f172a">${ad.caption||ad.shopName||'ไม่มีชื่อ'}</div>
-      <div style="font-size:11px;color:#94a3b8">${ad.type==='video'?'🎬 วิดีโอ (สูงสุด 20 วิ)':'🖼️ รูปภาพ (8 วิ)'} · ${ad.shopName||'-'}</div>
+      <div style="font-size:11px;color:#94a3b8">${ad.type==='video'?'🎬 วิดีโอ (สูงสุด 20 วิ)':'🖼️ รูปภาพ (8 วิ)'} · ${ad.linkUrl?'🔗 ลิงก์เว็บไซต์':(ad.shopName||'ไม่ผูกปลายทาง')}</div>
     </div>
     <button onclick="window.deleteAd('${ad.id}')" style="height:30px;padding:0 12px;border:none;border-radius:15px;background:#fee2e2;color:#dc2626;font-size:11px;font-weight:700;cursor:pointer">ลบ</button>
   </div>`).join(''):'<div style="color:#94a3b8;font-size:13px">ยังไม่มีโฆษณา</div>';
+};
+
+/* ===================== ดีลลับนับถอยหลัง (Flash Sale) ===================== */
+// เก็บที่ collection "flashDeals" — ฝั่งลูกค้า (shops.html) จะดึงดีลที่ endAt ยังไม่ถึงเวลามาโชว์
+// พร้อมนับถอยหลังจริง เอาเวลาหมดเขตของดีลที่ใกล้หมดที่สุดมาขึ้นตัวนับ
+let _flashImgFile=null;
+window.openFlashCreate=function(){
+  document.getElementById('flashCreateSheet').style.display='flex';
+  document.getElementById('flashName').value='';
+  document.getElementById('flashOldPrice').value='';
+  document.getElementById('flashNewPrice').value='';
+  document.getElementById('flashShopId').value='';
+  document.getElementById('flashShopName').value='';
+  document.getElementById('flashEndAt').value='';
+  document.getElementById('flashImgPreview').innerHTML='<span style="font-size:30px">🛍️</span><span style="font-size:12px;color:#94a3b8">กดเพื่อเลือกรูปสินค้า</span>';
+  _flashImgFile=null;
+  window.loadFlashList();
+};
+window.closeFlashCreate=function(){
+  document.getElementById('flashCreateSheet').style.display='none';
+};
+window.previewFlashImg=function(input){
+  const file=input.files[0]; if(!file) return;
+  _flashImgFile=file;
+  const reader=new FileReader();
+  reader.onload=e=>{ document.getElementById('flashImgPreview').innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">`; };
+  reader.readAsDataURL(file);
+};
+window.saveFlashDeal=async function(){
+  const itemName=document.getElementById('flashName').value.trim();
+  const originalPrice=parseFloat(document.getElementById('flashOldPrice').value);
+  const dealPrice=parseFloat(document.getElementById('flashNewPrice').value);
+  const shopId=document.getElementById('flashShopId').value.trim();
+  const shopName=document.getElementById('flashShopName').value.trim();
+  const endAtStr=document.getElementById('flashEndAt').value;
+  if(!itemName){alert('กรุณาใส่ชื่อสินค้า/ดีล');return;}
+  if(!originalPrice||!dealPrice){alert('กรุณาใส่ราคาให้ครบ');return;}
+  if(dealPrice>=originalPrice){alert('ราคาดีลต้องน้อยกว่าราคาเดิม');return;}
+  if(!endAtStr){alert('กรุณาเลือกเวลาหมดเขต');return;}
+  const endAt=new Date(endAtStr).getTime();
+  if(endAt<=Date.now()){alert('เวลาหมดเขตต้องเป็นอนาคต');return;}
+  const btn=document.getElementById('flashSaveBtn');
+  btn.disabled=true;btn.textContent='กำลังบันทึก...';
+  try{
+    const data={itemName,originalPrice,dealPrice,shopId,shopName,endAt,createdAt:serverTimestamp()};
+    if(_flashImgFile){
+      showUploadProgress('อัพโหลดรูปสินค้า...');
+      data.imgUrl=await uploadFile(_flashImgFile,'flashDeals');
+      hideUploadProgress();
+    }
+    await addDoc(collection(db,'flashDeals'),data);
+    window.loadFlashList();
+    alert('เพิ่มดีลเรียบร้อย');
+    document.getElementById('flashName').value='';
+    document.getElementById('flashOldPrice').value='';
+    document.getElementById('flashNewPrice').value='';
+    document.getElementById('flashEndAt').value='';
+    document.getElementById('flashImgPreview').innerHTML='<span style="font-size:30px">🛍️</span><span style="font-size:12px;color:#94a3b8">กดเพื่อเลือกรูปสินค้า</span>';
+    _flashImgFile=null;
+  }catch(e){hideUploadProgress();alert('ผิดพลาด: '+e.message);}
+  btn.disabled=false;btn.textContent='เพิ่มดีล';
+};
+window.deleteFlashDeal=async function(id){
+  if(!confirm('ลบดีลนี้?'))return;
+  await deleteDoc(doc(db,'flashDeals',id));
+  window.loadFlashList();
+};
+window.loadFlashList=async function(){
+  const el=document.getElementById('flashList');
+  if(!el)return;
+  el.innerHTML='<div style="color:#94a3b8;font-size:13px">กำลังโหลด...</div>';
+  const snap=await getDocs(collection(db,'flashDeals'));
+  const deals=[];snap.forEach(d=>deals.push({id:d.id,...d.data()}));
+  deals.sort((a,b)=>(a.endAt||0)-(b.endAt||0));
+  el.innerHTML=deals.length?deals.map(d=>{
+    const expired=d.endAt<Date.now();
+    const endTxt=new Date(d.endAt).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'});
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f2f5">
+      <div style="width:50px;height:50px;border-radius:8px;overflow:hidden;background:#e8ecf4;flex-shrink:0">${d.imgUrl?`<img src="${d.imgUrl}" style="width:100%;height:100%;object-fit:cover">`:''}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;color:#0f172a">${d.itemName}</div>
+        <div style="font-size:11px;color:#94a3b8">฿${d.dealPrice} <s>฿${d.originalPrice}</s> · หมดเขต ${endTxt}${expired?' (หมดอายุแล้ว)':''}</div>
+      </div>
+      <button onclick="window.deleteFlashDeal('${d.id}')" style="height:30px;padding:0 12px;border:none;border-radius:15px;background:#fee2e2;color:#dc2626;font-size:11px;font-weight:700;cursor:pointer">ลบ</button>
+    </div>`;
+  }).join(''):'<div style="color:#94a3b8;font-size:13px">ยังไม่มีดีล</div>';
 };
 
 
@@ -2659,15 +2756,22 @@ if(localStorage.getItem('fcmTokenSaved_admin')==='1'){
     <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">คำบรรยาย (caption)</div>
     <input id="adCaption" placeholder="เช่น โปรโมชันพิเศษ ลด 50%" style="width:100%;height:48px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:14px;margin-bottom:14px;outline:none">
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+    <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">กดโฆษณาแล้วไปที่ไหน (เลือกอย่างใดอย่างหนึ่ง)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
       <div>
         <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">Shop ID</div>
-        <input id="adShopId" placeholder="(ถ้ามี)" style="width:100%;height:44px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:13px;outline:none">
+        <input id="adShopId" placeholder="(ถ้าผูกร้าน)" style="width:100%;height:44px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:13px;outline:none">
       </div>
       <div>
         <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">ชื่อร้าน</div>
         <input id="adShopName" placeholder="ชื่อร้าน" style="width:100%;height:44px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:13px;outline:none">
       </div>
+    </div>
+    <div style="text-align:center;font-size:11px;color:#94a3b8;margin-bottom:10px">— หรือ —</div>
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">ลิงก์เว็บไซต์ภายนอก</div>
+      <input id="adLinkUrl" type="url" placeholder="https://example.com (ไม่ต้องผูกร้านก็ได้)" style="width:100%;height:44px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:13px;outline:none">
+      <div style="font-size:10px;color:#c0cad8;margin-top:4px">ถ้าใส่ลิงก์นี้ไว้ กดโฆษณาจะเปิดเว็บไซต์นี้แทนหน้าร้าน (เปิดแท็บใหม่)</div>
     </div>
 
     <button id="adSaveBtn" onclick="window.saveAd()" style="width:100%;height:52px;border:none;border-radius:16px;background:linear-gradient(135deg,#083570,#1565C0);color:#fff;font-size:16px;font-weight:800;cursor:pointer;margin-bottom:8px">เพิ่มโฆษณา</button>
@@ -2676,6 +2780,56 @@ if(localStorage.getItem('fcmTokenSaved_admin')==='1'){
     <div style="border-top:1px solid #f0f2f5;margin-top:16px;padding-top:12px">
       <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:10px">โฆษณาที่มีอยู่</div>
       <div id="adsList"><div style="color:#94a3b8;font-size:13px">กด "จัดการโฆษณา" เพื่อโหลดรายการ</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- FLASH DEAL SHEET -->
+<div id="flashCreateSheet" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:200;align-items:flex-end;">
+  <div style="background:#fff;border-radius:24px 24px 0 0;width:100%;padding:20px 20px 44px;max-height:90vh;overflow-y:auto">
+    <div style="width:36px;height:4px;border-radius:2px;background:#e2e8f0;margin:0 auto 14px"></div>
+    <div style="font-size:17px;font-weight:800;color:#0f172a;margin-bottom:14px">เพิ่มดีลลับนับถอยหลัง</div>
+
+    <input type="file" id="flashImgFile" accept="image/*" style="display:none" onchange="window.previewFlashImg(this)">
+    <div id="flashImgPreview" onclick="document.getElementById('flashImgFile').click()" style="width:100%;height:130px;border-radius:14px;background:#f0f4ff;border:2px dashed #c7d7f5;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-bottom:14px;overflow:hidden;flex-direction:column;gap:6px">
+      <span style="font-size:30px">🛍️</span>
+      <span style="font-size:12px;color:#94a3b8">กดเพื่อเลือกรูปสินค้า</span>
+    </div>
+
+    <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">ชื่อสินค้า/ดีล</div>
+    <input id="flashName" placeholder="เช่น เซตซูชิรวม 20 ชิ้น" style="width:100%;height:48px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:14px;margin-bottom:14px;outline:none">
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">ราคาเดิม (บาท)</div>
+        <input id="flashOldPrice" type="number" placeholder="329" style="width:100%;height:44px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:13px;outline:none">
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">ราคาดีล (บาท)</div>
+        <input id="flashNewPrice" type="number" placeholder="199" style="width:100%;height:44px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:13px;outline:none">
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">Shop ID (ถ้าผูกร้าน)</div>
+        <input id="flashShopId" placeholder="(ถ้ามี)" style="width:100%;height:44px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:13px;outline:none">
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">ชื่อร้าน</div>
+        <input id="flashShopName" placeholder="ชื่อร้าน" style="width:100%;height:44px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:13px;outline:none">
+      </div>
+    </div>
+
+    <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">ดีลหมดเขตเมื่อไหร่</div>
+    <input id="flashEndAt" type="datetime-local" style="width:100%;height:48px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:14px;margin-bottom:16px;outline:none">
+
+    <button id="flashSaveBtn" onclick="window.saveFlashDeal()" style="width:100%;height:52px;border:none;border-radius:16px;background:linear-gradient(135deg,#083570,#1565C0);color:#fff;font-size:16px;font-weight:800;cursor:pointer;margin-bottom:8px">เพิ่มดีล</button>
+    <button onclick="window.closeFlashCreate()" style="width:100%;height:42px;border:none;background:none;color:#64748b;font-size:14px;font-weight:600;cursor:pointer">ปิด</button>
+
+    <div style="border-top:1px solid #f0f2f5;margin-top:16px;padding-top:12px">
+      <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:10px">ดีลที่มีอยู่</div>
+      <div id="flashList"><div style="color:#94a3b8;font-size:13px">กด "ดีลลับนับถอยหลัง" เพื่อโหลดรายการ</div></div>
     </div>
   </div>
 </div>
