@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>การแจ้งเตือน - Nimit Delivery</title>
+<style>
+:root{--blue-900:#071B3D;--blue-800:#0B2C63;--blue-700:#0E3B8C;--blue-600:#1550B8;--blue-100:#E7EFFC;--ink-900:#101828;--ink-500:#667085;--ink-300:#9AA2B8;--line:#E7EAF2;--bg:#F5F7FC;--white:#fff;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'IBM Plex Sans Thai','Prompt',Arial,sans-serif;background:var(--bg);color:var(--ink-900);min-height:100vh;padding-bottom:24px;}
+.app{max-width:480px;margin:0 auto;}
+.tb{background:linear-gradient(160deg,var(--blue-900) 0%,var(--blue-700) 85%);padding:14px 16px 16px;border-radius:0 0 24px 24px;display:flex;align-items:center;gap:12px;}
+.back-btn{width:36px;height:36px;border:none;border-radius:50%;background:rgba(255,255,255,.14);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.back-btn svg{width:17px;height:17px;stroke:#fff;fill:none;stroke-width:2.4;stroke-linecap:round;}
+.tb-title{font-family:'Prompt';font-size:17px;font-weight:600;color:#fff;}
+
+.list{padding:14px 16px;display:flex;flex-direction:column;gap:10px;}
+.n-card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:14px 15px;}
+.n-title{font-size:14px;font-weight:700;color:var(--ink-900);margin-bottom:4px;}
+.n-msg{font-size:12.5px;color:var(--ink-500);line-height:1.6;}
+.n-date{font-size:11px;color:var(--ink-300);margin-top:8px;font-weight:600;}
+
+.state-box{text-align:center;padding:70px 24px;color:var(--ink-500);}
+.state-icon{width:60px;height:60px;border-radius:50%;background:var(--white);box-shadow:0 1px 3px rgba(15,23,42,.08);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+.state-icon svg{width:28px;height:28px;fill:var(--ink-300);}
+.state-title{font-size:14.5px;font-weight:700;color:var(--ink-900);margin-bottom:6px;}
+.state-sub{font-size:13px;color:var(--ink-500);line-height:1.6;}
+.spinner{width:32px;height:32px;border:4px solid var(--blue-100);border-top-color:var(--blue-700);border-radius:50%;margin:0 auto 14px;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="tb">
+    <button class="back-btn" onclick="history.length>1?history.back():location.href='shops.html'"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+    <div class="tb-title">การแจ้งเตือน</div>
+  </div>
+  <div id="content">
+    <div class="state-box"><div class="spinner"></div><div class="state-sub">กำลังโหลด...</div></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const db = getFirestore(initializeApp({
+  apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
+  authDomain:"nimit-delivery.firebaseapp.com",
+  projectId:"nimit-delivery",
+  storageBucket:"nimit-delivery.firebasestorage.app",
+  messagingSenderId:"233476256130",
+  appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
+}));
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+function fmtDate(ms){
+  if(!ms) return "";
+  const d = new Date(ms);
+  const months=["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
+  const hh=String(d.getHours()).padStart(2,"0"), mm=String(d.getMinutes()).padStart(2,"0");
+  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()+543} · ${hh}:${mm} น.`;
+}
+function renderState(title,sub){
+  document.getElementById("content").innerHTML = `<div class="state-box">
+    <div class="state-icon"><svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg></div>
+    <div class="state-title">${esc(title)}</div>
+    <div class="state-sub">${esc(sub)}</div>
+  </div>`;
+}
+
+async function load(){
+  try{
+    const snap = await getDocs(collection(db,"notifications"));
+    const items = [];
+    snap.forEach(d=>{
+      const data=d.data();
+      const ms = data.createdAt?.toMillis ? data.createdAt.toMillis() : 0;
+      items.push({ id:d.id, title:data.title||"", message:data.message||"", ms });
+    });
+    items.sort((a,b)=>b.ms-a.ms);
+    if(!items.length){
+      renderState("ยังไม่มีการแจ้งเตือน","เมื่อมีข่าวสารหรือโปรโมชันใหม่ จะขึ้นที่นี่ครับ");
+    } else {
+      document.getElementById("content").innerHTML = `<div class="list">${items.map(it=>`
+        <div class="n-card">
+          <div class="n-title">${esc(it.title)}</div>
+          <div class="n-msg">${esc(it.message)}</div>
+          <div class="n-date">${esc(fmtDate(it.ms))}</div>
+        </div>`).join('')}</div>`;
+    }
+    // เข้ามาหน้านี้แล้วถือว่าอ่านทั้งหมดแล้ว — บันทึกเวลาปัจจุบันไว้เทียบครั้งต่อไป
+    localStorage.setItem('notifLastRead', String(Date.now()));
+  }catch(e){
+    console.error(e);
+    renderState("โหลดไม่สำเร็จ", e.message || "เกิดข้อผิดพลาด ลองรีเฟรชหน้าใหม่");
+  }
+}
+load();
+</script>
+</body>
+</html>
