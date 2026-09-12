@@ -43,15 +43,18 @@ body{font-family:'IBM Plex Sans Thai','Prompt',Arial,sans-serif;background:var(-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-const db = getFirestore(initializeApp({
+const fbApp = initializeApp({
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
   authDomain:"nimit-delivery.firebaseapp.com",
   projectId:"nimit-delivery",
   storageBucket:"nimit-delivery.firebasestorage.app",
   messagingSenderId:"233476256130",
   appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
-}));
+});
+const db = getFirestore(fbApp);
+const auth = getAuth(fbApp);
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
 function fmtDate(ms){
@@ -96,7 +99,13 @@ async function load(){
     renderState("โหลดไม่สำเร็จ", e.message || "เกิดข้อผิดพลาด ลองรีเฟรชหน้าใหม่");
   }
 }
-load();
+// เพจนี้เป็นหน้าลูกค้าทั่วไป ไม่มีการล็อกอินแบบแอดมิน — ถ้ากฎ Firestore กำหนดให้ต้องมี
+// request.auth ถึงจะอ่านได้ (เหมือนปัญหาที่เจอใน customers.html ก่อนหน้านี้) จะใช้ anonymous
+// sign-in แทน คือได้ auth token แบบไม่ต้องกรอกอะไรเลย ไม่มี UI ล็อกอินให้เห็น
+onAuthStateChanged(auth, user=>{
+  if(user) load();
+  else signInAnonymously(auth).catch(e=>renderState("โหลดไม่สำเร็จ","ยืนยันตัวตนไม่สำเร็จ: "+e.message));
+});
 </script>
 </body>
 </html>
