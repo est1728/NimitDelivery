@@ -180,7 +180,7 @@ a{color:inherit;}
 .cat-row{display:flex;gap:15px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;}
 .cat-row::-webkit-scrollbar{display:none;}
 .cat-item{display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0;width:60px;cursor:pointer;}
-.cat-ic{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);background:var(--white);transition:all .3s var(--bounce);}
+.cat-ic{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);background:var(--white);transition:all .3s var(--bounce);}
 .cat-item.active .cat-ic{transform:scale(1.08);box-shadow:0 6px 14px rgba(14,59,140,.28);}
 .cat-item:active .cat-ic{transform:scale(.9);}
 .cat-ic svg{width:23px;height:23px;transition:fill .2s;}
@@ -196,7 +196,8 @@ a{color:inherit;}
 
 /* ===== SHOP CARDS ===== */
 .shops-cont{padding:0 16px;display:flex;flex-direction:column;gap:13px;}
-.sc{background:var(--white);border-radius:20px;cursor:pointer;border:1px solid var(--line);overflow:hidden;transition:transform .18s var(--bounce),box-shadow .18s ease;}
+.sc{background:var(--blue-50);border-radius:20px;cursor:pointer;border:1px solid var(--line);overflow:hidden;transition:transform .18s var(--bounce),box-shadow .18s ease;}
+.sc:active{transform:scale(.96);}
 .sc:active{transform:scale(.98);}
 .sc.closed{opacity:.6;filter:grayscale(70%);pointer-events:none;}
 .sc-banner{width:100%;height:104px;position:relative;display:flex;align-items:center;justify-content:center;font-size:38px;overflow:hidden;}
@@ -214,7 +215,10 @@ a{color:inherit;}
 .sc-open,.sc-close{position:absolute;top:9px;right:9px;padding:4px 10px;border-radius:8px;font-size:10.5px;font-weight:700;}
 .sc-open{background:var(--green-100);color:var(--green-600);}
 .sc-close{background:var(--red-100);color:var(--red-500);}
-.sc-body{padding:0 14px 14px;position:relative;}
+.qadd{position:absolute;right:9px;bottom:9px;width:30px;height:30px;border-radius:50%;background:var(--white);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 3px 10px rgba(16,24,40,.22);z-index:3;}
+.qadd svg{width:15px;height:15px;fill:var(--blue-700);}
+.qadd:active{transform:scale(.85);}
+.sc-body{padding:0 14px 14px;position:relative;background:var(--blue-50);}
 .sc-top{display:flex;align-items:flex-end;gap:12px;margin-bottom:9px;}
 .sc-avatar{width:64px;height:64px;border-radius:16px;background:var(--blue-50);flex-shrink:0;border:3px solid var(--white);box-shadow:0 2px 10px rgba(16,24,40,.14);margin-top:-28px;position:relative;z-index:2;display:flex;align-items:center;justify-content:center;font-size:26px;}
 .sc-info{flex:1;min-width:0;padding-bottom:2px;display:flex;justify-content:space-between;gap:6px;}
@@ -255,7 +259,7 @@ a{color:inherit;}
 .fly{position:fixed;width:26px;height:26px;border-radius:50%;background:var(--amber-500);z-index:800;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 4px 10px rgba(0,0,0,.25);pointer-events:none;}
 
 /* ===== BOTTOM NAV ===== */
-.bottom-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;max-width:480px;width:100%;background:var(--white);display:flex;align-items:center;border-top:1px solid var(--line);z-index:199;padding-bottom:2px;}
+.bottom-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;max-width:480px;width:100%;background:var(--white);display:flex;border-top:1px solid var(--line);z-index:199;padding-bottom:2px;}
 .bnav-item{flex:1;padding:9px 0 10px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:none;background:none;position:relative;}
 .bnav-item svg{width:21px;height:21px;fill:var(--ink-300);transition:transform .3s var(--bounce);}
 .bnav-item span{font-size:10px;font-weight:600;color:var(--ink-300);}
@@ -264,14 +268,6 @@ a{color:inherit;}
 .bnav-item.disabled{opacity:.5;}
 .bnav-item.bounced svg{animation:navBounce .45s var(--bounce);}
 @keyframes navBounce{0%{transform:translateY(0);}40%{transform:translateY(-6px);}100%{transform:translateY(0);}}
-.bnav-fab-slot{flex:1;display:flex;justify-content:center;}
-.bnav-fab{width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,var(--blue-500),var(--blue-700));display:flex;align-items:center;justify-content:center;border:4px solid var(--white);margin-top:-24px;box-shadow:0 8px 18px rgba(14,59,140,.35);cursor:pointer;position:relative;transition:transform .15s var(--bounce);}
-.bnav-fab:active{transform:scale(.9);}
-.bnav-fab svg{width:20px;height:20px;fill:var(--white);}
-.bnav-fab-badge{position:absolute;top:-2px;right:-2px;background:var(--red-500);color:var(--white);font-size:9.5px;font-weight:700;min-width:17px;height:17px;border-radius:20px;display:none;align-items:center;justify-content:center;padding:0 3px;border:2px solid var(--white);}
-
-/* ===== NOTIFICATION BELL (top bar) ===== */
-.notif-bdg{position:absolute;top:-3px;right:-3px;background:var(--red-500);color:var(--white);font-size:9px;font-weight:700;min-width:16px;height:16px;border-radius:20px;display:none;align-items:center;justify-content:center;padding:0 3px;border:2px solid var(--blue-700);}
 
 /* ===== TOAST ===== */
 .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px) scale(.9);background:var(--ink-900);color:var(--white);font-size:12.5px;font-weight:500;padding:10px 16px;border-radius:12px;z-index:900;opacity:0;transition:all .32s var(--bounce);pointer-events:none;max-width:88%;text-align:center;display:flex;align-items:center;gap:8px;}
@@ -309,12 +305,12 @@ a{color:inherit;}
         </div>
       </div>
       <div class="tb-icons">
-        <button class="icon-btn press" id="notifBtn" aria-label="การแจ้งเตือน" onclick="location.href='notifications.html'">
-          <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
-          <div class="notif-bdg" id="notifBdg">0</div>
-        </button>
         <button class="icon-btn press" aria-label="เมนู" onclick="openSidebar()">
           <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+        </button>
+        <button class="icon-btn press" id="cartIconMain" aria-label="ตะกร้าสินค้า" onclick="location.href='cart.html'">
+          <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg>
+          <div class="cart-bdg" id="cartBdg">0</div>
         </button>
       </div>
     </div>
@@ -420,12 +416,6 @@ a{color:inherit;}
       <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
       <span>ประวัติ</span>
     </button>
-    <div class="bnav-fab-slot">
-      <div class="bnav-fab press" id="fabCartBtn" onclick="location.href='cart.html'" aria-label="ตะกร้าสินค้า">
-        <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM7.17 14l.94-2h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 19.97 3H5.21l-.94-2H1v2h2l3.6 7.59L5.25 13c-.16.28-.25.61-.25.96C5 15.1 5.9 16 7 16h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12z"/></svg>
-        <div class="bnav-fab-badge" id="cartBdg">0</div>
-      </div>
-    </div>
     <button class="bnav-item" onclick="navBounce(this);location.href='coupon.html'">
       <svg viewBox="0 0 24 24"><path d="M22 10V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v4c1.1 0 2 .9 2 2s-.9 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2zm-9 7.5h-2v-2h2v2zm0-4.5h-2v-2h2v2zm0-4.5h-2v-2h2v2z"/></svg>
       <span>คูปอง</span>
@@ -484,18 +474,15 @@ const CAT_ICON_PRESETS={
   plus:'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z'
 };
 const FILTERS=[
-  {key:'rec',label:'แนะนำ',icon:'thumb'},
-  {key:'fav',label:'ร้านโปรด',icon:'heart'},
+  {key:'rec',label:'แนะนำ',icon:'bolt'},
   {key:'near',label:'ใกล้ฉัน',icon:'pin'},
   {key:'rating',label:'คะแนนสูง',icon:'star'},
   {key:'open',label:'เปิดอยู่',icon:'clock'}
 ];
 const FILTER_ICONS={
-  thumb:'M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z',
-  heart:'M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z',
+  bolt:'M11 21h-1l1-7H7.5c-.58 0-.57-.32-.38-.66.19-.34.05-.08.07-.12C8.48 10.94 10.42 7.54 13 3h1l-1 7h3.5c.49 0 .56.33.47.51l-.07.15C12.96 17.55 11 21 11 21z',
   pin:'M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0z',
   star:'M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z',
-  ship:'M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zM18 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z',
   clock:'M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z'
 };
 
@@ -648,8 +635,40 @@ async function renderActiveOrder(){
 /* หมายเหตุ: ตัด REWARDS/FLASH SALE ออกไปก่อน — ในเวอร์ชันต้นแบบเป็นข้อมูลจำลองล้วนๆ (แต้มสะสม 740,
    ดีลลับนับถอยหลัง) ไม่มี collection/ระบบหลังบ้านรองรับจริง ถ้าต้องการฟีเจอร์นี้จริงต้องออกแบบ
    โครงสร้างข้อมูลเพิ่มก่อน (เช่น แต้มสะสมต่อลูกค้า, ดีลที่แอดมินตั้งเวลาลดราคาได้) */
+/* ===================== FLASH SALE (ดีลลับนับถอยหลัง) — ข้อมูลจริงจาก collection flashDeals ===================== */
+// แอดมินตั้งดีล+เวลาหมดเขตได้จาก admin.html > ดีลลับนับถอยหลัง ตัวนับถอยหลังใช้เวลาของดีลที่ใกล้หมดเขตที่สุด
+let flashDeals=[], flashDeadline=null, flashTimerHandle=null;
+async function renderFlash(){
+  try{
+    const snap=await getDocs(collection(db,'flashDeals'));
+    const now=Date.now();
+    flashDeals=[]; snap.forEach(d=>{ const v={id:d.id,...d.data()}; if(v.endAt>now) flashDeals.push(v); });
+  }catch(e){ flashDeals=[]; }
+  if(!flashDeals.length){ $('flashSec').style.display='none'; if(flashTimerHandle) clearInterval(flashTimerHandle); return; }
+  flashDeals.sort((a,b)=>a.endAt-b.endAt);
+  flashDeadline=flashDeals[0].endAt;
+  $('flashSec').style.display='block';
+  document.getElementById('flashRow').innerHTML=flashDeals.map(f=>{
+    const off=Math.round((1-f.dealPrice/f.originalPrice)*100);
+    const thumb=f.imgUrl?`<img src="${esc(f.imgUrl)}" style="width:100%;height:100%;object-fit:cover">`:'';
+    return `<div class="flash-card press" onclick="${f.shopId?`pick('${f.shopId}','${(f.shopName||'').replace(/'/g,"\\'")}')`:''}">
+      <div class="flash-thumb" style="background:var(--blue-50)">${thumb}<div class="flash-off">-${off}%</div></div>
+      <div class="flash-info"><div class="flash-name">${esc(f.itemName)}</div><div class="flash-price"><span class="now">฿${f.dealPrice}</span><span class="was">฿${f.originalPrice}</span></div></div>
+    </div>`;
+  }).join('');
+  if(flashTimerHandle) clearInterval(flashTimerHandle);
+  tickFlash();
+  flashTimerHandle=setInterval(tickFlash,1000);
+}
+function tickFlash(){
+  let diff=flashDeadline-Date.now();
+  if(diff<=0){ renderFlash(); return; } // ดีลตัวที่ใกล้หมดเขตที่สุดหมดอายุแล้ว โหลดใหม่
+  const h=String(Math.floor(diff/3600000)).padStart(2,'0');
+  const m=String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+  const s=String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+  document.getElementById('flashTimer').textContent=`${h}:${m}:${s}`;
+}
 function renderRewards(){ $('rwEl').style.display='none'; }
-function renderFlash(){ $('flashSec').style.display='none'; }
 
 /* ===================== CATEGORY BUTTONS ===================== */
 function catIconMarkup(b){
@@ -810,7 +829,6 @@ function applyStagger(containerSel,itemSel){
 // ตัวกรอง — ทำงานจริงกับรายการร้านแล้ว (เดิมเป็นแค่ปุ่มไม่มีผลอะไร)
 function applyFilters(list){
   let out=[...list];
-  if(activeFilters.has('fav')) out=out.filter(s=>favSet.has(s.id));
   if(activeFilters.has('open')) out=out.filter(s=>effectiveOpen(s));
   if(activeFilters.has('rating')) out.sort((a,b)=>(b.rating||0)-(a.rating||0));
   else if(activeFilters.has('near')) out.sort((a,b)=>(a._dist??999)-(b._dist??999));
@@ -868,53 +886,22 @@ function updCart(){
   });
 }
 
-/* ===================== เปิดฟังก์ชันออกสู่ window =====================
-   สาเหตุที่ปุ่มทุกปุ่มบนหน้ากดไม่ติดเลย: <script type="module"> มี scope แยกของตัวเอง
-   ฟังก์ชันที่ประกาศแบบ "function ชื่อ(){...}" ธรรมดาจะไม่ถูกมองเห็นจาก onclick="ชื่อ(...)"
-   ที่เขียนอยู่ใน HTML (ซึ่งมองหาไว้ที่ window เท่านั้น) ต้องประกาศออกมาที่ window ตรงๆ ทุกตัว
-   ที่ถูกเรียกจาก onclick/oninput ในหน้านี้ ไม่งั้นจะกดไม่ติดแบบเงียบๆ (error ใน console แต่ไม่ขึ้นอะไรให้เห็น) */
-window.catNav=catNav;
-window.closeSidebar=closeSidebar;
-window.doLogout=doLogout;
-window.goAd=goAd;
-window.handleLoginChip=handleLoginChip;
-window.installApp=installApp;
-window.navBounce=navBounce;
-window.openSidebar=openSidebar;
-window.pick=pick;
-window.toast=toast;
-window.toggleFav=toggleFav;
-window.toggleFilter=toggleFilter;
-
 /* ===================== INIT ===================== */
+// สคริปต์นี้เป็น type="module" (จำเป็นสำหรับ import Firebase) ฟังก์ชันที่ประกาศแบบ
+// "function x(){}" ธรรมดาจะไม่ถูกผูกเข้ากับ window ให้อัตโนมัติเหมือน script ปกติ
+// ทำให้ onclick="x()" ในปุ่มต่างๆ เรียกไม่เจอเลยทั้งหน้า (บั๊กที่ทำให้กดปุ่มไม่ได้เลย) — export ให้ตรงนี้
+Object.assign(window, {
+  catNav, closeSidebar, doLogout, goAd, handleLoginChip, installApp,
+  navBounce, openSidebar, pick, toast, toggleFav, toggleFilter
+});
 renderLoginChip();
 loadAds();
 renderActiveOrder();
 renderRewards();
 renderFlash();
-/* ===================== การแจ้งเตือน (notif bell badge) =====================
-   นับจำนวนที่ "ยังไม่ได้อ่าน" โดยเทียบวันที่สร้างของแต่ละอันกับเวลาที่เปิดหน้า notifications.html
-   ครั้งล่าสุด (เก็บไว้ใน localStorage) — ยังไม่มีระบบสร้างการแจ้งเตือนจากหลังบ้านนะ ต้องเพิ่ม
-   เอกสารในคอลเลกชัน "notifications" เอง (name/message/createdAt) ก่อนถึงจะมีอะไรให้เห็น */
-async function loadNotifBadge(){
-  try{
-    const lastRead = +(localStorage.getItem('notifLastRead')||0);
-    const snap = await getDocs(collection(db,'notifications'));
-    let unread=0;
-    snap.forEach(d=>{
-      const t = d.data().createdAt?.toMillis ? d.data().createdAt.toMillis() : 0;
-      if(t>lastRead) unread++;
-    });
-    const bdg=document.getElementById('notifBdg');
-    if(bdg){ bdg.textContent=unread>99?'99+':unread; bdg.style.display=unread>0?'flex':'none'; }
-  }catch(e){ /* ฟีเจอร์เสริม โหลดพังไม่ควรกระทบหน้าหลัก */ }
-}
-window.loadNotifBadge=loadNotifBadge;
-
 loadCatButtons();
 renderFilters();
 updCart();
-loadNotifBadge();
 renderSkeleton();
 loadShopsData();
 </script>
