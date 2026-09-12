@@ -292,6 +292,8 @@ enableIndexedDbPersistence(db).catch(()=>{});
 // ต้องอ่านจาก URL ก่อนเป็นอันดับแรกเสมอ ถ้ามีค่อยใช้ค่านั้น ถ้าไม่มี (เช่น กดมาจากในเว็บตามปกติ) ค่อย fallback
 // ไปใช้ localStorage แบบเดิม แล้วซิงค์ localStorage ให้ตรงกับค่าจาก URL ด้วย กันหน้าอื่นที่อาจอ่านค่านี้ต่อ
 const urlShopId = new URLSearchParams(window.location.search).get("id");
+const urlOpenItem = new URLSearchParams(window.location.search).get("openItem");
+let openItemHandled = false;
 let shopId = urlShopId || localStorage.getItem("selectedShopId");
 if(urlShopId) localStorage.setItem("selectedShopId", urlShopId);
 const shopName = localStorage.getItem("selectedShopName");
@@ -494,6 +496,11 @@ async function loadMenu(){
       categories=["ทั้งหมด",...new Set(allMenus.map(m=>m.category).filter(Boolean))];
     }
     renderCats(); applyFilter();
+    // ถ้ามาจากลิงก์การ์ดเมนู (เช่นจากหน้า category.html) ให้เปิดป๊อบอัพเมนูนั้นอัตโนมัติทันทีที่โหลดเมนูเสร็จ (เปิดแค่ครั้งเดียว)
+    if(urlOpenItem && !openItemHandled){
+      const target = allMenus.find(x=>x.id===urlOpenItem);
+      if(target){ openItemHandled = true; openMenuPopup(urlOpenItem); }
+    }
   }, e=>{ document.getElementById("menuContainer").innerHTML='<div class="loading">โหลดไม่ได้</div>'; });
 }
 
