@@ -154,7 +154,10 @@ input.f-input{width:100%;height:46px;border:1.5px solid #e2e8f0;border-radius:12
     <option value="shops.html">หน้ารวมร้านค้าทั้งหมด</option>
     <option value="search.html">หน้าค้นหา</option>
     <option value="coupon.html">หน้าคูปอง/โปรโมชัน</option>
+    <option value="__custom__">🔗 พิมพ์ลิงก์หน้าเว็บเอง (เลือกอันนี้ถ้าจะไปหน้าอื่นที่ไม่มีในลิสต์)</option>
   </select>
+  <input class="f-input" id="btnDestCustom" placeholder="พิมพ์ชื่อไฟล์หน้าเว็บ เช่น shops.html หรือ menu.html?id=xxx" style="display:none;margin-top:8px" oninput="window.onDestCustomInput()">
+  <div class="field-label" id="btnDestCustomHint" style="display:none;color:#94a3b8;font-weight:400;margin-top:-8px">กดปุ่มนี้แล้วจะเปิดลิงก์นี้ทันที (ต้องเป็นชื่อไฟล์หน้าเว็บที่มีอยู่จริงในเว็บไซต์)</div>
   <div class="field-label">เลือกไอคอน (ถ้าไม่อัปโหลดรูปเอง จะใช้ไอคอนที่เลือกไว้นี้)</div>
   <div class="icon-gallery" id="iconGallery"></div>
   <div class="upload-row">
@@ -500,6 +503,8 @@ window.openNew=function(){
   $('btnNameInput').value='';
   $('btnTagInput').value='';
   $('btnDestSelect').value='category.html';
+  $('btnDestCustom').value=''; $('btnDestCustom').style.display='none';
+  $('btnDestCustomHint').style.display='none';
   $('deleteBtnBtn').style.display='none';
   $('editSec').style.display='block';
   $('tagSec').style.display='none'; $('tagSecDisabled').style.display='none';
@@ -513,7 +518,13 @@ window.openEdit=function(id){
   $('editSecTitle').textContent='แก้ไขปุ่ม';
   $('btnNameInput').value=b.name||'';
   $('btnTagInput').value=b.tagName||'';
-  $('btnDestSelect').value=b.destPage||'category.html';
+  const knownDest=['category.html','shops.html','search.html','coupon.html'];
+  const savedDest=b.destPage||'category.html';
+  const isCustomDest=!knownDest.includes(savedDest);
+  $('btnDestSelect').value=isCustomDest?'__custom__':savedDest;
+  $('btnDestCustom').value=isCustomDest?savedDest:'';
+  $('btnDestCustom').style.display=isCustomDest?'block':'none';
+  $('btnDestCustomHint').style.display=isCustomDest?'block':'none';
   $('deleteBtnBtn').style.display='inline-block';
   $('editSec').style.display='block';
   renderIconGallery();
@@ -521,8 +532,18 @@ window.openEdit=function(id){
   updateTagSecVisibility();
   $('editSec').scrollIntoView({behavior:'smooth'});
 };
-window.onDestChange=function(){ updateTagSecVisibility(); };
-function getDestPageValue(){ return $('btnDestSelect').value; }
+window.onDestChange=function(){
+  const isCustom=$('btnDestSelect').value==='__custom__';
+  $('btnDestCustom').style.display=isCustom?'block':'none';
+  $('btnDestCustomHint').style.display=isCustom?'block':'none';
+  updateTagSecVisibility();
+};
+window.onDestCustomInput=function(){ updateTagSecVisibility(); };
+function getDestPageValue(){
+  const v=$('btnDestSelect').value;
+  if(v==='__custom__'){ return ($('btnDestCustom').value||'').trim() || 'category.html'; }
+  return v;
+}
 function updateTagSecVisibility(){
   // ระบบติดแท็กเมนู/ร้าน ใช้ได้เฉพาะตอนปลายทางเป็น category.html (หน้าที่อ่าน itemRefs/shopIds) เท่านั้น
   if(getDestPageValue()==='category.html'){
