@@ -737,7 +737,10 @@ async function sndChat(){
     // ลอง 3 ครั้งถ้าโดน rate limit
     var resp, retries=0;
     while(retries<3){
-      resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+cfg.gmKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({systemInstruction:{parts:[{text:sysInstruction}]},contents:msgs,generationConfig:{maxOutputTokens:2048,temperature:0.7}})});
+      // สำคัญมาก: ใช้ "gemini-flash-latest" แทนชื่อรุ่นที่ระบุเวอร์ชันตายตัว (เช่น gemini-2.5-flash)
+      // นี่คือ alias ที่ Google ดูแลให้เองอย่างเป็นทางการ ชี้ไปที่รุ่น Flash ล่าสุดที่แนะนำให้ใช้เสมอ
+      // พอ Google เลิกรองรับรุ่นเก่าแล้วออกรุ่นใหม่ ไม่ต้องกลับมาแก้โค้ดจุดนี้อีกเลย ระบบจะขยับตามอัตโนมัติ
+      resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key='+cfg.gmKey,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({systemInstruction:{parts:[{text:sysInstruction}]},contents:msgs,generationConfig:{maxOutputTokens:2048,temperature:0.7}})});
       if(resp.status===429){
         retries++;
         if(retries>=3){rpTk(tid,'⚠️ Rate limit - รอ 1 นาทีแล้วลองใหม่');setAISt('er','Rate limit');document.getElementById('csnd').disabled=false;return;}
