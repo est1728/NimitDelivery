@@ -1580,11 +1580,16 @@ window.confirmCopyApply = function(){
     if(!target.optionGroups) target.optionGroups=[];
     groupsToCopy.forEach(g=>target.optionGroups.push(JSON.parse(JSON.stringify(g)))); // ก็อปปี้แยกให้แต่ละเมนู ไม่ให้อ้างอิง object เดียวกัน
     markMenuDirty(menuId);
-    updateCardInPlace(menuId);
+    updateCardInPlace(menuId); // อัปเดตยอด "X กลุ่ม" ที่หัวการ์ด แม้การ์ดจะยังยุบอยู่ก็ตาม
   });
   const groupCount = groupsToCopy.length, menuCount = cgSelectedMenuIds.size;
   closeModal('copyGroupModal');
-  alert(`เพิ่ม ${groupCount} กลุ่มตัวเลือกให้ ${menuCount} เมนูแล้ว\nอย่าลืมกดปุ่ม "บันทึก" ด้านบนเพื่อบันทึกจริงด้วยนะครับ`);
+  // เดิมแค่ markMenuDirty + updateCardInPlace เฉยๆ แล้วโชว์ alert — ถ้าเมนูปลายทางเป็นการ์ดที่ยุบอยู่
+  // (ไม่ได้เปิดค้างไว้) หน้าจอจะไม่มีอะไรเปลี่ยนแปลงให้เห็นเลย ทำให้ดูเหมือน "คัดลอกไม่ติด" ทั้งที่จริงๆ
+  // ข้อมูลอัปเดตแล้วในหน่วยความจำ แค่มันซ่อนอยู่ในการ์ดที่ยังไม่ได้กางออก — เปิดการ์ดเมนูปลายทางอันแรกให้เห็นผลทันที
+  const firstTargetId = [...cgSelectedMenuIds][0];
+  window.toggleMenu(firstTargetId);
+  alert(`เพิ่ม ${groupCount} กลุ่มตัวเลือกให้ ${menuCount} เมนูแล้ว (เปิดเมนูแรกให้ดูผลลัพธ์แล้ว)\nอย่าลืมกดปุ่ม "บันทึก" ด้านบนเพื่อบันทึกจริงด้วยนะครับ`);
 }
 let asSourceMenuId = null;
 let asSelectedMenuIds = new Set();
