@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>สมัครเปิดแฟรนไชส์ - Nimit Delivery</title>
+<style>
+:root{--p:#0c4aa6;--pd:#083570;--pl:#e8f0fe;--g:#f5f6f8;--t:#0f172a;--s:#64748b;--gn:#16a34a;--gnl:#dcfce7;--r:#dc2626;--rl:#fee2e2;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
+body{background:var(--g);min-height:100vh;color:var(--t);}
+a{text-decoration:none;color:inherit;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.nav{background:rgba(12,74,166,.97);padding:13px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:150;}
+.nav-back{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;border:none;cursor:pointer;}
+.nav-back svg{width:17px;height:17px;fill:#fff;}
+.nav .n1{font-size:14.5px;font-weight:800;color:#fff;}
+.nav .n2{font-size:10.5px;color:rgba(255,255,255,.75);}
+
+.head{background:linear-gradient(160deg,var(--p),var(--pd));padding:30px 20px 60px;text-align:center;color:#fff;}
+.head h1{font-size:20px;font-weight:900;margin-bottom:8px;}
+.head p{font-size:13px;color:rgba(255,255,255,.85);max-width:380px;margin:0 auto;line-height:1.7;}
+
+.wrap{max-width:640px;margin:-38px auto 40px;padding:0 16px;}
+
+.progress{display:flex;gap:6px;margin-bottom:16px;}
+.progress i{flex:1;height:5px;border-radius:6px;background:#e2e8f0;}
+.progress i.on{background:var(--p);}
+
+.card{background:#fff;border-radius:22px;padding:22px 20px;box-shadow:0 8px 26px rgba(15,23,42,.08);}
+.step{display:none;animation:fadeIn .2s ease-out;}
+.step.on{display:block;}
+.step-tag{font-size:11px;font-weight:800;color:var(--p);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.step-h{font-size:16px;font-weight:900;color:var(--t);margin-bottom:16px;}
+
+label{font-size:12.5px;font-weight:700;color:var(--s);margin-bottom:6px;display:block;}
+input,select,textarea{width:100%;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:14px;margin-bottom:14px;outline:none;font-family:Arial,sans-serif;}
+input,select{height:50px;}
+textarea{padding:14px 16px;min-height:90px;resize:vertical;}
+input:focus,select:focus,textarea:focus{border-color:var(--p);}
+.two-col{display:grid;grid-template-columns:1fr;gap:0;}
+@media(min-width:520px){.two-col{grid-template-columns:1fr 1fr;gap:0 12px;}}
+
+.opt-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.opt{border:1.5px solid #e2e8f0;border-radius:14px;padding:12px 10px;text-align:center;font-size:12.5px;font-weight:700;color:var(--t);cursor:pointer;}
+.opt.on{border-color:var(--p);background:var(--pl);color:var(--p);}
+
+.btnrow{display:flex;gap:10px;margin-top:6px;}
+.btn{flex:1;height:50px;border-radius:15px;font-size:14px;font-weight:800;cursor:pointer;border:none;}
+.btn-pri{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;}
+.btn-ol{background:#fff;border:2px solid #e2e8f0;color:var(--s);}
+.msg{font-size:13px;font-weight:600;min-height:18px;margin-bottom:6px;text-align:center;}
+.msg.err{color:var(--r);}
+
+.side-note{background:var(--pl);border-radius:14px;padding:12px 14px;font-size:12px;color:var(--pd);line-height:1.7;margin-bottom:16px;}
+
+.success{text-align:center;padding:20px 6px 6px;}
+.success .ic{width:64px;height:64px;border-radius:50%;background:var(--gnl);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 16px;}
+.success h2{font-size:17px;font-weight:900;color:var(--t);margin-bottom:8px;}
+.success p{font-size:13px;color:var(--s);line-height:1.75;margin-bottom:20px;}
+.success .steps{text-align:left;background:var(--g);border-radius:14px;padding:14px 16px;font-size:12.5px;color:var(--t);line-height:2;}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <button class="nav-back" onclick="location.href='franchise.html'"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  <div>
+    <div class="n1">สมัครเปิดแฟรนไชส์</div>
+    <div class="n2">Nimit Delivery</div>
+  </div>
+</div>
+
+<div class="head">
+  <h1>เริ่มต้นเป็นเจ้าของแฟรนไชส์</h1>
+  <p>กรอกข้อมูลเบื้องต้นด้านล่าง ทีมงานจะติดต่อกลับภายใน 3-5 วันทำการเพื่อนัดคุยรายละเอียดและขั้นตอนถัดไป</p>
+</div>
+
+<div class="wrap">
+  <div class="card">
+
+    <div id="formWrap">
+      <div class="progress"><i class="on" id="pg1"></i><i id="pg2"></i><i id="pg3"></i></div>
+
+      <!-- STEP 1: ข้อมูลส่วนตัว -->
+      <div class="step on" id="step1">
+        <div class="step-tag">ขั้นตอน 1 จาก 3</div>
+        <div class="step-h">ข้อมูลผู้สมัคร</div>
+        <label>ชื่อ-นามสกุล *</label>
+        <input id="apName" placeholder="ชื่อ นามสกุล">
+        <div class="two-col">
+          <div><label>เบอร์โทรศัพท์ *</label><input id="apPhone" type="tel" placeholder="08xxxxxxxx"></div>
+          <div><label>อีเมล *</label><input id="apEmail" type="email" placeholder="you@email.com"></div>
+        </div>
+        <label>ไลน์ไอดี (ถ้ามี)</label>
+        <input id="apLine" placeholder="สำหรับให้ทีมงานติดต่อสะดวกขึ้น">
+        <div id="err1" class="msg err"></div>
+        <div class="btnrow"><button class="btn btn-pri" onclick="goStep(2)">ถัดไป</button></div>
+      </div>
+
+      <!-- STEP 2: พื้นที่และประสบการณ์ -->
+      <div class="step" id="step2">
+        <div class="step-tag">ขั้นตอน 2 จาก 3</div>
+        <div class="step-h">พื้นที่ที่สนใจ</div>
+        <div id="pkgChip" style="display:none;background:var(--pl);color:var(--pd);border-radius:12px;padding:10px 14px;font-size:12.5px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
+          <span>แพ็กเกจที่เลือก: <b id="pkgChipName">-</b></span>
+          <button type="button" onclick="clearPackage()" style="border:none;background:none;color:var(--pd);font-size:11.5px;font-weight:700;cursor:pointer;text-decoration:underline">เปลี่ยน</button>
+        </div>
+        <label>จังหวัด/อำเภอที่สนใจเปิดแฟรนไชส์ *</label>
+        <input id="apProvince" placeholder="เช่น เชียงใหม่ (อำเภอเมือง)">
+        <label>งบลงทุนโดยประมาณ *</label>
+        <div class="opt-grid" id="budgetOpts">
+          <div class="opt" data-v="ต่ำกว่า 100,000 บาท">ต่ำกว่า 100,000</div>
+          <div class="opt" data-v="100,000 - 300,000 บาท">100,000 - 300,000</div>
+          <div class="opt" data-v="300,000 - 500,000 บาท">300,000 - 500,000</div>
+          <div class="opt" data-v="มากกว่า 500,000 บาท">มากกว่า 500,000</div>
+        </div>
+        <label>มีประสบการณ์ธุรกิจเดลิเวอรี่/ธุรกิจส่วนตัวมาก่อนไหม</label>
+        <div class="opt-grid" id="expOpts">
+          <div class="opt" data-v="เคยทำธุรกิจเดลิเวอรี่มาก่อน">เคยทำเดลิเวอรี่</div>
+          <div class="opt" data-v="เคยทำธุรกิจส่วนตัวประเภทอื่น">เคยทำธุรกิจอื่น</div>
+          <div class="opt" data-v="ไม่เคยมีประสบการณ์">ไม่เคยมีประสบการณ์</div>
+          <div class="opt" data-v="อื่นๆ">อื่นๆ</div>
+        </div>
+        <div id="err2" class="msg err"></div>
+        <div class="btnrow"><button class="btn btn-ol" onclick="goStep(1)">ย้อนกลับ</button><button class="btn btn-pri" onclick="goStep(3)">ถัดไป</button></div>
+      </div>
+
+      <!-- STEP 3: ข้อความเพิ่มเติม + ยืนยัน -->
+      <div class="step" id="step3">
+        <div class="step-tag">ขั้นตอน 3 จาก 3</div>
+        <div class="step-h">รายละเอียดเพิ่มเติม</div>
+        <label>ข้อความถึงทีมงาน (ถ้ามี)</label>
+        <textarea id="apMsg" placeholder="เช่น ช่วงเวลาที่สะดวกให้ติดต่อกลับ หรือคำถามเพิ่มเติม"></textarea>
+        <div class="side-note">เมื่อกดส่งใบสมัคร ทีมงาน Nimit Delivery จะตรวจสอบและติดต่อกลับภายใน 3-5 วันทำการ การอนุมัติ การเซ็นสัญญา และการออกบัญชีผู้ใช้ทั้งหมดดำเนินการโดยทีมงานเท่านั้น</div>
+        <div id="err3" class="msg err"></div>
+        <div class="btnrow"><button class="btn btn-ol" onclick="goStep(2)">ย้อนกลับ</button><button class="btn btn-pri" id="submitBtn" onclick="submitFranchiseApplication()">ส่งใบสมัคร</button></div>
+      </div>
+    </div>
+
+    <div id="successWrap" class="success" style="display:none">
+      <div class="ic"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="var(--gn)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg></div>
+      <h2>ส่งใบสมัครสำเร็จ</h2>
+      <p>ขอบคุณที่สนใจร่วมเป็นแฟรนไชส์กับ Nimit Delivery ทีมงานจะติดต่อกลับไปที่เบอร์/อีเมลที่ให้ไว้ภายใน 3-5 วันทำการ</p>
+      <div class="steps">
+        1. ทีมงานตรวจสอบใบสมัครของคุณ<br>
+        2. นัดพูดคุยรายละเอียดแพ็กเกจและพื้นที่<br>
+        3. เซ็นสัญญาและกำหนดขอบเขตพื้นที่<br>
+        4. ได้รับบัญชีผู้ใช้ทางอีเมลเพื่อเข้าสู่ระบบ
+      </div>
+      <div class="btnrow" style="margin-top:20px"><button class="btn btn-ol" onclick="location.href='franchise.html'">กลับหน้าแรก</button><button class="btn btn-pri" onclick="location.href='franchise-status.html'">ตรวจสอบสถานะ</button></div>
+    </div>
+
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const fbApp = initializeApp({
+  apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
+  authDomain:"nimit-delivery.firebaseapp.com",
+  projectId:"nimit-delivery",
+  storageBucket:"nimit-delivery.firebasestorage.app",
+  messagingSenderId:"233476256130",
+  appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
+});
+const db = getFirestore(fbApp);
+const $=id=>document.getElementById(id);
+
+let curStep=1, chosenBudget='', chosenExp='', chosenPackage='';
+
+// อ่านแพ็กเกจที่เลือกมาจากหน้า franchise.html (ถ้ามี) แล้วแสดงเป็น chip ในขั้นตอนที่ 2
+try{
+  const params=new URLSearchParams(location.search);
+  const pkg=params.get('package');
+  if(pkg){ chosenPackage=pkg; $('pkgChipName').textContent=pkg; $('pkgChip').style.display='flex'; }
+}catch(e){}
+window.clearPackage=function(){ chosenPackage=''; $('pkgChip').style.display='none'; };
+
+document.querySelectorAll('#budgetOpts .opt').forEach(o=>o.onclick=()=>{
+  document.querySelectorAll('#budgetOpts .opt').forEach(x=>x.classList.remove('on'));
+  o.classList.add('on'); chosenBudget=o.dataset.v;
+});
+document.querySelectorAll('#expOpts .opt').forEach(o=>o.onclick=()=>{
+  document.querySelectorAll('#expOpts .opt').forEach(x=>x.classList.remove('on'));
+  o.classList.add('on'); chosenExp=o.dataset.v;
+});
+
+window.goStep=function(n){
+  const errEl1=$('err1'); errEl1.textContent='';
+  const errEl2=$('err2'); errEl2.textContent='';
+  if(curStep===1 && n>curStep){
+    if(!$('apName').value.trim() || !$('apPhone').value.trim() || !$('apEmail').value.trim()){
+      errEl1.textContent='กรุณากรอกชื่อ เบอร์โทร และอีเมลให้ครบ'; return;
+    }
+  }
+  if(curStep===2 && n>curStep){
+    if(!$('apProvince').value.trim()){ errEl2.textContent='กรุณากรอกจังหวัด/พื้นที่ที่สนใจ'; return; }
+    if(!chosenBudget){ errEl2.textContent='กรุณาเลือกงบลงทุนโดยประมาณ'; return; }
+  }
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('on'));
+  $('step'+n).classList.add('on');
+  for(let i=1;i<=3;i++) $('pg'+i).classList.toggle('on', i<=n);
+  curStep=n;
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+
+window.submitFranchiseApplication=async function(){
+  const errEl=$('err3'); errEl.textContent='';
+  const btn=$('submitBtn'); btn.disabled=true; btn.textContent='กำลังส่ง...';
+  try{
+    await addDoc(collection(db,'franchiseApplications'),{
+      name:$('apName').value.trim(),
+      phone:$('apPhone').value.trim(),
+      email:$('apEmail').value.trim(),
+      lineId:$('apLine').value.trim(),
+      province:$('apProvince').value.trim(),
+      budget:chosenBudget,
+      experience:chosenExp,
+      packageInterest:chosenPackage,
+      message:$('apMsg').value.trim(),
+      status:'pending',
+      createdAt:serverTimestamp()
+    });
+    $('formWrap').style.display='none';
+    $('successWrap').style.display='block';
+  }catch(e){
+    errEl.textContent='ส่งใบสมัครไม่สำเร็จ: '+e.message;
+    btn.disabled=false; btn.textContent='ส่งใบสมัคร';
+  }
+};
+</script>
+</body>
+</html>
