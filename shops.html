@@ -769,6 +769,16 @@ function effectiveOpen(s){
   if(!s.autoSchedule) return true;
   const days=Array.isArray(s.openDays)&&s.openDays.length?s.openDays:[0,1,2,3,4,5,6];
   if(!days.includes(new Date().getDay())) return false;
+  // เดิมเช็คแค่ "วันไหนเปิด" ไม่เคยเช็คเวลาเปิด-ปิดจริงเลย (scheduleOpen/scheduleClose) ร้านเลยไม่ปิดตามเวลาที่ตั้งไว้
+  if(s.scheduleOpen && s.scheduleClose){
+    const now=new Date();
+    const [oh,om]=s.scheduleOpen.split(':').map(Number), [ch,cm]=s.scheduleClose.split(':').map(Number);
+    const nowMin=now.getHours()*60+now.getMinutes(), openMin=oh*60+om, closeMin=ch*60+cm;
+    if(openMin!==closeMin){
+      const within = openMin<closeMin ? (nowMin>=openMin && nowMin<closeMin) : (nowMin>=openMin || nowMin<closeMin);
+      if(!within) return false;
+    }
+  }
   return true;
 }
 // ร้านโปรด — เก็บไว้ในเครื่อง (localStorage) เพราะยังไม่มี collection รองรับร้านโปรดต่อลูกค้าจริง
@@ -783,7 +793,7 @@ function card(s){
   const timeM=`<div class="mi"><svg viewBox="0 0 24 24"><path d="${FILTER_ICONS.clock}"/></svg>${esc(s.deliveryTime||'20-30')} นาที${dt?' · '+dt:''}</div>`;
   const starM=`<div class="mi star" onclick="event.stopPropagation();location.href='reviews.html?type=shop&id=${s.id}&name='+encodeURIComponent('${(s.name||'').replace(/'/g,"\\'")}')"><svg viewBox="0 0 24 24"><path d="${FILTER_ICONS.star}"/></svg>${(parseFloat(s.rating)||0).toFixed(1)}</div>`;
   const loyaltyM=s.loyaltyEnabled?`<div class="mi loyalty"><svg viewBox="0 0 24 24"><path d="${CAT_ICON_PRESETS.tag}"/></svg>สะสมแต้ม</div>`:'';
-  const schM=s.schedule?`<div class="mi"><svg viewBox="0 0 24 24"><path d="${FILTER_ICONS.clock}"/></svg>${esc(s.schedule)}</div>`:'';
+  const schM=(s.autoSchedule && s.scheduleOpen && s.scheduleClose)?`<div class="mi"><svg viewBox="0 0 24 24"><path d="${FILTER_ICONS.clock}"/></svg>เปิด ${esc(s.scheduleOpen)}-${esc(s.scheduleClose)} น.</div>`:'';
   const closeM=(!open && s.closeReason)?`<div class="mi close-reason">🔒 ${esc(s.closeReason)}</div>`:'';
   const oc=open?`onclick="pick('${s.id}','${(s.name||'').replace(/'/g,"\\'")}')"`:'';
   const bannerMedia=s.bannerUrl?`<img src="${esc(s.bannerUrl)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`:'';
