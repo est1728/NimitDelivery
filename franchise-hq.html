@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>หลังบ้านแฟรนไชส์ - Nimit Delivery</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{--p:#0c4aa6;--pd:#083570;--pl:#e8f0fe;--g:#f5f6f8;--t:#0f172a;--s:#64748b;--gn:#16a34a;--gnl:#dcfce7;--r:#dc2626;--rl:#fee2e2;--o:#ea580c;--ol:#fff7ed;--pu:#7c3aed;--pul:#f3e8ff;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
+body{background:var(--g);min-height:100vh;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ic{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px;display:inline-block;flex-shrink:0;}
+.ic-md{width:19px;height:19px;vertical-align:-4px;}
+.ic-lg{width:26px;height:26px;stroke-width:1.7;}
+
+/* ===== AUTH ===== */
+#authGate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.ag-box{width:100%;max-width:380px;}
+.ag-logo{text-align:center;margin-bottom:22px;}
+.ag-logo .t1{font-size:20px;font-weight:900;color:var(--p);}
+.ag-logo .t2{font-size:12.5px;color:var(--s);margin-top:4px;}
+.ag-card{background:#fff;border-radius:20px;padding:22px;box-shadow:0 1px 8px rgba(0,0,0,.06);}
+label{font-size:12px;font-weight:700;color:var(--s);margin-bottom:6px;display:block;}
+input,select,textarea{width:100%;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:14px;margin-bottom:12px;outline:none;font-family:Arial,sans-serif;}
+input,select{height:48px;}
+textarea{padding:12px 16px;min-height:80px;resize:vertical;}
+input:focus,select:focus,textarea:focus{border-color:var(--p);}
+button.pri{width:100%;height:50px;border:none;border-radius:16px;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;font-size:15px;font-weight:800;cursor:pointer;}
+.ag-msg{font-size:13px;font-weight:600;min-height:18px;margin-bottom:8px;text-align:center;}
+.ag-msg.err{color:var(--r);} .ag-msg.ok{color:var(--gn);}
+.ag-checking{display:flex;flex-direction:column;align-items:center;gap:12px;padding:30px 0;}
+.spn{width:32px;height:32px;border:3px solid var(--pl);border-top-color:var(--p);border-radius:50%;animation:spin .7s linear infinite;}
+
+/* ===== APP SHELL ===== */
+.bar{background:linear-gradient(135deg,var(--p),var(--pd));padding:13px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:200;}
+.bar-ico{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.bar-ico svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;}
+.bar-title{flex:1;min-width:0;}
+.bar-title .n1{font-size:15px;font-weight:800;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bar-title .n2{font-size:11px;color:rgba(255,255,255,.75);}
+.bar-out{height:34px;padding:0 12px;border:none;border-radius:10px;background:rgba(255,255,255,.18);color:#fff;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;}
+
+.tabs{display:flex;background:#fff;border-bottom:1px solid #eaecf0;position:sticky;top:60px;z-index:190;overflow-x:auto;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex-shrink:0;padding:12px 13px;font-size:13px;font-weight:700;color:var(--s);cursor:pointer;border:none;background:none;position:relative;white-space:nowrap;display:flex;align-items:center;gap:5px;}
+.tab.on{color:var(--p);}
+.tab.on::after{content:'';position:absolute;bottom:-1px;left:15%;right:15%;height:3px;background:var(--p);border-radius:3px 3px 0 0;}
+.tab .cnt{background:var(--r);color:#fff;font-size:9.5px;font-weight:800;border-radius:20px;padding:1px 5px;margin-left:2px;}
+
+.page{display:none;padding:14px 16px 60px;animation:fadeIn .18s ease-out;}
+.page.on{display:block;}
+
+.card{background:#fff;border-radius:14px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.05);margin-bottom:12px;}
+.stitle{font-size:12px;font-weight:800;color:var(--p);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--g);display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.lbl{font-size:12px;font-weight:800;color:var(--s);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+.hint{font-size:11px;color:var(--s);margin-top:4px;line-height:1.5;}
+
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.stat{background:#fff;border-radius:14px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.05);display:flex;flex-direction:column;gap:2px;}
+.stat .sv{font-size:21px;font-weight:900;color:var(--t);}
+.stat .sl{font-size:11px;color:var(--s);font-weight:700;}
+.stat.p .sv{color:var(--p);} .stat.g .sv{color:var(--gn);} .stat.o .sv{color:var(--o);} .stat.pu .sv{color:var(--pu);} .stat.r .sv{color:var(--r);}
+
+.filter-row{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px;}
+.filter-row::-webkit-scrollbar{display:none;}
+.fchip{flex-shrink:0;padding:7px 13px;border-radius:20px;font-size:12px;font-weight:700;color:var(--s);background:var(--g);cursor:pointer;border:1.5px solid transparent;white-space:nowrap;}
+.fchip.on{background:var(--pl);color:var(--p);border-color:var(--p);}
+
+.row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #f5f6f8;cursor:pointer;}
+.row:last-child{border-bottom:none;}
+.row .ri{width:36px;height:36px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--pl);}
+.row .ri svg{stroke:var(--p);}
+.row .rb{flex:1;min-width:0;}
+.row .rn{font-size:13.5px;font-weight:700;color:var(--t);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.row .rs{font-size:11.5px;color:var(--s);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.badge{font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:20px;flex-shrink:0;white-space:nowrap;}
+.b-gn{background:var(--gnl);color:var(--gn);} .b-r{background:var(--rl);color:var(--r);} .b-o{background:var(--ol);color:var(--o);} .b-gr{background:#f1f5f9;color:var(--s);} .b-pl{background:var(--pl);color:var(--p);} .b-pu{background:var(--pul);color:var(--pu);}
+
+.empty{text-align:center;padding:30px 10px;color:var(--s);font-size:13px;display:flex;flex-direction:column;align-items:center;gap:10px;}
+.empty svg{stroke:#cbd5e1;width:36px;height:36px;}
+
+.btn2{height:40px;padding:0 16px;border-radius:12px;font-size:13px;font-weight:800;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:6px;justify-content:center;}
+.btn-pri{background:var(--p);color:#fff;}
+.btn-ol{background:#fff;border:2px solid var(--p);color:var(--p);}
+.btn-gn{background:var(--gn);color:#fff;}
+.btn-r{background:var(--r);color:#fff;}
+.btn-o{background:var(--o);color:#fff;}
+.btn-sm{height:32px;padding:0 10px;font-size:11.5px;}
+.btn-block{width:100%;height:48px;border-radius:12px;}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;}
+
+#hqMap{width:100%;height:320px;border-radius:14px;overflow:hidden;margin-bottom:10px;background:#e2e8f0;}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--s);margin-bottom:8px;}
+.legend span{display:inline-flex;align-items:center;gap:5px;}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0;}
+
+.modal-ov{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:500;display:none;align-items:flex-end;justify-content:center;}
+.modal-ov.on{display:flex;}
+@media(min-width:640px){.modal-ov{align-items:center;}}
+.modal-sh{background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;padding:18px 18px 26px;animation:fadeIn .18s ease-out;}
+@media(min-width:640px){.modal-sh{border-radius:22px;}}
+.modal-sh .mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.modal-sh .mh h3{font-size:16px;font-weight:800;color:var(--t);}
+.modal-sh .mx{width:30px;height:30px;border-radius:50%;background:var(--g);border:none;color:var(--s);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+
+.detail-kv{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #f5f6f8;font-size:12.5px;}
+.detail-kv:last-child{border-bottom:none;}
+.detail-kv .k{color:var(--s);font-weight:700;}
+.detail-kv .v{color:var(--t);font-weight:700;text-align:right;}
+
+.toastwrap{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;gap:8px;}
+.tst{padding:10px 16px;border-radius:12px;font-size:13px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px;box-shadow:0 4px 14px rgba(0,0,0,.15);animation:fadeIn .2s;}
+.tst.ok{background:var(--gn);} .tst.er{background:var(--r);} .tst.in{background:var(--p);}
+
+.hist-item{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid #f5f6f8;}
+.hist-item:last-child{border-bottom:none;}
+.hist-ico{width:32px;height:32px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.hist-tt{font-size:13px;font-weight:700;color:var(--t);}
+.hist-dd{font-size:11.5px;color:var(--s);margin-top:1px;}
+.hist-tm{font-size:10.5px;color:#94a3b8;margin-top:3px;}
+</style>
+</head>
+<body>
+
+<div id="toastwrap" class="toastwrap"></div>
+
+<!-- ============ AUTH GATE ============ -->
+<div id="authGate">
+  <div class="ag-box">
+    <div class="ag-logo">
+      <div class="t1">Nimit Delivery</div>
+      <div class="t2">หลังบ้านระบบแฟรนไชส์ (สำหรับ HQ)</div>
+    </div>
+    <div class="ag-card">
+      <div id="authChecking" class="ag-checking" style="display:none">
+        <div class="spn"></div>
+        <div style="font-size:13px;color:var(--s);font-weight:600">กำลังตรวจสอบสิทธิ์...</div>
+      </div>
+      <div id="authBody">
+        <label>อีเมล</label>
+        <input id="authEmail" type="email" placeholder="you@email.com" autocomplete="username">
+        <label>รหัสผ่าน</label>
+        <input id="authPassword" type="password" placeholder="********" autocomplete="current-password">
+        <div id="authError" class="ag-msg err"></div>
+        <button class="pri" onclick="doHqLogin()">เข้าสู่ระบบ</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app" style="display:none">
+  <div class="bar">
+    <div class="bar-ico"><svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+    <div class="bar-title">
+      <div class="n1">หลังบ้านระบบแฟรนไชส์</div>
+      <div class="n2" id="hqEmail">-</div>
+    </div>
+    <button class="bar-out" onclick="doHqLogout()">ออก</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" onclick="showTab('overview')"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="10" width="3" height="10"/><rect x="10.5" y="5" width="3" height="15"/><rect x="17" y="13" width="3" height="7"/></svg> ภาพรวม</button>
+    <button class="tab" onclick="showTab('apps')"><svg class="ic" viewBox="0 0 24 24"><path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg> ใบสมัคร<span class="cnt" id="cntApps" style="display:none">0</span></button>
+    <button class="tab" onclick="showTab('franchises')"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10l1 4H6l1-4zm-2 6h14l-1 9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2l-1-9z"/></svg> แฟรนไชส์</button>
+    <button class="tab" onclick="showTab('zones')"><svg class="ic" viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg> แผนที่เขต<span class="cnt" id="cntZones" style="display:none">0</span></button>
+    <button class="tab" onclick="showTab('links')"><svg class="ic" viewBox="0 0 24 24"><path d="M9 15l6-6"/><path d="M10 6l1-1a3.5 3.5 0 0 1 5 5l-1 1"/><path d="M14 18l-1 1a3.5 3.5 0 0 1-5-5l1-1"/></svg> ผูกร้าน<span class="cnt" id="cntLinks" style="display:none">0</span></button>
+    <button class="tab" onclick="showTab('payouts')"><svg class="ic" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M16 12h.01"/><path d="M2 10h20"/></svg> เบิกจ่าย<span class="cnt" id="cntPayouts" style="display:none">0</span></button>
+    <button class="tab" onclick="showTab('history')"><svg class="ic" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 3v5h5"/><path d="M12 7v5l3 3"/></svg> ประวัติทั้งหมด</button>
+  </div>
+
+  <!-- ===== OVERVIEW ===== -->
+  <div class="page on" id="page-overview">
+    <div class="stat-grid">
+      <div class="stat p"><div class="sv" id="ovFranchises">-</div><div class="sl">แฟรนไชส์ทั้งหมด</div></div>
+      <div class="stat g"><div class="sv" id="ovActive">-</div><div class="sl">ใช้งานอยู่</div></div>
+      <div class="stat o"><div class="sv" id="ovPendingApps">-</div><div class="sl">ใบสมัครรอตรวจสอบ</div></div>
+      <div class="stat r"><div class="sv" id="ovPendingZones">-</div><div class="sl">เขตรออนุมัติ</div></div>
+      <div class="stat pu"><div class="sv" id="ovShops">-</div><div class="sl">ร้านค้าที่ผูกแล้วทั้งหมด</div></div>
+      <div class="stat g"><div class="sv" id="ovGmv">-</div><div class="sl">ยอดขายเครือข่ายเดือนนี้ (บาท)</div></div>
+    </div>
+    <div class="card">
+      <div class="stitle">ต้องดำเนินการ</div>
+      <div id="ovActionList"><div class="empty">กำลังโหลด...</div></div>
+    </div>
+  </div>
+
+  <!-- ===== APPLICATIONS ===== -->
+  <div class="page" id="page-apps">
+    <div class="filter-row" id="appFilterRow">
+      <div class="fchip on" data-f="pending">รอตรวจสอบ</div>
+      <div class="fchip" data-f="contacted">ติดต่อแล้ว</div>
+      <div class="fchip" data-f="approved">อนุมัติแล้ว</div>
+      <div class="fchip" data-f="rejected">ปฏิเสธ</div>
+      <div class="fchip" data-f="all">ทั้งหมด</div>
+    </div>
+    <div class="card"><div id="appsList"><div class="empty">กำลังโหลด...</div></div></div>
+  </div>
+
+  <!-- ===== FRANCHISES ===== -->
+  <div class="page" id="page-franchises">
+    <div class="card"><div id="franchisesList"><div class="empty">กำลังโหลด...</div></div></div>
+  </div>
+
+  <!-- ===== ZONES / MASTER MAP ===== -->
+  <div class="page" id="page-zones">
+    <div class="card">
+      <div class="stitle">แผนที่เขตพื้นที่ทั้งหมด</div>
+      <div class="legend">
+        <span><i class="dot" style="background:#16a34a"></i>อนุมัติแล้ว</span>
+        <span><i class="dot" style="background:#ea580c"></i>รออนุมัติ</span>
+      </div>
+      <div id="hqMap"></div>
+      <div class="hint">แตะที่รูปเขตบนแผนที่เพื่อดูว่าเป็นของแฟรนไชส์ใด ใช้ตรวจสอบการทับซ้อนของพื้นที่ก่อนอนุมัติ</div>
+    </div>
+    <div class="card">
+      <div class="stitle">คำขออนุมัติเขตพื้นที่</div>
+      <div id="zoneReqList"><div class="empty">ไม่มีคำขอค้าง</div></div>
+    </div>
+  </div>
+
+  <!-- ===== LINK REQUESTS ===== -->
+  <div class="page" id="page-links">
+    <div class="card"><div id="linkReqList"><div class="empty">กำลังโหลด...</div></div></div>
+  </div>
+
+  <!-- ===== PAYOUT REQUESTS ===== -->
+  <div class="page" id="page-payouts">
+    <div class="card"><div id="payoutReqList"><div class="empty">กำลังโหลด...</div></div></div>
+  </div>
+
+  <!-- ===== HISTORY (รวมทุกอย่าง) ===== -->
+  <div class="page" id="page-history">
+    <div class="filter-row" id="histFilterRow">
+      <div class="fchip on" data-f="all">ทั้งหมด</div>
+      <div class="fchip" data-f="application">ใบสมัคร</div>
+      <div class="fchip" data-f="zone">เขตพื้นที่</div>
+      <div class="fchip" data-f="link">ผูกร้าน</div>
+      <div class="fchip" data-f="payout">เบิกจ่าย</div>
+      <div class="fchip" data-f="staff">ทีมงาน</div>
+    </div>
+    <div class="card">
+      <div class="stitle">ประวัติกิจกรรมทั้งระบบแฟรนไชส์<button class="btn2 btn-ol btn-sm" onclick="loadHistory()">โหลดใหม่</button></div>
+      <div id="historyList"><div class="empty">กำลังโหลด...</div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============ MODALS ============ -->
+<div class="modal-ov" id="modalAppDetail">
+  <div class="modal-sh">
+    <div class="mh"><h3>รายละเอียดใบสมัคร</h3><button class="mx" onclick="closeModal('modalAppDetail')"><svg class="ic" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div id="appDetailBody"></div>
+  </div>
+</div>
+
+<div class="modal-ov" id="modalApprove">
+  <div class="modal-sh">
+    <div class="mh"><h3>อนุมัติและออกบัญชีแฟรนไชส์</h3><button class="mx" onclick="closeModal('modalApprove')"><svg class="ic" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="hint" style="margin-bottom:12px">ระบบจะสร้างบัญชีผู้ใช้และส่งลิงก์ตั้งรหัสผ่านไปที่อีเมลผู้สมัคร</div>
+    <label>ชื่อแฟรนไชส์/สาขา</label>
+    <input id="apvName">
+    <label>อีเมลเจ้าของบัญชี</label>
+    <input id="apvEmail" type="email" disabled style="background:var(--g);color:var(--s)">
+    <label>จังหวัด/พื้นที่หลัก</label>
+    <input id="apvProvince">
+    <label>เบอร์ติดต่อ</label>
+    <input id="apvPhone">
+    <label>อัตราคอมมิชชั่น (%)</label>
+    <input id="apvCommission" type="number" value="10">
+    <div id="apvMsg" class="ag-msg err"></div>
+    <button class="btn2 btn-gn btn-block" onclick="confirmApprove()">ยืนยันอนุมัติและออกบัญชี</button>
+  </div>
+</div>
+
+<div class="modal-ov" id="modalFranchiseDetail">
+  <div class="modal-sh">
+    <div class="mh"><h3 id="fdName">แฟรนไชส์</h3><button class="mx" onclick="closeModal('modalFranchiseDetail')"><svg class="ic" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div id="fdBody"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, query, where, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendSignInLinkToEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+// ============================================================
+// หน้านี้คือหลังบ้าน HQ สำหรับระบบแฟรนไชส์ทั้งหมด (ดูคู่กับ franchise-dashboard.html ฝั่งเจ้าของแฟรนไชส์)
+// เข้าได้เฉพาะบัญชีใน admins ที่ role ไม่ขึ้นต้นด้วย 'franchise' (เช่น 'owner','admin' ที่มีอยู่เดิม)
+// รวม collection: franchiseApplications, franchises, franchiseLinkRequests, franchisePayoutRequests, admins, shops
+// แท็บ "ประวัติทั้งหมด" รวมข้อมูลจากทุก collection ที่มี createdAt มาเรียงตามเวลาให้ในที่เดียว
+// ============================================================
+
+const fbApp = initializeApp({
+  apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
+  authDomain:"nimit-delivery.firebaseapp.com",
+  projectId:"nimit-delivery",
+  storageBucket:"nimit-delivery.firebasestorage.app",
+  messagingSenderId:"233476256130",
+  appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
+});
+const db = getFirestore(fbApp);
+const auth = getAuth(fbApp);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const money=n=>Number(n||0).toLocaleString('th-TH',{maximumFractionDigits:0});
+function timeAgo(d){
+  if(!d) return '-';
+  const diff=(Date.now()-d.getTime())/1000;
+  if(diff<60) return 'เมื่อสักครู่';
+  if(diff<3600) return Math.floor(diff/60)+' นาทีที่แล้ว';
+  if(diff<86400) return Math.floor(diff/3600)+' ชั่วโมงที่แล้ว';
+  if(diff<86400*30) return Math.floor(diff/86400)+' วันที่แล้ว';
+  return d.toLocaleDateString('th-TH');
+}
+function toDate(ts){ return ts && ts.toDate ? ts.toDate() : null; }
+
+function toast(msg,type){
+  const el=document.createElement('div');el.className='tst '+(type||'in');
+  el.innerHTML='<span>'+esc(msg)+'</span>';
+  $('toastwrap').appendChild(el);setTimeout(()=>el.remove(),2800);
+}
+window.openModal=id=>{$(id).classList.add('on');};
+window.closeModal=id=>{$(id).classList.remove('on');};
+
+// ===== LOGIN =====
+window.doHqLogin=async function(){
+  const email=$('authEmail').value.trim().toLowerCase(), pw=$('authPassword').value;
+  const errEl=$('authError'); errEl.textContent='';
+  if(!email||!pw){ errEl.textContent='กรุณากรอกอีเมลและรหัสผ่าน'; return; }
+  $('authBody').style.display='none'; $('authChecking').style.display='flex';
+  try{ await signInWithEmailAndPassword(auth,email,pw); }
+  catch(e){
+    $('authChecking').style.display='none'; $('authBody').style.display='block';
+    if(['auth/invalid-credential','auth/wrong-password','auth/user-not-found'].includes(e.code)) errEl.textContent='อีเมลหรือรหัสผ่านไม่ถูกต้อง';
+    else errEl.textContent='เข้าสู่ระบบไม่สำเร็จ: '+e.message;
+  }
+};
+window.doHqLogout=async function(){ try{await signOut(auth);}catch(e){} location.reload(); };
+
+let CUR={email:null,role:null};
+
+onAuthStateChanged(auth, async(user)=>{
+  if(!user){ $('app').style.display='none'; $('authGate').style.display='flex'; $('authChecking').style.display='none'; $('authBody').style.display='block'; return; }
+  $('authBody').style.display='none'; $('authChecking').style.display='flex';
+  const email=(user.email||'').toLowerCase();
+  try{
+    const snap=await getDoc(doc(db,'admins',email));
+    const isHqRole = snap.exists() && !(snap.data().role||'').startsWith('franchise');
+    if(!snap.exists() || snap.data().status!=='active' || !isHqRole){
+      await signOut(auth);
+      $('authChecking').style.display='none'; $('authBody').style.display='block';
+      $('authError').textContent='บัญชีนี้ไม่มีสิทธิ์เข้าหลังบ้าน HQ (ต้องเป็นบัญชีผู้ดูแลระบบส่วนกลาง)';
+      return;
+    }
+    CUR.email=email; CUR.role=snap.data().role;
+    $('hqEmail').textContent=email+' · '+CUR.role;
+    $('authChecking').style.display='none';
+    $('app').style.display='block'; $('authGate').style.display='none';
+    window.__startHq();
+  }catch(e){
+    $('authChecking').style.display='none'; $('authBody').style.display='block';
+    $('authError').textContent='ตรวจสอบสิทธิ์ไม่สำเร็จ: '+e.message;
+  }
+});
+
+// ===== TABS =====
+window.showTab=function(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id==='page-'+id));
+  document.querySelectorAll('.tabs .tab').forEach(t=>t.classList.remove('on'));
+  const order=['overview','apps','franchises','zones','links','payouts','history'];
+  const idx=order.indexOf(id); const tabs=document.querySelectorAll('.tabs .tab');
+  if(tabs[idx]) tabs[idx].classList.add('on');
+  if(id==='zones') setTimeout(()=>{ if(hqMapObj) hqMapObj.invalidateSize(); },80);
+  if(id==='history' && !historyLoaded) loadHistory();
+};
+
+// ===== DATA CACHES =====
+let ALL={applications:[],franchises:[],linkReqs:[],payoutReqs:[],shops:[],admins:[]};
+
+async function fetchAll(){
+  const [appsSnap,franSnap,linkSnap,poSnap,shopSnap,adminSnap]=await Promise.all([
+    getDocs(collection(db,'franchiseApplications')),
+    getDocs(collection(db,'franchises')),
+    getDocs(collection(db,'franchiseLinkRequests')),
+    getDocs(collection(db,'franchisePayoutRequests')),
+    getDocs(collection(db,'shops')),
+    getDocs(collection(db,'admins')),
+  ]);
+  ALL.applications=appsSnap.docs.map(d=>({id:d.id,...d.data()}));
+  ALL.franchises=franSnap.docs.map(d=>({id:d.id,...d.data()}));
+  ALL.linkReqs=linkSnap.docs.map(d=>({id:d.id,...d.data()}));
+  ALL.payoutReqs=poSnap.docs.map(d=>({id:d.id,...d.data()}));
+  ALL.shops=shopSnap.docs.map(d=>({id:d.id,...d.data()}));
+  ALL.admins=adminSnap.docs.map(d=>({email:d.id,...d.data()})).filter(a=>(a.role||'').startsWith('franchise'));
+}
+
+window.__startHq=async function(){
+  await fetchAll();
+  loadOverview();
+  loadApps();
+  loadFranchises();
+  initHqMapOnce();
+  loadZoneRequests();
+  loadLinkRequests();
+  loadPayoutRequests();
+};
+
+// ===== OVERVIEW =====
+function loadOverview(){
+  const active=ALL.franchises.filter(f=>f.status==='active');
+  const pendingApps=ALL.applications.filter(a=>(a.status||'pending')==='pending');
+  const pendingZones=ALL.franchises.filter(f=>f.zoneStatus==='pending');
+  const linkedShops=ALL.shops.filter(s=>s.franchiseId);
+  $('ovFranchises').textContent=ALL.franchises.length;
+  $('ovActive').textContent=active.length;
+  $('ovPendingApps').textContent=pendingApps.length;
+  $('ovPendingZones').textContent=pendingZones.length;
+  $('ovShops').textContent=linkedShops.length;
+  $('ovGmv').textContent='-';
+
+  const pendingLinks=ALL.linkReqs.filter(r=>r.status==='pending');
+  const pendingPayouts=ALL.payoutReqs.filter(r=>r.status==='pending');
+  const acts=[];
+  if(pendingApps.length) acts.push({t:'ใบสมัครแฟรนไชส์รอตรวจสอบ',n:pendingApps.length,tab:'apps',cls:'b-o'});
+  if(pendingZones.length) acts.push({t:'คำขออนุมัติเขตพื้นที่',n:pendingZones.length,tab:'zones',cls:'b-r'});
+  if(pendingLinks.length) acts.push({t:'คำขอผูกร้านค้ารอตรวจสอบ',n:pendingLinks.length,tab:'links',cls:'b-o'});
+  if(pendingPayouts.length) acts.push({t:'คำขอเบิกจ่ายรอตรวจสอบ',n:pendingPayouts.length,tab:'payouts',cls:'b-o'});
+  $('ovActionList').innerHTML = acts.length ? acts.map(a=>`
+    <div class="row" onclick="showTab('${a.tab}')"><div class="rb"><div class="rn">${esc(a.t)}</div></div><span class="badge ${a.cls}">${a.n} รายการ</span></div>`).join('')
+    : '<div class="empty">ไม่มีรายการค้างดำเนินการ</div>';
+
+  setCnt('cntApps',pendingApps.length); setCnt('cntZones',pendingZones.length);
+  setCnt('cntLinks',pendingLinks.length); setCnt('cntPayouts',pendingPayouts.length);
+}
+function setCnt(id,n){ const el=$(id); if(n>0){el.style.display='inline-block';el.textContent=n;} else el.style.display='none'; }
+
+// ===== APPLICATIONS =====
+let appFilter='pending';
+document.getElementById('appFilterRow').addEventListener('click',e=>{
+  const chip=e.target.closest('.fchip'); if(!chip) return;
+  document.querySelectorAll('#appFilterRow .fchip').forEach(c=>c.classList.remove('on'));
+  chip.classList.add('on'); appFilter=chip.dataset.f; renderApps();
+});
+function loadApps(){ renderApps(); }
+function renderApps(){
+  const list = appFilter==='all' ? ALL.applications : ALL.applications.filter(a=>(a.status||'pending')===appFilter);
+  list.sort((a,b)=>(toDate(b.createdAt)?.getTime()||0)-(toDate(a.createdAt)?.getTime()||0));
+  const statusLabel={pending:'รอตรวจสอบ',contacted:'ติดต่อแล้ว',approved:'อนุมัติแล้ว',rejected:'ปฏิเสธ'};
+  const statusCls={pending:'b-o',contacted:'b-pl',approved:'b-gn',rejected:'b-r'};
+  $('appsList').innerHTML = list.length ? list.map(a=>`
+    <div class="row" onclick="openAppDetail('${a.id}')">
+      <div class="ri"><svg class="ic-md" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.3"/><path d="M2 20c0-3.3 3.1-5.5 7-5.5s7 2.2 7 5.5M14.5 14.8c2.8.4 4.5 2.2 4.5 5.2"/></svg></div>
+      <div class="rb"><div class="rn">${esc(a.name||'-')}</div><div class="rs">${esc(a.province||'ไม่ระบุพื้นที่')} · ${esc(a.phone||'-')}</div></div>
+      <span class="badge ${statusCls[a.status||'pending']}">${statusLabel[a.status||'pending']}</span>
+    </div>`).join('') : '<div class="empty">ไม่มีใบสมัครในหมวดนี้</div>';
+}
+let curAppId=null;
+window.openAppDetail=function(id){
+  const a=ALL.applications.find(x=>x.id===id); if(!a) return;
+  curAppId=id;
+  const statusLabel={pending:'รอตรวจสอบ',contacted:'ติดต่อแล้ว',approved:'อนุมัติแล้ว',rejected:'ปฏิเสธ'};
+  $('appDetailBody').innerHTML=`
+    <div class="detail-kv"><div class="k">ชื่อผู้สมัคร</div><div class="v">${esc(a.name)}</div></div>
+    <div class="detail-kv"><div class="k">เบอร์โทร</div><div class="v">${esc(a.phone)}</div></div>
+    <div class="detail-kv"><div class="k">อีเมล</div><div class="v">${esc(a.email)}</div></div>
+    <div class="detail-kv"><div class="k">ไลน์ไอดี</div><div class="v">${esc(a.lineId||'-')}</div></div>
+    <div class="detail-kv"><div class="k">พื้นที่ที่สนใจ</div><div class="v">${esc(a.province)}</div></div>
+    <div class="detail-kv"><div class="k">งบลงทุน</div><div class="v">${esc(a.budget||'-')}</div></div>
+    <div class="detail-kv"><div class="k">ประสบการณ์</div><div class="v">${esc(a.experience||'-')}</div></div>
+    <div class="detail-kv"><div class="k">แพ็กเกจที่สนใจ</div><div class="v">${esc(a.packageInterest||'-')}</div></div>
+    <div class="detail-kv"><div class="k">สถานะ</div><div class="v">${statusLabel[a.status||'pending']}</div></div>
+    <div class="detail-kv"><div class="k">ข้อความ</div><div class="v">${esc(a.message||'-')}</div></div>
+    <div class="btnrow" style="margin-top:14px">
+      <button class="btn2 btn-ol" onclick="setAppStatus('contacted')">ทำเครื่องหมายติดต่อแล้ว</button>
+      <button class="btn2 btn-r" onclick="setAppStatus('rejected')">ปฏิเสธ</button>
+      <button class="btn2 btn-gn" onclick="openApproveModal()">อนุมัติ + ออกบัญชี</button>
+    </div>`;
+  openModal('modalAppDetail');
+};
+window.setAppStatus=async function(status){
+  if(!curAppId) return;
+  try{
+    await updateDoc(doc(db,'franchiseApplications',curAppId),{status});
+    const a=ALL.applications.find(x=>x.id===curAppId); if(a) a.status=status;
+    closeModal('modalAppDetail'); renderApps(); loadOverview();
+    toast('อัปเดตสถานะใบสมัครแล้ว','ok');
+  }catch(e){ toast('อัปเดตไม่สำเร็จ: '+e.message,'er'); }
+};
+window.openApproveModal=function(){
+  const a=ALL.applications.find(x=>x.id===curAppId); if(!a) return;
+  $('apvName').value=a.name||'';
+  $('apvEmail').value=a.email||'';
+  $('apvProvince').value=a.province||'';
+  $('apvPhone').value=a.phone||'';
+  $('apvCommission').value=10;
+  $('apvMsg').textContent='';
+  closeModal('modalAppDetail');
+  openModal('modalApprove');
+};
+window.confirmApprove=async function(){
+  const email=$('apvEmail').value.trim().toLowerCase();
+  const name=$('apvName').value.trim(), province=$('apvProvince').value.trim(), phone=$('apvPhone').value.trim();
+  const commission=parseFloat($('apvCommission').value)||0;
+  const errEl=$('apvMsg'); errEl.textContent='';
+  if(!email||!name){ errEl.textContent='กรอกชื่อและอีเมลให้ครบ'; return; }
+  try{
+    const existing=await getDoc(doc(db,'admins',email));
+    if(existing.exists() && existing.data().status==='active'){ errEl.textContent='อีเมลนี้มีบัญชีที่ใช้งานอยู่แล้ว'; return; }
+    const franRef=doc(collection(db,'franchises'));
+    await setDoc(franRef,{
+      name,ownerEmail:email,phone,province,logoUrl:'',commissionPercent:commission,
+      status:'active',zone:[],zoneStatus:'none',devAccess:false,createdAt:serverTimestamp()
+    });
+    await setDoc(doc(db,'admins',email),{
+      email,role:'franchise_owner',status:'pending_verification',franchiseId:franRef.id,
+      approvedBy:CUR.email,createdAt:serverTimestamp()
+    });
+    if(curAppId) await updateDoc(doc(db,'franchiseApplications',curAppId),{status:'approved'});
+    try{ await sendSignInLinkToEmail(auth,email,{url:window.location.origin+'/admin-setup.html',handleCodeInApp:true}); }catch(e){}
+    closeModal('modalApprove');
+    toast('อนุมัติและออกบัญชีแฟรนไชส์ให้ '+email+' แล้ว','ok');
+    await fetchAll(); loadOverview(); renderApps(); loadFranchises();
+  }catch(e){ errEl.textContent='ดำเนินการไม่สำเร็จ: '+e.message; }
+};
+
+// ===== FRANCHISES LIST =====
+function loadFranchises(){
+  const zoneCls={none:'b-gr',pending:'b-o',approved:'b-gn',rejected:'b-r'};
+  const zoneLbl={none:'ยังไม่กำหนดเขต',pending:'เขตรออนุมัติ',approved:'เขตอนุมัติแล้ว',rejected:'เขตถูกปฏิเสธ'};
+  $('franchisesList').innerHTML = ALL.franchises.length ? ALL.franchises.map(f=>{
+    const shopCount=ALL.shops.filter(s=>s.franchiseId===f.id).length;
+    return `<div class="row" onclick="openFranchiseDetail('${f.id}')">
+      <div class="ri"><svg class="ic-md" viewBox="0 0 24 24"><path d="M7 4h10l1 4H6l1-4zm-2 6h14l-1 9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2l-1-9z"/></svg></div>
+      <div class="rb"><div class="rn">${esc(f.name||'แฟรนไชส์')}</div><div class="rs">${esc(f.province||'ไม่ระบุพื้นที่')} · ${shopCount} ร้าน · คอมมิชชั่น ${f.commissionPercent??0}%</div></div>
+      <span class="badge ${zoneCls[f.zoneStatus||'none']}">${zoneLbl[f.zoneStatus||'none']}</span>
+    </div>`;
+  }).join('') : '<div class="empty">ยังไม่มีแฟรนไชส์ในระบบ</div>';
+}
+window.openFranchiseDetail=function(id){
+  const f=ALL.franchises.find(x=>x.id===id); if(!f) return;
+  const shops=ALL.shops.filter(s=>s.franchiseId===id);
+  const staff=ALL.admins.filter(a=>a.franchiseId===id);
+  $('fdName').textContent=f.name||'แฟรนไชส์';
+  $('fdBody').innerHTML=`
+    <div class="detail-kv"><div class="k">เจ้าของบัญชี</div><div class="v">${esc(f.ownerEmail)}</div></div>
+    <div class="detail-kv"><div class="k">จังหวัด/พื้นที่</div><div class="v">${esc(f.province||'-')}</div></div>
+    <div class="detail-kv"><div class="k">เบอร์ติดต่อ</div><div class="v">${esc(f.phone||'-')}</div></div>
+    <div class="detail-kv"><div class="k">สถานะเขตพื้นที่</div><div class="v">${esc(f.zoneStatus||'none')}${f.zone&&f.zone.length?' ('+f.zone.length+' จุด)':''}</div></div>
+    <div class="detail-kv"><div class="k">ร้านค้าในเครือ</div><div class="v">${shops.length} ร้าน</div></div>
+    <div class="detail-kv"><div class="k">ทีมงาน</div><div class="v">${staff.length} คน</div></div>
+    <div style="margin:14px 0 8px"><label>สถานะบัญชี</label>
+      <select id="fdStatus"><option value="active" ${f.status==='active'?'selected':''}>ใช้งานปกติ</option><option value="suspended" ${f.status==='suspended'?'selected':''}>ระงับการใช้งาน</option></select>
+    </div>
+    <label>อัตราคอมมิชชั่น (%)</label>
+    <input id="fdCommission" type="number" value="${f.commissionPercent??0}">
+    <label>สิทธิ์เข้า Developer Center</label>
+    <select id="fdDevAccess"><option value="false" ${!f.devAccess?'selected':''}>ปิด</option><option value="true" ${f.devAccess?'selected':''}>เปิด</option></select>
+    <div id="fdMsg" class="ag-msg err"></div>
+    <button class="btn2 btn-pri btn-block" onclick="saveFranchiseDetail('${id}')">บันทึกการเปลี่ยนแปลง</button>
+    ${f.zoneStatus==='pending' ? `<div class="btnrow" style="margin-top:10px">
+      <button class="btn2 btn-gn" style="flex:1" onclick="approveZone('${id}')">อนุมัติเขตนี้</button>
+      <button class="btn2 btn-r" style="flex:1" onclick="rejectZone('${id}')">ปฏิเสธเขตนี้</button>
+    </div>` : ''}
+  `;
+  openModal('modalFranchiseDetail');
+};
+window.saveFranchiseDetail=async function(id){
+  const status=$('fdStatus').value, commissionPercent=parseFloat($('fdCommission').value)||0, devAccess=$('fdDevAccess').value==='true';
+  try{
+    await updateDoc(doc(db,'franchises',id),{status,commissionPercent,devAccess});
+    const f=ALL.franchises.find(x=>x.id===id); if(f){ f.status=status; f.commissionPercent=commissionPercent; f.devAccess=devAccess; }
+    closeModal('modalFranchiseDetail'); loadFranchises(); loadOverview();
+    toast('บันทึกข้อมูลแฟรนไชส์แล้ว','ok');
+  }catch(e){ $('fdMsg').textContent='บันทึกไม่สำเร็จ: '+e.message; }
+};
+window.approveZone=async function(id){
+  try{
+    await updateDoc(doc(db,'franchises',id),{zoneStatus:'approved'});
+    const f=ALL.franchises.find(x=>x.id===id); if(f) f.zoneStatus='approved';
+    closeModal('modalFranchiseDetail'); loadFranchises(); loadZoneRequests(); loadOverview(); renderHqMapZones();
+    toast('อนุมัติเขตพื้นที่แล้ว','ok');
+  }catch(e){ toast('ดำเนินการไม่สำเร็จ: '+e.message,'er'); }
+};
+window.rejectZone=async function(id){
+  try{
+    await updateDoc(doc(db,'franchises',id),{zoneStatus:'rejected'});
+    const f=ALL.franchises.find(x=>x.id===id); if(f) f.zoneStatus='rejected';
+    closeModal('modalFranchiseDetail'); loadFranchises(); loadZoneRequests(); loadOverview(); renderHqMapZones();
+    toast('ปฏิเสธเขตพื้นที่แล้ว','in');
+  }catch(e){ toast('ดำเนินการไม่สำเร็จ: '+e.message,'er'); }
+};
+
+// ===== MASTER ZONE MAP =====
+let hqMapObj=null, hqZoneLayer=null;
+function initHqMapOnce(){
+  if(hqMapObj) return;
+  hqMapObj=L.map('hqMap').setView([13.7563,100.5018],6);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'&copy; OpenStreetMap'}).addTo(hqMapObj);
+  hqZoneLayer=L.layerGroup().addTo(hqMapObj);
+  renderHqMapZones();
+}
+function renderHqMapZones(){
+  if(!hqZoneLayer) return;
+  hqZoneLayer.clearLayers();
+  const bounds=[];
+  ALL.franchises.forEach(f=>{
+    if(!f.zone || f.zone.length<3) return;
+    const col = f.zoneStatus==='approved' ? '#16a34a' : (f.zoneStatus==='pending' ? '#ea580c' : '#94a3b8');
+    const poly=L.polygon(f.zone.map(p=>[p.lat,p.lng]),{color:col,fillColor:col,fillOpacity:.18,weight:2}).addTo(hqZoneLayer);
+    poly.bindPopup('<b>'+esc(f.name||'แฟรนไชส์')+'</b><br>'+esc(f.province||'')+'<br>สถานะเขต: '+esc(f.zoneStatus||'none'));
+    f.zone.forEach(p=>bounds.push([p.lat,p.lng]));
+  });
+  if(bounds.length) hqMapObj.fitBounds(bounds,{padding:[20,20]});
+}
+function loadZoneRequests(){
+  const pending=ALL.franchises.filter(f=>f.zoneStatus==='pending');
+  $('zoneReqList').innerHTML = pending.length ? pending.map(f=>`
+    <div class="row"><div class="ri"><svg class="ic-md" viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></div>
+    <div class="rb"><div class="rn">${esc(f.name||'แฟรนไชส์')}</div><div class="rs">${esc(f.province||'-')} · ${f.zone?f.zone.length:0} จุด</div></div>
+    <button class="btn2 btn-gn btn-sm" onclick="approveZone('${f.id}')">อนุมัติ</button></div>`).join('')
+    : '<div class="empty">ไม่มีคำขอค้าง</div>';
+}
+
+// ===== LINK REQUESTS =====
+function loadLinkRequests(){
+  const pending=ALL.linkReqs.filter(r=>r.status==='pending');
+  $('linkReqList').innerHTML = pending.length ? pending.map(r=>{
+    const f=ALL.franchises.find(x=>x.id===r.franchiseId);
+    return `<div class="row"><div class="ri"><svg class="ic-md" viewBox="0 0 24 24"><path d="M7 4h10l1 4H6l1-4zm-2 6h14l-1 9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2l-1-9z"/></svg></div>
+    <div class="rb"><div class="rn">${esc(r.shopName||'ร้านค้า')}</div><div class="rs">ขอผูกเข้า: ${esc(f?f.name:r.franchiseId)}${r.note?' · '+esc(r.note):''}</div></div>
+    <div class="btnrow"><button class="btn2 btn-gn btn-sm" onclick="approveLink('${r.id}')">อนุมัติ</button><button class="btn2 btn-r btn-sm" onclick="rejectLink('${r.id}')">ปฏิเสธ</button></div>
+    </div>`;
+  }).join('') : '<div class="empty">ไม่มีคำขอผูกร้านค้างอยู่</div>';
+}
+window.approveLink=async function(reqId){
+  const r=ALL.linkReqs.find(x=>x.id===reqId); if(!r) return;
+  try{
+    await updateDoc(doc(db,'shops',r.shopId),{franchiseId:r.franchiseId});
+    await updateDoc(doc(db,'franchiseLinkRequests',reqId),{status:'approved'});
+    r.status='approved'; const s=ALL.shops.find(x=>x.id===r.shopId); if(s) s.franchiseId=r.franchiseId;
+    loadLinkRequests(); loadOverview(); loadFranchises();
+    toast('ผูกร้านเข้าแฟรนไชส์เรียบร้อย','ok');
+  }catch(e){ toast('ดำเนินการไม่สำเร็จ: '+e.message,'er'); }
+};
+window.rejectLink=async function(reqId){
+  try{
+    await updateDoc(doc(db,'franchiseLinkRequests',reqId),{status:'rejected'});
+    const r=ALL.linkReqs.find(x=>x.id===reqId); if(r) r.status='rejected';
+    loadLinkRequests(); toast('ปฏิเสธคำขอแล้ว','in');
+  }catch(e){ toast('ดำเนินการไม่สำเร็จ: '+e.message,'er'); }
+};
+
+// ===== PAYOUT REQUESTS =====
+function loadPayoutRequests(){
+  const pending=ALL.payoutReqs.filter(r=>r.status==='pending');
+  $('payoutReqList').innerHTML = pending.length ? pending.map(r=>{
+    const f=ALL.franchises.find(x=>x.id===r.franchiseId);
+    return `<div class="row"><div class="ri"><svg class="ic-md" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M16 12h.01"/><path d="M2 10h20"/></svg></div>
+    <div class="rb"><div class="rn">฿${money(r.amount)} — ${esc(f?f.name:r.franchiseId)}</div><div class="rs">${esc(r.note||'-')}</div></div>
+    <div class="btnrow"><button class="btn2 btn-gn btn-sm" onclick="approvePayout('${r.id}')">อนุมัติ</button><button class="btn2 btn-r btn-sm" onclick="rejectPayout('${r.id}')">ปฏิเสธ</button></div>
+    </div>`;
+  }).join('') : '<div class="empty">ไม่มีคำขอเบิกจ่ายค้างอยู่</div>';
+}
+window.approvePayout=async function(reqId){
+  try{
+    await updateDoc(doc(db,'franchisePayoutRequests',reqId),{status:'approved',approvedBy:CUR.email,approvedAt:serverTimestamp()});
+    const r=ALL.payoutReqs.find(x=>x.id===reqId); if(r) r.status='approved';
+    loadPayoutRequests(); toast('อนุมัติคำขอเบิกจ่ายแล้ว','ok');
+  }catch(e){ toast('ดำเนินการไม่สำเร็จ: '+e.message,'er'); }
+};
+window.rejectPayout=async function(reqId){
+  try{
+    await updateDoc(doc(db,'franchisePayoutRequests',reqId),{status:'rejected'});
+    const r=ALL.payoutReqs.find(x=>x.id===reqId); if(r) r.status='rejected';
+    loadPayoutRequests(); toast('ปฏิเสธคำขอแล้ว','in');
+  }catch(e){ toast('ดำเนินการไม่สำเร็จ: '+e.message,'er'); }
+};
+
+// ===== HISTORY (รวมทุก collection ที่มี createdAt เรียงตามเวลา) =====
+let historyLoaded=false, historyFilter='all', historyItems=[];
+document.getElementById('histFilterRow').addEventListener('click',e=>{
+  const chip=e.target.closest('.fchip'); if(!chip) return;
+  document.querySelectorAll('#histFilterRow .fchip').forEach(c=>c.classList.remove('on'));
+  chip.classList.add('on'); historyFilter=chip.dataset.f; renderHistory();
+});
+window.loadHistory=function(){
+  historyLoaded=true;
+  const items=[];
+  ALL.applications.forEach(a=>items.push({type:'application',icon:'DOC',color:'var(--p)',bg:'var(--pl)',
+    title:'ใบสมัครแฟรนไชส์จาก '+(a.name||'-'), desc:(a.province||'-')+' · สถานะ: '+(a.status||'pending'), t:toDate(a.createdAt)}));
+  ALL.franchises.forEach(f=>{
+    items.push({type:'zone',icon:'STORE',color:'var(--p)',bg:'var(--pl)',
+      title:'สร้างบัญชีแฟรนไชส์ '+(f.name||'-'), desc:(f.province||'-')+' · '+(f.ownerEmail||'-'), t:toDate(f.createdAt)});
+    if(f.zoneStatus && f.zoneStatus!=='none') items.push({type:'zone',icon:'MAP',color:'var(--o)',bg:'var(--ol)',
+      title:'เขตพื้นที่ของ '+(f.name||'-')+' — '+f.zoneStatus, desc:(f.zone?f.zone.length:0)+' จุด', t:toDate(f.createdAt)});
+  });
+  ALL.linkReqs.forEach(r=>{
+    const f=ALL.franchises.find(x=>x.id===r.franchiseId);
+    items.push({type:'link',icon:'LINK',color:'var(--gn)',bg:'var(--gnl)',
+      title:'คำขอผูกร้าน '+(r.shopName||'-')+' — '+(r.status||'pending'), desc:'แฟรนไชส์: '+(f?f.name:r.franchiseId), t:toDate(r.createdAt)});
+  });
+  ALL.payoutReqs.forEach(r=>{
+    const f=ALL.franchises.find(x=>x.id===r.franchiseId);
+    items.push({type:'payout',icon:'WALLET',color:'var(--pu)',bg:'var(--pul)',
+      title:'คำขอเบิกจ่าย ฿'+money(r.amount)+' — '+(r.status||'pending'), desc:'แฟรนไชส์: '+(f?f.name:r.franchiseId), t:toDate(r.createdAt)});
+  });
+  ALL.admins.forEach(a=>{
+    const f=ALL.franchises.find(x=>x.id===a.franchiseId);
+    items.push({type:'staff',icon:'USERS',color:'var(--r)',bg:'var(--rl)',
+      title:'บัญชีทีมงานแฟรนไชส์ '+a.email+' ('+(a.role||'-')+')', desc:'แฟรนไชส์: '+(f?f.name:a.franchiseId||'-')+' · สถานะ: '+(a.status||'-'), t:toDate(a.createdAt)});
+  });
+  historyItems=items.filter(x=>x.t).sort((a,b)=>b.t-a.t);
+  renderHistory();
+};
+const HIST_ICON={
+  DOC:'<path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>',
+  STORE:'<path d="M7 4h10l1 4H6l1-4zm-2 6h14l-1 9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2l-1-9z"/>',
+  MAP:'<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/>',
+  LINK:'<path d="M9 15l6-6"/><path d="M10 6l1-1a3.5 3.5 0 0 1 5 5l-1 1"/><path d="M14 18l-1 1a3.5 3.5 0 0 1-5-5l1-1"/>',
+  WALLET:'<rect x="2" y="6" width="20" height="14" rx="2"/><path d="M16 12h.01"/><path d="M2 10h20"/>',
+  USERS:'<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.3"/><path d="M2 20c0-3.3 3.1-5.5 7-5.5s7 2.2 7 5.5M14.5 14.8c2.8.4 4.5 2.2 4.5 5.2"/>',
+};
+function renderHistory(){
+  const list = historyFilter==='all' ? historyItems : historyItems.filter(x=>x.type===historyFilter);
+  $('historyList').innerHTML = list.length ? list.slice(0,120).map(x=>`
+    <div class="hist-item">
+      <div class="hist-ico" style="background:${x.bg}"><svg class="ic-md" style="color:${x.color}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${HIST_ICON[x.icon]}</svg></div>
+      <div><div class="hist-tt">${esc(x.title)}</div><div class="hist-dd">${esc(x.desc)}</div><div class="hist-tm">${timeAgo(x.t)}</div></div>
+    </div>`).join('') : '<div class="empty">ไม่มีประวัติในหมวดนี้</div>';
+}
+</script>
+</body>
+</html>
