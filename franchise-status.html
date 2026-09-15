@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ตรวจสอบสถานะใบสมัคร - Nimit Delivery</title>
+<style>
+:root{--p:#0c4aa6;--pd:#083570;--pl:#e8f0fe;--g:#f5f6f8;--t:#0f172a;--s:#64748b;--gn:#16a34a;--gnl:#dcfce7;--r:#dc2626;--rl:#fee2e2;--o:#ea580c;--ol:#fff7ed;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
+body{background:var(--g);min-height:100vh;color:var(--t);}
+a{text-decoration:none;color:inherit;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.nav{background:rgba(12,74,166,.97);padding:13px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:150;}
+.nav-back{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;border:none;cursor:pointer;}
+.nav .n1{font-size:14.5px;font-weight:800;color:#fff;}
+.nav .n2{font-size:10.5px;color:rgba(255,255,255,.75);}
+
+.head{background:linear-gradient(160deg,var(--p),var(--pd));padding:30px 20px 56px;text-align:center;color:#fff;}
+.head h1{font-size:19px;font-weight:900;margin-bottom:8px;}
+.head p{font-size:13px;color:rgba(255,255,255,.85);max-width:380px;margin:0 auto;line-height:1.7;}
+
+.wrap{max-width:560px;margin:-34px auto 40px;padding:0 16px;}
+.card{background:#fff;border-radius:22px;padding:22px 20px;box-shadow:0 8px 26px rgba(15,23,42,.08);margin-bottom:14px;}
+
+label{font-size:12.5px;font-weight:700;color:var(--s);margin-bottom:6px;display:block;}
+input{width:100%;height:50px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:14px;margin-bottom:14px;outline:none;}
+input:focus{border-color:var(--p);}
+.btn{width:100%;height:50px;border-radius:15px;font-size:14px;font-weight:800;cursor:pointer;border:none;background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;}
+.msg{font-size:13px;font-weight:600;min-height:18px;margin-bottom:4px;text-align:center;}
+.msg.err{color:var(--r);}
+.hint{font-size:11.5px;color:var(--s);line-height:1.6;margin-top:2px;}
+
+.result-card{animation:fadeIn .2s ease-out;}
+.rc-head{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+.rc-ico{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.rc-name{font-size:15px;font-weight:900;color:var(--t);}
+.rc-sub{font-size:12px;color:var(--s);margin-top:2px;}
+
+.stepper{display:flex;flex-direction:column;gap:0;margin:6px 0 4px;}
+.step-line{display:flex;gap:12px;}
+.step-dotcol{display:flex;flex-direction:column;align-items:center;}
+.step-dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#e2e8f0;color:#94a3b8;}
+.step-dot.done{background:var(--gn);color:#fff;}
+.step-dot.cur{background:var(--p);color:#fff;}
+.step-dot.rej{background:var(--r);color:#fff;}
+.step-bar{width:2px;flex:1;background:#e2e8f0;min-height:26px;}
+.step-bar.done{background:var(--gn);}
+.step-body{padding-bottom:22px;flex:1;}
+.step-title{font-size:13.5px;font-weight:800;color:var(--t);}
+.step-title.muted{color:#94a3b8;}
+.step-desc{font-size:11.5px;color:var(--s);margin-top:2px;line-height:1.6;}
+
+.detail-kv{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #f5f6f8;font-size:12.5px;}
+.detail-kv:last-child{border-bottom:none;}
+.detail-kv .k{color:var(--s);font-weight:700;}
+.detail-kv .v{color:var(--t);font-weight:700;text-align:right;}
+
+.empty{text-align:center;padding:16px 6px;color:var(--s);font-size:13px;}
+.spn{width:28px;height:28px;border:3px solid var(--pl);border-top-color:var(--p);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto;}
+.item-pick{border:1.5px solid #e2e8f0;border-radius:14px;padding:12px 14px;margin-bottom:10px;cursor:pointer;}
+.item-pick:hover{border-color:var(--p);}
+.item-pick .n{font-size:13px;font-weight:800;color:var(--t);}
+.item-pick .d{font-size:11.5px;color:var(--s);margin-top:2px;}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <button class="nav-back" onclick="location.href='franchise.html'"><svg viewBox="0 0 24 24" width="17" height="17"><path d="M15 18l-6-6 6-6" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  <div>
+    <div class="n1">ตรวจสอบสถานะใบสมัคร</div>
+    <div class="n2">Nimit Delivery</div>
+  </div>
+</div>
+
+<div class="head">
+  <h1>ใบสมัครของคุณถึงไหนแล้ว</h1>
+  <p>กรอกเบอร์โทรและอีเมลที่ใช้ตอนสมัคร เพื่อดูสถานะการพิจารณาล่าสุดของทีมงาน HQ</p>
+</div>
+
+<div class="wrap">
+  <div class="card">
+    <label>เบอร์โทรศัพท์ที่ใช้สมัคร</label>
+    <input id="qPhone" type="tel" placeholder="08xxxxxxxx">
+    <label>อีเมลที่ใช้สมัคร</label>
+    <input id="qEmail" type="email" placeholder="you@email.com">
+    <div id="searchMsg" class="msg err"></div>
+    <button class="btn" id="searchBtn" onclick="doSearch()">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      ตรวจสอบสถานะ
+    </button>
+    <div class="hint">ระบบจะค้นหาจากเบอร์โทรและอีเมลที่ตรงกับใบสมัครในระบบ หากกรอกไม่ตรงกับที่เคยสมัครไว้จะไม่พบข้อมูล</div>
+  </div>
+
+  <div id="pickWrap" style="display:none">
+    <div class="card">
+      <div style="font-size:13px;font-weight:800;color:var(--t);margin-bottom:10px">พบใบสมัครมากกว่า 1 รายการ เลือกรายการที่ต้องการดู</div>
+      <div id="pickList"></div>
+    </div>
+  </div>
+
+  <div id="resultWrap" style="display:none"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const fbApp = initializeApp({
+  apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
+  authDomain:"nimit-delivery.firebaseapp.com",
+  projectId:"nimit-delivery",
+  storageBucket:"nimit-delivery.firebasestorage.app",
+  messagingSenderId:"233476256130",
+  appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
+});
+const db = getFirestore(fbApp);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+const ICON_CHECK='<path d="M20 6 9 17l-5-5"/>';
+const ICON_CLOCK='<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>';
+const ICON_X='<path d="M18 6 6 18M6 6l12 12"/>';
+const ICON_PHONE='<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.3"/><path d="M2 20c0-3.3 3.1-5.5 7-5.5s7 2.2 7 5.5M14.5 14.8c2.8.4 4.5 2.2 4.5 5.2"/>';
+const ICON_KEY='<path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>';
+
+window.doSearch=async function(){
+  const phone=$('qPhone').value.trim(), email=$('qEmail').value.trim().toLowerCase();
+  const errEl=$('searchMsg'); errEl.textContent='';
+  $('pickWrap').style.display='none'; $('resultWrap').style.display='none';
+  if(!phone && !email){ errEl.textContent='กรุณากรอกเบอร์โทรหรืออีเมลอย่างน้อยหนึ่งอย่าง'; return; }
+  const btn=$('searchBtn'); btn.disabled=true; btn.innerHTML='<div class="spn" style="width:18px;height:18px;border-width:2px"></div>';
+  try{
+    let results=[];
+    if(phone){
+      const s1=await getDocs(query(collection(db,'franchiseApplications'),where('phone','==',phone)));
+      results=s1.docs.map(d=>({id:d.id,...d.data()}));
+    }
+    if(email){
+      const s2=await getDocs(query(collection(db,'franchiseApplications'),where('email','==',email)));
+      const more=s2.docs.map(d=>({id:d.id,...d.data()}));
+      more.forEach(m=>{ if(!results.find(r=>r.id===m.id)) results.push(m); });
+    }
+    // ถ้ากรอกทั้งสองอย่าง ให้กรองเฉพาะที่ตรงทั้งคู่เพื่อความถูกต้อง
+    if(phone && email) results = results.filter(r=>r.phone===phone && (r.email||'').toLowerCase()===email);
+
+    btn.disabled=false; btn.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+ICON_PHONE.replace(/circle|path/g,m=>m)+'</svg> ตรวจสอบสถานะ';
+    btn.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg> ตรวจสอบสถานะ';
+
+    if(!results.length){ errEl.textContent='ไม่พบใบสมัครที่ตรงกับข้อมูลที่กรอก กรุณาตรวจสอบอีกครั้ง'; return; }
+    results.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+    if(results.length===1){ renderResult(results[0]); return; }
+
+    $('pickList').innerHTML = results.map((r,i)=>`
+      <div class="item-pick" onclick='renderResultFromList(${i})'>
+        <div class="n">${esc(r.province||'ไม่ระบุพื้นที่')}</div>
+        <div class="d">สมัครด้วยชื่อ ${esc(r.name||'-')} · สถานะ: ${esc(r.status||'pending')}</div>
+      </div>`).join('');
+    window.__pickResults=results;
+    $('pickWrap').style.display='block';
+  }catch(e){
+    btn.disabled=false; btn.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg> ตรวจสอบสถานะ';
+    errEl.textContent='ค้นหาไม่สำเร็จ: '+e.message;
+  }
+};
+window.renderResultFromList=function(i){ renderResult(window.__pickResults[i]); };
+
+function renderResult(a){
+  $('pickWrap').style.display='none';
+  const status=a.status||'pending';
+  const steps=[
+    {key:'sent',title:'ส่งใบสมัครแล้ว',desc:'ระบบได้รับใบสมัครของคุณเรียบร้อย'},
+    {key:'contacted',title:'ทีมงานติดต่อกลับ',desc:'ทีมงาน HQ ตรวจสอบและติดต่อกลับเพื่อพูดคุยรายละเอียด'},
+    {key:'final',title: status==='rejected' ? 'ผลการพิจารณา: ไม่ผ่านการอนุมัติ' : 'ผลการพิจารณา: อนุมัติและออกบัญชีแล้ว',
+     desc: status==='rejected' ? 'ขอบคุณที่ให้ความสนใจ ทีมงานอาจติดต่อกลับเพื่อแจ้งรายละเอียดเพิ่มเติม' : 'ทีมงานสร้างบัญชีผู้ใช้ให้แล้วและส่งลิงก์ตั้งรหัสผ่านไปที่อีเมลของคุณ'},
+  ];
+  // สถานะ -> step ปัจจุบัน: pending=0(current), contacted=1(current), approved/rejected=2(current, สีตามผล)
+  const stageIdx = status==='pending' ? 0 : (status==='contacted' ? 1 : 2);
+
+  const rcIcon = status==='approved' ? {bg:'var(--gnl)',col:'var(--gn)',svg:ICON_CHECK}
+    : status==='rejected' ? {bg:'var(--rl)',col:'var(--r)',svg:ICON_X}
+    : {bg:'var(--ol)',col:'var(--o)',svg:ICON_CLOCK};
+
+  let stepperHtml='';
+  steps.forEach((s,i)=>{
+    let dotCls='', dotSvg=ICON_CLOCK;
+    if(i<stageIdx){ dotCls='done'; dotSvg=ICON_CHECK; }
+    else if(i===stageIdx){
+      if(i===2 && status==='rejected'){ dotCls='rej'; dotSvg=ICON_X; }
+      else if(i===2 && status==='approved'){ dotCls='done'; dotSvg=ICON_CHECK; }
+      else { dotCls='cur'; dotSvg=ICON_CLOCK; }
+    }
+    const barDone = i<stageIdx || (i===stageIdx && i===2 && status==='approved');
+    stepperHtml += `<div class="step-line">
+      <div class="step-dotcol">
+        <div class="step-dot ${dotCls}"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${dotSvg}</svg></div>
+        ${i<steps.length-1?`<div class="step-bar ${barDone?'done':''}"></div>`:''}
+      </div>
+      <div class="step-body">
+        <div class="step-title ${i>stageIdx?'muted':''}">${esc(s.title)}</div>
+        <div class="step-desc">${esc(s.desc)}</div>
+      </div>
+    </div>`;
+  });
+
+  $('resultWrap').innerHTML = `
+    <div class="card result-card">
+      <div class="rc-head">
+        <div class="rc-ico" style="background:${rcIcon.bg}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="${rcIcon.col}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${rcIcon.svg}</svg></div>
+        <div><div class="rc-name">${esc(a.province||'ใบสมัครแฟรนไชส์')}</div><div class="rc-sub">ผู้สมัคร: ${esc(a.name||'-')}</div></div>
+      </div>
+      ${stepperHtml}
+    </div>
+    <div class="card">
+      <div class="detail-kv"><div class="k">งบลงทุนที่แจ้งไว้</div><div class="v">${esc(a.budget||'-')}</div></div>
+      <div class="detail-kv"><div class="k">แพ็กเกจที่สนใจ</div><div class="v">${esc(a.packageInterest||'-')}</div></div>
+      <div class="detail-kv"><div class="k">เบอร์โทรที่ใช้สมัคร</div><div class="v">${esc(a.phone||'-')}</div></div>
+    </div>
+    ${status==='approved' ? `<a href="franchise.html" class="btn" style="text-decoration:none;box-sizing:border-box">ไปหน้าเข้าสู่ระบบ</a>` : ''}
+  `;
+  $('resultWrap').style.display='block';
+}
+</script>
+</body>
+</html>
