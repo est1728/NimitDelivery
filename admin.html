@@ -400,6 +400,11 @@ document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
       <div class="sidebar-item-text"><div class="sidebar-item-title">ดีลลับนับถอยหลัง</div><div class="sidebar-item-sub">ตั้งเวลาลดราคาสินค้าแบบ Flash Sale</div></div>
       <div class="sidebar-arrow"><svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></div>
     </button>
+    <button class="sidebar-item" onclick="window.closeSidebar();window.openCouponCreate()">
+      <svg viewBox="0 0 24 24"><path d="M22 10V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v4c1.1 0 2 .9 2 2s-.9 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2zm-9 7.5h-2v-2h2v2zm0-4.5h-2v-2h2v2zm0-4.5h-2v-2h2v2z"/></svg>
+      <div class="sidebar-item-text"><div class="sidebar-item-title">จัดการคูปอง</div><div class="sidebar-item-sub">คูปองส่วนลด/ส่งฟรี ให้ลูกค้าเก็บและใช้ตอนชำระเงิน</div></div>
+      <div class="sidebar-arrow"><svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></div>
+    </button>
     <button class="sidebar-item" onclick="location.href='categories-admin.html'">
       <svg viewBox="0 0 24 24"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg>
       <div class="sidebar-item-text"><div class="sidebar-item-title">จัดการปุ่มหมวดหมู่</div><div class="sidebar-item-sub">ปุ่มหน้าร้าน + ติดแท็กเมนู</div></div>
@@ -2497,6 +2502,99 @@ window.loadFlashList=async function(){
   }).join(''):'<div style="color:#94a3b8;font-size:13px">ยังไม่มีดีล</div>';
 };
 
+/* ===================== คูปอง (percent / fixed / freeship) ===================== */
+// เก็บที่ collection "coupons" — ตอนลูกค้าเก็บคูปอง จะสร้างเอกสารใน "claimedCoupons" แยกต่างหาก
+// (phone, couponId, claimedAt, used, usedAt, usedOrderId) กันคนละบัญชีมาแย่งใช้คูปองเดียวกันซ้ำ
+window.onCouponTypeChange=function(){
+  const t=document.getElementById('cpType').value;
+  document.getElementById('cpValueRow').style.display = t==='freeship' ? 'none' : 'grid';
+  document.getElementById('cpMaxDiscountWrap').style.display = t==='fixed' ? 'none' : 'block';
+  document.getElementById('cpValueLabel').textContent = t==='percent' ? 'ลด (%)' : 'ลด (บาท)';
+};
+window.onCouponScopeChange=function(){
+  document.getElementById('cpShopRow').style.display = document.getElementById('cpScope').value==='shop' ? 'grid' : 'none';
+};
+window.openCouponCreate=function(){
+  document.getElementById('couponCreateSheet').style.display='flex';
+  document.getElementById('cpTitle').value='';
+  document.getElementById('cpType').value='percent';
+  document.getElementById('cpValue').value='';
+  document.getElementById('cpMaxDiscount').value='';
+  document.getElementById('cpMinOrder').value='';
+  document.getElementById('cpScope').value='all';
+  document.getElementById('cpShopId').value='';
+  document.getElementById('cpShopName').value='';
+  document.getElementById('cpEndAt').value='';
+  window.onCouponTypeChange(); window.onCouponScopeChange();
+  window.loadCouponList();
+};
+window.closeCouponCreate=function(){
+  document.getElementById('couponCreateSheet').style.display='none';
+};
+window.saveCoupon=async function(){
+  const title=document.getElementById('cpTitle').value.trim();
+  const type=document.getElementById('cpType').value;
+  const value=parseFloat(document.getElementById('cpValue').value)||0;
+  const maxDiscount=parseFloat(document.getElementById('cpMaxDiscount').value)||0;
+  const minOrderAmount=parseFloat(document.getElementById('cpMinOrder').value)||0;
+  const scope=document.getElementById('cpScope').value;
+  const shopId=scope==='shop'?document.getElementById('cpShopId').value.trim():'';
+  const shopName=scope==='shop'?document.getElementById('cpShopName').value.trim():'';
+  const endAtStr=document.getElementById('cpEndAt').value;
+  if(!title){alert('กรุณาใส่ชื่อคูปอง');return;}
+  if(type!=='freeship' && value<=0){alert('กรุณาใส่มูลค่าส่วนลด');return;}
+  if(scope==='shop' && !shopId){alert('กรุณาใส่ Shop ID ที่ผูกคูปองนี้');return;}
+  if(!endAtStr){alert('กรุณาเลือกเวลาหมดเขต');return;}
+  const endAt=new Date(endAtStr).getTime();
+  if(endAt<=Date.now()){alert('เวลาหมดเขตต้องเป็นอนาคต');return;}
+  const btn=document.getElementById('cpSaveBtn');
+  btn.disabled=true;btn.textContent='กำลังบันทึก...';
+  try{
+    await addDoc(collection(db,'coupons'),{
+      title,type,value,maxDiscount,minOrderAmount,shopId,shopName,endAt,
+      active:true,createdAt:serverTimestamp()
+    });
+    window.loadCouponList();
+    alert('เพิ่มคูปองเรียบร้อย');
+    document.getElementById('cpTitle').value='';
+    document.getElementById('cpValue').value='';
+    document.getElementById('cpMaxDiscount').value='';
+    document.getElementById('cpMinOrder').value='';
+    document.getElementById('cpEndAt').value='';
+  }catch(e){alert('ผิดพลาด: '+e.message);}
+  btn.disabled=false;btn.textContent='เพิ่มคูปอง';
+};
+window.deleteCoupon=async function(id){
+  if(!confirm('ลบคูปองนี้?'))return;
+  await deleteDoc(doc(db,'coupons',id));
+  window.loadCouponList();
+};
+function couponDescText(c){
+  if(c.type==='percent') return `ลด ${c.value}%${c.maxDiscount?` (สูงสุด ฿${c.maxDiscount})`:''}`;
+  if(c.type==='fixed') return `ลด ฿${c.value}`;
+  return 'ส่งฟรี';
+}
+window.loadCouponList=async function(){
+  const el=document.getElementById('couponList');
+  if(!el)return;
+  el.innerHTML='<div style="color:#94a3b8;font-size:13px">กำลังโหลด...</div>';
+  const snap=await getDocs(collection(db,'coupons'));
+  const coupons=[];snap.forEach(d=>coupons.push({id:d.id,...d.data()}));
+  coupons.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  el.innerHTML=coupons.length?coupons.map(c=>{
+    const expired=c.endAt<Date.now();
+    const endTxt=new Date(c.endAt).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'});
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f2f5">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;color:#0f172a">${c.title}</div>
+        <div style="font-size:11px;color:#94a3b8">${couponDescText(c)}${c.minOrderAmount?` · ขั้นต่ำ ฿${c.minOrderAmount}`:''} · ${c.shopId?'🏪 '+(c.shopName||c.shopId):'ทุกร้าน'}</div>
+        <div style="font-size:11px;color:#94a3b8">หมดเขต ${endTxt}${expired?' (หมดอายุแล้ว)':''}</div>
+      </div>
+      <button onclick="window.deleteCoupon('${c.id}')" style="height:30px;padding:0 12px;border:none;border-radius:15px;background:#fee2e2;color:#dc2626;font-size:11px;font-weight:700;cursor:pointer">ลบ</button>
+    </div>`;
+  }).join(''):'<div style="color:#94a3b8;font-size:13px">ยังไม่มีคูปอง</div>';
+};
+
 
 
 
@@ -2830,6 +2928,65 @@ if(localStorage.getItem('fcmTokenSaved_admin')==='1'){
     <div style="border-top:1px solid #f0f2f5;margin-top:16px;padding-top:12px">
       <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:10px">ดีลที่มีอยู่</div>
       <div id="flashList"><div style="color:#94a3b8;font-size:13px">กด "ดีลลับนับถอยหลัง" เพื่อโหลดรายการ</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- COUPON SHEET -->
+<div id="couponCreateSheet" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:200;align-items:flex-end;">
+  <div style="background:#fff;border-radius:24px 24px 0 0;width:100%;padding:20px 20px 44px;max-height:90vh;overflow-y:auto">
+    <div style="width:36px;height:4px;border-radius:2px;background:#e2e8f0;margin:0 auto 14px"></div>
+    <div style="font-size:17px;font-weight:800;color:#0f172a;margin-bottom:14px">เพิ่มคูปอง</div>
+
+    <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">ชื่อคูปอง (ลูกค้าจะเห็นข้อความนี้)</div>
+    <input id="cpTitle" placeholder="เช่น ลด 10% สูงสุด 50 บาท" style="width:100%;height:48px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:14px;margin-bottom:14px;outline:none">
+
+    <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">ประเภทส่วนลด</div>
+    <select id="cpType" onchange="window.onCouponTypeChange()" style="width:100%;height:48px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:14px;margin-bottom:14px;outline:none">
+      <option value="percent">ลดเป็นเปอร์เซ็นต์ (%)</option>
+      <option value="fixed">ลดเป็นจำนวนเงินตายตัว (บาท)</option>
+      <option value="freeship">ส่งฟรี</option>
+    </select>
+
+    <div id="cpValueRow" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div>
+        <div id="cpValueLabel" style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">ลด (%)</div>
+        <input id="cpValue" type="number" placeholder="10" style="width:100%;height:44px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:13px;outline:none">
+      </div>
+      <div id="cpMaxDiscountWrap">
+        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">ลดสูงสุด (บาท)</div>
+        <input id="cpMaxDiscount" type="number" placeholder="50 (เว้นว่าง = ไม่จำกัด)" style="width:100%;height:44px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:13px;outline:none">
+      </div>
+    </div>
+
+    <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">ยอดสั่งซื้อขั้นต่ำ (บาท)</div>
+    <input id="cpMinOrder" type="number" placeholder="0 (เว้นว่าง = ไม่มีขั้นต่ำ)" style="width:100%;height:48px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:14px;margin-bottom:14px;outline:none">
+
+    <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">ใช้ได้ที่ร้านไหน</div>
+    <select id="cpScope" onchange="window.onCouponScopeChange()" style="width:100%;height:48px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:14px;margin-bottom:10px;outline:none">
+      <option value="all">ใช้ได้ทุกร้าน</option>
+      <option value="shop">ผูกกับร้านเดียว</option>
+    </select>
+    <div id="cpShopRow" style="display:none;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">Shop ID</div>
+        <input id="cpShopId" placeholder="Shop ID" style="width:100%;height:44px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:13px;outline:none">
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">ชื่อร้าน</div>
+        <input id="cpShopName" placeholder="ชื่อร้าน" style="width:100%;height:44px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:13px;outline:none">
+      </div>
+    </div>
+
+    <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px">คูปองหมดเขตเมื่อไหร่</div>
+    <input id="cpEndAt" type="datetime-local" style="width:100%;height:48px;border:1.5px solid #e2e8f0;border-radius:14px;padding:0 16px;font-size:14px;margin-bottom:16px;outline:none">
+
+    <button id="cpSaveBtn" onclick="window.saveCoupon()" style="width:100%;height:52px;border:none;border-radius:16px;background:linear-gradient(135deg,#083570,#1565C0);color:#fff;font-size:16px;font-weight:800;cursor:pointer;margin-bottom:8px">เพิ่มคูปอง</button>
+    <button onclick="window.closeCouponCreate()" style="width:100%;height:42px;border:none;background:none;color:#64748b;font-size:14px;font-weight:600;cursor:pointer">ปิด</button>
+
+    <div style="border-top:1px solid #f0f2f5;margin-top:16px;padding-top:12px">
+      <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:10px">คูปองที่มีอยู่</div>
+      <div id="couponList"><div style="color:#94a3b8;font-size:13px">กด "จัดการคูปอง" เพื่อโหลดรายการ</div></div>
     </div>
   </div>
 </div>
