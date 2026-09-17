@@ -142,6 +142,13 @@ a{color:inherit;}
 .rw-top span{color:var(--ink-500);}
 .rw-track{height:6px;border-radius:4px;background:var(--line);overflow:hidden;}
 .rw-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--amber-500),var(--amber-600));border-radius:4px;transition:width 1s var(--bounce) .2s;}
+.cp-promo{margin:14px 16px 0;background:linear-gradient(135deg,var(--blue-700),var(--blue-900));border-radius:18px;padding:14px 15px;display:flex;align-items:center;gap:12px;cursor:pointer;}
+.cp-promo-ic{width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cp-promo-ic svg{width:20px;height:20px;fill:#fff;}
+.cp-promo-body{flex:1;min-width:0;}
+.cp-promo-title{font-size:13px;font-weight:800;color:#fff;}
+.cp-promo-sub{font-size:11px;color:rgba(255,255,255,.8);margin-top:2px;}
+.cp-promo-chev{width:16px;height:16px;fill:rgba(255,255,255,.7);flex-shrink:0;}
 
 /* ===== SECTION HEAD ===== */
 .sec{margin-top:20px;}
@@ -376,6 +383,16 @@ a{color:inherit;}
       <div class="rw-top"><b>แต้มสะสม 740</b><span>อีก 260 แต้มแลกส่วนลด ฿50</span></div>
       <div class="rw-track"><div class="rw-fill" id="rwFill"></div></div>
     </div>
+  </div>
+
+  <!-- COUPON PROMO -->
+  <div class="cp-promo press" id="couponPromoEl" style="display:none" onclick="location.href='coupon.html'">
+    <div class="cp-promo-ic"><svg viewBox="0 0 24 24"><path d="M22 10V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v4c1.1 0 2 .9 2 2s-.9 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2zm-9 7.5h-2v-2h2v2zm0-4.5h-2v-2h2v2zm0-4.5h-2v-2h2v2z"/></svg></div>
+    <div class="cp-promo-body">
+      <div class="cp-promo-title" id="couponPromoTitle">มีคูปองส่วนลดรอให้เก็บ!</div>
+      <div class="cp-promo-sub">แตะเพื่อดูคูปองทั้งหมด</div>
+    </div>
+    <svg class="cp-promo-chev" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
   </div>
 
   <!-- FLASH SALE (new) -->
@@ -683,6 +700,19 @@ function tickFlash(){
 }
 function renderRewards(){ $('rwEl').style.display='none'; }
 
+// ===================== COUPON PROMO BANNER =====================
+async function renderCouponPromo(){
+  try{
+    const snap=await getDocs(collection(db,'coupons'));
+    const now=Date.now();
+    let count=0;
+    snap.forEach(d=>{ const c=d.data(); if(c.active!==false && c.endAt>now) count++; });
+    if(!count){ $('couponPromoEl').style.display='none'; return; }
+    $('couponPromoEl').style.display='flex';
+    document.getElementById('couponPromoTitle').textContent = count>1 ? `มีคูปองส่วนลด ${count} ใบรอให้เก็บ!` : 'มีคูปองส่วนลดรอให้เก็บ!';
+  }catch(e){ $('couponPromoEl').style.display='none'; }
+}
+
 /* ===================== CATEGORY BUTTONS ===================== */
 function catIconMarkup(b){
   if(b.iconType==='custom' && b.iconUrl) return `<img src="${esc(b.iconUrl)}" style="width:100%;height:100%;object-fit:cover;">`;
@@ -934,6 +964,7 @@ loadAds();
 renderActiveOrder();
 renderRewards();
 renderFlash();
+renderCouponPromo();
 /* ===================== การแจ้งเตือน (notif bell badge) =====================
    นับจำนวนที่ "ยังไม่ได้อ่าน" โดยเทียบวันที่สร้างของแต่ละอันกับเวลาที่เปิดหน้า notifications.html
    ครั้งล่าสุด (เก็บไว้ใน localStorage) — ยังไม่มีระบบสร้างการแจ้งเตือนจากหลังบ้านนะ ต้องเพิ่ม
