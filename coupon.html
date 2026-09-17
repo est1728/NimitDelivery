@@ -44,6 +44,22 @@ body{background:var(--g);min-height:100vh;padding-bottom:80px;}
 /* LOYALTY (สะสมแต้ม) — ปรับการ์ดให้ดูพรีเมียมขึ้น: มีหัวการ์ดแยกส่วน + placeholder โลโก้ร้าน + กล่องดาวพื้นหลังนุ่มๆ */
 .list{padding:16px;}
 .loy-block{margin-bottom:16px;}
+
+/* การ์ดคูปอง — ทรงตั๋วเว้าเหมือนแบนเนอร์คูปองด้านบน แต่เป็นการ์ดขาวรายการเดียว */
+.cp-card{background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(15,23,42,.06);margin-bottom:12px;display:flex;overflow:hidden;position:relative;}
+.cp-left{width:88px;flex-shrink:0;background:linear-gradient(135deg,var(--p),var(--pd));display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:10px 6px;position:relative;}
+.cp-left-big{font-size:20px;font-weight:900;line-height:1.1;}
+.cp-left-sub{font-size:10px;font-weight:700;margin-top:2px;opacity:.9;}
+.cp-notch{position:absolute;right:-7px;width:14px;height:14px;background:var(--g);border-radius:50%;}
+.cp-notch.top{top:-7px;} .cp-notch.bottom{bottom:-7px;}
+.cp-right{flex:1;min-width:0;padding:12px 14px;display:flex;flex-direction:column;justify-content:center;gap:4px;}
+.cp-title{font-size:14px;font-weight:800;color:var(--t);}
+.cp-meta{font-size:11.5px;color:var(--s);}
+.cp-expiry{font-size:10.5px;color:#c2410c;}
+.cp-btn-wrap{padding:0 14px;display:flex;align-items:center;flex-shrink:0;}
+.cp-claim-btn{height:34px;padding:0 16px;border-radius:20px;border:none;background:var(--p);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;}
+.cp-claim-btn.claimed{background:#eef0f4;color:var(--s);}
+.cp-claim-btn:disabled{opacity:.6;}
 .loy-card{background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 4px 16px rgba(15,23,42,.08);}
 .loy-head{display:flex;align-items:center;gap:10px;padding:14px 16px;background:linear-gradient(135deg,var(--pl),#fff);}
 .loy-ava{width:42px;height:42px;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,var(--p),var(--pd));flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:800;}
@@ -99,10 +115,7 @@ body{background:var(--g);min-height:100vh;padding-bottom:80px;}
 </div>
 
 <div id="couponTab">
-  <div class="empty">
-    <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M22 10V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v4c1.1 0 2 .9 2 2s-.9 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2zm-9 7.5h-2v-2h2v2zm0-4.5h-2v-2h2v2zm0-4.5h-2v-2h2v2z"/></svg></div>
-    ยังไม่มีคูปองในขณะนี้<br>รอติดตามโปรโมชันเร็วๆ นี้ครับ
-  </div>
+  <div class="list" id="couponList"><div class="loading">กำลังโหลด...</div></div>
 </div>
 
 <div id="loyaltyTab" style="display:none">
@@ -131,7 +144,7 @@ body{background:var(--g);min-height:100vh;padding-bottom:80px;}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, getDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, getDocs, addDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const db = getFirestore(initializeApp({
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -213,6 +226,63 @@ async function loadLoyalty(){
     listEl.innerHTML = '<div class="empty">โหลดไม่สำเร็จ: '+esc(e.message)+'</div>';
   }
 }
+async function loadCoupons(){
+  const listEl=document.getElementById("couponList");
+  const custData = JSON.parse(localStorage.getItem("customerData")||"{}");
+  const phone = custData.phone || localStorage.getItem("customerPhone");
+  try{
+    const snap = await getDocs(collection(db,"coupons"));
+    const now=Date.now();
+    let coupons=[]; snap.forEach(d=>{ const c={id:d.id,...d.data()}; if(c.active!==false && c.endAt>now) coupons.push(c); });
+    if(!coupons.length){
+      listEl.innerHTML = `<div class="empty">
+        <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M22 10V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v4c1.1 0 2 .9 2 2s-.9 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2zm-9 7.5h-2v-2h2v2zm0-4.5h-2v-2h2v2zm0-4.5h-2v-2h2v2z"/></svg></div>
+        ยังไม่มีคูปองในขณะนี้<br>รอติดตามโปรโมชันเร็วๆ นี้ครับ
+      </div>`;
+      return;
+    }
+    let claimedIds=new Set();
+    if(phone){
+      const cq=query(collection(db,"claimedCoupons"), where("phone","==",phone));
+      const csnap=await getDocs(cq);
+      csnap.forEach(d=>claimedIds.add(d.data().couponId));
+    }
+    coupons.sort((a,b)=>(a.endAt||0)-(b.endAt||0));
+    listEl.innerHTML = coupons.map(c=>{
+      const claimed = claimedIds.has(c.id);
+      const bigText = c.type==='percent' ? c.value+'%' : c.type==='fixed' ? '฿'+c.value : 'ส่งฟรี';
+      const subText = c.type==='freeship' ? 'FREE SHIP' : 'DISCOUNT';
+      const endTxt = new Date(c.endAt).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'});
+      return `<div class="cp-card">
+        <div class="cp-left">
+          <div class="cp-left-big">${esc(bigText)}</div>
+          <div class="cp-left-sub">${subText}</div>
+          <div class="cp-notch top"></div><div class="cp-notch bottom"></div>
+        </div>
+        <div class="cp-right">
+          <div class="cp-title">${esc(c.title)}</div>
+          <div class="cp-meta">${c.minOrderAmount?`ขั้นต่ำ ฿${c.minOrderAmount} · `:''}${c.shopId?esc(c.shopName||'ร้านเฉพาะ'):'ใช้ได้ทุกร้าน'}</div>
+          <div class="cp-expiry">หมดเขต ${endTxt}</div>
+        </div>
+        <div class="cp-btn-wrap">
+          <button class="cp-claim-btn ${claimed?'claimed':''}" ${claimed?'disabled':''} onclick="window.claimCoupon('${c.id}')">${claimed?'เก็บแล้ว':'เก็บคูปอง'}</button>
+        </div>
+      </div>`;
+    }).join("");
+  }catch(e){
+    listEl.innerHTML = '<div class="empty">โหลดไม่สำเร็จ: '+esc(e.message)+'</div>';
+  }
+}
+window.claimCoupon=async function(couponId){
+  const custData = JSON.parse(localStorage.getItem("customerData")||"{}");
+  const phone = custData.phone || localStorage.getItem("customerPhone");
+  if(!phone){ alert("กรุณาเข้าสู่ระบบก่อนเก็บคูปองครับ"); location.href="login.html"; return; }
+  try{
+    await addDoc(collection(db,"claimedCoupons"),{ phone, couponId, claimedAt: serverTimestamp(), used:false });
+    loadCoupons();
+  }catch(e){ alert("เก็บคูปองไม่สำเร็จ: "+e.message); }
+};
+loadCoupons();
 </script>
 
 <script src="motion.js"></script>
