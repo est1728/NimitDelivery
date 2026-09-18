@@ -351,7 +351,7 @@ window.doFranchiseLogin=async function(){
   const btn=$('loginBtn'); btn.disabled=true; btn.textContent='กำลังเข้าสู่ระบบ...';
   try{
     await signInWithEmailAndPassword(auth,email,pw);
-    const snap=await getDoc(doc(db,'admins',email));
+    const snap=await getDoc(doc(db,'franchiseAccounts',email));
     const isFranchiseRole = snap.exists() && (snap.data().role||'').startsWith('franchise');
     if(!snap.exists() || snap.data().status!=='active' || !isFranchiseRole){
       await signOut(auth);
@@ -373,7 +373,7 @@ onAuthStateChanged(auth, async(user)=>{
   if(!user) return;
   try{
     const email=(user.email||'').toLowerCase();
-    const snap=await getDoc(doc(db,'admins',email));
+    const snap=await getDoc(doc(db,'franchiseAccounts',email));
     const isFranchiseRole = snap.exists() && (snap.data().role||'').startsWith('franchise');
     if(snap.exists() && snap.data().status==='active' && isFranchiseRole){
       location.href='franchise-dashboard.html';
