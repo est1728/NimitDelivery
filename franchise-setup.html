@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Nimit Delivery — ยืนยันบัญชีแฟรนไชส์</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Sarabun',sans-serif;background:#f1f5f9;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:60px 20px;}
+  .logo{font-size:26px;font-weight:800;color:#0c4aa6;text-align:center;}
+  .sub{font-size:14px;color:#64748b;text-align:center;margin-top:6px;margin-bottom:24px;}
+  .card{width:100%;max-width:420px;background:#fff;border-radius:16px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,.06);}
+  .msg{font-size:13.5px;text-align:center;border-radius:10px;padding:10px 12px;margin-bottom:16px;line-height:1.5;}
+  .msg.ok{background:#dcfce7;color:#15803d;}
+  .msg.er{background:#fee2e2;color:#dc2626;}
+  .msg.in{background:#e0edff;color:#0c4aa6;}
+  label{display:block;font-size:13px;font-weight:700;color:#334155;margin-bottom:6px;margin-top:14px;}
+  input{width:100%;height:46px;border:2px solid #e2e8f0;border-radius:10px;padding:0 14px;font-size:15px;outline:none;font-family:inherit;}
+  input:focus{border-color:#0c4aa6;}
+  button{width:100%;height:48px;border:none;border-radius:10px;background:#0c4aa6;color:#fff;font-size:15px;font-weight:800;margin-top:20px;cursor:pointer;}
+  button:disabled{opacity:.6;cursor:default;}
+  .center{text-align:center;padding:20px 0;color:#64748b;font-size:14px;}
+</style>
+</head>
+<body>
+  <div class="logo">Nimit Delivery</div>
+  <div class="sub" id="pageSub">ยืนยันบัญชีแฟรนไชส์</div>
+  <div class="card" id="card"><div class="center" id="loadingMsg">กำลังตรวจสอบลิงก์...</div></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, isSignInWithEmailLink, signInWithEmailLink, updatePassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+// หน้านี้แยกออกมาต่างหากจาก admin-setup.html โดยเฉพาะ — ใช้สำหรับ "บัญชีแฟรนไชส์" เท่านั้น
+// (franchise_owner / franchise_staff / franchise_finance ใน collection franchiseAccounts)
+// ไม่เกี่ยวข้องและไม่แตะต้องบัญชีแอดมิน HQ ใน collection 'admins' เลย
+const fbApp = initializeApp({
+  apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
+  authDomain:"nimit-delivery.firebaseapp.com",
+  projectId:"nimit-delivery",
+  storageBucket:"nimit-delivery.firebasestorage.app",
+  messagingSenderId:"233476256130",
+  appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
+});
+const db = getFirestore(fbApp);
+const auth = getAuth(fbApp);
+const card = document.getElementById('card');
+
+function renderMsg(text, type){
+  card.innerHTML = `<div class="msg ${type}">${text}</div>`;
+}
+
+async function completeSignIn(email){
+  // เข้าสู่ระบบด้วยลิงก์ที่ Firebase ส่งให้ทางอีเมล
+  await signInWithEmailLink(auth, email, window.location.href);
+  try{ window.localStorage.removeItem('franchiseEmailForSignIn'); }catch(e){}
+  await showPasswordForm(email);
+}
+
+async function showPasswordForm(email){
+  let accData=null;
+  try{
+    const snap = await getDoc(doc(db,'franchiseAccounts',email));
+    if(!snap.exists()){ renderMsg('ไม่พบบัญชีแฟรนไชส์นี้ในระบบ กรุณาติดต่อทีมงาน HQ','er'); return; }
+    accData = snap.data();
+    if(accData.status==='active'){
+      renderMsg('บัญชีนี้ตั้งรหัสผ่านและใช้งานได้แล้ว กำลังพาไปหน้าเข้าสู่ระบบ...','ok');
+      setTimeout(()=>{ location.href='franchise.html'; },1500);
+      return;
+    }
+  }catch(e){ renderMsg('ตรวจสอบบัญชีไม่สำเร็จ: '+e.message,'er'); return; }
+
+  card.innerHTML = `
+    <div class="msg ok">ยืนยันอีเมลสำเร็จ ✓ ตั้งรหัสผ่านของคุณเพื่อใช้เข้าสู่ระบบครั้งต่อไป</div>
+    <label>รหัสผ่านใหม่ (อย่างน้อย 8 ตัว)</label>
+    <input id="pw1" type="password" autocomplete="new-password">
+    <label>ยืนยันรหัสผ่านอีกครั้ง</label>
+    <input id="pw2" type="password" autocomplete="new-password">
+    <div id="setupErr" class="msg er" style="display:none;margin-top:14px"></div>
+    <button id="setupBtn">ตั้งรหัสผ่านและเข้าใช้งาน</button>
+  `;
+  document.getElementById('setupBtn').addEventListener('click', async ()=>{
+    const errEl = document.getElementById('setupErr');
+    errEl.style.display='none';
+    const pw1=document.getElementById('pw1').value, pw2=document.getElementById('pw2').value;
+    if(!pw1 || pw1.length<8){ errEl.textContent='รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร'; errEl.style.display='block'; return; }
+    if(pw1!==pw2){ errEl.textContent='รหัสผ่านทั้งสองช่องไม่ตรงกัน'; errEl.style.display='block'; return; }
+    const btn=document.getElementById('setupBtn'); btn.disabled=true; btn.textContent='กำลังบันทึก...';
+    try{
+      if(!auth.currentUser){ throw new Error('เซสชันหมดอายุ กรุณาเปิดลิงก์จากอีเมลอีกครั้ง'); }
+      await updatePassword(auth.currentUser, pw1);
+      await updateDoc(doc(db,'franchiseAccounts',email), { status:'active' });
+      renderMsg('ตั้งรหัสผ่านสำเร็จ กำลังพาเข้าสู่แดชบอร์ดแฟรนไชส์...','ok');
+      setTimeout(()=>{ location.href='franchise-dashboard.html'; },1200);
+    }catch(e){
+      errEl.textContent='ตั้งรหัสผ่านไม่สำเร็จ: '+e.message;
+      errEl.style.display='block';
+      btn.disabled=false; btn.textContent='ตั้งรหัสผ่านและเข้าใช้งาน';
+    }
+  });
+}
+
+async function init(){
+  if(!isSignInWithEmailLink(auth, window.location.href)){
+    renderMsg('ลิงก์นี้ใช้ไม่ได้แล้ว (อาจหมดอายุหรือถูกใช้ไปแล้ว) กรุณาขอคำเชิญใหม่จากทีมงาน HQ','er');
+    return;
+  }
+  // พยายามดึงอีเมลที่บันทึกไว้ในเครื่องเดียวกันก่อน (ถ้าเปิดลิงก์จากเบราว์เซอร์เดียวกับตอนได้รับคำเชิญ)
+  let email = null;
+  try{ email = window.localStorage.getItem('franchiseEmailForSignIn'); }catch(e){}
+  if(!email){
+    // เปิดลิงก์จากอุปกรณ์/แอปอีเมลคนละตัว (กรณีปกติมากบนมือถือ) — ให้กรอกอีเมลเพื่อยืนยันตัวตนแทน
+    card.innerHTML = `
+      <div class="msg in">กรุณายืนยันอีเมลของคุณเพื่อดำเนินการต่อ</div>
+      <label>อีเมลที่ได้รับคำเชิญ</label>
+      <input id="confirmEmail" type="email" autocomplete="email">
+      <div id="emailErr" class="msg er" style="display:none;margin-top:14px"></div>
+      <button id="confirmEmailBtn">ยืนยันอีเมล</button>
+    `;
+    document.getElementById('confirmEmailBtn').addEventListener('click', async ()=>{
+      const errEl=document.getElementById('emailErr'); errEl.style.display='none';
+      const typed=(document.getElementById('confirmEmail').value||'').trim().toLowerCase();
+      if(!typed || !typed.includes('@')){ errEl.textContent='กรอกอีเมลให้ถูกต้อง'; errEl.style.display='block'; return; }
+      const btn=document.getElementById('confirmEmailBtn'); btn.disabled=true; btn.textContent='กำลังตรวจสอบ...';
+      try{ await completeSignIn(typed); }
+      catch(e){
+        errEl.textContent = e.code==='auth/invalid-action-code'
+          ? 'ลิงก์นี้ใช้ไม่ได้แล้ว (อาจหมดอายุ, ถูกใช้ไปแล้ว, หรืออีเมลไม่ตรงกับคำเชิญ) กรุณาขอคำเชิญใหม่'
+          : 'ยืนยันไม่สำเร็จ: '+e.message;
+        errEl.style.display='block';
+        btn.disabled=false; btn.textContent='ยืนยันอีเมล';
+      }
+    });
+    return;
+  }
+  try{ await completeSignIn(email); }
+  catch(e){
+    renderMsg(e.code==='auth/invalid-action-code'
+      ? 'ลิงก์นี้ใช้ไม่ได้แล้ว (อาจหมดอายุหรือถูกใช้ไปแล้ว) กรุณาขอคำเชิญใหม่จากทีมงาน HQ'
+      : 'ยืนยันไม่สำเร็จ: '+e.message, 'er');
+  }
+}
+init();
+</script>
+</body>
+</html>
