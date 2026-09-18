@@ -608,7 +608,7 @@ document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
     <textarea id="cancelNote" style="width:100%;height:80px;border:2px solid #e2e8f0;border-radius:12px;padding:10px;font-size:14px;outline:none;resize:none;font-family:inherit" placeholder="เช่น ลูกค้ายกเลิก, ร้านของหมด..."></textarea>
     <div class="cfm-btns" style="margin-top:12px">
       <button class="cfm-cancel" onclick="closeCancelOrder()">ปิด</button>
-      <button class="cfm-ok" style="background:linear-gradient(135deg,#dc2626,#b91c1c)" onclick="confirmCancelOrder()">ยืนยันยกเลิก</button>
+      <button class="cfm-ok" id="cfmCancelBtn" style="background:linear-gradient(135deg,#dc2626,#b91c1c)" onclick="confirmCancelOrder()">ยืนยันยกเลิก</button>
     </div>
   </div>
 </div>
@@ -1546,10 +1546,18 @@ window.openCancelOrder=function(){
   document.getElementById('cancelOv').classList.add('show');
 }
 window.closeCancelOrder=function(){document.getElementById('cancelOv').classList.remove('show');}
+let _cancellingOrder=false; // กันกดยืนยันยกเลิกซ้ำหลายครั้งรัวๆ (มือถือมักกดซ้ำเพราะ modal ปิดช้ากว่าที่นิ้วกดทัน)
+// เดิมไม่มีการกันตรงนี้เลย ปุ่ม "ยืนยันยกเลิก" ไม่ได้ disable ระหว่างทำงาน ถ้ากดรัว 3-4 ครั้ง
+// confirmCancelOrder() จะรันซ้อนกันหลายรอบพร้อมกัน แต่ละรอบยิง sendPush(['admin'],...) ของตัวเอง
+// อีกที ผลคือแอดมินได้รับแจ้งเตือน "ออเดอร์ถูกยกเลิก" ซ้ำ 3-4 ข้อความสำหรับออเดอร์เดียวกัน ตามที่เจอจริง
 window.confirmCancelOrder=async function(){
+  if(_cancellingOrder) return;
   const note=document.getElementById('cancelNote').value.trim();
   if(!note){document.getElementById('cancelNote').style.borderColor='#dc2626';document.getElementById('cancelNote').focus();window.toast('กรุณาใส่เหตุผล','er');return;}
   document.getElementById('cancelNote').style.borderColor='#e2e8f0';
+  _cancellingOrder=true;
+  const cfmBtn=document.getElementById('cfmCancelBtn');
+  if(cfmBtn){cfmBtn.disabled=true;cfmBtn.textContent='กำลังยกเลิก...';}
   const targetDocId=curDocId, faultType=cancelFault; // เก็บไว้ก่อนเผื่อ closeDetail() เคลียร์ curDocId ระหว่างทาง
   try{
     const cancelledOrder = curOrder; // เก็บไว้ก่อนโดน filter ออกจากลิสต์ ใช้แจ้งเตือนต่อ
@@ -1574,6 +1582,8 @@ window.confirmCancelOrder=async function(){
       }
     }catch(e){}
   }catch(e){window.toast('ไม่สำเร็จ: '+e.message,'er');}
+  _cancellingOrder=false;
+  if(cfmBtn){cfmBtn.disabled=false;cfmBtn.textContent='ยืนยันยกเลิก';}
 }
 
 // EDIT ORDER
