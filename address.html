@@ -115,6 +115,33 @@ body{background:var(--g);min-height:100vh;}
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script type="module">
+// แยก script บล็อกนี้ต่างหากจากบล็อกหลักด้านล่าง (ที่ inline onclick= ทั้งหน้าพึ่งพา scope ธรรมดาอยู่)
+// เพราะถ้าเปลี่ยน script หลักเป็น type="module" ฟังก์ชันที่ inline onclick เรียกจะมองไม่เห็นกันทันที
+// (บัคคลาสเดียวกับที่เจอมาแล้วหลายไฟล์ในโปรเจกต์นี้) จึงต้องแยกส่วน Firebase ไว้ต่างหาก แล้ว expose
+// ผ่าน window.syncCustomerToFirestore ให้ script หลักเรียกใช้แทน
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const db = getFirestore(initializeApp({
+  apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
+  authDomain:"nimit-delivery.firebaseapp.com",
+  projectId:"nimit-delivery",
+  storageBucket:"nimit-delivery.firebasestorage.app",
+  messagingSenderId:"233476256130",
+  appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
+}));
+// สำคัญ: บัคจริงที่เจอ — เดิม address.html จัดการที่อยู่ทั้งหมดผ่าน localStorage ล้วนๆ ไม่เคยเขียนกลับเข้า
+// Firestore เลยสักครั้ง (มีฟังก์ชันชื่อ syncCustomerData() แต่จริงๆแค่ sync localStorage คีย์หนึ่งไปอีกคีย์หนึ่งเฉยๆ
+// ไม่ได้ sync ไป Firestore ตามชื่อจริงๆ) ทำให้ฝั่งลูกค้าเห็นที่อยู่/ชื่อตัวเองถูกต้องเสมอ (ใช้สั่งของได้ปกติ)
+// แต่โปรไฟล์ลูกค้าฝั่งแอดมิน (Firestore customers/{phone}) ไม่เคยอัปเดตเลย ยังค้างเป็นค่าว่างจากตอน login
+// ครั้งแรก (login.html เขียนแค่เบอร์โทรอย่างเดียวตอนนั้น) นี่คือฟังก์ชันจริงที่เขียนกลับ Firestore ให้
+window.syncCustomerToFirestore = async function(phone, data){
+  if(!phone) return;
+  try{
+    await setDoc(doc(db,'customers',phone), {phone, ...data, updatedAt: serverTimestamp()}, {merge:true});
+  }catch(e){ console.warn('sync customer profile to Firestore failed:', e.message); }
+};
+</script>
 <script>
 var addresses = JSON.parse(localStorage.getItem('addresses')||'[]');
 var defaultIdx = parseInt(localStorage.getItem('defaultAddress')||'0');
@@ -162,6 +189,10 @@ function showForm(idx){
     document.getElementById('fNote').value = '';
   }
   setTimeout(initMap, 100);
+  // ปักหมุดอัตโนมัติตอนเปิดฟอร์ม "เพิ่มที่อยู่ใหม่" เท่านั้น (idx<0) — ไม่ทำตอนแก้ไขที่อยู่เดิม เพราะมีหมุดที่บันทึกไว้แล้ว
+  // ไม่ควรเด้งทับตำแหน่งเดิมที่ผู้ใช้ตั้งใจปักไว้ ใช้โหมด silent (ไม่ alert ถ้าล้มเหลว) เพราะยังไม่ทันมีการกดปุ่มอะไรเลย
+  // การเด้ง alert ขอสิทธิ์ทันทีตั้งแต่เปิดหน้าโดยที่ผู้ใช้ยังไม่ได้กดอะไรอาจดูรุกล้ำเกินไป ปล่อยให้ปุ่มลัดยังกดเองได้เสมอ
+  if(idx < 0){ setTimeout(function(){ useMyLocation(true); }, 400); }
 }
 
 function showList(){
@@ -258,7 +289,7 @@ function initMap(){
   window.addEventListener('orientationchange', function(){ setTimeout(function(){ if(map) map.invalidateSize(); }, 300); });
 }
 
-function useMyLocation(){
+function useMyLocation(silent){
   // สำคัญมาก: เช็คก่อนเลยว่าเปิดผ่านเบราว์เซอร์ในแอปแชท (LINE/Messenger/Instagram ฯลฯ) บน iOS อยู่หรือเปล่า
   // เพราะ iOS จะบล็อกการขอสิทธิ์ตำแหน่งทันทีในสถานการณ์นี้ (permission denied ทันที ไม่มีทาง pop-up ขอสิทธิ์ขึ้นเลย)
   // เป็นปัญหาเดียวกับที่เจอกับระบบแจ้งเตือน/ปุ่มติดตั้งแอปมาก่อนหน้านี้แล้ว ต้องแจ้งเชิงรุกไปเลย ไม่ต้องรอให้ error ก่อน
@@ -266,7 +297,21 @@ function useMyLocation(){
   const isInAppBrowser = /FBAN|FBAV|FB_IAB|Instagram|Line|MicroMessenger|TikTok/i.test(ua);
   const isIOS = /iPhone|iPad|iPod/i.test(ua);
   if(isInAppBrowser && isIOS){
-    alert('ขอตำแหน่งไม่ได้เพราะเปิดผ่านแอปแชท (เช่น LINE/Messenger) บน iPhone ครับ\n\nกรุณากดจุด 3 จุด/ไอคอนมุมขวาบน แล้วเลือก "เปิดใน Safari" ก่อน ถึงจะขอตำแหน่งได้ หรือปักหมุดเองบนแผนที่แทนได้เลยครับ');
+    if(!silent) alert('ขอตำแหน่งไม่ได้เพราะเปิดผ่านแอปแชท (เช่น LINE/Messenger) บน iPhone ครับ\n\nกรุณากดจุด 3 จุด/ไอคอนมุมขวาบน แล้วเลือก "เปิดใน Safari" ก่อน ถึงจะขอตำแหน่งได้ หรือปักหมุดเองบนแผนที่แทนได้เลยครับ');
+    return;
+  }
+  // สาเหตุตัวจริงที่พบบ่อยที่สุดของ "iOS เรียก GPS ไม่ได้เลย ไม่มี pop-up ขึ้นด้วยซ้ำ": เว็บไม่ได้เปิดผ่าน
+  // secure context (HTTPS หรือ localhost) — Safari/iOS (ทุกเบราว์เซอร์บน iOS บังคับใช้ WebKit เหมือนกันหมด)
+  // จะ "ปิดใช้งาน" Geolocation API ไปเลยเงียบๆถ้าเปิดผ่าน http:// ธรรมดา ไม่ใช่แค่ขึ้น error ตอนขอสิทธิ์
+  // ต้องเช็คจุดนี้ "ก่อน" เรียก navigator.geolocation เสมอ เพราะบางเวอร์ชันแม้แต่ตัว object ก็จะเป็น undefined เลย
+  if(!window.isSecureContext){
+    if(!silent) alert('เข้าถึงตำแหน่งไม่ได้ เพราะเว็บไซต์นี้ไม่ได้เปิดผ่าน HTTPS\n\niOS (Safari/ทุกเบราว์เซอร์บน iPhone) จะปิดการใช้งาน GPS ทันทีถ้าไม่ใช่ HTTPS โดยไม่มี pop-up ขอสิทธิ์ขึ้นเลยด้วยซ้ำ — ต้องให้เว็บไซต์นี้เปิดผ่าน https:// เท่านั้นถึงจะขอตำแหน่งบน iPhone ได้ หรือปักหมุดเองบนแผนที่แทนไปก่อนได้ครับ');
+    return;
+  }
+  // เผื่อกรณี browser/เวอร์ชันเก่าที่ไม่มี Geolocation API เลย (object เป็น undefined) — เรียกตรงๆแล้วจะ throw
+  // แบบ error ธรรมดาไม่ผ่าน callback ใดๆทั้งนั้น ต้องเช็ค existence ก่อนเรียกเสมอ ไม่งั้นจะเหมือน "กดแล้วไม่มีอะไรเกิดขึ้นเลย"
+  if(!navigator.geolocation){
+    if(!silent) alert('เบราว์เซอร์นี้ไม่รองรับการขอตำแหน่ง กรุณาปักหมุดเองบนแผนที่แทนได้ครับ');
     return;
   }
   // iOS มีบัคที่รู้จักกันดี: ถ้าเปิดเว็บผ่านไอคอนที่เพิ่มไว้หน้าจอโฮม (standalone) การขอสิทธิ์ตำแหน่งมักค้างตลอดไป
@@ -278,35 +323,45 @@ function useMyLocation(){
   const manualTimeout = setTimeout(function(){
     if(settled) return;
     settled = true;
+    if(silent) return; // โหมดปักหมุดอัตโนมัติตอนเปิดหน้า: เงียบไว้ ไม่รบกวนผู้ใช้ด้วย alert ถ้าล้มเหลว ให้ใช้ปุ่มกดเองแทนได้
     if(isStandalone){
       alert('เข้าถึงตำแหน่งไม่ได้ — เป็นบัคที่รู้จักของ iOS เวลาเปิดผ่านไอคอนหน้าจอโฮม\n\nลองเปิดลิงก์นี้ผ่าน Safari ตรงๆ (ไม่ผ่านไอคอนที่บันทึกไว้) แล้วลองใหม่อีกครั้ง หรือปักหมุดเองบนแผนที่แทนได้เลยครับ');
     } else {
       alert('ค้นหาตำแหน่งนานเกินไป ลองใหม่อีกครั้ง หรือปักหมุดเองบนแผนที่แทนได้ครับ');
     }
   }, 8000);
-  navigator.geolocation.getCurrentPosition(function(p){
-    if(settled) return;
-    settled = true;
+  // ครอบด้วย try/catch เพราะเวอร์ชัน iOS เก่าบางรุ่น/บาง WebView ที่ฝังอยู่ในแอปอื่น (ไม่ใช่ Safari ตรงๆ)
+  // จะ throw error แบบ synchronous ทันทีตอนเรียกฟังก์ชันเลย ไม่ผ่าน error callback ปกติ ถ้าไม่ดักไว้
+  // สคริปต์ทั้งก้อนจะหยุดทำงานเงียบๆ กดปุ่มแล้ว "ไม่มีอะไรเกิดขึ้นเลย" ตรงกับปัญหาที่เจอ
+  try{
+    navigator.geolocation.getCurrentPosition(function(p){
+      if(settled) return;
+      settled = true;
+      clearTimeout(manualTimeout);
+      curLat = p.coords.latitude; curLng = p.coords.longitude;
+      if(map){ map.setView([curLat,curLng],16); marker.setLatLng([curLat,curLng]); }
+    }, function(err){
+      if(settled) return;
+      settled = true;
+      clearTimeout(manualTimeout);
+      if(silent) return; // โหมดอัตโนมัติ: ปล่อยให้ผู้ใช้ปักหมุดเองต่อแบบเงียบๆ ไม่ต้องเด้ง alert
+      // สำคัญ: แยกข้อความตาม error.code ให้ชัดว่าสาเหตุจริงคืออะไร (ปฏิเสธสิทธิ์ / หาตำแหน่งไม่ได้ / หมดเวลา)
+      // ไม่ใช้ข้อความเดียวกันหมดเหมือนเดิม เพราะแต่ละสาเหตุแก้ไม่เหมือนกัน โดยเฉพาะเคส "ปฏิเสธสิทธิ์" ที่ผู้ใช้
+      // ต้องไปเปิดเองในตั้งค่าเครื่อง ไม่มีทางกดขอใหม่จากหน้าเว็บได้เลยจนกว่าจะไปเปิดสิทธิ์ก่อน
+      if(err && err.code === 1){
+        alert('เว็บไซต์ไม่ได้รับสิทธิ์เข้าถึงตำแหน่ง — ต้องไปเปิดเองในตั้งค่าเครื่อง (ตั้งค่า > ความเป็นส่วนตัว > บริการหาตำแหน่ง > Safari/เบราว์เซอร์ที่ใช้ > อนุญาต) แล้วลองใหม่ หรือปักหมุดเองบนแผนที่แทนได้เลยครับ');
+      } else if(isStandalone){
+        alert('เข้าถึงตำแหน่งไม่ได้ — เป็นบัคที่รู้จักของ iOS เวลาเปิดผ่านไอคอนหน้าจอโฮม\n\nลองเปิดลิงก์นี้ผ่าน Safari ตรงๆ (ไม่ผ่านไอคอนที่บันทึกไว้) แล้วลองใหม่อีกครั้ง หรือปักหมุดเองบนแผนที่แทนได้เลยครับ');
+      } else {
+        alert('ไม่สามารถเข้าถึง GPS ได้ ลองปักหมุดเองบนแผนที่แทนได้ครับ');
+      }
+    }, {timeout:8000, enableHighAccuracy:true});
+  }catch(e){
     clearTimeout(manualTimeout);
-    curLat = p.coords.latitude; curLng = p.coords.longitude;
-    map.setView([curLat,curLng],16);
-    marker.setLatLng([curLat,curLng]);
-  }, function(err){
-    if(settled) return;
-    settled = true;
-    clearTimeout(manualTimeout);
-    // สำคัญ: แยกข้อความตาม error.code ให้ชัดว่าสาเหตุจริงคืออะไร (ปฏิเสธสิทธิ์ / หาตำแหน่งไม่ได้ / หมดเวลา)
-    // ไม่ใช้ข้อความเดียวกันหมดเหมือนเดิม เพราะแต่ละสาเหตุแก้ไม่เหมือนกัน โดยเฉพาะเคส "ปฏิเสธสิทธิ์" ที่ผู้ใช้
-    // ต้องไปเปิดเองในตั้งค่าเครื่อง ไม่มีทางกดขอใหม่จากหน้าเว็บได้เลยจนกว่าจะไปเปิดสิทธิ์ก่อน
-    if(err && err.code === 1){
-      alert('เว็บไซต์ไม่ได้รับสิทธิ์เข้าถึงตำแหน่ง — ต้องไปเปิดเองในตั้งค่าเครื่อง (ตั้งค่า > ความเป็นส่วนตัว > บริการหาตำแหน่ง > Safari/เบราว์เซอร์ที่ใช้ > อนุญาต) แล้วลองใหม่ หรือปักหมุดเองบนแผนที่แทนได้เลยครับ');
-    } else if(isStandalone){
-      alert('เข้าถึงตำแหน่งไม่ได้ — เป็นบัคที่รู้จักของ iOS เวลาเปิดผ่านไอคอนหน้าจอโฮม\n\nลองเปิดลิงก์นี้ผ่าน Safari ตรงๆ (ไม่ผ่านไอคอนที่บันทึกไว้) แล้วลองใหม่อีกครั้ง หรือปักหมุดเองบนแผนที่แทนได้เลยครับ');
-    } else {
-      alert('ไม่สามารถเข้าถึง GPS ได้ ลองปักหมุดเองบนแผนที่แทนได้ครับ');
-    }
-  }, {timeout:8000, enableHighAccuracy:true});
+    if(!silent) alert('เข้าถึง GPS ไม่ได้ (เบราว์เซอร์ปฏิเสธคำขอ) ลองปักหมุดเองบนแผนที่แทนได้ครับ');
+  }
 }
+window.useMyLocation=useMyLocation;
 
 // ========== STORAGE ==========
 function save(){
@@ -323,6 +378,10 @@ function syncCustomerData(){
       name:def.name||'', phone:phone, address:def.address,
       lat:def.lat||null, lng:def.lng||null
     }));
+    // เขียนกลับเข้า Firestore ด้วย ไม่ใช่แค่ localStorage เฉยๆ (ดูคอมเมนต์ที่ window.syncCustomerToFirestore ด้านบน)
+    if(typeof window.syncCustomerToFirestore==='function'){
+      window.syncCustomerToFirestore(phone, {name:def.name||'', address:def.address||'', lat:def.lat||null, lng:def.lng||null});
+    }
   }
 }
 
