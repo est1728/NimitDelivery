@@ -286,7 +286,7 @@ button.pri{width:100%;height:50px;border:none;border-radius:16px;background:line
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, query, where, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, query, where, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendSignInLinkToEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 // ============================================================
@@ -575,14 +575,29 @@ window.saveFranchiseDetail=async function(id){
   try{
     await updateDoc(doc(db,'franchises',id),{status,commissionPercent,devAccess});
     const f=ALL.franchises.find(x=>x.id===id); if(f){ f.status=status; f.commissionPercent=commissionPercent; f.devAccess=devAccess; }
+    // ถ้าระงับการใช้งานแฟรนไชส์นี้ ต้องดึงเขตออกจาก mirror สาธารณะด้วย ไม่งั้นลูกค้าจะยังถูกกรองร้านตามเขตของ
+    // แฟรนไชส์ที่ถูกระงับไปแล้วอยู่ (เขตควรมีผลเฉพาะตอนแฟรนไชส์ยัง active เท่านั้น) และคืนกลับให้ถ้าเปิดใช้งานใหม่
+    if(status==='suspended'){ try{ await deleteDoc(doc(db,'franchiseZones',id)); }catch(e){} }
+    else if(status==='active' && f && f.zoneStatus==='approved' && f.zone && f.zone.length>=3){
+      try{ await setDoc(doc(db,'franchiseZones',id),{franchiseId:id,zone:f.zone}); }catch(e){}
+    }
     closeModal('modalFranchiseDetail'); loadFranchises(); loadOverview();
     toast('บันทึกข้อมูลแฟรนไชส์แล้ว','ok');
   }catch(e){ $('fdMsg').textContent='บันทึกไม่สำเร็จ: '+e.message; }
 };
+// หมายเหตุสำคัญเรื่องความปลอดภัย: collection "franchises" เก็บข้อมูลอ่อนไหว (อีเมลเจ้าของ, เบอร์โทร, %คอมมิชชั่น)
+// เลยล็อกไม่ให้ลูกค้าทั่วไป (ไม่ล็อกอิน) อ่านได้เลยตามกฎ Firestore — แต่หน้า shops.html ฝั่งลูกค้าจำเป็นต้องรู้
+// "รูปเขตที่อนุมัติแล้ว" เพื่อเช็คว่าหมุดของลูกค้าอยู่ในเขตไหน จึงต้อง mirror เฉพาะรูปเขต (ไม่มีข้อมูลอ่อนไหวใดๆ)
+// ไปไว้ที่ collection แยกต่างหาก "franchiseZones/{franchiseId}" ที่เปิดอ่านสาธารณะได้ ทุกครั้งที่อนุมัติ/ปฏิเสธ
+// เขตพื้นที่ ต้องอัปเดต mirror นี้ให้ตรงกันเสมอ ไม่งั้นหน้าลูกค้าจะกรองร้านค้าตามเขตไม่ได้เลย (ข้อมูลไม่ sync กัน)
 window.approveZone=async function(id){
   try{
     await updateDoc(doc(db,'franchises',id),{zoneStatus:'approved'});
-    const f=ALL.franchises.find(x=>x.id===id); if(f) f.zoneStatus='approved';
+    const f=ALL.franchises.find(x=>x.id===id);
+    if(f){
+      f.zoneStatus='approved';
+      await setDoc(doc(db,'franchiseZones',id),{franchiseId:id,zone:f.zone||[]});
+    }
     closeModal('modalFranchiseDetail'); loadFranchises(); loadZoneRequests(); loadOverview(); renderHqMapZones();
     toast('อนุมัติเขตพื้นที่แล้ว','ok');
   }catch(e){ toast('ดำเนินการไม่สำเร็จ: '+e.message,'er'); }
@@ -591,6 +606,8 @@ window.rejectZone=async function(id){
   try{
     await updateDoc(doc(db,'franchises',id),{zoneStatus:'rejected'});
     const f=ALL.franchises.find(x=>x.id===id); if(f) f.zoneStatus='rejected';
+    // ปฏิเสธแล้ว = เขตนี้ไม่มีผลใช้งานอีกต่อไป ต้องลบออกจาก mirror สาธารณะด้วย ไม่งั้นลูกค้าจะยังถูกกรองตามเขตเก่าที่ถูกปฏิเสธไปแล้วอยู่
+    try{ await deleteDoc(doc(db,'franchiseZones',id)); }catch(e){}
     closeModal('modalFranchiseDetail'); loadFranchises(); loadZoneRequests(); loadOverview(); renderHqMapZones();
     toast('ปฏิเสธเขตพื้นที่แล้ว','in');
   }catch(e){ toast('ดำเนินการไม่สำเร็จ: '+e.message,'er'); }
