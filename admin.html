@@ -502,6 +502,7 @@ document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
 <!-- SHOPS -->
 <div id="shopsPage" class="pg">
   <div class="tb"><div class="tb-t">ร้านค้า</div><button class="tb-btn" id="addShopBtn"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button></div>
+  <div style="padding:10px 14px 0"><select id="shopFranchiseFilter" style="width:100%;height:40px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:13px;color:var(--t)" onchange="window.filterShopsByFranchise(this.value)"><option value="">ร้านค้าทั้งหมด (ทุกเขต)</option></select></div>
   <div class="sw" id="shopsEl"><div class="lt">กำลังโหลด...</div></div>
 </div>
 
@@ -823,7 +824,7 @@ document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
 
 <div class="mov" id="shopMov">
   <div class="mb"><div class="mh"><div class="mt" id="shopMovT">เพิ่มร้านค้า</div><button class="mc" data-close="shopMov"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>
-  <div class="mbd"><div class="mf"><div class="ml">ชื่อร้าน</div><input class="mi" id="sName" placeholder="ป้าต๋า"></div><div class="mf"><div class="ml">Slug</div><input class="mi" id="sSlug" placeholder="pata"></div><div class="mf"><div class="ml">คำอธิบาย</div><input class="mi" id="sDesc"></div><div class="mf"><div class="ml">เบอร์โทร</div><input class="mi" id="sPh" type="tel"></div><button class="msb" id="saveShopBtn">บันทึก</button><button class="mxb" data-close="shopMov">ยกเลิก</button></div></div>
+  <div class="mbd"><div class="mf"><div class="ml">ชื่อร้าน</div><input class="mi" id="sName" placeholder="ป้าต๋า"></div><div class="mf"><div class="ml">Slug</div><input class="mi" id="sSlug" placeholder="pata"></div><div class="mf"><div class="ml">คำอธิบาย</div><input class="mi" id="sDesc"></div><div class="mf"><div class="ml">เบอร์โทร</div><input class="mi" id="sPh" type="tel"></div><div class="mf"><div class="ml">แฟรนไชส์/เขตพื้นที่ (เลือกได้มากกว่า 1 ถ้าร้านตกลงอยู่ร่วมกันได้หลายเขต)</div><div id="sFranchiseBox" style="border:1.5px solid #e2e8f0;border-radius:10px;padding:8px 10px;max-height:170px;overflow-y:auto;background:#fff"></div></div><button class="msb" id="saveShopBtn">บันทึก</button><button class="mxb" data-close="shopMov">ยกเลิก</button></div></div>
 </div>
 
 <div class="mov" id="riderMov">
@@ -967,7 +968,7 @@ window.confirmCrop=function(){
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, query, where, onSnapshot, doc, getDocs, updateDoc, setDoc, addDoc, deleteDoc, getDoc, serverTimestamp, orderBy, limit, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, query, where, onSnapshot, doc, getDocs, updateDoc, setDoc, addDoc, deleteDoc, getDoc, serverTimestamp, orderBy, limit, increment, deleteField } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendSignInLinkToEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 window.previewAdFile=function(input,type){
@@ -1663,14 +1664,49 @@ window.doRecall = async function(){
 }
 
 // SHOPS
+// ===== ผูกร้านค้ากับข้อมูลแฟรนไชส์/เขตพื้นที่ (ให้หน้า admin นี้ "รู้เขต" ของแต่ละร้านด้วย) =====
+// franchisesCache: {id: {name, province, ...}} โหลดครั้งเดียวแล้วใช้ประกอบชื่อ/กรองในหน้านี้
+let franchisesCache={};
+let shopFranchiseFilterVal='';
+async function loadFranchisesForShops(){
+  try{
+    const snap=await getDocs(collection(db,'franchises'));
+    franchisesCache={};
+    snap.forEach(d=>{ franchisesCache[d.id]={id:d.id,...d.data()}; });
+    const sel=$('shopFranchiseFilter');
+    if(sel){
+      const opts=['<option value="">ร้านค้าทั้งหมด (ทุกเขต)</option>','<option value="__none__">ร้านกลาง (ยังไม่ผูกแฟรนไชส์)</option>'];
+      Object.values(franchisesCache).forEach(f=>opts.push(`<option value="${f.id}">${esc(f.name||'แฟรนไชส์')}${f.province?' — '+esc(f.province):''}</option>`));
+      sel.innerHTML=opts.join('');
+      sel.value=shopFranchiseFilterVal;
+    }
+  }catch(e){ franchisesCache={}; }
+}
+function shopFranchiseIds(s){ return s.franchiseIds || (s.franchiseId ? [s.franchiseId] : []); }
+window.filterShopsByFranchise=function(val){ shopFranchiseFilterVal=val; renderShopsList(); };
+
 async function loadShops(){
   try{
     const snap=await getDocs(collection(db,'shops'));
     shops=[];snap.forEach(d=>shops.push({id:d.id,...d.data()}));
+    await loadFranchisesForShops();
+    renderShopsList();
+  }catch(e){window.toast('โหลดร้านค้าไม่ได้','er');}
+}
+function renderShopsList(){
+  try{
     const el=$('shopsEl');
-    if(!shops.length){el.innerHTML='<div class="lt">ยังไม่มีร้านค้า</div>';return;}
-    el.innerHTML='<div class="scard">'+shops.map(s=>{
+    const list = !shopFranchiseFilterVal ? shops
+      : shopFranchiseFilterVal==='__none__' ? shops.filter(s=>shopFranchiseIds(s).length===0)
+      : shops.filter(s=>shopFranchiseIds(s).includes(shopFranchiseFilterVal));
+    if(!list.length){el.innerHTML='<div class="lt">ไม่พบร้านค้าในหมวดที่เลือก</div>';return;}
+    el.innerHTML='<div class="scard">'+list.map(s=>{
       const slug=s.slug||s.id,link=location.origin+'/shop-admin.html?id='+slug;
+      const ids=shopFranchiseIds(s);
+      // ร้านอยู่ได้หลายเขตพร้อมกัน (ตกลงกันนอกระบบให้ร้านอยู่ตรงกลางระหว่าง 2 เขต) เลยต้องขึ้นป้ายได้มากกว่า 1 อัน
+      const zoneBadge = ids.length
+        ? ids.map(fid=>`<span style="display:inline-block;margin-top:4px;margin-right:4px;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:20px;background:#e8f0fe;color:#0c4aa6">เขต: ${esc(franchisesCache[fid]?franchisesCache[fid].name:fid)}</span>`).join('')
+        : `<span style="display:inline-block;margin-top:4px;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:20px;background:#f1f5f9;color:#64748b">ร้านกลาง (ไม่มีเขต)</span>`;
       return `<div class="lr"${s.isOpen===false?' style="opacity:.55"':''}>
         <div class="lr-top">
           <div class="lav" style="background:linear-gradient(135deg,#0c4aa6,#1565C0)">
@@ -1680,6 +1716,7 @@ async function loadShops(){
             <div class="lr-name">${esc(s.name)}</div>
             <div class="lr-sub">${s.phone||''}</div>
             <div class="lr-sub">${s.address||s.desc||''}</div>
+            ${zoneBadge}
             ${s.isOpen===false&&s.closeReason?`<div class="lr-sub" style="color:#dc2626;font-weight:700">เหตุผลที่ปิด: ${esc(s.closeReason)}</div>`:''}
           </div>
           <div class="lr-wallet">
@@ -1715,7 +1752,7 @@ async function loadShops(){
         </div>
       </div>`
     }).join('')+'</div>';
-  }catch(e){window.toast('โหลดร้านค้าไม่ได้','er');}
+  }catch(e){window.toast('แสดงร้านค้าไม่ได้','er');}
 }
 // RIDERS
 function openEditShop(sid){
@@ -1726,15 +1763,35 @@ function openEditShop(sid){
   $('sSlug').value=s.slug||'';
   $('sDesc').value=s.desc||'';
   $('sPh').value=s.phone||'';
+  fillShopFranchiseSelect(shopFranchiseIds(s));
   $('shopMov').classList.add('show');
 }
-async function openAddShop(){editShopId=null;$('shopMovT').textContent='เพิ่มร้านค้า';['sName','sSlug','sDesc','sPh'].forEach(id=>$(id).value='');$('shopMov').classList.add('show');}
+// เติมช่องเลือกแฟรนไชส์ในฟอร์มแก้ไข/เพิ่มร้านค้า จาก franchisesCache ที่โหลดไว้แล้วตอน loadShops()
+// เป็น checkbox list (เลือกได้หลายอันพร้อมกัน) ไม่ใช่ dropdown เดี่ยว เพราะร้านอาจตกลงอยู่ร่วมกันได้มากกว่า 1 เขต
+function fillShopFranchiseSelect(curIds){
+  const box=$('sFranchiseBox'); if(!box) return;
+  const ids=curIds||[];
+  const list=Object.values(franchisesCache);
+  if(!list.length){ box.innerHTML='<div style="font-size:12px;color:var(--s)">ยังไม่มีแฟรนไชส์ในระบบ</div>'; return; }
+  box.innerHTML=list.map(f=>`<label style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;color:var(--t)">
+    <input type="checkbox" value="${f.id}" ${ids.includes(f.id)?'checked':''} style="width:16px;height:16px;flex-shrink:0">
+    <span>${esc(f.name||'แฟรนไชส์')}${f.province?' — '+esc(f.province):''}</span>
+  </label>`).join('');
+}
+async function openAddShop(){editShopId=null;$('shopMovT').textContent='เพิ่มร้านค้า';['sName','sSlug','sDesc','sPh'].forEach(id=>$(id).value='');fillShopFranchiseSelect([]);$('shopMov').classList.add('show');}
 async function saveShop(){
   const name=$('sName').value.trim();if(!name){window.toast('กรุณากรอกชื่อร้าน','er');return;}
   const btn=$('saveShopBtn');
   if(btn.disabled) return; // กันกดซ้ำระหว่างกำลังบันทึกอยู่ (เคยทำให้สร้างร้านซ้ำ 2 รายการถ้ากดรัว)
   btn.disabled=true; btn.textContent='กำลังบันทึก...';
+  const selectedIds=Array.from($('sFranchiseBox')?.querySelectorAll('input:checked')||[]).map(i=>i.value);
   const data={name,slug:$('sSlug').value.trim(),desc:$('sDesc').value.trim(),phone:$('sPh').value.trim(),isOpen:true,updatedAt:serverTimestamp()};
+  // franchiseIds: array ของเขตที่ร้านนี้ผูกอยู่ (ผูกได้หลายเขตพร้อมกันถ้าตกลงกันนอกระบบ) ถ้าไม่เลือกเลย:
+  //  - ตอนแก้ไขร้านเดิม (editShopId มีค่า) ใช้ deleteField() ลบ field ออกไปเลย เผื่อ HQ ต้องการถอดร้านออกจากทุกแฟรนไชส์
+  //  - ตอนเพิ่มร้านใหม่ ห้ามใช้ deleteField() เด็ดขาด เพราะ Firestore จะ error ทันที ("FieldValue.delete() can only be used with update()")
+  //  ลบ field เก่า "franchiseId" (เดี่ยว) ทิ้งไปด้วยเสมอตอนแก้ไข เพื่อไม่ให้ข้อมูลเก่าค้างขัดแย้งกับ franchiseIds ใหม่
+  if(selectedIds.length){ data.franchiseIds=selectedIds; if(editShopId) data.franchiseId=deleteField(); }
+  else if(editShopId){ data.franchiseIds=deleteField(); data.franchiseId=deleteField(); }
   try{editShopId?await updateDoc(doc(db,'shops',editShopId),data):await addDoc(collection(db,'shops'),{...data,createdAt:serverTimestamp()});closeMov('shopMov');loadShops();window.toast('บันทึกสำเร็จ','ok');}
   catch(e){window.toast('บันทึกไม่สำเร็จ','er');}
   finally{ btn.disabled=false; btn.textContent='บันทึก'; }
@@ -2594,6 +2651,7 @@ window.loadCouponList=async function(){
     </div>`;
   }).join(''):'<div style="color:#94a3b8;font-size:13px">ยังไม่มีคูปอง</div>';
 };
+
 
 
 
