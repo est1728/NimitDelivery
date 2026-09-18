@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Nimit Delivery — ร้านค้าทั้งหมด (v6)</title>
+<meta name="theme-color" content="#0B2C63">
 <meta name="description" content="🍽️ Nimit Delivery แพลตฟอร์มอาหารออนไลน์ที่เชื่อมต่อลูกค้า ร้านอาหาร และบริการจัดส่งไว้ในที่เดียว ค้นหาร้าน เลือกเมนู สั่งง่าย จัดส่งไว พร้อมคูปองส่วนลดและสะสมแต้ม">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Nimit Delivery — สั่งอาหารออนไลน์ ง่าย ไว ครบในที่เดียว">
 <meta property="og:description" content="Nimit Delivery คือแพลตฟอร์มอาหารออนไลน์ที่เชื่อมต่อลูกค้า ร้านอาหาร และบริการจัดส่งไว้ในที่เดียว ค้นหาร้านอาหาร เลือกเมนู สั่งอาหารที่ชื่นชอบได้สะดวกรวดเร็ว พร้อมระบบคูปองส่วนลดและสะสมแต้ม ติดตามสถานะออเดอร์ได้ทุกขั้นตอน ตั้งแต่ร้านรับออเดอร์จนถึงจัดส่งถึงมือคุณ">
 <meta property="og:locale" content="th_TH">
 <meta name="twitter:card" content="summary">
-<meta name="theme-color" content="#0B2C63">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
@@ -148,13 +148,6 @@ a{color:inherit;}
 .rw-top span{color:var(--ink-500);}
 .rw-track{height:6px;border-radius:4px;background:var(--line);overflow:hidden;}
 .rw-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--amber-500),var(--amber-600));border-radius:4px;transition:width 1s var(--bounce) .2s;}
-.cp-promo{margin:14px 16px 0;background:linear-gradient(135deg,var(--blue-700),var(--blue-900));border-radius:18px;padding:14px 15px;display:flex;align-items:center;gap:12px;cursor:pointer;}
-.cp-promo-ic{width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.cp-promo-ic svg{width:20px;height:20px;fill:#fff;}
-.cp-promo-body{flex:1;min-width:0;}
-.cp-promo-title{font-size:13px;font-weight:800;color:#fff;}
-.cp-promo-sub{font-size:11px;color:rgba(255,255,255,.8);margin-top:2px;}
-.cp-promo-chev{width:16px;height:16px;fill:rgba(255,255,255,.7);flex-shrink:0;}
 
 /* ===== SECTION HEAD ===== */
 .sec{margin-top:20px;}
@@ -291,6 +284,24 @@ a{color:inherit;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0) scale(1);}
 .toast .tick{width:16px;height:16px;border-radius:50%;background:var(--green-600);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
 .toast .tick svg{width:9px;height:9px;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+.cp-promo{margin:14px 16px 0;background:linear-gradient(135deg,var(--blue-700),var(--blue-900));border-radius:18px;padding:14px 15px;display:flex;align-items:center;gap:12px;cursor:pointer;}
+.cp-promo-ic{width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cp-promo-ic svg{width:20px;height:20px;fill:#fff;}
+.cp-promo-body{flex:1;min-width:0;}
+.cp-promo-title{font-size:13px;font-weight:800;color:#fff;}
+.cp-promo-sub{font-size:11px;color:rgba(255,255,255,.8);margin-top:2px;}
+.cp-promo-chev{width:16px;height:16px;fill:rgba(255,255,255,.7);flex-shrink:0;}
+/* ===== หน้าจอ "นอกพื้นที่ให้บริการ" (เด้งตอนล็อกอิน/ตั้งที่อยู่เสร็จ ไม่รอถึง checkout) ===== */
+.zone-overlay{position:fixed;inset:0;background:rgba(16,24,40,0.55);z-index:900;display:none;align-items:center;justify-content:center;padding:20px;}
+.zone-overlay.show{display:flex;}
+.zone-card{background:var(--white);border-radius:24px;max-width:360px;width:100%;padding:28px 24px 24px;text-align:center;animation:zoneIn .2s ease-out;}
+@keyframes zoneIn{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.zone-ico{width:64px;height:64px;border-radius:50%;background:var(--amber-100);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+.zone-ico svg{width:30px;height:30px;stroke:var(--amber-600);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.zone-title{font-size:17px;font-weight:800;color:var(--ink-900);margin-bottom:8px;}
+.zone-desc{font-size:13px;color:var(--ink-500);line-height:1.7;margin-bottom:22px;}
+.zone-btn-pri{width:100%;height:48px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--blue-600),var(--blue-700));color:#fff;font-size:14.5px;font-weight:800;cursor:pointer;margin-bottom:10px;}
+.zone-btn-sec{width:100%;height:44px;border:none;border-radius:14px;background:var(--bg);color:var(--ink-500);font-size:13.5px;font-weight:700;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -912,11 +923,72 @@ function renderSkeleton(){
 }
 
 /* ===================== ร้านค้าจริงจาก Firestore ===================== */
+// ===== ระบบกรองร้านค้าตามเขตพื้นที่แฟรนไชส์ (หาเขตที่ "ใกล้ที่สุด" เทียบจากระยะถึงเส้นขอบเขต ไม่ใช่จุดกลาง) =====
+function pointInPolygon(pt, poly){
+  if(!poly || poly.length<3) return false;
+  let inside=false;
+  for(let i=0,j=poly.length-1;i<poly.length;j=i++){
+    const xi=poly[i].lng, yi=poly[i].lat, xj=poly[j].lng, yj=poly[j].lat;
+    const intersect = ((yi>pt.lat)!==(yj>pt.lat)) && (pt.lng < (xj-xi)*(pt.lat-yi)/(yj-yi)+xi);
+    if(intersect) inside=!inside;
+  }
+  return inside;
+}
+// แปลง lat/lng เป็นเมตรแบบระนาบแบน (พอสำหรับพื้นที่แคบระดับจังหวัด/อำเภอ) เพื่อวัดระยะถึงเส้นขอบ
+function toXY(pt, ref){
+  const R=6371000, latRad=ref.lat*Math.PI/180;
+  return {x:(pt.lng-ref.lng)*Math.PI/180*R*Math.cos(latRad), y:(pt.lat-ref.lat)*Math.PI/180*R};
+}
+function distToSegment(p,a,b){
+  const dx=b.x-a.x, dy=b.y-a.y, len2=dx*dx+dy*dy;
+  if(len2===0) return Math.hypot(p.x-a.x,p.y-a.y);
+  let t=((p.x-a.x)*dx+(p.y-a.y)*dy)/len2; t=Math.max(0,Math.min(1,t));
+  return Math.hypot(p.x-(a.x+t*dx), p.y-(a.y+t*dy));
+}
+function distanceToPolygonEdge(pt, poly){
+  const p=toXY(pt,pt); let min=Infinity;
+  for(let i=0,j=poly.length-1;i<poly.length;j=i++) min=Math.min(min, distToSegment(p, toXY(poly[i],pt), toXY(poly[j],pt)));
+  return min;
+}
+// คืนค่าเขตที่ "ใกล้ลูกค้าที่สุด": ถ้าอยู่ในเขตไหนจริงๆ ระยะ=0 เขตนั้นชนะเสมอ (ต่อให้อยู่ขอบก็ตาม)
+// ถ้าไม่อยู่ในเขตไหนเลย เทียบระยะถึงเส้นขอบของทุกเขต เอาเขตที่ใกล้สุด -> {franchiseId, inside, dist}
+// return null ถ้ายังไม่มีหมุดบันทึกไว้ หรือระบบยังไม่มีเขตที่อนุมัติเลยสักเขต (ไม่ต้องกรอง/ไม่ต้องเตือนอะไร)
+async function getCustomerFranchiseZone(){
+  try{
+    const cd=JSON.parse(localStorage.getItem('customerData')||'{}');
+    if(!cd.lat || !cd.lng) return null;
+    const pt={lat:cd.lat,lng:cd.lng};
+    const snap=await getDocs(collection(db,'franchiseZones'));
+    let best=null;
+    snap.forEach(d=>{
+      const f=d.data(); if(!f.zone || f.zone.length<3) return;
+      const inside=pointInPolygon(pt,f.zone);
+      const dist=inside?0:distanceToPolygonEdge(pt,f.zone);
+      if(!best || dist<best.dist) best={franchiseId:f.franchiseId||d.id, inside, dist};
+    });
+    if(best){ localStorage.setItem('customerZoneCheck', JSON.stringify({...best, checkedAt:Date.now()})); }
+    return best;
+  }catch(e){ return null; }
+}
 async function loadShopsData(){
   try{
     const snap=await getDocs(collection(db,'shops'));
     SHOPS=[]; snap.forEach(d=>SHOPS.push({id:d.id,...d.data()}));
   }catch(e){ SHOPS=[]; }
+  // กรองตามเขตพื้นที่ (ถ้าระบุหาเขตของลูกค้าได้): ให้เห็นร้านที่ยังไม่ผูกแฟรนไชส์ (ร้านกลาง) รวมกับร้านของแฟรนไชส์ที่ใกล้ที่สุด
+  // ร้านรองรับได้หลายเขตพร้อมกัน (franchiseIds เป็น array กรณีร้านตกลงอยู่ 2 เขต) — ของเก่า (franchiseId เดี่ยว) ยังใช้ได้
+  try{
+    const zone = await getCustomerFranchiseZone();
+    if(zone){
+      SHOPS = SHOPS.filter(s => {
+        const ids = s.franchiseIds || (s.franchiseId ? [s.franchiseId] : []);
+        return ids.length===0 || ids.includes(zone.franchiseId);
+      });
+      // เช็คแล้วอยู่นอกทุกเขตจริงๆ (ไม่ใช่แค่ยังไม่มีหมุด/ยังไม่มีเขตในระบบเลย) แจ้งทันทีที่หน้านี้เลย
+      // ไม่รอให้ลึกไปถึง checkout เพราะกว่าจะรู้ตัวก็เสียเวลาเลือกของไปนานแล้ว — ยังกดปิดแล้วเดินดูร้านต่อได้ปกติ
+      if(zone.inside===false && window.openZoneOutModal) window.openZoneOutModal();
+    }
+  }catch(e){ /* กรองไม่สำเร็จ ไม่ควรกระทบการแสดงร้านหลัก ปล่อยผ่าน */ }
   renderPop();
   renderShops();
   navigator.geolocation?.getCurrentPosition(p=>{
@@ -997,5 +1069,21 @@ loadNotifBadge();
 renderSkeleton();
 loadShopsData();
 </script>
+<!-- ===== นอกพื้นที่ให้บริการ ===== -->
+<div class="zone-overlay" id="zoneOutOverlay">
+  <div class="zone-card">
+    <div class="zone-ico"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.3"/><path d="M4 4l16 16"/></svg></div>
+    <div class="zone-title">คุณอยู่นอกพื้นที่ให้บริการ</div>
+    <div class="zone-desc">ที่อยู่ปัจจุบันของคุณอยู่นอกเขตที่เราให้บริการในขณะนี้ ยังสามารถเดินดูร้านค้าต่อได้ แต่อาจสั่งซื้อไม่ได้จนกว่าจะเปลี่ยนที่อยู่ หรือรอทีมงานขยายพื้นที่เพิ่มเติมครับ</div>
+    <button class="zone-btn-pri" onclick="closeZoneOutModal();window.handleLoginChip&&window.handleLoginChip();">เปลี่ยนที่อยู่</button>
+    <button class="zone-btn-sec" onclick="closeZoneOutModal()">เดินดูร้านค้าต่อ</button>
+  </div>
+</div>
+
+<script>
+window.closeZoneOutModal=function(){ document.getElementById('zoneOutOverlay').classList.remove('show'); };
+window.openZoneOutModal=function(){ document.getElementById('zoneOutOverlay').classList.add('show'); };
+</script>
+
 </body>
 </html>
