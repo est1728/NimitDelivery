@@ -353,8 +353,9 @@ import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendS
 
 // ============================================================
 // โครงสร้างข้อมูล Firestore ที่หน้านี้ใช้ (ใหม่ ต่อยอดจากระบบเดิม):
-//  - admins/{email}         : เดิมมี role 'owner'|'admin' เพิ่ม role ใหม่ 'franchise_owner'|'franchise_staff'|'franchise_finance'
-//                              + field franchiseId ผูกกับ franchises/{id}
+//  - franchiseAccounts/{email} : บัญชีฝั่งแฟรนไชส์ทั้งหมด role 'franchise_owner'|'franchise_staff'|'franchise_finance'
+//                              + field franchiseId ผูกกับ franchises/{id} — แยกจาก admins/{email} (บัญชีแอดมิน HQ) โดยสิ้นเชิงแล้ว
+//                              (เดิมทั้งสองฝั่งใช้ collection 'admins' ร่วมกัน ทำให้เช็คบัญชีซ้ำ/ลิงก์ตั้งรหัสผ่านชนกัน)
 //  - franchises/{id}        : {name,ownerEmail,phone,province,logoUrl,commissionPercent,status,zone,zoneStatus,createdAt}
 //                              zone = [{lat,lng},...] รูปหลายเหลี่ยมของเขตพื้นที่, zoneStatus='none'|'pending'|'approved'|'rejected'
 //  - franchiseApplications/{autoId} : ใบสมัครเปิดแฟรนไชส์จากบุคคลทั่วไป (ยังไม่มีบัญชี)
@@ -415,7 +416,8 @@ onAuthStateChanged(auth, async(user)=>{
   $('authCheckingOverlay').style.display='flex';
   const email=(user.email||'').toLowerCase();
   try{
-    const snap=await getDoc(doc(db,'admins',email));
+    // เดิมเช็คจาก collection 'admins' ตัวเดียวกับบัญชีแอดมิน HQ — ตอนนี้แยกเป็น 'franchiseAccounts' ต่างหากแล้ว
+    const snap=await getDoc(doc(db,'franchiseAccounts',email));
     const isFranchiseRole = snap.exists() && (snap.data().role||'').startsWith('franchise');
     if(!snap.exists() || snap.data().status!=='active' || !isFranchiseRole){
       await signOut(auth);
@@ -736,7 +738,7 @@ window.submitPayoutRequest=async function(){
 async function loadStaffTab(){
   const el=$('staffList');
   try{
-    const snap=await getDocs(query(collection(db,'admins'),where('franchiseId','==',CUR.franchiseId)));
+    const snap=await getDocs(query(collection(db,'franchiseAccounts'),where('franchiseId','==',CUR.franchiseId)));
     const staff=snap.docs.map(d=>({email:d.id,...d.data()}));
     const roleLabel={franchise_owner:'เจ้าของแฟรนไชส์',franchise_staff:'พนักงานทั่วไป',franchise_finance:'ฝ่ายการเงิน'};
     const statusLabel={active:'ใช้งานอยู่',pending_verification:'รอยืนยันอีเมล',setting_password:'รอตั้งรหัสผ่าน',disabled:'ปิดสิทธิ์แล้ว'};
@@ -748,7 +750,7 @@ async function loadStaffTab(){
 }
 window.toggleStaffStatus=async function(email,newStatus){
   if(CUR.role!=='franchise_owner') return;
-  try{ await updateDoc(doc(db,'admins',email),{status:newStatus}); loadStaffTab(); }
+  try{ await updateDoc(doc(db,'franchiseAccounts',email),{status:newStatus}); loadStaffTab(); }
   catch(e){ toast('แก้ไขไม่สำเร็จ: '+e.message,'er'); }
 };
 window.inviteFranchiseStaff=async function(){
@@ -757,10 +759,10 @@ window.inviteFranchiseStaff=async function(){
   const errEl=$('stfMsg'); errEl.textContent='';
   if(!email||!email.includes('@')){ errEl.textContent='กรอกอีเมลให้ถูกต้อง'; return; }
   try{
-    const existing=await getDoc(doc(db,'admins',email));
+    const existing=await getDoc(doc(db,'franchiseAccounts',email));
     if(existing.exists() && existing.data().status==='active'){ errEl.textContent='อีเมลนี้มีสิทธิ์อยู่แล้ว'; return; }
-    await setDoc(doc(db,'admins',email),{email,role,status:'pending_verification',franchiseId:CUR.franchiseId,invitedBy:CUR.email,createdAt:serverTimestamp()});
-    await sendSignInLinkToEmail(auth,email,{url:window.location.origin+'/admin-setup.html',handleCodeInApp:true});
+    await setDoc(doc(db,'franchiseAccounts',email),{email,role,status:'pending_verification',franchiseId:CUR.franchiseId,invitedBy:CUR.email,createdAt:serverTimestamp()});
+    await sendSignInLinkToEmail(auth,email,{url:window.location.origin+'/franchise-setup.html',handleCodeInApp:true});
     closeModal('modalInviteStaff'); $('stfEmail').value='';
     toast('ส่งคำเชิญไปที่ '+email+' แล้ว','ok');
     loadStaffTab();
