@@ -390,14 +390,14 @@ async function fetchAll(){
     getDocs(collection(db,'franchiseLinkRequests')),
     getDocs(collection(db,'franchisePayoutRequests')),
     getDocs(collection(db,'shops')),
-    getDocs(collection(db,'admins')),
+    getDocs(collection(db,'franchiseAccounts')), // เดิมอ่านจาก 'admins' แล้วกรอง role — แยกเป็น collection ของตัวเองแล้ว ไม่ต้องกรองอีก
   ]);
   ALL.applications=appsSnap.docs.map(d=>({id:d.id,...d.data()}));
   ALL.franchises=franSnap.docs.map(d=>({id:d.id,...d.data()}));
   ALL.linkReqs=linkSnap.docs.map(d=>({id:d.id,...d.data()}));
   ALL.payoutReqs=poSnap.docs.map(d=>({id:d.id,...d.data()}));
   ALL.shops=shopSnap.docs.map(d=>({id:d.id,...d.data()}));
-  ALL.admins=adminSnap.docs.map(d=>({email:d.id,...d.data()})).filter(a=>(a.role||'').startsWith('franchise'));
+  ALL.admins=adminSnap.docs.map(d=>({email:d.id,...d.data()})); // ตัวแปรชื่อเดิม (ALL.admins) แต่ตอนนี้คือ "บัญชีแฟรนไชส์" จาก franchiseAccounts ไม่ใช่ admins จริงแล้ว
 }
 
 window.__startHq=async function(){
@@ -510,19 +510,25 @@ window.confirmApprove=async function(){
   const errEl=$('apvMsg'); errEl.textContent='';
   if(!email||!name){ errEl.textContent='กรอกชื่อและอีเมลให้ครบ'; return; }
   try{
-    const existing=await getDoc(doc(db,'admins',email));
-    if(existing.exists() && existing.data().status==='active'){ errEl.textContent='อีเมลนี้มีบัญชีที่ใช้งานอยู่แล้ว'; return; }
+    // เดิมเช็ค/เขียนที่ collection 'admins' ตัวเดียวกับบัญชีแอดมิน HQ ทำให้บัญชีแฟรนไชส์กับแอดมินปนกัน
+    // (เช่น อีเมลที่เคยมีบัญชีแอดมิน หรือเคยสมัครแฟรนไชส์แล้ว จะโดนบล็อก "อีเมลนี้มีบัญชีที่ใช้งานอยู่แล้ว" ทั้งที่ไม่เกี่ยวกัน)
+    // ตอนนี้แยกเป็น collection 'franchiseAccounts' ต่างหาก ไม่ยุ่งกับระบบแอดมินอีกต่อไป
+    const existing=await getDoc(doc(db,'franchiseAccounts',email));
+    if(existing.exists() && existing.data().status==='active'){ errEl.textContent='อีเมลนี้มีบัญชีแฟรนไชส์ที่ใช้งานอยู่แล้ว'; return; }
     const franRef=doc(collection(db,'franchises'));
     await setDoc(franRef,{
       name,ownerEmail:email,phone,province,logoUrl:'',commissionPercent:commission,
       status:'active',zone:[],zoneStatus:'none',devAccess:false,createdAt:serverTimestamp()
     });
-    await setDoc(doc(db,'admins',email),{
+    await setDoc(doc(db,'franchiseAccounts',email),{
       email,role:'franchise_owner',status:'pending_verification',franchiseId:franRef.id,
       approvedBy:CUR.email,createdAt:serverTimestamp()
     });
     if(curAppId) await updateDoc(doc(db,'franchiseApplications',curAppId),{status:'approved'});
-    try{ await sendSignInLinkToEmail(auth,email,{url:window.location.origin+'/admin-setup.html',handleCodeInApp:true}); }catch(e){}
+    // ลิงก์ตั้งรหัสผ่านตอนนี้ชี้ไปหน้า franchise-setup.html ของตัวเอง ไม่ใช้ร่วมกับ admin-setup.html ของแอดมิน HQ อีกต่อไป
+    // หมายเหตุ: ลิงก์นี้ HQ เป็นคนส่งแทนแฟรนไชส์ (คนละอุปกรณ์กับคนที่จะเปิดอีเมล) franchise-setup.html
+    // จึงมีหน้าให้กรอกอีเมลยืนยันตัวเองในตัว ไม่ต้องพึ่ง localStorage ของเครื่องนี้
+    try{ await sendSignInLinkToEmail(auth,email,{url:window.location.origin+'/franchise-setup.html',handleCodeInApp:true}); }catch(e){}
     closeModal('modalApprove');
     toast('อนุมัติและออกบัญชีแฟรนไชส์ให้ '+email+' แล้ว','ok');
     await fetchAll(); loadOverview(); renderApps(); loadFranchises();
