@@ -30,7 +30,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getAuth, isSignInWithEmailLink, signInWithEmailLink, updatePassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, isSignInWithEmailLink, signInWithEmailLink, updatePassword, signOut, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 // หน้านี้แยกออกมาต่างหากจาก admin-setup.html โดยเฉพาะ — ใช้สำหรับ "บัญชีแฟรนไชส์" เท่านั้น
 // (franchise_owner / franchise_staff / franchise_finance ใน collection franchiseAccounts)
@@ -45,6 +45,11 @@ const fbApp = initializeApp({
 });
 const db = getFirestore(fbApp);
 const auth = getAuth(fbApp);
+// สำคัญ: ตั้งให้ session ของหน้านี้เก็บแบบแยกต่อแท็บ (sessionStorage) แทนค่าเริ่มต้นของ Firebase ที่แชร์
+// สถานะล็อกอินข้ามทุกแท็บในเบราว์เซอร์เดียวกัน (เพราะทุกหน้าในระบบนี้ใช้ Firebase project เดียวกัน)
+// ถ้าไม่ตั้งจุดนี้ พอมีคนล็อกอินเป็นบัญชีอื่น (เช่นบัญชีแฟรนไชส์) ในอีกแท็บ จะไปเปลี่ยนสถานะล็อกอินของ
+// หน้านี้ในแท็บเดิมไปด้วยทันที ทำให้เช็คสิทธิ์ไม่ผ่านแล้วถูกเด้งออกเองโดยที่ไม่ได้กด "ออกจากระบบ" เลย
+setPersistence(auth, browserSessionPersistence).catch(()=>{});
 const card = document.getElementById('card');
 
 function renderMsg(text, type){
@@ -134,12 +139,25 @@ async function init(){
     });
     return;
   }
-  try{ await completeSignIn(email); }
-  catch(e){
-    renderMsg(e.code==='auth/invalid-action-code'
-      ? 'ลิงก์นี้ใช้ไม่ได้แล้ว (อาจหมดอายุหรือถูกใช้ไปแล้ว) กรุณาขอคำเชิญใหม่จากทีมงาน HQ'
-      : 'ยืนยันไม่สำเร็จ: '+e.message, 'er');
-  }
+  // สำคัญ: จุดนี้เคยเรียก completeSignIn(email) ทันทีโดยไม่รอผู้ใช้กดอะไรเลย — เป็นสาเหตุหลักที่ลิงก์ชอบขึ้น
+  // "หมดอายุ/ใช้ไปแล้ว" ทั้งที่เพิ่งเปิดครั้งแรก เพราะโปรแกรมสแกนอีเมลของบางค่าย (เช่น Outlook Safe Links,
+  // ระบบสแกนไวรัสของบริษัท) จะเปิดลิงก์ในอีเมลด้วยเบราว์เซอร์จริงๆเพื่อตรวจสอบความปลอดภัยล่วงหน้าโดยอัตโนมัติ
+  // ก่อนที่คนจะกดเองด้วยซ้ำ — โค้ดสมัยก่อนที่เรียก signInWithEmailLink ทันทีตอนโหลดหน้า เลยโดนสแกนเนอร์ "ใช้"
+  // โค้ดแบบใช้ครั้งเดียวไปก่อนโดยที่เจ้าของอีเมลยังไม่ทันได้กดเลย พอคนจริงมากดทีหลังเลยเจอ error ว่าใช้ไปแล้ว
+  // แก้โดยรอให้กดปุ่มเองก่อนเสมอ (เหมือนอีกเส้นทางด้านบนที่ต้องกรอกอีเมล) สแกนเนอร์อัตโนมัติจะไม่กดปุ่มให้แน่นอน
+  card.innerHTML = `
+    <div class="msg in">พบอีเมล ${email} ที่บันทึกไว้ในเครื่องนี้</div>
+    <button id="continueBtn">ดำเนินการต่อ</button>
+  `;
+  document.getElementById('continueBtn').addEventListener('click', async ()=>{
+    const btn=document.getElementById('continueBtn'); btn.disabled=true; btn.textContent='กำลังตรวจสอบ...';
+    try{ await completeSignIn(email); }
+    catch(e){
+      renderMsg(e.code==='auth/invalid-action-code'
+        ? 'ลิงก์นี้ใช้ไม่ได้แล้ว (อาจหมดอายุหรือถูกใช้ไปแล้ว) กรุณาขอคำเชิญใหม่จากทีมงาน HQ'
+        : 'ยืนยันไม่สำเร็จ: '+e.message, 'er');
+    }
+  });
 }
 init();
 </script>
