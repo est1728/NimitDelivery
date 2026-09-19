@@ -969,7 +969,7 @@ window.confirmCrop=function(){
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, query, where, onSnapshot, doc, getDocs, updateDoc, setDoc, addDoc, deleteDoc, getDoc, serverTimestamp, orderBy, limit, increment, deleteField } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendSignInLinkToEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendSignInLinkToEmail, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 window.previewAdFile=function(input,type){
   const file=input.files[0]; if(!file)return;
@@ -1090,6 +1090,11 @@ const fbApp = initializeApp({
 });
 const db = getFirestore(fbApp);
 const auth = getAuth(fbApp);
+// สำคัญ: ตั้งให้ session ของหน้านี้เก็บแบบแยกต่อแท็บ (sessionStorage) แทนค่าเริ่มต้นของ Firebase ที่แชร์
+// สถานะล็อกอินข้ามทุกแท็บในเบราว์เซอร์เดียวกัน (เพราะทุกหน้าในระบบนี้ใช้ Firebase project เดียวกัน)
+// ถ้าไม่ตั้งจุดนี้ พอมีคนล็อกอินเป็นบัญชีอื่น (เช่นบัญชีแฟรนไชส์) ในอีกแท็บ จะไปเปลี่ยนสถานะล็อกอินของ
+// หน้านี้ในแท็บเดิมไปด้วยทันที ทำให้เช็คสิทธิ์ไม่ผ่านแล้วถูกเด้งออกเองโดยที่ไม่ได้กด "ออกจากระบบ" เลย
+setPersistence(auth, browserSessionPersistence).catch(()=>{});
 
 const SL={pending:"รอรับ",accepted:"รับแล้ว",picking:"ไปร้าน",arrived:"ถึงร้าน",delivering:"กำลังส่ง",done:"เสร็จสิ้น",rejected:"ยกเลิก"};
 const SN={pending:"accepted",accepted:"picking",picking:"arrived",arrived:"delivering",delivering:"done"};
