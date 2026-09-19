@@ -250,8 +250,14 @@ enableIndexedDbPersistence(db).catch(()=>{});
 
 
 // cart = { shopId: { shopName, items:[{id,name,basePrice,price,qty,options:[],note}] } }
-let cart = JSON.parse(localStorage.getItem("cart") || "{}");
-let customerData = JSON.parse(localStorage.getItem("customerData") || "{}");
+// เดิม JSON.parse ตรงนี้ไม่มี try/catch เลย ถ้า localStorage มีค่าที่พังอยู่ (เช่น จากเวอร์ชันเก่า หรือข้อมูลเพี้ยน)
+// จะ throw error ทันทีตั้งแต่ต้นสคริปต์ ทำให้โค้ดทั้งหน้าไม่ทำงานต่อเลยสักบรรทัด กลายเป็นหน้าว่างเปล่า
+// (เกิดเฉพาะบางเครื่องที่บังเอิญมีข้อมูลเก่า/เสียอยู่ใน localStorage) ใส่ fallback กันไว้ให้เริ่มจากค่าว่างแทนที่จะพังทั้งหน้า
+let cart = {}; try{ cart = JSON.parse(localStorage.getItem("cart") || "{}"); }catch(e){ localStorage.removeItem("cart"); }
+let customerData = {}; try{ customerData = JSON.parse(localStorage.getItem("customerData") || "{}"); }catch(e){ localStorage.removeItem("customerData"); }
+// เหมือนหน้าอื่นๆ: ถ้าล็อกอินแบบที่เขียนแค่ customerPhone ไว้ (ไม่ได้สร้าง customerData เต็ม) ให้ใช้ค่านั้นแทน
+// กันเคส "ล็อกอินไปแล้วแต่กดสั่งซื้อดันให้ล็อกอินซ้ำ" เพราะเช็คแค่ customerData.phone อย่างเดียว
+if(!customerData.phone){ const p=localStorage.getItem("customerPhone"); if(p) customerData.phone=p; }
 let walletPercent=30, riderPercent=70, baseDeliveryFee=9, deliveryTiers=[];
 let gpPercent=0, gpSubPercent=0, gpTiers=[], gpSubTiers=[];
 let shopMeta = {};
