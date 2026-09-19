@@ -79,7 +79,6 @@ body{background:var(--gray);min-height:100vh;padding-bottom:120px;}
 .sheet-overlay.show{display:block;}
 .addr-sheet{position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:22px 22px 0 0;z-index:401;max-height:80vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform 0.28s ease;}
 .addr-sheet.show{transform:translateY(0);}
-.sheet-handle{width:36px;height:4px;background:#e2e8f0;border-radius:2px;margin:12px auto 0;flex-shrink:0;}
 
 .coupon-pick-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1.5px dashed var(--primary);border-radius:12px;cursor:pointer;}
 .coupon-pick-row svg.chev{width:14px;height:14px;fill:var(--subtext);}
@@ -92,7 +91,7 @@ body{background:var(--gray);min-height:100vh;padding-bottom:120px;}
 .cp-sheet-info{flex:1;min-width:0;}
 .cp-sheet-title{font-size:13.5px;font-weight:700;color:var(--text);}
 .cp-sheet-meta{font-size:11.5px;color:var(--subtext);margin-top:2px;}
-
+.sheet-handle{width:36px;height:4px;background:#e2e8f0;border-radius:2px;margin:12px auto 0;flex-shrink:0;}
 .sheet-head{padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
 .sheet-title{font-size:16px;font-weight:800;color:var(--text);}
 .sheet-close{width:30px;height:30px;border:none;border-radius:50%;background:var(--gray);cursor:pointer;display:flex;align-items:center;justify-content:center;}
@@ -150,15 +149,6 @@ body{background:var(--gray);min-height:100vh;padding-bottom:120px;}
   <div id="itemsBlock"></div>
 </div>
 
-<!-- คูปอง -->
-<div class="section">
-  <div class="section-title"><div class="section-title-text"><svg viewBox="0 0 24 24"><path d="M22 10V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v4c1.1 0 2 .9 2 2s-.9 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2zm-9 7.5h-2v-2h2v2zm0-4.5h-2v-2h2v2zm0-4.5h-2v-2h2v2z"/></svg>คูปองส่วนลด</div></div>
-  <div class="coupon-pick-row" onclick="window.openCouponSheet()">
-    <span class="coupon-pick-text" id="couponPickText">เลือกคูปองที่เก็บไว้</span>
-    <svg class="chev" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
-  </div>
-</div>
-
 <!-- ชำระเงิน -->
 <div class="section">
   <div class="section-title"><div class="section-title-text"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>วิธีชำระเงิน</div></div>
@@ -172,6 +162,15 @@ body{background:var(--gray);min-height:100vh;padding-bottom:120px;}
   </div>
 </div>
 
+<!-- คูปอง -->
+<div class="section">
+  <div class="section-title"><div class="section-title-text"><svg viewBox="0 0 24 24"><path d="M22 10V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v4c1.1 0 2 .9 2 2s-.9 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2zm-9 7.5h-2v-2h2v2zm0-4.5h-2v-2h2v2zm0-4.5h-2v-2h2v2z"/></svg>คูปองส่วนลด</div></div>
+  <div class="coupon-pick-row" onclick="window.openCouponSheet()">
+    <span class="coupon-pick-text" id="couponPickText">เลือกคูปองที่เก็บไว้</span>
+    <svg class="chev" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+  </div>
+</div>
+
 <!-- สรุปราคา -->
 <div class="section">
   <div class="section-title"><div class="section-title-text"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>สรุปราคา</div></div>
@@ -179,6 +178,12 @@ body{background:var(--gray);min-height:100vh;padding-bottom:120px;}
   <div class="summary-row"><span class="summary-label">ค่าส่ง</span><span class="summary-val">฿<span id="sum-delivery">0</span></span></div>
   <div class="summary-row" id="sum-discount-row" style="display:none"><span class="summary-label" style="color:#16a34a">ส่วนลดคูปอง</span><span class="summary-val" style="color:#16a34a">-฿<span id="sum-discount">0</span></span></div>
   <div class="summary-row main"><span>ยอดรวมทั้งหมด</span><span>฿<span id="sum-total">0</span></span></div>
+</div>
+
+<div class="sheet-overlay" id="couponSheetOverlay" onclick="if(event.target===this)window.closeCouponSheet()"></div>
+<div class="addr-sheet" id="couponSheet">
+  <div style="padding:16px 16px 4px;font-size:15px;font-weight:800;color:var(--text)">เลือกคูปอง</div>
+  <div style="padding:12px 16px 20px;overflow-y:auto" id="couponSheetBody"></div>
 </div>
 
 <div class="bottom-bar">
@@ -198,12 +203,6 @@ body{background:var(--gray);min-height:100vh;padding-bottom:120px;}
   <div class="sheet-head"><div class="sheet-title">เลือกที่อยู่จัดส่ง</div><button class="sheet-close" onclick="window.closeAddrSheet()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>
   <div class="sheet-body" id="sheetBody"></div>
   <button class="sheet-confirm-btn" onclick="window.confirmAddr()">ยืนยันที่อยู่นี้</button>
-</div>
-
-<div class="sheet-overlay" id="couponSheetOverlay" onclick="if(event.target===this)window.closeCouponSheet()"></div>
-<div class="addr-sheet" id="couponSheet">
-  <div style="padding:16px 16px 4px;font-size:15px;font-weight:800;color:var(--text)">เลือกคูปอง</div>
-  <div style="padding:12px 16px 20px;overflow-y:auto" id="couponSheetBody"></div>
 </div>
 
 <!-- ===== นอกพื้นที่ให้บริการ ===== -->
@@ -258,7 +257,6 @@ let redeemedExistingIdx = null; // ถ้าเลือกจากเมนู
 let redeemedNewItem = null; // ถ้าเลือกเพิ่มเมนูใหม่ฟรี: {name, price}
 let redeemMenuCache = {}; // แคชเมนูร้านไว้ ไม่ต้องโหลดซ้ำทุกครั้งที่เปิดป๊อบอัพ
 let walletPercent=30, riderPercent=70, baseDeliveryFee=9, deliveryTiers=[];
-let myCoupons=[], selectedCoupon=null, custPhoneG='';
 function tierDeliveryFee(km){
   if(Array.isArray(deliveryTiers) && deliveryTiers.length){
     const sorted=[...deliveryTiers].sort((a,b)=>(a.min??0)-(b.min??0));
@@ -304,8 +302,8 @@ async function init(){
         loyaltyCards[shopId]=cSnap.exists()?cSnap.data():{points:0};
       }catch(e){ loyaltyCards[shopId]={points:0}; }
     }
+    await loadMyCoupons();
   }
-  await loadMyCoupons();
   renderAddress();
   renderItems();
   renderSummary();
@@ -369,23 +367,7 @@ function getDeliveryFee(shopId){
   return 0;
 }
 
-function currentFoodDeliveryTotals(){
-  let foodTotal=0, deliveryTotal=0;
-  checkoutShops.forEach(id=>{
-    if(!cart[id]) return;
-    let shopFoodTotal=cart[id].items.reduce((s,i)=>s+i.price*i.qty,0);
-    // ถ้ากำลังใช้สิทธิ์แลกฟรีกับร้านนี้ (เลือกจากเมนูที่สั่งไว้แล้ว) หักราคาของ 1 ชิ้นนั้นออก
-    if(redeemedShop===id && redeemedExistingIdx!=null){
-      const it=cart[id].items[redeemedExistingIdx];
-      if(it) shopFoodTotal-=it.price;
-    }
-    foodTotal+=shopFoodTotal;
-    deliveryTotal+=getDeliveryFee(id);
-  });
-  return {foodTotal,deliveryTotal};
-}
-
-// ===================== คูปอง (ใช้ตอนเช็คเอาท์) =====================
+let myCoupons=[], selectedCoupon=null, custPhoneG='';
 async function loadMyCoupons(){
   if(!custPhoneG){ myCoupons=[]; return; }
   try{
@@ -399,6 +381,16 @@ async function loadMyCoupons(){
     }));
     myCoupons = coupons.filter(c=>c && c.endAt>now);
   }catch(e){ myCoupons=[]; }
+}
+function currentFoodDeliveryTotals(){
+  let foodTotal=0, deliveryTotal=0;
+  checkoutShops.forEach(id=>{
+    if(!cart[id]) return;
+    let t=cart[id].items.reduce((s,i)=>s+i.price*i.qty,0);
+    if(redeemedShop===id && redeemedExistingIdx!=null){ const it=cart[id].items[redeemedExistingIdx]; if(it) t-=it.price; }
+    foodTotal+=t; deliveryTotal+=getDeliveryFee(id);
+  });
+  return {foodTotal,deliveryTotal};
 }
 function couponEligibility(c){
   const {foodTotal}=currentFoodDeliveryTotals();
@@ -458,7 +450,7 @@ function renderSummary(){
   document.getElementById("sum-discount-row").style.display="none";
   if(selectedCoupon){
     const elig=couponEligibility(selectedCoupon);
-    if(!elig.ok){ selectedCoupon=null; } // เงื่อนไขเปลี่ยนจนใช้ไม่ได้แล้ว (เช่น แก้ตะกร้าจนต่ำกว่าขั้นต่ำ) เอาออกอัตโนมัติ
+    if(!elig.ok){ selectedCoupon=null; }
     else {
       discount=calcCouponDiscount(selectedCoupon);
       document.getElementById("couponPickText").textContent=selectedCoupon.title;
@@ -592,7 +584,6 @@ window.placeOrder=async function(){
       setDoc(doc(db,"customers",customerData.phone),{...customerData,updatedAt:serverTimestamp()},{merge:true}).catch(()=>{});
     }
     // คำนวณส่วนลดคูปองรวมครั้งเดียวก่อนเข้าลูป แล้วทยอยหักออกจากแต่ละร้านทีละน้อยจนหมด
-    // (เผื่อเช็คเอาท์หลายร้านพร้อมกัน ส่วนลดจะกระจายไปตามลำดับร้าน ไม่ทำให้ยอดร้านไหนติดลบ)
     let couponRemaining=0, couponApplied=null;
     if(selectedCoupon){
       const elig=couponEligibility(selectedCoupon);
@@ -630,7 +621,6 @@ window.placeOrder=async function(){
         return s+(i.basePrice+optBase)*i.qty;
       },0)-(loyaltyDiscount?loyaltyDiscount:0); // เมนูที่แลกฟรีไม่ต้องหักต้นทุนคืนร้านส่วนนั้น (ร้านให้ฟรีเอง)
       const deliveryFee=isProxy?0:getDeliveryFee(shopId); // ร้านฝากซื้อ: ราคาที่ลูกค้าเห็น = ราคาที่พิมพ์เป๊ะๆ ไม่บวกค่าส่งเพิ่มเลย
-      // หักส่วนลดคูปองจากยอดร้านนี้เท่าที่มี ไม่ให้ติดลบ ส่วนที่เหลือ (ถ้ามี) จะยกไปหักร้านถัดไปในลูป
       let couponDiscountForShop=0;
       if(couponRemaining>0){
         couponDiscountForShop=Math.min(couponRemaining, subtotal+deliveryFee);
