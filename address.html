@@ -255,6 +255,12 @@ function saveAddr(){
   var addr = document.getElementById('fAddr').value.trim();
   var note = document.getElementById('fNote').value.trim();
   if(!name||!addr){ alert('กรุณากรอกชื่อและที่อยู่'); return; }
+  if(!phone){ alert('กรุณากรอกเบอร์โทรศัพท์ครับ ใช้สำหรับให้ร้าน/ไรเดอร์ติดต่อกลับ และผูกบัญชีของคุณ'); return; }
+  // บั๊กจริงที่เจอ: หน้านี้เก็บเบอร์โทรไว้แค่ในอ็อบเจกต์ที่อยู่ (addresses[]) เท่านั้น ไม่เคยเขียนกลับเป็น
+  // localStorage.customerPhone เลย — แล้ว syncCustomerData() ด้านล่างต้องอ่านค่านี้ก่อนถึงจะสร้าง customerData ได้
+  // ลูกค้าใหม่ที่กรอกฟอร์มนี้เป็นครั้งแรก (ไม่เคยมี customerPhone มาก่อน) เลยไม่มีทางได้ customerData เลย
+  // เข้าสู่ระบบ/สั่งซื้อครั้งต่อไปจึงมองว่ายังไม่เคยล็อกอิน ทั้งที่เพิ่งกรอกข้อมูลเสร็จไปหมาดๆ
+  if(phone) localStorage.setItem('customerPhone', phone);
   var obj = {name:name, phone:phone, address:addr, note:note, lat:curLat, lng:curLng};
   if(editIdx >= 0){
     addresses[editIdx] = obj;
