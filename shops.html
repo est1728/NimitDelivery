@@ -372,7 +372,7 @@ a{color:inherit;}
         <div class="sb-item-text"><div class="sb-item-t">ออกจากระบบ</div><div class="sb-item-s">เข้าสู่ระบบด้วยเบอร์อื่น</div></div>
         <svg class="sb-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
       </button>
-      <button class="sb-item" id="installAppBtn" style="border-bottom:none;display:none" onclick="installApp()">
+      <button class="sb-item" id="installAppBtn" style="border-bottom:none" onclick="installApp()">
         <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
         <div class="sb-item-text"><div class="sb-item-t">ติดตั้งแอป</div><div class="sb-item-s">เพิ่มไอคอนไว้หน้าจอโฮม เปิดใช้ไวขึ้น</div></div>
       </button>
@@ -592,18 +592,27 @@ let deferredInstallPrompt=null;
 window.addEventListener('beforeinstallprompt', e=>{
   e.preventDefault();
   deferredInstallPrompt=e;
-  $('installAppBtn').style.display='flex';
 });
+// ปุ่มนี้แสดงตลอดเวลา (เดิมซ่อนไว้จนกว่า beforeinstallprompt จะยิง แต่ event นี้ไม่เกิดขึ้นเลยบน iOS Safari
+// และอีกหลายกรณี ปุ่มเลยหายไปเงียบๆ สำหรับคนส่วนใหญ่) ถ้าเบราว์เซอร์รองรับการติดตั้งจริงก็เปิด prompt ให้เลย
+// ถ้าไม่รองรับ (เช่น iOS) ก็บอกวิธีติดตั้งเองแทน แทนที่จะกดแล้วไม่มีอะไรเกิดขึ้น
 function installApp(){
-  if(!deferredInstallPrompt) return;
-  deferredInstallPrompt.prompt();
-  deferredInstallPrompt=null;
-  $('installAppBtn').style.display='none';
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt=null;
+    return;
+  }
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if(isIOS) alert('วิธีติดตั้งบน iPhone/iPad:\n1. แตะปุ่มแชร์ (ไอคอนสี่เหลี่ยมมีลูกศรชี้ขึ้น) ด้านล่างเบราว์เซอร์\n2. เลือก "เพิ่มไปยังหน้าจอโฮม"');
+  else alert('เปิดเมนู ⋮ ของเบราว์เซอร์ แล้วเลือก "ติดตั้งแอป" หรือ "เพิ่มไปยังหน้าจอโฮม"');
 }
 // แสดงชื่อ/เบอร์ลูกค้าจริงที่ปุ่มมุมซ้ายบน จากข้อมูลที่บันทึกไว้ตอนล็อกอิน (login.html)
+// เดิมอ่านจาก customerData อย่างเดียว — ถ้าล็อกอินแบบที่เขียนแค่ customerPhone (ไม่ได้สร้าง customerData เต็ม)
+// จะเห็นเป็น "เข้าสู่ระบบ" ตลอดทั้งที่ล็อกอินจริงแล้ว จึงต้อง fallback ไปที่ customerPhone ด้วยเหมือนหน้าอื่นๆ
 function renderLoginChip(){
   const cd=JSON.parse(localStorage.getItem('customerData')||'{}');
-  $('loginChipText').textContent = cd.name && cd.phone ? `${cd.name} · ${cd.phone}` : (cd.phone || 'เข้าสู่ระบบ');
+  const phone = cd.phone || localStorage.getItem('customerPhone');
+  $('loginChipText').textContent = cd.name && phone ? `${cd.name} · ${phone}` : (phone || 'เข้าสู่ระบบ');
   if(cd.address) $('sbAddressText').textContent=cd.address;
 }
 
