@@ -269,8 +269,8 @@ button.pri{width:100%;height:50px;border:none;border-radius:16px;background:line
     <input id="apvProvince">
     <label>เบอร์ติดต่อ</label>
     <input id="apvPhone">
-    <label>อัตราคอมมิชชั่น (%)</label>
-    <input id="apvCommission" type="number" value="10">
+    <label>ค่าแฟรนไชส์รายเดือน (บาท) — ใส่ 0 ถ้าไม่เก็บ</label>
+    <input id="apvCommission" type="number" value="2300">
     <div id="apvMsg" class="ag-msg err"></div>
     <button class="btn2 btn-gn btn-block" onclick="confirmApprove()">ยืนยันอนุมัติและออกบัญชี</button>
   </div>
@@ -286,8 +286,8 @@ button.pri{width:100%;height:50px;border:none;border-radius:16px;background:line
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, query, where, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendSignInLinkToEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, query, where, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, deleteDoc, deleteField, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendSignInLinkToEmail, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 // ============================================================
 // หน้านี้คือหลังบ้าน HQ สำหรับระบบแฟรนไชส์ทั้งหมด (ดูคู่กับ franchise-dashboard.html ฝั่งเจ้าของแฟรนไชส์)
@@ -306,6 +306,11 @@ const fbApp = initializeApp({
 });
 const db = getFirestore(fbApp);
 const auth = getAuth(fbApp);
+// สำคัญ: ตั้งให้ session ของหน้านี้เก็บแบบแยกต่อแท็บ (sessionStorage) แทนค่าเริ่มต้นของ Firebase ที่แชร์
+// สถานะล็อกอินข้ามทุกแท็บในเบราว์เซอร์เดียวกัน (เพราะทุกหน้าในระบบนี้ใช้ Firebase project เดียวกัน)
+// ถ้าไม่ตั้งจุดนี้ พอมีคนล็อกอินเป็นบัญชีอื่น (เช่นบัญชีแฟรนไชส์) ในอีกแท็บ จะไปเปลี่ยนสถานะล็อกอินของ
+// หน้านี้ในแท็บเดิมไปด้วยทันที ทำให้เช็คสิทธิ์ไม่ผ่านแล้วถูกเด้งออกเองโดยที่ไม่ได้กด "ออกจากระบบ" เลย
+setPersistence(auth, browserSessionPersistence).catch(()=>{});
 const $=id=>document.getElementById(id);
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const money=n=>Number(n||0).toLocaleString('th-TH',{maximumFractionDigits:0});
@@ -416,7 +421,8 @@ function loadOverview(){
   const active=ALL.franchises.filter(f=>f.status==='active');
   const pendingApps=ALL.applications.filter(a=>(a.status||'pending')==='pending');
   const pendingZones=ALL.franchises.filter(f=>f.zoneStatus==='pending');
-  const linkedShops=ALL.shops.filter(s=>s.franchiseId);
+  // รองรับทั้งฟิลด์เก่า (franchiseId เดี่ยว) และใหม่ (franchiseIds array) เหมือนที่อื่นในไฟล์นี้
+  const linkedShops=ALL.shops.filter(s=>s.franchiseId || (s.franchiseIds&&s.franchiseIds.length));
   $('ovFranchises').textContent=ALL.franchises.length;
   $('ovActive').textContent=active.length;
   $('ovPendingApps').textContent=pendingApps.length;
@@ -498,7 +504,7 @@ window.openApproveModal=function(){
   $('apvEmail').value=a.email||'';
   $('apvProvince').value=a.province||'';
   $('apvPhone').value=a.phone||'';
-  $('apvCommission').value=10;
+  $('apvCommission').value=2300;
   $('apvMsg').textContent='';
   closeModal('modalAppDetail');
   openModal('modalApprove');
@@ -506,7 +512,7 @@ window.openApproveModal=function(){
 window.confirmApprove=async function(){
   const email=$('apvEmail').value.trim().toLowerCase();
   const name=$('apvName').value.trim(), province=$('apvProvince').value.trim(), phone=$('apvPhone').value.trim();
-  const commission=parseFloat($('apvCommission').value)||0;
+  const monthlyFee=parseFloat($('apvCommission').value)||0;
   const errEl=$('apvMsg'); errEl.textContent='';
   if(!email||!name){ errEl.textContent='กรอกชื่อและอีเมลให้ครบ'; return; }
   try{
@@ -517,7 +523,7 @@ window.confirmApprove=async function(){
     if(existing.exists() && existing.data().status==='active'){ errEl.textContent='อีเมลนี้มีบัญชีแฟรนไชส์ที่ใช้งานอยู่แล้ว'; return; }
     const franRef=doc(collection(db,'franchises'));
     await setDoc(franRef,{
-      name,ownerEmail:email,phone,province,logoUrl:'',commissionPercent:commission,
+      name,ownerEmail:email,phone,province,logoUrl:'',monthlyFee,
       status:'active',zone:[],zoneStatus:'none',devAccess:false,createdAt:serverTimestamp()
     });
     await setDoc(doc(db,'franchiseAccounts',email),{
@@ -540,17 +546,17 @@ function loadFranchises(){
   const zoneCls={none:'b-gr',pending:'b-o',approved:'b-gn',rejected:'b-r'};
   const zoneLbl={none:'ยังไม่กำหนดเขต',pending:'เขตรออนุมัติ',approved:'เขตอนุมัติแล้ว',rejected:'เขตถูกปฏิเสธ'};
   $('franchisesList').innerHTML = ALL.franchises.length ? ALL.franchises.map(f=>{
-    const shopCount=ALL.shops.filter(s=>s.franchiseId===f.id).length;
+    const shopCount=ALL.shops.filter(s=>s.franchiseId===f.id || (s.franchiseIds&&s.franchiseIds.includes(f.id))).length;
     return `<div class="row" onclick="openFranchiseDetail('${f.id}')">
       <div class="ri"><svg class="ic-md" viewBox="0 0 24 24"><path d="M7 4h10l1 4H6l1-4zm-2 6h14l-1 9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2l-1-9z"/></svg></div>
-      <div class="rb"><div class="rn">${esc(f.name||'แฟรนไชส์')}</div><div class="rs">${esc(f.province||'ไม่ระบุพื้นที่')} · ${shopCount} ร้าน · คอมมิชชั่น ${f.commissionPercent??0}%</div></div>
+      <div class="rb"><div class="rn">${esc(f.name||'แฟรนไชส์')}</div><div class="rs">${esc(f.province||'ไม่ระบุพื้นที่')} · ${shopCount} ร้าน · ค่าแฟรนไชส์/เดือน ${f.monthlyFee?money(f.monthlyFee)+' บาท':'ไม่เก็บ'}</div></div>
       <span class="badge ${zoneCls[f.zoneStatus||'none']}">${zoneLbl[f.zoneStatus||'none']}</span>
     </div>`;
   }).join('') : '<div class="empty">ยังไม่มีแฟรนไชส์ในระบบ</div>';
 }
 window.openFranchiseDetail=function(id){
   const f=ALL.franchises.find(x=>x.id===id); if(!f) return;
-  const shops=ALL.shops.filter(s=>s.franchiseId===id);
+  const shops=ALL.shops.filter(s=>s.franchiseId===id || (s.franchiseIds&&s.franchiseIds.includes(id)));
   const staff=ALL.admins.filter(a=>a.franchiseId===id);
   $('fdName').textContent=f.name||'แฟรนไชส์';
   $('fdBody').innerHTML=`
@@ -563,8 +569,8 @@ window.openFranchiseDetail=function(id){
     <div style="margin:14px 0 8px"><label>สถานะบัญชี</label>
       <select id="fdStatus"><option value="active" ${f.status==='active'?'selected':''}>ใช้งานปกติ</option><option value="suspended" ${f.status==='suspended'?'selected':''}>ระงับการใช้งาน</option></select>
     </div>
-    <label>อัตราคอมมิชชั่น (%)</label>
-    <input id="fdCommission" type="number" value="${f.commissionPercent??0}">
+    <label>ค่าแฟรนไชส์รายเดือน (บาท) — ใส่ 0 ถ้าไม่เก็บ</label>
+    <input id="fdCommission" type="number" value="${f.monthlyFee??0}">
     <label>สิทธิ์เข้า Developer Center</label>
     <select id="fdDevAccess"><option value="false" ${!f.devAccess?'selected':''}>ปิด</option><option value="true" ${f.devAccess?'selected':''}>เปิด</option></select>
     <div id="fdMsg" class="ag-msg err"></div>
@@ -573,14 +579,74 @@ window.openFranchiseDetail=function(id){
       <button class="btn2 btn-gn" style="flex:1" onclick="approveZone('${id}')">อนุมัติเขตนี้</button>
       <button class="btn2 btn-r" style="flex:1" onclick="rejectZone('${id}')">ปฏิเสธเขตนี้</button>
     </div>` : ''}
+    <div style="margin-top:18px;padding-top:14px;border-top:1px solid #f5f6f8">
+      <button class="btn2 btn-r btn-block" onclick="openDeleteFranchiseConfirm('${id}')">ลบบัญชีแฟรนไชส์นี้</button>
+    </div>
   `;
   openModal('modalFranchiseDetail');
 };
-window.saveFranchiseDetail=async function(id){
-  const status=$('fdStatus').value, commissionPercent=parseFloat($('fdCommission').value)||0, devAccess=$('fdDevAccess').value==='true';
+// ลบบัญชีแฟรนไชส์ — บังคับกรอกเหตุผลก่อนเสมอ กันกดลบพลาด และเก็บเหตุผลไว้เป็นประวัติย้อนหลังได้ว่าลบเพราะอะไร/ใครลบ/เมื่อไหร่
+window.openDeleteFranchiseConfirm=function(id){
+  const f=ALL.franchises.find(x=>x.id===id); if(!f) return;
+  if($('fdDeleteConfirm')) return;
+  $('fdBody').insertAdjacentHTML('beforeend', `
+    <div id="fdDeleteConfirm" style="margin-top:14px;padding:14px;border:1.5px solid var(--r);border-radius:12px;background:var(--rl)">
+      <div style="font-size:13px;font-weight:800;color:var(--r);margin-bottom:8px">ยืนยันการลบบัญชีแฟรนไชส์ "${esc(f.name||'')}"</div>
+      <div style="font-size:12px;color:var(--t);margin-bottom:10px;line-height:1.7">การลบจะถอดร้านค้าที่ผูกอยู่ทั้งหมดออกจากแฟรนไชส์นี้ ลบเขตพื้นที่ และปิดบัญชีล็อกอินของเจ้าของ/ทีมงานทั้งหมดของแฟรนไชส์นี้ทันที ย้อนกลับไม่ได้</div>
+      <label>เหตุผลที่ลบ (บังคับกรอก)</label>
+      <textarea id="fdDeleteReason" placeholder="เช่น ยกเลิกสัญญา, ทำผิดเงื่อนไข ฯลฯ"></textarea>
+      <div id="fdDeleteErr" class="ag-msg err"></div>
+      <div class="btnrow">
+        <button class="btn2 btn-ol" style="flex:1" onclick="document.getElementById('fdDeleteConfirm').remove()">ยกเลิก</button>
+        <button class="btn2 btn-r" style="flex:1" onclick="confirmDeleteFranchise('${id}',this)">ยืนยันลบถาวร</button>
+      </div>
+    </div>
+  `);
+  document.getElementById('fdDeleteConfirm').scrollIntoView({behavior:'smooth',block:'nearest'});
+};
+window.confirmDeleteFranchise=async function(id,btn){
+  const reasonEl=$('fdDeleteReason'), errEl=$('fdDeleteErr');
+  const reason=(reasonEl?reasonEl.value:'').trim();
+  if(!reason){ errEl.textContent='กรุณากรอกเหตุผลก่อนลบ'; return; }
+  const f=ALL.franchises.find(x=>x.id===id); if(!f) return;
+  if(btn){ btn.disabled=true; btn.textContent='กำลังลบ...'; }
   try{
-    await updateDoc(doc(db,'franchises',id),{status,commissionPercent,devAccess});
-    const f=ALL.franchises.find(x=>x.id===id); if(f){ f.status=status; f.commissionPercent=commissionPercent; f.devAccess=devAccess; }
+    // เก็บประวัติการลบไว้ก่อนลบจริง พร้อมเหตุผลที่บังคับกรอก ใครลบ และลบเมื่อไหร่ — ไว้ย้อนดูทีหลังได้
+    await addDoc(collection(db,'franchiseDeletedLog'),{
+      franchiseId:id, name:f.name||'', ownerEmail:f.ownerEmail||'', province:f.province||'',
+      reason, deletedBy:CUR.email, deletedAt:serverTimestamp()
+    });
+    // ถอดร้านค้าที่ผูกอยู่ออกทั้งหมด รองรับทั้งฟิลด์เก่า (franchiseId เดี่ยว) และใหม่ (franchiseIds array)
+    const linkedShops=ALL.shops.filter(s=> s.franchiseId===id || (s.franchiseIds&&s.franchiseIds.includes(id)) );
+    for(const s of linkedShops){
+      const upd={};
+      if(s.franchiseId===id) upd.franchiseId=deleteField();
+      if(s.franchiseIds && s.franchiseIds.includes(id)){
+        const rest=s.franchiseIds.filter(x=>x!==id);
+        upd.franchiseIds = rest.length ? rest : deleteField();
+      }
+      try{ await updateDoc(doc(db,'shops',s.id),upd); }catch(e){}
+    }
+    // ปิดบัญชีล็อกอินของเจ้าของ+ทีมงานทั้งหมดของแฟรนไชส์นี้ (franchiseAccounts เก็บทีละคนตามอีเมล)
+    const accountsOfThisFranchise=ALL.admins.filter(a=>a.franchiseId===id);
+    for(const acc of accountsOfThisFranchise){
+      try{ await deleteDoc(doc(db,'franchiseAccounts',acc.email)); }catch(e){}
+    }
+    try{ await deleteDoc(doc(db,'franchiseZones',id)); }catch(e){}
+    await deleteDoc(doc(db,'franchises',id));
+    closeModal('modalFranchiseDetail');
+    toast('ลบบัญชีแฟรนไชส์แล้ว','ok');
+    await fetchAll(); loadOverview(); loadFranchises();
+  }catch(e){
+    errEl.textContent='ลบไม่สำเร็จ: '+e.message;
+    if(btn){ btn.disabled=false; btn.textContent='ยืนยันลบถาวร'; }
+  }
+};
+window.saveFranchiseDetail=async function(id){
+  const status=$('fdStatus').value, monthlyFee=parseFloat($('fdCommission').value)||0, devAccess=$('fdDevAccess').value==='true';
+  try{
+    await updateDoc(doc(db,'franchises',id),{status,monthlyFee,devAccess});
+    const f=ALL.franchises.find(x=>x.id===id); if(f){ f.status=status; f.monthlyFee=monthlyFee; f.devAccess=devAccess; }
     // ถ้าระงับการใช้งานแฟรนไชส์นี้ ต้องดึงเขตออกจาก mirror สาธารณะด้วย ไม่งั้นลูกค้าจะยังถูกกรองร้านตามเขตของ
     // แฟรนไชส์ที่ถูกระงับไปแล้วอยู่ (เขตควรมีผลเฉพาะตอนแฟรนไชส์ยัง active เท่านั้น) และคืนกลับให้ถ้าเปิดใช้งานใหม่
     if(status==='suspended'){ try{ await deleteDoc(doc(db,'franchiseZones',id)); }catch(e){} }
@@ -664,9 +730,11 @@ function loadLinkRequests(){
 window.approveLink=async function(reqId){
   const r=ALL.linkReqs.find(x=>x.id===reqId); if(!r) return;
   try{
-    await updateDoc(doc(db,'shops',r.shopId),{franchiseId:r.franchiseId});
+    // ผูกร้านด้วย franchiseIds (array) ให้ตรงกับที่ admin.html ใช้จริงตอนนี้ — ใช้ arrayUnion เผื่อร้านผูกหลายเขตอยู่แล้ว
+    // และลบ field เก่า franchiseId (เดี่ยว) ทิ้งเสมอ กันข้อมูลค้างสองชุดจนขัดแย้งกันเอง (เหมือนที่ admin.html ทำตอนแก้ไขร้าน)
+    await updateDoc(doc(db,'shops',r.shopId),{franchiseIds:arrayUnion(r.franchiseId), franchiseId:deleteField()});
     await updateDoc(doc(db,'franchiseLinkRequests',reqId),{status:'approved'});
-    r.status='approved'; const s=ALL.shops.find(x=>x.id===r.shopId); if(s) s.franchiseId=r.franchiseId;
+    r.status='approved'; const s=ALL.shops.find(x=>x.id===r.shopId); if(s){ s.franchiseIds=[...(s.franchiseIds||[]).filter(id=>id!==r.franchiseId),r.franchiseId]; delete s.franchiseId; }
     loadLinkRequests(); loadOverview(); loadFranchises();
     toast('ผูกร้านเข้าแฟรนไชส์เรียบร้อย','ok');
   }catch(e){ toast('ดำเนินการไม่สำเร็จ: '+e.message,'er'); }
