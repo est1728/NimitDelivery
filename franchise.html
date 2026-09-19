@@ -308,7 +308,7 @@ button.pri{width:100%;height:50px;border:none;border-radius:16px;background:line
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 // หน้านี้เป็นหน้าสาธารณะ (ไม่ต้องล็อกอิน) — ทำหน้าที่แค่ตรวจสอบสิทธิ์ตอนล็อกอินแล้วส่งต่อไปที่ franchise-dashboard.html เท่านั้น
 const fbApp = initializeApp({
@@ -321,6 +321,11 @@ const fbApp = initializeApp({
 });
 const db = getFirestore(fbApp);
 const auth = getAuth(fbApp);
+// สำคัญ: ตั้งให้ session ของหน้านี้เก็บแบบแยกต่อแท็บ (sessionStorage) แทนค่าเริ่มต้นของ Firebase ที่แชร์
+// สถานะล็อกอินข้ามทุกแท็บในเบราว์เซอร์เดียวกัน (เพราะทุกหน้าในระบบนี้ใช้ Firebase project เดียวกัน)
+// ถ้าไม่ตั้งจุดนี้ พอมีคนล็อกอินเป็นบัญชีอื่น (เช่นบัญชีแฟรนไชส์) ในอีกแท็บ จะไปเปลี่ยนสถานะล็อกอินของ
+// หน้านี้ในแท็บเดิมไปด้วยทันที ทำให้เช็คสิทธิ์ไม่ผ่านแล้วถูกเด้งออกเองโดยที่ไม่ได้กด "ออกจากระบบ" เลย
+setPersistence(auth, browserSessionPersistence).catch(()=>{});
 const $=id=>document.getElementById(id);
 
 window.openModal=id=>{$(id).classList.add('on');};
