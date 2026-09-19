@@ -187,7 +187,7 @@ button.pri:disabled{opacity:.6;}
         <button class="btn2 btn-ol" onclick="clearZoneDraft()"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/></svg> ล้างที่วาด</button>
         <button class="btn2 btn-gn" onclick="submitZoneForApproval()"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg> ส่งขออนุมัติเขต</button>
       </div>
-      <div class="hint">แตะบนแผนที่ทีละจุดเพื่อวาดขอบเขต แล้วกด "ปิดรูปเขต" เมื่อวาดครบ จากนั้นกด "ส่งขออนุมัติเขต" เพื่อส่งให้ทีม HQ ตรวจสอบและอนุมัติ (การเปลี่ยนแปลงเขตจะไม่มีผลจนกว่า HQ จะอนุมัติ)</div>
+      <div class="hint">กด "เพิ่มมุมท้ายเขต" แล้วแตะบนแผนที่เพื่อเพิ่มมุมใหม่ต่อท้ายทีละจุด เมื่อครบแล้วกด "ปิดรูปเขต" — หลังจากนั้นแก้ไขได้ตลอดโดยไม่ต้องลบวาดใหม่: ลากจุดสีส้มเพื่อย้ายมุม, แตะจุดสีขาวเล็กตรงกลางแต่ละด้านเพื่อแทรกมุมใหม่ตรงนั้น, หรือแตะมุมแล้วกด "ลบมุมนี้" เพื่อลบทิ้ง จากนั้นกด "ส่งขออนุมัติเขต" เพื่อส่งให้ทีม HQ ตรวจสอบ (การเปลี่ยนแปลงจะไม่มีผลจนกว่า HQ จะอนุมัติ)</div>
     </div>
     <div class="card">
       <div class="stitle">ร้านค้าในเขตที่ยังไม่ได้ผูกกับแฟรนไชส์นี้</div>
@@ -349,14 +349,14 @@ button.pri:disabled{opacity:.6;}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, query, where, doc, getDoc, getDocs, setDoc, updateDoc, addDoc, serverTimestamp, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendSignInLinkToEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendSignInLinkToEmail, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 // ============================================================
 // โครงสร้างข้อมูล Firestore ที่หน้านี้ใช้ (ใหม่ ต่อยอดจากระบบเดิม):
 //  - franchiseAccounts/{email} : บัญชีฝั่งแฟรนไชส์ทั้งหมด role 'franchise_owner'|'franchise_staff'|'franchise_finance'
 //                              + field franchiseId ผูกกับ franchises/{id} — แยกจาก admins/{email} (บัญชีแอดมิน HQ) โดยสิ้นเชิงแล้ว
 //                              (เดิมทั้งสองฝั่งใช้ collection 'admins' ร่วมกัน ทำให้เช็คบัญชีซ้ำ/ลิงก์ตั้งรหัสผ่านชนกัน)
-//  - franchises/{id}        : {name,ownerEmail,phone,province,logoUrl,commissionPercent,status,zone,zoneStatus,createdAt}
+//  - franchises/{id}        : {name,ownerEmail,phone,province,logoUrl,monthlyFee,status,zone,zoneStatus,createdAt}
 //                              zone = [{lat,lng},...] รูปหลายเหลี่ยมของเขตพื้นที่, zoneStatus='none'|'pending'|'approved'|'rejected'
 //  - franchiseApplications/{autoId} : ใบสมัครเปิดแฟรนไชส์จากบุคคลทั่วไป (ยังไม่มีบัญชี)
 //  - franchiseLinkRequests/{autoId} : คำขอผูกร้านค้า (shops) เข้ากับแฟรนไชส์ รอ HQ อนุมัติ
@@ -377,6 +377,11 @@ const fbApp = initializeApp({
 });
 const db = getFirestore(fbApp);
 const auth = getAuth(fbApp);
+// สำคัญ: ตั้งให้ session ของหน้านี้เก็บแบบแยกต่อแท็บ (sessionStorage) แทนค่าเริ่มต้นของ Firebase ที่แชร์
+// สถานะล็อกอินข้ามทุกแท็บในเบราว์เซอร์เดียวกัน (เพราะทุกหน้าในระบบนี้ใช้ Firebase project เดียวกัน)
+// ถ้าไม่ตั้งจุดนี้ พอมีคนล็อกอินเป็นบัญชีอื่น (เช่นบัญชีแฟรนไชส์) ในอีกแท็บ จะไปเปลี่ยนสถานะล็อกอินของ
+// หน้านี้ในแท็บเดิมไปด้วยทันที ทำให้เช็คสิทธิ์ไม่ผ่านแล้วถูกเด้งออกเองโดยที่ไม่ได้กด "ออกจากระบบ" เลย
+setPersistence(auth, browserSessionPersistence).catch(()=>{});
 
 const $=id=>document.getElementById(id);
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -433,7 +438,7 @@ onAuthStateChanged(auth, async(user)=>{
       return;
     }
     const fSnap=await getDoc(doc(db,'franchises',CUR.franchiseId));
-    CUR.franchise = fSnap.exists() ? {id:fSnap.id,...fSnap.data()} : {id:CUR.franchiseId,name:'แฟรนไชส์',zone:[],zoneStatus:'none',commissionPercent:0};
+    CUR.franchise = fSnap.exists() ? {id:fSnap.id,...fSnap.data()} : {id:CUR.franchiseId,name:'แฟรนไชส์',zone:[],zoneStatus:'none',monthlyFee:0};
 
     $('frTitleName').textContent = CUR.franchise.name || 'แฟรนไชส์';
     $('frTitleSub').textContent = (CUR.franchise.province?CUR.franchise.province+' · ':'') + email;
@@ -477,7 +482,7 @@ async function fetchAllShops(){
   allShopsCache=snap.docs.map(d=>({id:d.id,...d.data()}));
   return allShopsCache;
 }
-function franchiseShops(){ return allShopsCache.filter(s=>s.franchiseId===CUR.franchiseId); }
+function franchiseShops(){ return allShopsCache.filter(s=>(s.franchiseIds||(s.franchiseId?[s.franchiseId]:[])).includes(CUR.franchiseId)); }
 
 // ===== START DASHBOARD (เรียกครั้งเดียวหลังล็อกอิน) =====
 window.__startFranchiseDashboard=async function(){
@@ -546,7 +551,9 @@ async function loadDashboard(){
 }
 
 // ===== ZONE MAP =====
-let zoneMapObj=null, zoneDrafts=[], zoneDrawing=false, zoneDraftLine=null, zoneDraftMarkers=[], zoneApprovedLayer=null, shopMarkersLayer=null;
+let zoneMapObj=null, zoneDrafts=[], zoneDrawing=false, zoneDraftLine=null, zoneVertexMarkers=[], zoneMidMarkers=[], shopMarkersLayer=null;
+const zoneVertexIcon=L.divIcon({className:'',html:'<div style="width:16px;height:16px;border-radius:50%;background:#ea580c;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45)"></div>',iconSize:[16,16],iconAnchor:[8,8]});
+const zoneMidIcon=L.divIcon({className:'',html:'<div style="width:11px;height:11px;border-radius:50%;background:#fff;border:2px solid #ea580c;opacity:.85"></div>',iconSize:[11,11],iconAnchor:[5,5]});
 function initZoneMapOnce(){
   if(zoneMapObj) return;
   zoneMapObj=L.map('zoneMap').setView([13.7563,100.5018],11);
@@ -556,27 +563,62 @@ function initZoneMapOnce(){
   zoneMapObj.on('click',e=>{
     if(!zoneDrawing) return;
     zoneDrafts.push({lat:e.latlng.lat,lng:e.latlng.lng});
-    const m=L.circleMarker(e.latlng,{radius:5,color:'#ea580c',fillColor:'#ea580c',fillOpacity:1}).addTo(zoneMapObj);
-    zoneDraftMarkers.push(m);
-    zoneDraftLine.setLatLngs(zoneDrafts.map(p=>[p.lat,p.lng]));
+    renderZoneVertices();
   });
-  // แสดงเขตที่อนุมัติแล้ว/รออนุมัติของแฟรนไชส์นี้เอง (ถ้ามี)
+  // แสดงเขตที่อนุมัติแล้ว/รออนุมัติของแฟรนไชส์นี้เอง (ถ้ามี) — ตอนนี้ปรับแก้จุดมุมเดิมได้เลยทันที ไม่ต้องลบวาดใหม่
   if(CUR.franchise.zone && CUR.franchise.zone.length>=3){
     zoneDrafts = CUR.franchise.zone.slice();
-    zoneDraftLine.setLatLngs(zoneDrafts.map(p=>[p.lat,p.lng]));
     const col = CUR.franchise.zoneStatus==='approved' ? '#16a34a' : '#ea580c';
     zoneDraftLine.setStyle({color:col,fillColor:col,fillOpacity:.12,dashArray: CUR.franchise.zoneStatus==='approved'?null:'6,4'});
-    zoneMapObj.fitBounds(zoneDraftLine.getBounds(),{padding:[20,20]});
   }
+  renderZoneVertices();
+  if(zoneDrafts.length>=3) zoneMapObj.fitBounds(zoneDraftLine.getBounds(),{padding:[20,20]});
   renderShopMarkers();
 }
+// วาดจุดมุมทุกจุดใหม่ (ลากย้ายตำแหน่งได้ + แตะค้างเพื่อลบ) พร้อมจุดกึ่งกลางของแต่ละด้าน (แตะเพื่อ "แทรกมุมใหม่"
+// ตรงจุดนั้นได้เลย โดยไม่ต้องกดล้างแล้ววาดใหม่ทั้งหมด) เรียกฟังก์ชันนี้ใหม่ทุกครั้งที่ zoneDrafts เปลี่ยนแปลง
+function renderZoneVertices(){
+  zoneDraftLine.setLatLngs(zoneDrafts.map(p=>[p.lat,p.lng]));
+  zoneVertexMarkers.forEach(m=>zoneMapObj.removeLayer(m)); zoneVertexMarkers=[];
+  zoneMidMarkers.forEach(m=>zoneMapObj.removeLayer(m)); zoneMidMarkers=[];
+
+  zoneDrafts.forEach((p,i)=>{
+    const m=L.marker([p.lat,p.lng],{icon:zoneVertexIcon,draggable:true}).addTo(zoneMapObj);
+    m.on('drag',ev=>{
+      const ll=ev.target.getLatLng();
+      zoneDrafts[i]={lat:ll.lat,lng:ll.lng};
+      zoneDraftLine.setLatLngs(zoneDrafts.map(pt=>[pt.lat,pt.lng]));
+    });
+    m.on('dragend',()=>{ renderZoneVertices(); renderShopMarkers(); });
+    m.bindPopup('<button onclick="window.deleteZoneVertex('+i+')" style="border:none;background:#fee2e2;color:#dc2626;font-weight:700;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13px">ลบมุมนี้</button>');
+    zoneVertexMarkers.push(m);
+  });
+  // จุดกึ่งกลางของแต่ละด้าน — แตะเพื่อแทรกมุมใหม่ตรงนั้นทันที (มีอย่างน้อย 2 จุดก็ใช้ได้แล้ว ไม่ต้องรอปิดรูปครบก่อน)
+  if(zoneDrafts.length>=2){
+    const segCount = zoneDrafts.length>=3 ? zoneDrafts.length : zoneDrafts.length-1;
+    for(let i=0;i<segCount;i++){
+      const a=zoneDrafts[i], b=zoneDrafts[(i+1)%zoneDrafts.length];
+      const midLat=(a.lat+b.lat)/2, midLng=(a.lng+b.lng)/2;
+      const mm=L.marker([midLat,midLng],{icon:zoneMidIcon}).addTo(zoneMapObj);
+      const insertAt=i+1;
+      mm.on('click',()=>{ zoneDrafts.splice(insertAt,0,{lat:midLat,lng:midLng}); renderZoneVertices(); toast('เพิ่มมุมใหม่แล้ว ลากปรับตำแหน่งได้เลย','ok'); });
+      zoneMidMarkers.push(mm);
+    }
+  }
+}
+window.deleteZoneVertex=function(i){
+  if(zoneDrafts.length<=3){ toast('ต้องมีอย่างน้อย 3 มุม ลบเพิ่มไม่ได้แล้ว','er'); return; }
+  zoneDrafts.splice(i,1);
+  renderZoneVertices();
+  renderShopMarkers();
+};
 function renderShopMarkers(){
   shopMarkersLayer.clearLayers();
   const unassignedEl=$('unassignedShopsList');
   let unassignedHtml='';
   allShopsCache.forEach(s=>{
     if(typeof s.lat!=='number'||typeof s.lng!=='number') return;
-    const mine = s.franchiseId===CUR.franchiseId;
+    const mine = (s.franchiseIds||(s.franchiseId?[s.franchiseId]:[])).includes(CUR.franchiseId);
     const inZone = pointInPolygon({lat:s.lat,lng:s.lng}, zoneDrafts.length>=3?zoneDrafts:(CUR.franchise.zone||[]));
     const color = mine ? '#0c4aa6' : (inZone ? '#94a3b8' : '#cbd5e1');
     const marker=L.circleMarker([s.lat,s.lng],{radius:6,color,fillColor:color,fillOpacity:.9,weight:1}).addTo(shopMarkersLayer);
@@ -591,20 +633,20 @@ function renderShopMarkers(){
 }
 window.toggleZoneDraw=function(){
   zoneDrawing=!zoneDrawing;
-  $('zoneDrawBtn').innerHTML = zoneDrawing ? '<svg class="ic" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg> หยุดวาด (แตะแผนที่เพื่อเพิ่มจุด)' : '<svg class="ic" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> เริ่มวาดเขตใหม่';
-  if(zoneDrawing) toast('แตะบนแผนที่เพื่อเพิ่มจุดขอบเขต','in');
+  $('zoneDrawBtn').innerHTML = zoneDrawing ? '<svg class="ic" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg> หยุดเพิ่มมุม' : '<svg class="ic" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> เพิ่มมุมท้ายเขต';
+  if(zoneDrawing) toast('แตะบนแผนที่เพื่อเพิ่มมุมใหม่ต่อท้าย หรือลากมุม/แตะจุดกึ่งกลางที่มีอยู่แล้วเพื่อแก้ไขได้เลย','in');
 };
 window.closeZonePolygon=function(){
   if(zoneDrafts.length<3){ toast('ต้องมีอย่างน้อย 3 จุดเพื่อปิดรูปเขต','er'); return; }
-  zoneDraftLine.setLatLngs(zoneDrafts.map(p=>[p.lat,p.lng]));
   zoneDraftLine.setStyle({fillOpacity:.15});
-  zoneDrawing=false; $('zoneDrawBtn').innerHTML='<svg class="ic" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> เริ่มวาดเขตใหม่';
+  zoneDrawing=false; $('zoneDrawBtn').innerHTML='<svg class="ic" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> เพิ่มมุมท้ายเขต';
+  renderZoneVertices();
   renderShopMarkers();
-  toast('ปิดรูปเขตแล้ว กด "ส่งขออนุมัติเขต" เพื่อส่งให้ HQ ตรวจสอบ','ok');
+  toast('ปิดรูปเขตแล้ว ลากมุมหรือแตะจุดกึ่งกลางเพื่อปรับต่อได้ตลอด กด "ส่งขออนุมัติเขต" เมื่อพร้อม','ok');
 };
 window.clearZoneDraft=function(){
-  zoneDrafts=[]; zoneDraftMarkers.forEach(m=>zoneMapObj.removeLayer(m)); zoneDraftMarkers=[];
-  zoneDraftLine.setLatLngs([]);
+  zoneDrafts=[];
+  renderZoneVertices();
   renderShopMarkers();
 };
 window.submitZoneForApproval=async function(){
