@@ -77,7 +77,7 @@ body{background:var(--g);min-height:100vh;}
       </div>
       <div class="frow">
         <div class="flabel">เบอร์โทร</div>
-        <input class="finput" id="fPhone" type="tel" placeholder="08X-XXX-XXXX">
+        <input class="finput" id="fPhone" type="tel" placeholder="08X-XXX-XXXX" onblur="window.onPhoneFieldBlur(this)">
       </div>
       <div class="frow">
         <div class="flabel">ที่อยู่จัดส่ง</div>
@@ -121,7 +121,7 @@ body{background:var(--g);min-height:100vh;}
 // (บัคคลาสเดียวกับที่เจอมาแล้วหลายไฟล์ในโปรเจกต์นี้) จึงต้องแยกส่วน Firebase ไว้ต่างหาก แล้ว expose
 // ผ่าน window.syncCustomerToFirestore ให้ script หลักเรียกใช้แทน
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const db = getFirestore(initializeApp({
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
   authDomain:"nimit-delivery.firebaseapp.com",
@@ -141,6 +141,29 @@ window.syncCustomerToFirestore = async function(phone, data){
     await setDoc(doc(db,'customers',phone), {phone, ...data, updatedAt: serverTimestamp()}, {merge:true});
   }catch(e){ console.warn('sync customer profile to Firestore failed:', e.message); }
 };
+
+// เดิมหน้านี้จะ "เห็น" ข้อมูลลูกค้าเก่าได้ก็ต่อเมื่อมาจาก login.html เท่านั้น (ที่เช็ค Firestore แล้วเขียน
+// customerData/addresses ให้ก่อนส่งมาที่นี่) — แต่ถ้าเข้าหน้านี้ตรงๆ (เช่น กดปุ่ม "เข้าสู่ระบบ" ที่มุมซ้ายบน
+// ของ shops.html ซึ่งพามาที่นี่ตรงๆ ไม่ผ่าน login.html เลย) ลูกค้าเก่าจะเจอฟอร์มเปล่า ทั้งที่มีบัญชีอยู่แล้ว
+// ฟังก์ชันนี้ทำสิ่งเดียวกับที่ login.html ทำ (เช็ค Firestore ด้วยเบอร์โทร แล้วดึงชื่อ/ที่อยู่เดิมกลับมา)
+// เพื่อให้ "ไม่ว่าจะเข้ามาทางไหน" (login.html หรือ address.html ตรงๆ) ข้อมูลเดิมต้องขึ้นเหมือนกันเสมอ
+// คืนค่า true ถ้าเจอบัญชีที่ลงทะเบียนแล้วและดึงข้อมูลมาเติมให้เรียบร้อย, false ถ้าไม่เจอ/ยังไม่เคยลงทะเบียน
+window.checkExistingCustomer = async function(phone){
+  if(!phone) return false;
+  try{
+    const snap = await getDoc(doc(db,'customers',phone));
+    const d = snap.exists() ? snap.data() : null;
+    if(d && d.registered){
+      localStorage.setItem('customerData', JSON.stringify(d));
+      if(d.address){
+        localStorage.setItem('addresses', JSON.stringify([{name:d.name||'',phone,address:d.address,lat:d.lat||null,lng:d.lng||null}]));
+        localStorage.setItem('defaultAddress','0');
+      }
+      return true;
+    }
+    return false;
+  }catch(e){ return false; }
+};
 </script>
 <script>
 var addresses = JSON.parse(localStorage.getItem('addresses')||'[]');
@@ -153,9 +176,22 @@ var isFirstTime = sessionStorage.getItem('newCustomer') === '1';
 var backDest = sessionStorage.getItem('addrBack') || 'shops.html';
 
 // ========== INIT ==========
-function init(){
+async function init(){
   if(addresses.length === 0){
-    // ยังไม่มีที่อยู่เลย → เปิดฟอร์มก่อน
+    // สำคัญ: ก่อนเปิดฟอร์มเปล่า เช็คก่อนว่ามีเบอร์โทรที่จำไว้จากก่อนหน้านี้ไหม (localStorage.customerPhone) —
+    // ถ้ามี แปลว่าเป็นลูกค้าเก่าที่แค่ "เข้าหน้านี้ตรงๆ" โดยไม่ผ่าน login.html (เช่นกดปุ่มเข้าสู่ระบบจาก shops.html)
+    // ต้องเช็ค Firestore ด้วยเบอร์นั้นก่อนเสมอ ไม่งั้นจะเจอฟอร์มเปล่าทั้งที่มีบัญชี/ที่อยู่เดิมอยู่แล้วจริงๆ
+    const knownPhone = localStorage.getItem('customerPhone');
+    if(knownPhone){
+      const found = await window.checkExistingCustomer(knownPhone);
+      if(found){
+        addresses = JSON.parse(localStorage.getItem('addresses')||'[]');
+        defaultIdx = parseInt(localStorage.getItem('defaultAddress')||'0');
+      }
+    }
+  }
+  if(addresses.length === 0){
+    // ยังไม่มีที่อยู่เลย (เช็คแล้วจริงๆ ไม่เจอบัญชีเก่า) → เปิดฟอร์มก่อน
     showForm(-1);
     document.getElementById('formBackBtn').style.display = 'none';
   } else if(sessionStorage.getItem('editDefaultAddr')){
@@ -163,7 +199,7 @@ function init(){
     sessionStorage.removeItem('editDefaultAddr');
     showForm(defaultIdx);
   } else {
-    // มีที่อยู่แล้ว (เช่น เพิ่งบันทึกจาก register.html) → เปิดหน้า list ทันที
+    // มีที่อยู่แล้ว (เช่น เพิ่งบันทึกจาก register.html หรือเพิ่งดึงมาจาก Firestore ด้านบน) → เปิดหน้า list ทันที
     showList();
   }
 }
@@ -246,6 +282,33 @@ function openForm(){ showForm(-1); }
 function goNext(){
   sessionStorage.removeItem('newCustomer');
   location.href = backDest;
+}
+
+// ครอบคลุมอีกเส้นทางที่ไม่มี customerPhone ใน localStorage เลยตั้งแต่ต้น (เช่น เคลียร์เบราว์เซอร์มา หรือเข้าหน้านี้
+// ตรงๆเป็นครั้งแรกโดยไม่เคยผ่าน login.html เลย) — พอลูกค้าพิมพ์เบอร์ตัวเองลงในฟอร์มแล้วกดออกจากช่อง (blur)
+// เช็ค Firestore ทันทีว่าเบอร์นี้เคยลงทะเบียนไว้หรือยัง ถ้าเจอให้ดึงชื่อ/ที่อยู่เดิมมาเติมให้เลย ไม่ต้องพิมพ์ใหม่ทั้งหมด
+window.onPhoneFieldBlur = async function(el){
+  if(editIdx >= 0) return; // แก้ไขที่อยู่เดิมอยู่ ไม่ต้องเช็ค กันข้อมูลที่กำลังแก้ไขถูกทับโดยไม่ตั้งใจ
+  const phone = (el.value||'').trim();
+  if(!/^0[0-9]{9}$/.test(phone)) return; // รูปแบบเบอร์ยังไม่ครบ/ไม่ถูกต้อง ยังไม่ต้องเช็ค
+  const found = await window.checkExistingCustomer(phone);
+  if(found){
+    const cd = JSON.parse(localStorage.getItem('customerData')||'{}');
+    if(cd.name) document.getElementById('fName').value = cd.name;
+    if(cd.address) document.getElementById('fAddr').value = cd.address;
+    if(cd.lat && cd.lng){
+      curLat = cd.lat; curLng = cd.lng;
+      if(map){ map.setView([curLat,curLng],16); marker.setLatLng([curLat,curLng]); }
+    }
+    toast('พบบัญชีเดิมของเบอร์นี้ ดึงข้อมูลที่เคยบันทึกไว้มาให้แล้ว');
+  }
+};
+function toast(msg){
+  var t=document.createElement('div');
+  t.textContent=msg;
+  t.style.cssText='position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#0f172a;color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;font-weight:600;z-index:999;max-width:90%;text-align:center';
+  document.body.appendChild(t);
+  setTimeout(function(){ t.remove(); },2800);
 }
 
 // ========== FORM ==========
