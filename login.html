@@ -160,17 +160,17 @@ window.nextPage = async function(){
     } else {
       // ลูกค้าใหม่ หรือเคยเริ่มกรอกไว้แต่ยังไม่กดบันทึกจบ (ยังไม่มี registered:true):
       // บันทึกข้อมูลเบื้องต้น (แค่เบอร์โทร) ลง Firestore ทันทีตั้งแต่ล็อกอินครั้งแรก ไม่ทับข้อมูลที่เคยกรอกไว้บางส่วน (merge)
-      // ไม่ต้องรอให้กรอกฟอร์ม register.html จนครบก่อน — กันกรณีเขากรอกไม่จบแล้วข้อมูลไม่ขึ้นที่หน้าลูกค้าของแอดมินเลย
+      // register.html ยกเลิกใช้แล้ว — ย้ายหน้าที่สร้างข้อมูลลูกค้าจริง (ตั้ง registered:true) ไปที่ address.html แทน
       try{ await setDoc(doc(db,"customers",phone),{phone,createdAt:new Date().toISOString()},{merge:true}); }catch(e2){}
       sessionStorage.setItem("newCustomer","1");
       sessionStorage.setItem("addrBack","shops.html");
-      location.href="./register.html";
+      location.href="./address.html";
     }
   }catch(e){
-    // Firestore error → ถ้าไม่มีที่อยู่เลย ไป register.html
+    // Firestore error → ถ้าไม่มีที่อยู่เลย ไป address.html (register.html ยกเลิกใช้แล้ว)
     sessionStorage.setItem("newCustomer","1");
     sessionStorage.setItem("addrBack","shops.html");
-    location.href="./register.html";
+    location.href="./address.html";
   }
 }
 
