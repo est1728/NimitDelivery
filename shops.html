@@ -594,7 +594,11 @@ window.addEventListener('scroll',()=>{
 /* ===================== SIDEBAR ===================== */
 function openSidebar(){document.getElementById('sbOverlay').classList.add('show');document.getElementById('sidebar').classList.add('open');}
 function closeSidebar(){document.getElementById('sbOverlay').classList.remove('show');document.getElementById('sidebar').classList.remove('open');}
-function handleLoginChip(){ location.href='address.html'; }
+function handleLoginChip(){
+  const cd=JSON.parse(localStorage.getItem('customerData')||'{}');
+  const phone = cd.phone || localStorage.getItem('customerPhone');
+  location.href = phone ? 'address.html' : 'login.html';
+}
 function doLogout(){
   localStorage.removeItem('customerData');
   localStorage.removeItem('customerPhone');
