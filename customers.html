@@ -120,6 +120,8 @@ body{background:var(--g);min-height:100vh;}
       <div class="fl">ที่อยู่จัดส่ง</div><input class="fi" id="fAddr" placeholder="บ้านเลขที่ ซอย ถนน">
       <div class="fl">ปักหมุดตำแหน่ง</div>
       <div class="mapb" id="fMap"></div>
+      <input class="fi" id="gmapLinkInput" placeholder="วางลิงก์ Google Maps ที่ลูกค้าแชร์มา แล้วปักหมุดอัตโนมัติ">
+      <div id="gmapLinkMsg" style="font-size:12px;margin:-8px 0 12px;display:none"></div>
       <button class="locbtn" id="locBtn">📍 ใช้ตำแหน่งปัจจุบัน</button>
       <button class="savebtn" id="saveBtn">บันทึกลูกค้า</button>
     </div>
@@ -239,6 +241,8 @@ document.getElementById('addBtn').onclick=()=>{
   document.getElementById('fPhone').readOnly=false;
   document.getElementById('fPhone').style.background='';
   document.getElementById('fAddr').value='';
+  document.getElementById('gmapLinkInput').value='';
+  document.getElementById('gmapLinkMsg').style.display='none';
   fLat=13.7563; fLng=100.5018;
   document.getElementById('addMask').classList.add('show');
   setTimeout(()=>{
@@ -257,6 +261,8 @@ document.getElementById('editCusBtn').onclick=()=>{
   document.getElementById('fPhone').readOnly=true; // เปลี่ยนเบอร์ไม่ได้ตรงนี้ เพราะเบอร์คือ id ของเอกสาร
   document.getElementById('fPhone').style.background='var(--gray,#f1f5f9)';
   document.getElementById('fAddr').value=selCus.address||'';
+  document.getElementById('gmapLinkInput').value='';
+  document.getElementById('gmapLinkMsg').style.display='none';
   fLat=selCus.lat||13.7563; fLng=selCus.lng||100.5018;
   document.getElementById('addMask').classList.add('show');
   setTimeout(()=>{ initFormMap(); },300);
@@ -295,6 +301,43 @@ document.getElementById('locBtn').onclick=()=>{
     }
   }, {timeout:8000, enableHighAccuracy:true});
 };
+function showGmapMsg(text,ok){
+  const el=document.getElementById('gmapLinkMsg');
+  el.textContent=text;
+  el.style.color=ok?'#16a34a':'#dc2626';
+  el.style.display='block';
+}
+function parseGmapLink(raw){
+  const url=(raw||'').trim();
+  if(!url) return null;
+  if(/maps\.app\.goo\.gl|goo\.gl\/maps/i.test(url)) return {short:true};
+  // ลำดับความสำคัญ: !3d..!4d.. (พิกัดหมุดจริงที่ google แนบมาใน URL ของหน้า place) ก่อน
+  // เพราะแม่นกว่า @lat,lng (ซึ่งเป็นแค่จุดกึ่งกลางของแผนที่ตอนแชร์ ไม่ใช่ตำแหน่งหมุดเป๊ะๆเสมอไป)
+  let m=url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+  if(m) return {lat:parseFloat(m[1]),lng:parseFloat(m[2])};
+  m=url.match(/[?&](?:q|ll)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if(m) return {lat:parseFloat(m[1]),lng:parseFloat(m[2])};
+  m=url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if(m) return {lat:parseFloat(m[1]),lng:parseFloat(m[2])};
+  return null;
+}
+function applyGmapLink(){
+  const input=document.getElementById('gmapLinkInput');
+  const result=parseGmapLink(input.value);
+  if(!result){
+    showGmapMsg('อ่านพิกัดจากลิงก์นี้ไม่ได้ ตรวจสอบว่าเป็นลิงก์ Google Maps ที่ถูกต้องครับ',false);
+    return;
+  }
+  if(result.short){
+    showGmapMsg('ลิงก์นี้เป็นลิงก์ย่อ (maps.app.goo.gl) ระบบอ่านพิกัดจากลิงก์ย่อโดยตรงไม่ได้ กรุณาเปิดลิงก์นี้ในเบราว์เซอร์ก่อน แล้วคัดลอก URL เต็มจากแถบที่อยู่ (ที่มี @ตามด้วยตัวเลข) มาวางแทนครับ',false);
+    return;
+  }
+  fLat=result.lat; fLng=result.lng;
+  fMap?.setView([fLat,fLng],17); fMarker?.setLatLng([fLat,fLng]);
+  showGmapMsg('ปักหมุดจากลิงก์ให้แล้ว ✓ ตรวจสอบตำแหน่งบนแผนที่อีกครั้งก่อนบันทึก',true);
+}
+document.getElementById('gmapLinkInput').addEventListener('paste',()=>setTimeout(applyGmapLink,0));
+document.getElementById('gmapLinkInput').addEventListener('change',applyGmapLink);
 document.getElementById('saveBtn').onclick=async()=>{
   const name=document.getElementById('fName').value.trim();
   const addr=document.getElementById('fAddr').value.trim();
