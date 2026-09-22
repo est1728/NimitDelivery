@@ -135,10 +135,12 @@ const db = getFirestore(initializeApp({
 // ไม่ได้ sync ไป Firestore ตามชื่อจริงๆ) ทำให้ฝั่งลูกค้าเห็นที่อยู่/ชื่อตัวเองถูกต้องเสมอ (ใช้สั่งของได้ปกติ)
 // แต่โปรไฟล์ลูกค้าฝั่งแอดมิน (Firestore customers/{phone}) ไม่เคยอัปเดตเลย ยังค้างเป็นค่าว่างจากตอน login
 // ครั้งแรก (login.html เขียนแค่เบอร์โทรอย่างเดียวตอนนั้น) นี่คือฟังก์ชันจริงที่เขียนกลับ Firestore ให้
+// register.html ยกเลิกใช้แล้ว (เคยเป็นหน้าเดียวที่ตั้ง registered:true ให้ลูกค้า) — ฟังก์ชันนี้จึงต้องตั้งค่านี้
+// แทน ไม่งั้นจะไม่มีที่ไหนตั้งค่านี้เลยทั้งระบบ ทำให้ login.html มองว่าลูกค้าไม่เคยลงทะเบียนอยู่ดีทุกครั้ง
 window.syncCustomerToFirestore = async function(phone, data){
   if(!phone) return;
   try{
-    await setDoc(doc(db,'customers',phone), {phone, ...data, updatedAt: serverTimestamp()}, {merge:true});
+    await setDoc(doc(db,'customers',phone), {phone, registered:true, ...data, updatedAt: serverTimestamp()}, {merge:true});
   }catch(e){ console.warn('sync customer profile to Firestore failed:', e.message); }
 };
 
