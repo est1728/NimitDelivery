@@ -1,10 +1,23 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+<script>
+// จับ event นี้ให้เร็วที่สุดเท่าที่จะทำได้ ก่อนโค้ดอื่นใดทั้งสิ้น เพราะ beforeinstallprompt อาจ fire
+// เร็วมากตั้งแต่ต้นๆของการโหลดหน้า ถ้าตัวจับอยู่หลังเกินไป (เช่นรอจนโหลด script อื่นๆเสร็จ) อาจพลาด event ไปเลย
+window._deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  window._deferredInstallPrompt = e;
+  if(typeof window._updateInstallBtn === 'function') window._updateInstallBtn();
+});
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Nimit Delivery — ร้านค้าทั้งหมด (v6)</title>
 <meta name="theme-color" content="#0B2C63">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
 <meta name="description" content="🍽️ Nimit Delivery แพลตฟอร์มอาหารออนไลน์ที่เชื่อมต่อลูกค้า ร้านอาหาร และบริการจัดส่งไว้ในที่เดียว ค้นหาร้าน เลือกเมนู สั่งง่าย จัดส่งไว พร้อมคูปองส่วนลดและสะสมแต้ม">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Nimit Delivery — สั่งอาหารออนไลน์ ง่าย ไว ครบในที่เดียว">
@@ -374,7 +387,7 @@ a{color:inherit;}
       </button>
       <button class="sb-item" id="installAppBtn" style="border-bottom:none" onclick="installApp()">
         <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-        <div class="sb-item-text"><div class="sb-item-t">ติดตั้งแอป</div><div class="sb-item-s">เพิ่มไอคอนไว้หน้าจอโฮม เปิดใช้ไวขึ้น</div></div>
+        <div class="sb-item-text"><div class="sb-item-t" id="installBtnText">ติดตั้งแอป</div><div class="sb-item-s" id="installBtnSub">เพิ่มไอคอนไว้หน้าจอโฮม เปิดใช้ไวขึ้น</div></div>
       </button>
     </div>
   </div>
@@ -587,25 +600,50 @@ function doLogout(){
   localStorage.removeItem('customerPhone');
   location.href='login.html';
 }
-// ติดตั้งแอป (PWA) — ใช้ event จริงของเบราว์เซอร์ ปุ่มจะโผล่ก็ต่อเมื่อเบราว์เซอร์อนุญาตให้ติดตั้งได้จริงเท่านั้น
-let deferredInstallPrompt=null;
-window.addEventListener('beforeinstallprompt', e=>{
-  e.preventDefault();
-  deferredInstallPrompt=e;
+// ติดตั้งแอป (PWA) — ตัวจับ beforeinstallprompt ตัวจริงอยู่ใน <head> แล้ว (เร็วที่สุดเท่าที่จะทำได้) ตรงนี้แค่ใช้ค่าที่จับมาได้ต่อ
+window._updateInstallBtn = function(){
+  const titleEl = document.getElementById('installBtnText');
+  const subEl = document.getElementById('installBtnSub');
+  const btnEl = document.getElementById('installAppBtn');
+  if(!btnEl) return;
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  if(isStandalone){
+    btnEl.style.opacity='0.5'; btnEl.style.pointerEvents='none';
+    if(titleEl) titleEl.textContent='ติดตั้งแล้ว ✓';
+    if(subEl) subEl.textContent='เปิดจากไอคอนหน้าจอโฮมได้เลย';
+  } else {
+    btnEl.style.opacity='1'; btnEl.style.pointerEvents='auto';
+    if(titleEl) titleEl.textContent='ติดตั้งแอป';
+    if(subEl) subEl.textContent='เพิ่มไอคอนไว้หน้าจอโฮม เปิดใช้ไวขึ้น';
+  }
+}
+window.addEventListener('appinstalled', function(){
+  window._deferredInstallPrompt = null;
+  window._updateInstallBtn();
 });
-// ปุ่มนี้แสดงตลอดเวลา (เดิมซ่อนไว้จนกว่า beforeinstallprompt จะยิง แต่ event นี้ไม่เกิดขึ้นเลยบน iOS Safari
-// และอีกหลายกรณี ปุ่มเลยหายไปเงียบๆ สำหรับคนส่วนใหญ่) ถ้าเบราว์เซอร์รองรับการติดตั้งจริงก็เปิด prompt ให้เลย
-// ถ้าไม่รองรับ (เช่น iOS) ก็บอกวิธีติดตั้งเองแทน แทนที่จะกดแล้วไม่มีอะไรเกิดขึ้น
 function installApp(){
-  if(deferredInstallPrompt){
-    deferredInstallPrompt.prompt();
-    deferredInstallPrompt=null;
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  if(isStandalone){ return; }
+  if(window._deferredInstallPrompt){
+    window._deferredInstallPrompt.prompt();
+    window._deferredInstallPrompt.userChoice.then(function(){
+      window._deferredInstallPrompt=null;
+      window._updateInstallBtn();
+    });
     return;
   }
-  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  if(isIOS) alert('วิธีติดตั้งบน iPhone/iPad:\n1. แตะปุ่มแชร์ (ไอคอนสี่เหลี่ยมมีลูกศรชี้ขึ้น) ด้านล่างเบราว์เซอร์\n2. เลือก "เพิ่มไปยังหน้าจอโฮม"');
-  else alert('เปิดเมนู ⋮ ของเบราว์เซอร์ แล้วเลือก "ติดตั้งแอป" หรือ "เพิ่มไปยังหน้าจอโฮม"');
+  const ua = navigator.userAgent || '';
+  const isInAppBrowser = /FBAN|FBAV|FB_IAB|Instagram|Line|MicroMessenger|TikTok/i.test(ua);
+  const isIOS = /iphone|ipad|ipod/i.test(ua);
+  if(isInAppBrowser){
+    alert('ปุ่มนี้ใช้งานไม่ได้ครับ เพราะตอนนี้เปิดผ่านเบราว์เซอร์ในแอป (เช่น Messenger/Line/Instagram) ซึ่งไม่รองรับการติดตั้งแอปแบบนี้เลย\n\nวิธีแก้: กดจุด 3 จุดหรือไอคอนแชร์ แล้วเลือก "เปิดใน Chrome" หรือคัดลอกลิงก์ไปวางเปิดใน Chrome/เบราว์เซอร์ปกติแทนครับ');
+  } else if(isIOS){
+    alert('วิธีติดตั้งบน iPhone/iPad:\n1. แตะปุ่มแชร์ (ไอคอนสี่เหลี่ยมมีลูกศรชี้ขึ้น) ด้านล่างเบราว์เซอร์\n2. เลือก "เพิ่มไปยังหน้าจอโฮม"');
+  } else {
+    alert('ยังไม่พร้อมให้ติดตั้งตอนนี้ครับ ลองรอสักครู่แล้วกดใหม่อีกครั้ง (หรือถ้าเคยกดปฏิเสธไปก่อนหน้านี้ อาจต้องรีเฟรชหน้าใหม่ก่อน)');
+  }
 }
+document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
 // แสดงชื่อ/เบอร์ลูกค้าจริงที่ปุ่มมุมซ้ายบน จากข้อมูลที่บันทึกไว้ตอนล็อกอิน (login.html)
 // เดิมอ่านจาก customerData อย่างเดียว — ถ้าล็อกอินแบบที่เขียนแค่ customerPhone (ไม่ได้สร้าง customerData เต็ม)
 // จะเห็นเป็น "เข้าสู่ระบบ" ตลอดทั้งที่ล็อกอินจริงแล้ว จึงต้อง fallback ไปที่ customerPhone ด้วยเหมือนหน้าอื่นๆ
@@ -614,6 +652,22 @@ function renderLoginChip(){
   const phone = cd.phone || localStorage.getItem('customerPhone');
   $('loginChipText').textContent = cd.name && phone ? `${cd.name} · ${phone}` : (phone || 'เข้าสู่ระบบ');
   if(cd.address) $('sbAddressText').textContent=cd.address;
+}
+// ดึงข้อมูลลูกค้า (โดยเฉพาะพิกัด lat/lng ที่แอดมินอาจปักหมุดให้ใหม่จากหน้า customers.html) สดจาก
+// Firestore ทุกครั้งที่เปิดหน้า แทนที่จะพึ่ง customerData ที่แคชไว้ใน localStorage ตอนล็อกอินอย่างเดียว
+// เดิมถ้าแอดมินปักหมุดใหม่ให้ลูกค้า ฝั่งลูกค้าจะไม่เห็นการเปลี่ยนแปลงเลยจนกว่าจะออกจากระบบแล้วล็อกอินใหม่
+async function refreshCustomerLocation(){
+  const cd=JSON.parse(localStorage.getItem('customerData')||'{}');
+  const phone = cd.phone || localStorage.getItem('customerPhone');
+  if(!phone) return;
+  try{
+    const snap=await getDoc(doc(db,'customers',phone));
+    if(!snap.exists()) return;
+    const data=snap.data();
+    const merged={...cd, phone, ...data};
+    localStorage.setItem('customerData', JSON.stringify(merged));
+    renderLoginChip();
+  }catch(e){ /* เงียบไว้ ไม่กระทบการใช้งานหลักถ้าดึงไม่สำเร็จ (ยังใช้ค่าที่แคชไว้ต่อได้) */ }
 }
 
 /* ===================== BOTTOM NAV BOUNCE ===================== */
@@ -1076,7 +1130,7 @@ renderFilters();
 updCart();
 loadNotifBadge();
 renderSkeleton();
-loadShopsData();
+refreshCustomerLocation().then(loadShopsData);
 </script>
 <!-- ===== นอกพื้นที่ให้บริการ ===== -->
 <div class="zone-overlay" id="zoneOutOverlay">
