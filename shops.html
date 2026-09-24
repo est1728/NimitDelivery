@@ -671,6 +671,27 @@ async function refreshCustomerLocation(){
     const merged={...cd, phone, ...data};
     localStorage.setItem('customerData', JSON.stringify(merged));
     renderLoginChip();
+    // สำคัญ: customerData ด้านบนใช้แค่โชว์ชื่อ/ที่อยู่มุมซ้ายบนเท่านั้น ตอนสั่งซื้อจริง checkout.html
+    // อ่านที่อยู่จาก localStorage.addresses (array ที่ลูกค้าจัดการเองผ่าน address.html) แยกกันคนละชุดเลย
+    // ไม่เคยมีจุดไหนดึงข้อมูลจาก Firestore เข้าไปอัปเดต array นี้มาก่อน ทำให้แอดมินแก้ที่อยู่/พิกัดผ่าน
+    // customers.html ไปเท่าไหร่ก็ไม่มีผลกับที่อยู่ที่ใช้สั่งของจริงเลย — sync เข้า addresses array ให้ด้วย
+    // โดยตั้งเป็น "ที่อยู่เริ่มต้น (default)" ตามที่ต้องการ ใช้ _adminSynced เป็นตัวมาร์คไว้เพื่ออัปเดตช่องเดิมซ้ำ
+    // ในครั้งถัดไป (ไม่ใช่เพิ่มรายการใหม่ทุกครั้งที่เปิดหน้า) และเช็ค updatedAt ก่อนว่าเป็นข้อมูลใหม่จริงๆ
+    // ไม่งั้นจะรันทุกครั้งที่เปิดหน้าโดยไม่จำเป็นและอาจไปเขียนทับที่อยู่เริ่มต้นที่ลูกค้าเพิ่งเลือกเองสดๆ
+    if(data.address || (data.lat && data.lng)){
+      const updatedAtMs = data.updatedAt?.toMillis ? data.updatedAt.toMillis() : (data.updatedAt ? new Date(data.updatedAt).getTime() : 0);
+      const lastApplied = parseInt(localStorage.getItem('lastAdminAddrSync')||'0');
+      if(updatedAtMs && updatedAtMs > lastApplied){
+        const addresses = JSON.parse(localStorage.getItem('addresses')||'[]');
+        const entry = {name:data.name||'', phone, address:data.address||'', note:'', lat:data.lat||null, lng:data.lng||null, _adminSynced:true};
+        const idx = addresses.findIndex(a=>a._adminSynced===true);
+        if(idx>=0) addresses[idx]=entry; else addresses.push(entry);
+        const finalIdx = idx>=0 ? idx : addresses.length-1;
+        localStorage.setItem('addresses', JSON.stringify(addresses));
+        localStorage.setItem('defaultAddress', String(finalIdx));
+        localStorage.setItem('lastAdminAddrSync', String(updatedAtMs));
+      }
+    }
   }catch(e){ /* เงียบไว้ ไม่กระทบการใช้งานหลักถ้าดึงไม่สำเร็จ (ยังใช้ค่าที่แคชไว้ต่อได้) */ }
 }
 
