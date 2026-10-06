@@ -111,6 +111,12 @@ document.addEventListener('visibilitychange',()=>{ if(!document.hidden) map.inva
 
 let marker, selectedLat=null, selectedLng=null;
 
+// ป้องกันเข้าหน้านี้ตรงๆ โดยข้ามขั้นตอนกรอกเบอร์โทรที่ login.html มา
+// (เดิมเป็นสาเหตุที่ทำให้ "กรอกข้อมูลแล้วเหมือนไม่ได้สร้างจริง" เพราะไม่มีเบอร์โทรผูกกับข้อมูลเลย)
+if(!localStorage.getItem("customerPhone")){
+  location.replace("./login.html");
+}
+
 function placeMarker(lat,lng){
   if(marker) map.removeLayer(marker);
   marker=L.marker([lat,lng]).addTo(map);
@@ -123,15 +129,10 @@ function placeMarker(lat,lng){
 
 map.on('click',e=>placeMarker(e.latlng.lat,e.latlng.lng));
 
-// ปักหมุดให้อัตโนมัติตอนเข้าหน้านี้ครั้งแรก (ลูกค้าใหม่) ถ้าเครื่องอนุญาตตำแหน่งอยู่แล้ว ไม่ต้องกดปุ่มเองก็ได้
-// ถ้าปฏิเสธสิทธิ์/หาตำแหน่งไม่ได้ ก็แค่เงียบไว้ ให้ลูกค้าปักเองหรือกดปุ่ม GPS แทนได้ตามปกติ ไม่รบกวนด้วยข้อความเตือน
-if(navigator.geolocation){
-  navigator.geolocation.getCurrentPosition(
-    pos=>placeMarker(pos.coords.latitude,pos.coords.longitude),
-    ()=>{},
-    {timeout:5000}
-  );
-}
+// หมายเหตุ: เดิมเคยขอตำแหน่งอัตโนมัติทันทีตอนโหลดหน้า (ไม่ต้องรอผู้ใช้กดอะไร)
+// แต่ iOS Safari ขอสิทธิ์ตำแหน่งแบบไม่มีการแตะจอ (user gesture) ก่อนไม่ได้จริง มักถูกปฏิเสธเงียบๆ
+// และบางครั้งจดจำว่า "ปฏิเสธแล้ว" ทำให้กดปุ่ม GPS เองทีหลังก็ไม่ทำงานอีกเลย (Android ไม่มีปัญหานี้)
+// ตัดออก ให้ผู้ใช้กดปุ่ม GPS หรือแตะแผนที่เองเท่านั้น ถึงจะขอสิทธิ์ตำแหน่ง
 
 window.getMyLocation=function(){
   const ua = navigator.userAgent || '';
