@@ -1,70 +1,138 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="th" data-lang="th">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>เงื่อนไขการใช้บริการ - Nimit ร้านค้า</title>
+<title>เงื่อนไขการใช้บริการ / Terms of Service - Nimit Shop</title>
 <style>
 :root{--p:#0c4aa6;--pd:#083570;--pl:#e8f0fe;--g:#f5f6f8;--t:#0f172a;--s:#64748b;}
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;}
-body{background:var(--g);color:var(--t);}
-.hd{background:linear-gradient(135deg,#1560c8,var(--p),var(--pd));color:#fff;text-align:center;padding:30px 16px 26px;border-radius:0 0 30px 30px;position:relative;overflow:hidden;}
-.hd:before{content:"";position:absolute;right:-60px;top:-80px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.07);}
-.hd:after{content:"";position:absolute;left:-40px;bottom:-70px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.06);}
+body{background:linear-gradient(180deg,var(--p),var(--pd)) fixed;color:var(--t);min-height:100vh;position:relative;}
+body:before{content:"";position:fixed;right:-60px;top:-60px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.07);pointer-events:none;}
+body:after{content:"";position:fixed;left:-50px;bottom:12%;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.05);pointer-events:none;}
+.hd{position:relative;z-index:1;color:#fff;text-align:center;padding:30px 16px 18px;}
 .brand{position:relative;font-weight:900;font-style:italic;}
-.brand b{font-size:40px;letter-spacing:-1px;}.brand span{font-size:24px;letter-spacing:-.5px;}
+.brand b,.brand span{font-size:40px;letter-spacing:-1px;}
 .ttl{position:relative;font-size:18px;font-weight:800;margin-top:14px;}
 .chip{position:relative;display:inline-block;margin-top:8px;font-size:12px;font-weight:700;background:rgba(255,255,255,.2);border-radius:20px;padding:4px 12px;}
-.wrap{max-width:720px;margin:0 auto;padding:18px 16px 40px;}
+.wrap{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:6px 16px 40px;}
 .sec{background:#fff;border-radius:18px;padding:18px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
 .sh{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
 .num{width:28px;height:28px;border-radius:50%;background:var(--pl);color:var(--p);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .sh h2{font-size:16px;font-weight:800;}
 .li{display:flex;gap:10px;margin-bottom:6px;font-size:14.5px;line-height:1.55;color:rgba(15,23,42,.85);}
 .li:before{content:"";flex-shrink:0;width:6px;height:6px;border-radius:50%;background:rgba(12,74,166,.55);margin-top:9px;}
-.nav{margin-top:16px;font-size:14px;text-align:center;}.nav a{color:var(--p);font-weight:700;margin:0 8px;}
+.nav{margin-top:16px;font-size:14px;text-align:center;}.nav a{color:#fff;font-weight:700;margin:0 8px;}
+
+.lang{position:relative;z-index:2;display:flex;margin:-14px 0 14px auto;width:max-content;background:rgba(255,255,255,.2);border-radius:20px;padding:3px;}
+.lang button{border:0;background:transparent;color:#fff;font-weight:700;font-size:13px;padding:6px 12px;border-radius:16px;cursor:pointer;}
+html[data-lang=th] .lang [data-l=th],html[data-lang=en] .lang [data-l=en]{background:#fff;color:var(--p);}
+html[data-lang=th] .en{display:none;}html[data-lang=en] .th{display:none;}
+.hd{position:relative;}
 </style>
 </head>
 <body>
-<div class="hd"><div class="brand"><b>Nimit</b><span> Delivery</span></div><div class="ttl">เงื่อนไขการใช้บริการ</div><div class="chip">ฉบับที่ 1.1</div></div>
+<div class="hd"><div class="lang"><button data-l="th">ไทย</button><button data-l="en">EN</button></div>
+<div class="brand"><b>Nimit</b><span> Delivery</span></div>
+<div class="ttl"><span class="th">เงื่อนไขการใช้บริการ</span><span class="en">Terms of Service</span></div>
+<div class="chip"><span class="th">ฉบับที่ 1.2</span><span class="en">Version 1.2</span></div></div>
 <div class="wrap">
-<div class="sec"><div class="sh"><div class="num">1</div><h2>ขอบเขตของบริการ</h2></div>
+<div class="sec th"><div class="sh"><div class="num">1</div><h2>ขอบเขตของบริการ</h2></div>
 <div class="li"><div>แอป Nimit ร้านค้า เป็นเครื่องมือให้ร้านค้าที่ลงทะเบียนกับ Nimit Delivery ใช้รับและจัดการออเดอร์ เมนูอาหาร โปรโมชัน และแต้มสะสมของลูกค้า</div></div>
-<div class="li"><div>บริการนี้สำหรับร้านค้าที่ได้รับการลงทะเบียนจากผู้ดูแลระบบเท่านั้น</div></div>
+<div class="li"><div>บริการนี้สำหรับร้านค้าที่ได้รับการลงทะเบียนจากผู้ดูแลระบบเท่านั้น และสำหรับผู้ใช้ที่บรรลุนิติภาวะแล้ว</div></div>
 </div>
-<div class="sec"><div class="sh"><div class="num">2</div><h2>บัญชีและการเข้าสู่ระบบ</h2></div>
+<div class="sec th"><div class="sh"><div class="num">2</div><h2>บัญชีและการเข้าสู่ระบบ</h2></div>
 <div class="li"><div>เข้าสู่ระบบด้วยเบอร์โทรของร้านที่ลงทะเบียนไว้ และยืนยันด้วยรหัส OTP</div></div>
 <div class="li"><div>ร้านต้องดูแลความปลอดภัยของเบอร์โทรและอุปกรณ์ของตน และรับผิดชอบการใช้งานทั้งหมดที่เกิดจากบัญชีของร้าน</div></div>
 </div>
-<div class="sec"><div class="sh"><div class="num">3</div><h2>หน้าที่ของร้านค้า</h2></div>
+<div class="sec th"><div class="sh"><div class="num">3</div><h2>หน้าที่ของร้านค้า</h2></div>
 <div class="li"><div>ข้อมูลร้าน เมนู ราคา และรูปภาพที่ใส่ในระบบต้องถูกต้อง และไม่ละเมิดสิทธิของผู้อื่น</div></div>
 <div class="li"><div>รับหรือปฏิเสธออเดอร์ อัปเดตสถานะ และเตรียมอาหารตามที่รับออเดอร์ไว้</div></div>
 <div class="li"><div>เปิด-ปิดร้านให้ตรงกับความจริง</div></div>
 <div class="li"><div>ห้ามใช้ระบบเพื่อการทุจริต สร้างออเดอร์ปลอม หรือรบกวนการทำงานของระบบ</div></div>
 </div>
-<div class="sec"><div class="sh"><div class="num">4</div><h2>ค่าบริการและการรับเงิน</h2></div>
+<div class="sec th"><div class="sh"><div class="num">4</div><h2>ค่าบริการและการรับเงิน</h2></div>
 <div class="li"><div>ค่าธรรมเนียม ค่าจัดส่ง และเงื่อนไขการรับเงิน เป็นไปตามที่ร้านตกลงไว้กับผู้ดูแลระบบ</div></div>
 </div>
-<div class="sec"><div class="sh"><div class="num">5</div><h2>การแจ้งเตือนออเดอร์</h2></div>
+<div class="sec th"><div class="sh"><div class="num">5</div><h2>การแจ้งเตือนออเดอร์</h2></div>
 <div class="li"><div>แอปส่งการแจ้งเตือนและเสียงเมื่อมีออเดอร์ใหม่ และอาจทำงานเบื้องหลังเพื่อรับออเดอร์ ร้านควรอนุญาตการแจ้งเตือนและไม่ปิดการทำงานของแอปในเครื่อง</div></div>
 <div class="li"><div>การแจ้งเตือนขึ้นอยู่กับอินเทอร์เน็ตและตัวเครื่อง เราไม่สามารถรับประกันว่าจะถึงทุกครั้ง ร้านควรเปิดแอปตรวจสอบออเดอร์ในช่วงเวลาทำการ</div></div>
 </div>
-<div class="sec"><div class="sh"><div class="num">6</div><h2>การระงับและยกเลิกบริการ</h2></div>
+<div class="sec th"><div class="sh"><div class="num">6</div><h2>การระงับและยกเลิกบริการ</h2></div>
 <div class="li"><div>ผู้ดูแลระบบอาจระงับหรือยกเลิกบัญชีที่ฝ่าฝืนเงื่อนไข หรือมีพฤติกรรมเสี่ยงต่อการทุจริต</div></div>
-<div class="li"><div>ร้านสามารถขอปิดบัญชีได้โดยติดต่อผู้ดูแลระบบ</div></div>
+<div class="li"><div>ร้านสามารถขอลบบัญชีได้ในแอป (เมนู &gt; ขอลบบัญชีร้าน) หรือติดต่อผู้ดูแลระบบ ผู้ดูแลระบบจะติดต่อกลับเพื่อยืนยันตัวตนก่อนดำเนินการ</div></div>
 </div>
-<div class="sec"><div class="sh"><div class="num">7</div><h2>ข้อจำกัดความรับผิด</h2></div>
+<div class="sec th"><div class="sh"><div class="num">7</div><h2>ระบบและการเก็บข้อมูล</h2></div>
+<div class="li"><div>ข้อมูลที่ร้านและลูกค้าใส่ในระบบ ถูกเก็บไว้ในระบบของผู้พัฒนา คือฐานข้อมูลของ Nimit Delivery ซึ่งทำงานบนโครงสร้างพื้นฐานคลาวด์ของ Google Firebase</div></div>
+<div class="li"><div>การเก็บ ใช้ และเปิดเผยข้อมูลส่วนบุคคลเป็นไปตามนโยบายข้อมูลส่วนบุคคลของเรา</div></div>
+</div>
+<div class="sec th"><div class="sh"><div class="num">8</div><h2>ข้อจำกัดความรับผิด</h2></div>
 <div class="li"><div>บริการให้ตามสภาพที่เป็นอยู่ เราไม่รับผิดชอบต่อความเสียหายจากเครือข่ายขัดข้อง เหตุสุดวิสัย หรือการใช้งานที่ผิดไปจากเงื่อนไข ภายใต้ขอบเขตที่กฎหมายอนุญาต</div></div>
 </div>
-<div class="sec"><div class="sh"><div class="num">8</div><h2>การเปลี่ยนแปลงเงื่อนไข</h2></div>
+<div class="sec th"><div class="sh"><div class="num">9</div><h2>กฎหมายที่ใช้บังคับ</h2></div>
+<div class="li"><div>เงื่อนไขนี้อยู่ภายใต้กฎหมายแห่งราชอาณาจักรไทย</div></div>
+</div>
+<div class="sec th"><div class="sh"><div class="num">10</div><h2>การเปลี่ยนแปลงเงื่อนไข</h2></div>
 <div class="li"><div>เราอาจปรับปรุงเงื่อนไขนี้เป็นครั้งคราว โดยแสดงเลขฉบับที่ในหน้านี้ การใช้งานต่อถือว่าคุณยอมรับฉบับที่ปรับปรุงแล้ว</div></div>
 </div>
-<div class="sec"><div class="sh"><div class="num">9</div><h2>ผู้ให้บริการและช่องทางติดต่อ</h2></div>
+<div class="sec th"><div class="sh"><div class="num">11</div><h2>ผู้ให้บริการและช่องทางติดต่อ</h2></div>
 <div class="li"><div>ผู้ให้บริการ: Nimit - แพลตฟอร์มสั่งอาหาร</div></div>
 <div class="li"><div>อีเมล: <a href="mailto:aittinon417@gmail.com">aittinon417@gmail.com</a></div></div>
 <div class="li"><div>LINE ผู้ดูแลระบบ: <a href="https://lin.ee/6rWI6rH">https://lin.ee/6rWI6rH</a></div></div>
 </div>
-<div class="nav"><a href="shop-terms.html">เงื่อนไขการใช้บริการ</a><a href="shop-privacy.html">นโยบายข้อมูลส่วนบุคคล</a></div>
+<div class="sec en"><div class="sh"><div class="num">1</div><h2>Scope of service</h2></div>
+<div class="li"><div>The Nimit Shop app is a tool for shops registered with Nimit Delivery to receive and manage orders, menus, promotions and customer loyalty points.</div></div>
+<div class="li"><div>The service is only for shops registered by the administrator, and for users who are of legal age.</div></div>
 </div>
+<div class="sec en"><div class="sh"><div class="num">2</div><h2>Account and sign-in</h2></div>
+<div class="li"><div>Sign in with the registered shop phone number and confirm with a one-time password (OTP).</div></div>
+<div class="li"><div>The shop must keep its phone number and device secure and is responsible for all activity under its account.</div></div>
+</div>
+<div class="sec en"><div class="sh"><div class="num">3</div><h2>Shop responsibilities</h2></div>
+<div class="li"><div>Shop details, menus, prices and photos must be accurate and must not infringe the rights of others.</div></div>
+<div class="li"><div>Accept or decline orders, update order status, and prepare the food for the orders you accept.</div></div>
+<div class="li"><div>Keep the open/closed status truthful.</div></div>
+<div class="li"><div>Do not use the system for fraud, fake orders, or to disrupt the system.</div></div>
+</div>
+<div class="sec en"><div class="sh"><div class="num">4</div><h2>Fees and payment</h2></div>
+<div class="li"><div>Fees, delivery charges and payment terms are as agreed between the shop and the administrator.</div></div>
+</div>
+<div class="sec en"><div class="sh"><div class="num">5</div><h2>Order notifications</h2></div>
+<div class="li"><div>The app sends notifications and sounds for new orders and may run in the background to receive orders. Please allow notifications and do not disable the app on your device.</div></div>
+<div class="li"><div>Notifications depend on the internet connection and your device, so we cannot guarantee delivery every time. Please open the app to check orders during business hours.</div></div>
+</div>
+<div class="sec en"><div class="sh"><div class="num">6</div><h2>Suspension and termination</h2></div>
+<div class="li"><div>The administrator may suspend or terminate accounts that violate these terms or show a risk of fraud.</div></div>
+<div class="li"><div>A shop can request account deletion in the app (Menu &gt; Request shop account deletion) or by contacting the administrator. The administrator will contact you to verify your identity before proceeding.</div></div>
+</div>
+<div class="sec en"><div class="sh"><div class="num">7</div><h2>System and data storage</h2></div>
+<div class="li"><div>Data entered by shops and customers is stored in the developer's system, namely the Nimit Delivery database, which runs on Google Firebase cloud infrastructure.</div></div>
+<div class="li"><div>Personal data is collected, used and disclosed in accordance with our Privacy Policy.</div></div>
+</div>
+<div class="sec en"><div class="sh"><div class="num">8</div><h2>Limitation of liability</h2></div>
+<div class="li"><div>The service is provided as is. To the extent permitted by law, we are not liable for damage caused by network failures, force majeure, or use that violates these terms.</div></div>
+</div>
+<div class="sec en"><div class="sh"><div class="num">9</div><h2>Governing law</h2></div>
+<div class="li"><div>These terms are governed by the laws of the Kingdom of Thailand.</div></div>
+</div>
+<div class="sec en"><div class="sh"><div class="num">10</div><h2>Changes to these terms</h2></div>
+<div class="li"><div>We may update these terms from time to time and show the version number on this page. Continued use means you accept the updated version.</div></div>
+</div>
+<div class="sec en"><div class="sh"><div class="num">11</div><h2>Operator and contact</h2></div>
+<div class="li"><div>Operator: Nimit - Food Ordering Platform (Nimit Delivery)</div></div>
+<div class="li"><div>Email: <a href="mailto:aittinon417@gmail.com">aittinon417@gmail.com</a></div></div>
+<div class="li"><div>Admin LINE: <a href="https://lin.ee/6rWI6rH">https://lin.ee/6rWI6rH</a></div></div>
+</div>
+<div class="nav"><a href="shop-terms.html"><span class="th">เงื่อนไขการใช้บริการ</span><span class="en">Terms of Service</span></a><a href="shop-privacy.html"><span class="th">นโยบายข้อมูลส่วนบุคคล</span><span class="en">Privacy Policy</span></a><a href="shop-delete.html"><span class="th">ขอลบข้อมูล</span><span class="en">Delete data</span></a></div>
+</div>
+<script>
+(function(){var d=document.documentElement,l=null;
+try{var q=new URLSearchParams(location.search).get("lang");if(q==="en"||q==="th")l=q;}catch(e){}
+if(!l){try{l=localStorage.getItem("nimitLang");}catch(e){}}
+function set(x){d.setAttribute("data-lang",x);d.lang=x;try{localStorage.setItem("nimitLang",x);}catch(e){}}
+set(l==="en"?"en":"th");
+document.querySelectorAll(".lang button").forEach(function(b){b.onclick=function(){set(b.getAttribute("data-l"));};});
+})();
+</script>
 </body>
 </html>

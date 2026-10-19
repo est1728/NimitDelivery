@@ -1,49 +1,82 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="th" data-lang="th">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ขอลบบัญชีและข้อมูล - Nimit ร้านค้า</title>
+<title>ขอลบบัญชีและข้อมูล / Delete account and data - Nimit Shop</title>
 <style>
 :root{--p:#0c4aa6;--pd:#083570;--pl:#e8f0fe;--g:#f5f6f8;--t:#0f172a;--s:#64748b;}
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;}
-body{background:var(--g);color:var(--t);}
-.hd{background:linear-gradient(135deg,#1560c8,var(--p),var(--pd));color:#fff;text-align:center;padding:30px 16px 26px;border-radius:0 0 30px 30px;position:relative;overflow:hidden;}
-.hd:before{content:"";position:absolute;right:-60px;top:-80px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.07);}
-.hd:after{content:"";position:absolute;left:-40px;bottom:-70px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.06);}
+body{background:linear-gradient(180deg,var(--p),var(--pd)) fixed;color:var(--t);min-height:100vh;position:relative;}
+body:before{content:"";position:fixed;right:-60px;top:-60px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.07);pointer-events:none;}
+body:after{content:"";position:fixed;left:-50px;bottom:12%;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.05);pointer-events:none;}
+.hd{position:relative;z-index:1;color:#fff;text-align:center;padding:30px 16px 18px;}
 .brand{position:relative;font-weight:900;font-style:italic;}
-.brand b{font-size:40px;letter-spacing:-1px;}.brand span{font-size:24px;letter-spacing:-.5px;}
+.brand b,.brand span{font-size:40px;letter-spacing:-1px;}
 .ttl{position:relative;font-size:18px;font-weight:800;margin-top:14px;}
 .chip{position:relative;display:inline-block;margin-top:8px;font-size:12px;font-weight:700;background:rgba(255,255,255,.2);border-radius:20px;padding:4px 12px;}
-.wrap{max-width:720px;margin:0 auto;padding:18px 16px 40px;}
+.wrap{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:6px 16px 40px;}
 .sec{background:#fff;border-radius:18px;padding:18px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
 .sh{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
 .num{width:28px;height:28px;border-radius:50%;background:var(--pl);color:var(--p);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .sh h2{font-size:16px;font-weight:800;}
 .li{display:flex;gap:10px;margin-bottom:6px;font-size:14.5px;line-height:1.55;color:rgba(15,23,42,.85);}
 .li:before{content:"";flex-shrink:0;width:6px;height:6px;border-radius:50%;background:rgba(12,74,166,.55);margin-top:9px;}
-.nav{margin-top:16px;font-size:14px;text-align:center;}.nav a{color:var(--p);font-weight:700;margin:0 8px;}
+.nav{margin-top:16px;font-size:14px;text-align:center;}.nav a{color:#fff;font-weight:700;margin:0 8px;}
+
+.lang{position:relative;z-index:2;display:flex;margin:-14px 0 14px auto;width:max-content;background:rgba(255,255,255,.2);border-radius:20px;padding:3px;}
+.lang button{border:0;background:transparent;color:#fff;font-weight:700;font-size:13px;padding:6px 12px;border-radius:16px;cursor:pointer;}
+html[data-lang=th] .lang [data-l=th],html[data-lang=en] .lang [data-l=en]{background:#fff;color:var(--p);}
+html[data-lang=th] .en{display:none;}html[data-lang=en] .th{display:none;}
+.hd{position:relative;}
 </style>
 </head>
 <body>
-<div class="hd"><div class="brand"><b>Nimit</b><span> Delivery</span></div><div class="ttl">ขอลบบัญชีและข้อมูล</div><div class="chip">แอป Nimit ร้านค้า</div></div>
+<div class="hd"><div class="lang"><button data-l="th">ไทย</button><button data-l="en">EN</button></div>
+<div class="brand"><b>Nimit</b><span> Delivery</span></div>
+<div class="ttl"><span class="th">ขอลบบัญชีและข้อมูล</span><span class="en">Account and Data Deletion</span></div>
+<div class="chip"><span class="th">แอป Nimit ร้านค้า</span><span class="en">Nimit Shop app</span></div></div>
 <div class="wrap">
-<div class="sec"><div class="sh"><div class="num">1</div><h2>วิธีขอลบ</h2></div>
+<div class="sec th"><div class="sh"><div class="num">1</div><h2>วิธีขอลบ</h2></div>
 <div class="li"><div>ในแอป Nimit ร้านค้า: เปิดเมนู (≡) เลื่อนลงล่างสุด กด "ขอลบบัญชีร้าน"</div></div>
-<div class="li"><div>หรือทักไลน์ผู้ดูแลระบบที่ <a href="https://lin.ee/6rWI6rH">https://lin.ee/6rWI6rH</a> แล้วแจ้งว่า "ขอลบบัญชีร้านค้า Nimit" หรืออีเมลถึง <a href="mailto:aittinon417@gmail.com">aittinon417@gmail.com</a> หัวข้อ "ขอลบบัญชีร้านค้า Nimit"</div></div>
+<div class="li"><div>หรือทักไลน์ผู้ดูแลระบบที่ <a href="https://lin.ee/6rWI6rH">https://lin.ee/6rWI6rH</a> หรืออีเมลถึง <a href="mailto:aittinon417@gmail.com">aittinon417@gmail.com</a> หัวข้อ "ขอลบบัญชีร้านค้า Nimit"</div></div>
 <div class="li"><div>แจ้งชื่อร้านและเบอร์โทรที่ใช้เข้าสู่ระบบ เพื่อให้เรายืนยันว่าเป็นเจ้าของร้านจริง</div></div>
 </div>
-<div class="sec"><div class="sh"><div class="num">2</div><h2>ข้อมูลที่จะถูกลบ</h2></div>
+<div class="sec th"><div class="sh"><div class="num">2</div><h2>ข้อมูลที่จะถูกลบ</h2></div>
 <div class="li"><div>ข้อมูลร้าน เมนู รูปภาพ และโทเคนแจ้งเตือนของร้านนั้น</div></div>
 <div class="li"><div>ข้อมูลออเดอร์ที่ระบุตัวลูกค้าจะถูกลบหรือทำให้ไม่สามารถระบุตัวตนได้</div></div>
 </div>
-<div class="sec"><div class="sh"><div class="num">3</div><h2>ข้อมูลที่อาจเก็บไว้ตามกฎหมาย</h2></div>
-<div class="li"><div>ข้อมูลธุรกรรมบางส่วนอาจเก็บไว้เท่าที่กฎหมายหรือการบัญชีกำหนด แล้วจะลบเมื่อพ้นระยะเวลา</div></div>
+<div class="sec th"><div class="sh"><div class="num">3</div><h2>ข้อมูลที่อาจเก็บไว้ตามกฎหมาย</h2></div>
+<div class="li"><div>ข้อมูลธุรกรรมและบัญชีเก็บไว้ 5 ปีตามกฎหมายการบัญชี และข้อมูลการเข้าใช้งาน (log) ตามที่กฎหมายกำหนด แล้วจะลบเมื่อพ้นระยะเวลา</div></div>
 </div>
-<div class="sec"><div class="sh"><div class="num">4</div><h2>ระยะเวลา</h2></div>
+<div class="sec th"><div class="sh"><div class="num">4</div><h2>ระยะเวลา</h2></div>
 <div class="li"><div>เราดำเนินการภายใน 30 วันนับจากยืนยันตัวตนสำเร็จ</div></div>
 </div>
-<div class="nav"><a href="shop-terms.html">เงื่อนไขการใช้บริการ</a><a href="shop-privacy.html">นโยบายข้อมูลส่วนบุคคล</a></div>
+<div class="sec en"><div class="sh"><div class="num">1</div><h2>How to request deletion</h2></div>
+<div class="li"><div>In the Nimit Shop app: open the menu (≡), scroll to the bottom and tap "Request shop account deletion".</div></div>
+<div class="li"><div>Or message the administrator on LINE at <a href="https://lin.ee/6rWI6rH">https://lin.ee/6rWI6rH</a> or email <a href="mailto:aittinon417@gmail.com">aittinon417@gmail.com</a> with the subject "Delete Nimit shop account".</div></div>
+<div class="li"><div>Tell us the shop name and the phone number you sign in with, so we can verify that you own the shop.</div></div>
 </div>
+<div class="sec en"><div class="sh"><div class="num">2</div><h2>Data that will be deleted</h2></div>
+<div class="li"><div>The shop's data, menus, photos and notification tokens.</div></div>
+<div class="li"><div>Order data that identifies customers will be deleted or anonymized.</div></div>
+</div>
+<div class="sec en"><div class="sh"><div class="num">3</div><h2>Data we may keep by law</h2></div>
+<div class="li"><div>Transaction and account records are kept for 5 years under accounting law, and system access logs as required by law, then deleted when the period ends.</div></div>
+</div>
+<div class="sec en"><div class="sh"><div class="num">4</div><h2>Timeframe</h2></div>
+<div class="li"><div>We process the request within 30 days after your identity is verified.</div></div>
+</div>
+<div class="nav"><a href="shop-terms.html"><span class="th">เงื่อนไขการใช้บริการ</span><span class="en">Terms of Service</span></a><a href="shop-privacy.html"><span class="th">นโยบายข้อมูลส่วนบุคคล</span><span class="en">Privacy Policy</span></a><a href="shop-delete.html"><span class="th">ขอลบข้อมูล</span><span class="en">Delete data</span></a></div>
+</div>
+<script>
+(function(){var d=document.documentElement,l=null;
+try{var q=new URLSearchParams(location.search).get("lang");if(q==="en"||q==="th")l=q;}catch(e){}
+if(!l){try{l=localStorage.getItem("nimitLang");}catch(e){}}
+function set(x){d.setAttribute("data-lang",x);d.lang=x;try{localStorage.setItem("nimitLang",x);}catch(e){}}
+set(l==="en"?"en":"th");
+document.querySelectorAll(".lang button").forEach(function(b){b.onclick=function(){set(b.getAttribute("data-l"));};});
+})();
+</script>
 </body>
 </html>

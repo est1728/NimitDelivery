@@ -1,73 +1,168 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="th" data-lang="th">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>นโยบายข้อมูลส่วนบุคคล - Nimit ร้านค้า</title>
+<title>นโยบายข้อมูลส่วนบุคคล / Privacy Policy - Nimit Shop</title>
 <style>
 :root{--p:#0c4aa6;--pd:#083570;--pl:#e8f0fe;--g:#f5f6f8;--t:#0f172a;--s:#64748b;}
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;}
-body{background:var(--g);color:var(--t);}
-.hd{background:linear-gradient(135deg,#1560c8,var(--p),var(--pd));color:#fff;text-align:center;padding:30px 16px 26px;border-radius:0 0 30px 30px;position:relative;overflow:hidden;}
-.hd:before{content:"";position:absolute;right:-60px;top:-80px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.07);}
-.hd:after{content:"";position:absolute;left:-40px;bottom:-70px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.06);}
+body{background:linear-gradient(180deg,var(--p),var(--pd)) fixed;color:var(--t);min-height:100vh;position:relative;}
+body:before{content:"";position:fixed;right:-60px;top:-60px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.07);pointer-events:none;}
+body:after{content:"";position:fixed;left:-50px;bottom:12%;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.05);pointer-events:none;}
+.hd{position:relative;z-index:1;color:#fff;text-align:center;padding:30px 16px 18px;}
 .brand{position:relative;font-weight:900;font-style:italic;}
-.brand b{font-size:40px;letter-spacing:-1px;}.brand span{font-size:24px;letter-spacing:-.5px;}
+.brand b,.brand span{font-size:40px;letter-spacing:-1px;}
 .ttl{position:relative;font-size:18px;font-weight:800;margin-top:14px;}
 .chip{position:relative;display:inline-block;margin-top:8px;font-size:12px;font-weight:700;background:rgba(255,255,255,.2);border-radius:20px;padding:4px 12px;}
-.wrap{max-width:720px;margin:0 auto;padding:18px 16px 40px;}
+.wrap{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:6px 16px 40px;}
 .sec{background:#fff;border-radius:18px;padding:18px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
 .sh{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
 .num{width:28px;height:28px;border-radius:50%;background:var(--pl);color:var(--p);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .sh h2{font-size:16px;font-weight:800;}
 .li{display:flex;gap:10px;margin-bottom:6px;font-size:14.5px;line-height:1.55;color:rgba(15,23,42,.85);}
 .li:before{content:"";flex-shrink:0;width:6px;height:6px;border-radius:50%;background:rgba(12,74,166,.55);margin-top:9px;}
-.nav{margin-top:16px;font-size:14px;text-align:center;}.nav a{color:var(--p);font-weight:700;margin:0 8px;}
+.nav{margin-top:16px;font-size:14px;text-align:center;}.nav a{color:#fff;font-weight:700;margin:0 8px;}
+
+.lang{position:relative;z-index:2;display:flex;margin:-14px 0 14px auto;width:max-content;background:rgba(255,255,255,.2);border-radius:20px;padding:3px;}
+.lang button{border:0;background:transparent;color:#fff;font-weight:700;font-size:13px;padding:6px 12px;border-radius:16px;cursor:pointer;}
+html[data-lang=th] .lang [data-l=th],html[data-lang=en] .lang [data-l=en]{background:#fff;color:var(--p);}
+html[data-lang=th] .en{display:none;}html[data-lang=en] .th{display:none;}
+.hd{position:relative;}
 </style>
 </head>
 <body>
-<div class="hd"><div class="brand"><b>Nimit</b><span> Delivery</span></div><div class="ttl">นโยบายข้อมูลส่วนบุคคล</div><div class="chip">ฉบับที่ 1.1</div></div>
+<div class="hd"><div class="lang"><button data-l="th">ไทย</button><button data-l="en">EN</button></div>
+<div class="brand"><b>Nimit</b><span> Delivery</span></div>
+<div class="ttl"><span class="th">นโยบายข้อมูลส่วนบุคคล</span><span class="en">Privacy Policy</span></div>
+<div class="chip"><span class="th">ฉบับที่ 1.2</span><span class="en">Version 1.2</span></div></div>
 <div class="wrap">
-<div class="sec"><div class="sh"><div class="num">1</div><h2>ข้อมูลที่เราเก็บ</h2></div>
+<div class="sec th"><div class="sh"><div class="num">1</div><h2>ผู้ควบคุมข้อมูลส่วนบุคคล</h2></div>
+<div class="li"><div>ผู้ให้บริการและผู้ควบคุมข้อมูล: Nimit - แพลตฟอร์มสั่งอาหาร</div></div>
+<div class="li"><div>อีเมลติดต่อ: <a href="mailto:aittinon417@gmail.com">aittinon417@gmail.com</a></div></div>
+<div class="li"><div>LINE ผู้ดูแลระบบ: <a href="https://lin.ee/6rWI6rH">https://lin.ee/6rWI6rH</a></div></div>
+<div class="li"><div>ข้อมูลทั้งหมดถูกเก็บไว้ในระบบของผู้พัฒนา คือฐานข้อมูลของ Nimit Delivery บนโครงสร้างพื้นฐานคลาวด์ของ Google Firebase</div></div>
+</div>
+<div class="sec th"><div class="sh"><div class="num">2</div><h2>ข้อมูลที่เราเก็บ</h2></div>
 <div class="li"><div>ข้อมูลร้าน: ชื่อร้าน เบอร์โทร ที่อยู่ เวลาทำการ และพิกัดร้านที่คุณปักหมุด</div></div>
 <div class="li"><div>ข้อมูลที่ร้านใส่ในระบบ: เมนู ราคา รูปภาพ โปรโมชัน และข้อมูลแต้มสะสม</div></div>
 <div class="li"><div>ข้อมูลออเดอร์: รายการอาหาร ยอดเงิน สถานะ รวมถึงชื่อ เบอร์โทร และที่อยู่ของลูกค้าที่สั่งกับร้านของคุณ</div></div>
-<div class="li"><div>ข้อมูลเทคนิค: รหัสอุปกรณ์สำหรับส่งการแจ้งเตือน และประเภทอุปกรณ์</div></div>
+<div class="li"><div>ข้อมูลเทคนิค: รหัสอุปกรณ์สำหรับส่งการแจ้งเตือน ประเภทอุปกรณ์ และข้อมูลการเข้าใช้งานระบบ (log)</div></div>
 <div class="li"><div>ตำแหน่ง: ใช้เฉพาะเมื่อคุณกดใช้ตำแหน่งปัจจุบันเพื่อปักหมุดร้าน เราไม่ติดตามตำแหน่งของคุณเบื้องหลัง</div></div>
 </div>
-<div class="sec"><div class="sh"><div class="num">2</div><h2>เราใช้ข้อมูลทำอะไร</h2></div>
-<div class="li"><div>ยืนยันตัวตนและให้คุณเข้าสู่ระบบ</div></div>
-<div class="li"><div>แสดงร้านและเมนูให้ลูกค้า และรับออเดอร์ของร้านคุณ</div></div>
-<div class="li"><div>ส่งการแจ้งเตือนเมื่อมีออเดอร์ใหม่</div></div>
-<div class="li"><div>ติดต่อกลับเมื่อมีปัญหาเกี่ยวกับออเดอร์หรือบัญชี และป้องกันการทุจริต</div></div>
+<div class="sec th"><div class="sh"><div class="num">3</div><h2>เราใช้ข้อมูลทำอะไร และฐานทางกฎหมาย</h2></div>
+<div class="li"><div>ยืนยันตัวตนและให้คุณเข้าสู่ระบบ (เพื่อปฏิบัติตามสัญญาให้บริการ)</div></div>
+<div class="li"><div>แสดงร้านและเมนูให้ลูกค้า และรับออเดอร์ของร้านคุณ (เพื่อปฏิบัติตามสัญญาให้บริการ)</div></div>
+<div class="li"><div>ส่งการแจ้งเตือนเมื่อมีออเดอร์ใหม่ (เพื่อปฏิบัติตามสัญญาให้บริการ)</div></div>
+<div class="li"><div>ติดต่อกลับเมื่อมีปัญหาเกี่ยวกับออเดอร์หรือบัญชี และป้องกันการทุจริต (เพื่อประโยชน์โดยชอบด้วยกฎหมาย)</div></div>
+<div class="li"><div>ใช้ตำแหน่งปัจจุบันเพื่อปักหมุดร้าน (โดยความยินยอมของคุณ ซึ่งถอนได้ที่การตั้งค่าเครื่อง)</div></div>
+<div class="li"><div>เก็บข้อมูลธุรกรรมและบัญชีตามที่กฎหมายกำหนด (เพื่อปฏิบัติตามกฎหมาย)</div></div>
 </div>
-<div class="sec"><div class="sh"><div class="num">3</div><h2>เราเปิดเผยข้อมูลให้ใครบ้าง</h2></div>
+<div class="sec th"><div class="sh"><div class="num">4</div><h2>เราเปิดเผยข้อมูลให้ใครบ้าง</h2></div>
 <div class="li"><div>ลูกค้า: ชื่อร้าน เมนู ที่ตั้ง และเวลาทำการ</div></div>
 <div class="li"><div>ไรเดอร์ที่รับงาน: ที่อยู่และเบอร์โทรของร้าน เพื่อมารับอาหาร</div></div>
 <div class="li"><div>ผู้ดูแลระบบ Nimit Delivery</div></div>
 <div class="li"><div>ผู้ให้บริการที่ช่วยให้ระบบทำงาน ได้แก่ Google Firebase (ยืนยันตัวตนด้วย OTP ฐานข้อมูล และการแจ้งเตือน), Cloudinary (เก็บรูปภาพ), Vercel (ส่งการแจ้งเตือน) และผู้ให้บริการแผนที่ (Esri / OpenStreetMap)</div></div>
+<div class="li"><div>หน่วยงานรัฐเมื่อมีกฎหมายหรือคำสั่งที่มีอำนาจกำหนด</div></div>
 <div class="li"><div>เราไม่ขายข้อมูลของคุณ</div></div>
 </div>
-<div class="sec"><div class="sh"><div class="num">4</div><h2>การเก็บรักษาข้อมูล</h2></div>
-<div class="li"><div>เราเก็บข้อมูลเท่าที่จำเป็นต่อการให้บริการและตามที่กฎหมายกำหนด ข้อมูลออเดอร์อาจถูกเก็บไว้เพื่อการตรวจสอบบัญชีและแก้ไขข้อพิพาท</div></div>
+<div class="sec th"><div class="sh"><div class="num">5</div><h2>ที่เก็บข้อมูลและการส่งไปต่างประเทศ</h2></div>
+<div class="li"><div>ระบบและฐานข้อมูลทำงานบนคลาวด์ของผู้ให้บริการ ได้แก่ Google Cloud / Firebase (Cloud Firestore เป็นฐานข้อมูลหลักเก็บข้อมูลร้านค้า บัญชีผู้ใช้ และประวัติรายการต่างๆ), Cloudinary (จัดเก็บและจัดการรูปภาพ) และ Vercel (โฮสต์เว็บไซต์และบริการส่งการแจ้งเตือน)</div></div>
+<div class="li"><div>ข้อมูลอาจถูกจัดเก็บและสำรองในศูนย์ข้อมูลของผู้ให้บริการที่ตั้งอยู่ต่างประเทศ</div></div>
+<div class="li"><div>เราเลือกผู้ให้บริการที่มีมาตรฐานการคุ้มครองข้อมูลในระดับที่เหมาะสม ข้อมูลถูกเข้ารหัสระหว่างส่งและขณะจัดเก็บ และผู้ให้บริการอยู่ภายใต้ข้อตกลงการประมวลผลข้อมูลที่ผูกพันให้คุ้มครองข้อมูลของคุณ</div></div>
 </div>
-<div class="sec"><div class="sh"><div class="num">5</div><h2>สิทธิ์ของคุณ</h2></div>
-<div class="li"><div>ขอดู แก้ไข หรือลบข้อมูลร้านและบัญชีของคุณได้ โดยอีเมล aittinon417@gmail.com หรือติดต่อผู้ดูแลระบบทาง LINE (ปุ่มติดต่อผู้ดูแลระบบในหน้าเข้าสู่ระบบ)</div></div>
-<div class="li"><div>ขอปิดบัญชีและลบข้อมูลได้เช่นกัน ยกเว้นข้อมูลที่กฎหมายกำหนดให้เก็บ</div></div>
-<div class="li"><div>ปิดการแจ้งเตือนได้ที่การตั้งค่าของเครื่อง</div></div>
+<div class="sec th"><div class="sh"><div class="num">6</div><h2>ระยะเวลาเก็บข้อมูล</h2></div>
+<div class="li"><div>ข้อมูลร้าน เมนู และรูปภาพ: เก็บตราบที่บัญชียังใช้งาน และลบภายใน 30 วัน หลังยืนยันคำขอลบบัญชีสำเร็จ</div></div>
+<div class="li"><div>ข้อมูลออเดอร์และธุรกรรม: เก็บไว้ 5 ปี ตามที่กฎหมายการบัญชีกำหนด แล้วลบหรือทำให้ไม่สามารถระบุตัวตนได้</div></div>
+<div class="li"><div>ข้อมูลการเข้าใช้งานระบบ (log): เก็บตามที่กฎหมายว่าด้วยการกระทำความผิดเกี่ยวกับคอมพิวเตอร์กำหนด (ไม่น้อยกว่า 90 วัน)</div></div>
+<div class="li"><div>โทเคนแจ้งเตือน: ลบเมื่อออกจากระบบหรือลบบัญชี</div></div>
 </div>
-<div class="sec"><div class="sh"><div class="num">6</div><h2>ความปลอดภัย</h2></div>
+<div class="sec th"><div class="sh"><div class="num">7</div><h2>สิทธิ์ของคุณตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562</h2></div>
+<div class="li"><div>ขอเข้าถึงและขอรับสำเนาข้อมูลของคุณ รวมถึงขอให้โอนย้ายข้อมูล</div></div>
+<div class="li"><div>ขอแก้ไขข้อมูลให้ถูกต้อง ขอให้ลบ ทำลาย หรือทำให้ไม่สามารถระบุตัวตนได้</div></div>
+<div class="li"><div>คัดค้านหรือขอให้ระงับการใช้ข้อมูล และถอนความยินยอมได้ทุกเมื่อ (เช่น ปิดสิทธิ์ตำแหน่งที่การตั้งค่าเครื่อง)</div></div>
+<div class="li"><div>ช่องทางใช้สิทธิ: ส่งคำขอทางอีเมล <a href="mailto:aittinon417@gmail.com">aittinon417@gmail.com</a> หรือทาง LINE ผู้ดูแลระบบ เราจะดำเนินการภายใน 30 วันนับจากยืนยันตัวตนสำเร็จ</div></div>
+<div class="li"><div>ขอลบบัญชีได้ในแอป (เมนู &gt; ขอลบบัญชีร้าน) หรือที่หน้า /legal/shop-delete.html หรือติดต่อ <a href="mailto:aittinon417@gmail.com">aittinon417@gmail.com</a> ยกเว้นข้อมูลที่กฎหมายกำหนดให้เก็บ</div></div>
+<div class="li"><div>หากเห็นว่าเราไม่ปฏิบัติตามกฎหมาย คุณมีสิทธิร้องเรียนต่อสำนักงานคณะกรรมการคุ้มครองข้อมูลส่วนบุคคล (สคส.)</div></div>
+</div>
+<div class="sec th"><div class="sh"><div class="num">8</div><h2>ความปลอดภัย</h2></div>
 <div class="li"><div>ข้อมูลส่งผ่านการเชื่อมต่อที่เข้ารหัส และจำกัดการเข้าถึงเฉพาะผู้ที่เกี่ยวข้อง แต่ไม่มีระบบใดปลอดภัย 100% กรุณารักษาเบอร์โทรและอุปกรณ์ของคุณให้ปลอดภัย</div></div>
 </div>
-<div class="sec"><div class="sh"><div class="num">7</div><h2>การเปลี่ยนแปลงนโยบาย</h2></div>
+<div class="sec th"><div class="sh"><div class="num">9</div><h2>ข้อมูลของเด็ก</h2></div>
+<div class="li"><div>แอปนี้สำหรับเจ้าของร้านที่บรรลุนิติภาวะแล้ว (อายุตั้งแต่ 20 ปี หรือบรรลุนิติภาวะตามกฎหมาย) เราไม่ตั้งใจเก็บข้อมูลของผู้เยาว์</div></div>
+<div class="li"><div>หากพบว่ามีข้อมูลของผู้เยาว์ เราจะลบข้อมูลนั้นโดยเร็ว หรือขอความยินยอมจากผู้ปกครองตามที่กฎหมายกำหนดก่อนเก็บต่อ</div></div>
+</div>
+<div class="sec th"><div class="sh"><div class="num">10</div><h2>การเปลี่ยนแปลงนโยบาย</h2></div>
 <div class="li"><div>เราอาจปรับปรุงนโยบายนี้เป็นครั้งคราว โดยแสดงเลขฉบับที่ในหน้านี้</div></div>
 </div>
-<div class="sec"><div class="sh"><div class="num">8</div><h2>ผู้ให้บริการและช่องทางติดต่อ</h2></div>
-<div class="li"><div>ผู้ให้บริการ: Nimit - แพลตฟอร์มสั่งอาหาร</div></div>
-<div class="li"><div>อีเมล: <a href="mailto:aittinon417@gmail.com">aittinon417@gmail.com</a></div></div>
-<div class="li"><div>LINE ผู้ดูแลระบบ: <a href="https://lin.ee/6rWI6rH">https://lin.ee/6rWI6rH</a></div></div>
+<div class="sec en"><div class="sh"><div class="num">1</div><h2>Data controller</h2></div>
+<div class="li"><div>Operator and data controller: Nimit - Food Ordering Platform (Nimit Delivery)</div></div>
+<div class="li"><div>Contact email: <a href="mailto:aittinon417@gmail.com">aittinon417@gmail.com</a></div></div>
+<div class="li"><div>Admin LINE: <a href="https://lin.ee/6rWI6rH">https://lin.ee/6rWI6rH</a></div></div>
+<div class="li"><div>All data is stored in the developer's system, namely the Nimit Delivery database on Google Firebase cloud infrastructure.</div></div>
 </div>
-<div class="nav"><a href="shop-terms.html">เงื่อนไขการใช้บริการ</a><a href="shop-privacy.html">นโยบายข้อมูลส่วนบุคคล</a></div>
+<div class="sec en"><div class="sh"><div class="num">2</div><h2>Data we collect</h2></div>
+<div class="li"><div>Shop data: shop name, phone number, address, opening hours, and the shop location you pin.</div></div>
+<div class="li"><div>Data the shop enters: menus, prices, photos, promotions and loyalty-point data.</div></div>
+<div class="li"><div>Order data: items, amounts, status, and the name, phone number and address of customers who order from your shop.</div></div>
+<div class="li"><div>Technical data: device token for notifications, device type, and system access logs.</div></div>
+<div class="li"><div>Location: used only when you tap to use your current location to pin the shop. We do not track your location in the background.</div></div>
 </div>
+<div class="sec en"><div class="sh"><div class="num">3</div><h2>How we use data and legal bases</h2></div>
+<div class="li"><div>Verify your identity and let you sign in (to perform the service contract).</div></div>
+<div class="li"><div>Show your shop and menu to customers and receive your orders (to perform the service contract).</div></div>
+<div class="li"><div>Send notifications for new orders (to perform the service contract).</div></div>
+<div class="li"><div>Contact you about order or account problems and prevent fraud (legitimate interests).</div></div>
+<div class="li"><div>Use your current location to pin the shop (with your consent, which you can withdraw in device settings).</div></div>
+<div class="li"><div>Keep transaction and account records as required by law (legal obligation).</div></div>
+</div>
+<div class="sec en"><div class="sh"><div class="num">4</div><h2>Who we share data with</h2></div>
+<div class="li"><div>Customers: shop name, menu, location and opening hours.</div></div>
+<div class="li"><div>Riders who take a job: the shop's address and phone number, to pick up the food.</div></div>
+<div class="li"><div>The Nimit Delivery administrator.</div></div>
+<div class="li"><div>Service providers that make the system work: Google Firebase (OTP sign-in, database, notifications), Cloudinary (image storage), Vercel (sending notifications) and map providers (Esri / OpenStreetMap).</div></div>
+<div class="li"><div>Government authorities when required by law or a lawful order.</div></div>
+<div class="li"><div>We do not sell your data.</div></div>
+</div>
+<div class="sec en"><div class="sh"><div class="num">5</div><h2>Where data is stored and international transfers</h2></div>
+<div class="li"><div>The system and database run on cloud providers: Google Cloud / Firebase (Cloud Firestore is the main database for shop data, user accounts and transaction history), Cloudinary (image storage and management) and Vercel (website hosting and the notification service).</div></div>
+<div class="li"><div>Data may be stored and backed up in the providers' data centers located outside Thailand.</div></div>
+<div class="li"><div>We choose providers with appropriate data-protection standards; data is encrypted in transit and at rest, and the providers are bound by data processing terms to protect your data.</div></div>
+</div>
+<div class="sec en"><div class="sh"><div class="num">6</div><h2>Retention</h2></div>
+<div class="li"><div>Shop, menu and photo data: kept while the account is active and deleted within 30 days after an account deletion request is verified.</div></div>
+<div class="li"><div>Order and transaction data: kept for 5 years as required by accounting law, then deleted or anonymized.</div></div>
+<div class="li"><div>System access logs: kept as required by the Computer Crime Act (at least 90 days).</div></div>
+<div class="li"><div>Notification tokens: deleted on sign-out or account deletion.</div></div>
+</div>
+<div class="sec en"><div class="sh"><div class="num">7</div><h2>Your rights under Thailand&#x27;s Personal Data Protection Act B.E. 2562 (2019)</h2></div>
+<div class="li"><div>Access and obtain a copy of your data, and request data portability.</div></div>
+<div class="li"><div>Correct inaccurate data, and request deletion, destruction or anonymization.</div></div>
+<div class="li"><div>Object to or restrict the use of your data, and withdraw consent at any time (for example, turn off location permission in device settings).</div></div>
+<div class="li"><div>How to exercise your rights: email <a href="mailto:aittinon417@gmail.com">aittinon417@gmail.com</a> or message the administrator on LINE. We will act within 30 days after your identity is verified.</div></div>
+<div class="li"><div>Request account deletion in the app (Menu &gt; Request shop account deletion), on the page /legal/shop-delete.html, or by emailing <a href="mailto:aittinon417@gmail.com">aittinon417@gmail.com</a>, except for data we are required by law to keep.</div></div>
+<div class="li"><div>If you believe we do not comply with the law, you may complain to the Personal Data Protection Committee Office (PDPC).</div></div>
+</div>
+<div class="sec en"><div class="sh"><div class="num">8</div><h2>Security</h2></div>
+<div class="li"><div>Data is sent over encrypted connections and access is limited to relevant people, but no system is 100% secure. Please keep your phone number and device safe.</div></div>
+</div>
+<div class="sec en"><div class="sh"><div class="num">9</div><h2>Children&#x27;s data</h2></div>
+<div class="li"><div>This app is for shop owners who are of legal age (20 or older, or legally an adult). We do not knowingly collect minors' data.</div></div>
+<div class="li"><div>If we find any minor's data, we will delete it promptly or obtain guardian consent as required by law before keeping it.</div></div>
+</div>
+<div class="sec en"><div class="sh"><div class="num">10</div><h2>Changes to this policy</h2></div>
+<div class="li"><div>We may update this policy from time to time and show the version number on this page.</div></div>
+</div>
+<div class="nav"><a href="shop-terms.html"><span class="th">เงื่อนไขการใช้บริการ</span><span class="en">Terms of Service</span></a><a href="shop-privacy.html"><span class="th">นโยบายข้อมูลส่วนบุคคล</span><span class="en">Privacy Policy</span></a><a href="shop-delete.html"><span class="th">ขอลบข้อมูล</span><span class="en">Delete data</span></a></div>
+</div>
+<script>
+(function(){var d=document.documentElement,l=null;
+try{var q=new URLSearchParams(location.search).get("lang");if(q==="en"||q==="th")l=q;}catch(e){}
+if(!l){try{l=localStorage.getItem("nimitLang");}catch(e){}}
+function set(x){d.setAttribute("data-lang",x);d.lang=x;try{localStorage.setItem("nimitLang",x);}catch(e){}}
+set(l==="en"?"en":"th");
+document.querySelectorAll(".lang button").forEach(function(b){b.onclick=function(){set(b.getAttribute("data-l"));};});
+})();
+</script>
 </body>
 </html>
