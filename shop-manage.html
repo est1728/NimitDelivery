@@ -1229,7 +1229,7 @@ function renderGroupCard(menuId, g, gi, total) {
     </div>
     <div class="maxsel-row">
       <span style="font-size:12px;color:var(--subtext)">จำนวนที่เลือกได้:</span>
-      <input class="maxsel-input" id="gmax-${menuId}-${gi}" type="number" min="0" value="${g.maxSelect||''}" placeholder="ทุกอัน">
+      <input class="maxsel-input" id="gmax-${menuId}-${gi}" type="number" min="0" value="${g.maxSelect||(g.required?1:'')}" placeholder="ทุกอัน">
       <span style="font-size:11px;color:var(--subtext)">(เว้นว่าง = เลือกได้ทุกอัน)</span>
     </div>
     <div class="option-list" id="opts-${menuId}-${gi}">
@@ -1284,7 +1284,8 @@ function renderSubGroupCard(menuId,gi,oi,sgi,sg) {
   const sgMaxId = `sgmax-${menuId}-${gi}-${oi}-${sgi}`;
   // รองรับข้อมูลเก่า: ถ้ายังไม่เคยตั้ง maxSelect ไว้ (เมนูเก่าที่ยังไม่ได้เปิดแก้หลังอัปเดต) ให้แปลความจาก multiSelect เดิม
   // multiSelect:true (เดิม) = เลือกได้ไม่จำกัด (ค่าว่าง), false/ไม่มี (เดิม) = เลือกได้ตัวเดียว (ค่า 1)
-  const sgMaxDisplay = sg.maxSelect!==undefined ? (sg.maxSelect||'') : (sg.multiSelect?'':'1');
+  let sgMaxDisplay = sg.maxSelect!==undefined ? (sg.maxSelect||'') : (sg.multiSelect?'':'1');
+  if(sg.required && !sgMaxDisplay) sgMaxDisplay = 1; // บังคับแต่ยังไม่ใส่จำนวน = เริ่มต้น 1
   const head = `
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">
       <input value="${esc(sg.title)}" id="sgt-${menuId}-${gi}-${oi}-${sgi}" placeholder="ชื่อกลุ่มย่อย เช่น เพิ่มชีส" style="flex:1;min-width:100px;height:32px;border:1.5px solid #eef0f4;border-radius:8px;padding:0 8px;font-size:12px;outline:none">
@@ -1365,6 +1366,7 @@ window.toggleSubGroupReq = function(menuId,gi,oi,sgi){
   const m = menus.find(x=>x.id===menuId); if(!m) return;
   const sg = m.optionGroups?.[gi]?.options?.[oi]?.subGroups?.[sgi]; if(!sg) return;
   sg.required = !sg.required;
+  if(sg.required && (sg.type||'normal')==='normal' && !(sg.maxSelect>0)) sg.maxSelect = 1; // กดบังคับ → จำนวนที่เลือกได้เริ่มต้น 1
   updateCardInPlace(menuId);
 }
 window.delSubGroup = function(menuId,gi,oi,sgi){
@@ -1396,7 +1398,7 @@ function mapSubGroupForSave(sg){
   const type = sg.type||'normal';
   if(type==='price') return {type:'price', title:sg.title, required:!!sg.required, priceMin:sg.priceMin||0, priceMax:sg.priceMax||0, priceStep:sg.priceStep||5};
   if(type==='kg') return {type:'kg', title:sg.title, required:!!sg.required, kgRate:sg.kgRate||0};
-  return {type:'normal', title:sg.title, required:!!sg.required, maxSelect:sg.maxSelect!==undefined?(sg.maxSelect||0):(sg.multiSelect?0:1), options:(sg.options||[]).filter(so=>so.name)};
+  return {type:'normal', title:sg.title, required:!!sg.required, maxSelect:(sg.maxSelect!==undefined?(sg.maxSelect||0):(sg.multiSelect?0:1))||(sg.required?1:0), options:(sg.options||[]).filter(so=>so.name)};
 }
 
 window.updateGpPreview = function(menuId){
@@ -1530,6 +1532,7 @@ window.toggleReq = function(menuId,gi) {
   const m = menus.find(x=>x.id===menuId);
   if(!m||!m.optionGroups[gi]) return;
   m.optionGroups[gi].required = !m.optionGroups[gi].required;
+  {const g0=m.optionGroups[gi]; if(g0.required && (g0.type||'normal')==='normal' && !(parseInt(g0.maxSelect)>0)){ g0.maxSelect=1; const mi=document.getElementById(`gmax-${menuId}-${gi}`); if(mi) mi.value=1; }} // กดบังคับ → จำนวนที่เลือกได้เริ่มต้น 1
   // อัพ UI เฉพาะ toggle ไม่ re-render
   const btn = document.getElementById(`greq-${menuId}-${gi}`);
   const badge = document.getElementById(`greq-badge-${menuId}-${gi}`);
@@ -1744,7 +1747,7 @@ function buildMenuSaveData(m){
       const type=g.type||'normal';
       if(type==='price') return {type:'price', title:g.title, priceMin:g.priceMin||0, priceMax:g.priceMax||0, priceStep:g.priceStep||5};
       if(type==='kg') return {type:'kg', title:g.title, required:!!g.required, kgRate:g.kgRate||0};
-      return {type:'normal', title:g.title, required:!!g.required, maxSelect:g.maxSelect||0, options:(g.options||[]).filter(o=>o.name).map(o=>({
+      return {type:'normal', title:g.title, required:!!g.required, maxSelect:g.maxSelect||(g.required?1:0), options:(g.options||[]).filter(o=>o.name).map(o=>({
         name:o.name, price:o.price||0,
         subGroups:(o.subGroups||[]).filter(sg=>sg.title).map(mapSubGroupForSave)
       }))};
@@ -1949,7 +1952,7 @@ async function saveBulk() {
         const type=g.type||'normal';
         if(type==='price') return {type:'price', title:g.title, priceMin:g.priceMin||0, priceMax:g.priceMax||0, priceStep:g.priceStep||5};
         if(type==='kg') return {type:'kg', title:g.title, required:!!g.required, kgRate:g.kgRate||0};
-        return {type:'normal', title:g.title, required:!!g.required, maxSelect:g.maxSelect||0, options:(g.options||[]).filter(o=>o.name).map(o=>({
+        return {type:'normal', title:g.title, required:!!g.required, maxSelect:g.maxSelect||(g.required?1:0), options:(g.options||[]).filter(o=>o.name).map(o=>({
           name:o.name, price:o.price||0,
           subGroups:(o.subGroups||[]).filter(sg=>sg.title).map(mapSubGroupForSave)
         }))};
