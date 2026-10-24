@@ -490,6 +490,8 @@ async function loadMenu(){
   if(menuUnsub) menuUnsub();
   menuUnsub=onSnapshot(collection(db,"shops",shopId,"menus"), snap=>{
     allMenus=[]; snap.forEach(d=>allMenus.push({id:d.id,...d.data()}));
+    // ชื่อหมวดของเมนูต้องตรงกับชื่อหมวดปัจจุบันของร้าน (อิง categoryId) กันกรณีร้านเปลี่ยนชื่อหมวดแล้วเมนูยังเก็บชื่อเก่า
+    {const cn={};shopCategories.forEach(c=>{if(c&&c.id&&c.name)cn[c.id]=c.name;});allMenus.forEach(m=>{if(m.categoryId&&cn[m.categoryId])m.category=cn[m.categoryId];});}
     if(shopCategories.length){
       categories=["ทั้งหมด",...shopCategories.map(c=>c.name)];
     } else {

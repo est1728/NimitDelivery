@@ -979,6 +979,13 @@ window.renameCategory = function(i){
   const name = prompt("แก้ไขชื่อหมวดหมู่", c.name);
   if(!name || !name.trim()) return;
   c.name = name.trim();
+  // ชื่อหมวดที่เก็บซ้ำในเมนูต้องตามชื่อใหม่ด้วย ไม่งั้นฝั่งลูกค้ากดหมวดแล้วไม่เจอเมนู
+  menus.forEach(m=>{
+    if(m.categoryId===c.id && m.category!==c.name && m.id && !m.id.startsWith('_')){
+      m.category=c.name;
+      updateDoc(doc(db,"shops",shopId,"menus",m.id),{category:c.name}).catch(()=>{});
+    }
+  });
   saveCategories(); renderCatStrip(); renderMenuGroups();
 }
 window.deleteCategory = function(i){
