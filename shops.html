@@ -1478,6 +1478,8 @@ async function openShop(id){
   const wait=380-(performance.now()-tOpen);if(wait>0)await new Promise(r=>setTimeout(r,wait));
   if(R.open!==id)return;
   R.m=m;
+  /* ชื่อหมวดของเมนูต้องตรงกับชื่อหมวดปัจจุบันของร้าน (อิง categoryId) กันกรณีเปลี่ยนชื่อหมวดแล้วเมนูยังเก็บชื่อเก่า */
+  {const cn={};(Array.isArray(s.categories)?s.categories:[]).forEach(c=>{if(c&&c.id&&c.name)cn[c.id]=c.name;});m.forEach(x=>{if(x.categoryId&&cn[x.categoryId])x.category=cn[x.categoryId];});}
   const cats=Array.isArray(s.categories)&&s.categories.length?s.categories.map(c=>c.name):[...new Set(m.map(x=>x.category).filter(Boolean))];
   st.querySelector('.rm-cc').innerHTML=['ทั้งหมด',...cats].map((c,k)=>`<button class="rm-chip" data-a="cat" aria-pressed="${k===0}">${esc(c)}</button>`).join('');
   build(2);
@@ -1490,7 +1492,8 @@ function closeShop(){
 function clearRing(){R.tk.p=(R.tk.p||0)+1;ring.querySelectorAll('img').forEach(i=>i.removeAttribute('src'));ring.innerHTML='';R.cards=[];R.N=0;}
 function build(fan){
   const st=stOf(R.open),q=st.querySelector('.rm-sin').value.trim().toLowerCase();
-  R.items=R.m.filter(x=>(R.mc==='ทั้งหมด'||x.category===R.mc)&&(!q||(x.name||'').toLowerCase().includes(q)));
+  const nz=t=>String(t||'').normalize('NFC').replace(/[\uFE0E\uFE0F\u200B-\u200D]/g,'').replace(/\s+/g,' ').trim();
+  R.items=R.m.filter(x=>(R.mc==='ทั้งหมด'||x.category===R.mc||nz(x.category)===nz(R.mc))&&(!q||(x.name||'').toLowerCase().includes(q)));
   const B=R.items.length;R.B=B;R.N=B?B*Math.ceil(12/B):0;R.pos=0;
   clearRing();R.N=B?B*Math.ceil(12/B):0;
   for(let i=0;i<R.N;i++){
