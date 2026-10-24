@@ -454,6 +454,11 @@ document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
       <div class="sidebar-item-text"><div class="sidebar-item-title">แก้ไขข้อมูลร้าน</div><div class="sidebar-item-sub">ชื่อ เบอร์ เวลา ที่อยู่</div></div>
       <div class="sidebar-arrow"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
     </button>
+    <button class="sidebar-item" onclick="window.openSoundSettings()">
+      <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+      <div class="sidebar-item-text"><div class="sidebar-item-title">เสียงแจ้งเตือน</div><div class="sidebar-item-sub">ความดัง / เสียงวนซ้ำ / ทดลองเสียง</div></div>
+      <div class="sidebar-arrow"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
+    </button>
     <button class="sidebar-item" onclick="window.shopLogout()">
       <svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
       <div class="sidebar-item-text"><div class="sidebar-item-title">ออกจากระบบ</div><div class="sidebar-item-sub">ต้องยืนยันเบอร์ใหม่ตอนเข้าครั้งหน้า</div></div>
@@ -553,6 +558,20 @@ document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
 </div>
 
 <!-- CLOSE SHOP REASON MODAL -->
+<div class="confirm-overlay" id="soundOverlay" onclick="if(event.target===this)window.closeSoundSettings()">
+  <div style="background:#fff;border-radius:20px;padding:20px;width:calc(100% - 40px);max-width:360px">
+    <div style="font-size:17px;font-weight:800;color:#0f172a;margin-bottom:14px">🔔 เสียงแจ้งเตือนออเดอร์</div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:#64748b"><span>ความดัง</span><span id="sndVolVal">80%</span></div>
+    <input id="sndVol" type="range" min="0" max="100" step="5" value="80" oninput="window.onSndVol(this.value)" style="width:100%;margin:8px 0 16px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <div style="flex:1"><div style="font-size:14px;font-weight:700;color:#0f172a">เสียงวนซ้ำ</div><div style="font-size:12px;color:#64748b">ดังซ้ำจนกว่าจะรับออเดอร์ (ปิด = ดังรอบเดียว)</div></div>
+      <button class="sidebar-toggle" id="sndRep" onclick="window.toggleSndRep()"></button>
+    </div>
+    <button onclick="window.testSnd()" style="width:100%;height:46px;border:none;border-radius:12px;background:#e8f0fe;color:#0c4aa6;font-weight:800;font-size:15px;margin-bottom:8px">▶ ทดลองเสียง</button>
+    <button onclick="window.closeSoundSettings()" style="width:100%;height:46px;border:none;border-radius:12px;background:#0c4aa6;color:#fff;font-weight:800;font-size:15px">ตกลง</button>
+    <div style="font-size:11.5px;color:#94a3b8;margin-top:10px;line-height:1.5">เสียงนี้ดังเมื่อเปิดหน้าเว็บค้างไว้ ถ้าปิดเว็บ เบราว์เซอร์จะใช้เสียงแจ้งเตือนของเครื่องแทน</div>
+  </div>
+</div>
 <div class="confirm-overlay" id="closeShopOverlay">
   <div class="confirm-box">
     <div class="confirm-icon-wrap">
@@ -703,22 +722,54 @@ function getAudioCtx(){
   return _sharedAudioCtx;
 }
 ['click','touchstart'].forEach(ev=>document.addEventListener(ev,()=>{ getAudioCtx()?.resume?.(); },{once:true,passive:true}));
-function playNotifSound(){
+// ตั้งค่าเสียงเตือน (เหมือนแอป): ความดัง 0-100 (ค่าเริ่มต้น 80) / เสียงวนซ้ำจนกว่าจะรับออเดอร์ (ค่าเริ่มต้น ปิด = ดังรอบเดียว)
+function _sndKey(){ return 'shopSound_'+(window._shopSlug||''); }
+function getSoundCfg(){ try{ const c=JSON.parse(localStorage.getItem(_sndKey())||'{}'); return {vol:Number.isFinite(c.vol)?c.vol:80, repeat:!!c.repeat}; }catch(e){ return {vol:80,repeat:false}; } }
+function setSoundCfg(p){ try{ localStorage.setItem(_sndKey(),JSON.stringify(Object.assign(getSoundCfg(),p))); }catch(e){} }
+// เสียงระฆังชุดเดียวกับแอป: 988Hz-740Hz สองรอบ (เสียงหลัก + ฮาร์โมนิก 2,3 + ลดเสียงแบบเอ็กซ์โพเนนเชียล)
+function playNotifSound(volOverride){
   try{
     const ctx=getAudioCtx();
     if(!ctx)return;
     if(ctx.state==='suspended') ctx.resume();
-    [523,659,784].forEach((freq,i)=>{
-      const osc=ctx.createOscillator(),gain=ctx.createGain();
-      osc.connect(gain);gain.connect(ctx.destination);
-      osc.type='sine';osc.frequency.value=freq;
-      const t=ctx.currentTime+i;
-      gain.gain.setValueAtTime(0,t);
-      gain.gain.linearRampToValueAtTime(0.3,t+0.05);
-      gain.gain.exponentialRampToValueAtTime(0.001,t+0.9);
-      osc.start(t);osc.stop(t+1);
+    const vol=(typeof volOverride==='number'?volOverride:getSoundCfg().vol)/100;
+    if(vol<=0) return;
+    const notes=[[988,.22],[740,.42],[0,.10],[988,.22],[740,.42]];
+    let t0=ctx.currentTime+0.02;
+    notes.forEach(([f,len])=>{
+      if(f>0){
+        [[1,.62],[2,.24],[3,.10]].forEach(([m,amp])=>{
+          const osc=ctx.createOscillator(),g=ctx.createGain();
+          osc.type='sine';osc.frequency.value=f*m;
+          g.gain.setValueAtTime(0.0001,t0);
+          g.gain.linearRampToValueAtTime(amp*0.9*vol,t0+0.004);
+          g.gain.exponentialRampToValueAtTime(0.0001,t0+len*1.6);
+          osc.connect(g);g.connect(ctx.destination);osc.start(t0);osc.stop(t0+len*1.6+0.05);
+        });
+      }
+      t0+=len;
     });
   }catch(e){}
+}
+window.openSoundSettings=function(){
+  const c=getSoundCfg();
+  document.getElementById('sndVol').value=c.vol; document.getElementById('sndVolVal').textContent=c.vol+'%';
+  document.getElementById('sndRep').className='sidebar-toggle'+(c.repeat?' on':'');
+  document.getElementById('soundOverlay').classList.add('show');
+};
+window.closeSoundSettings=function(){ document.getElementById('soundOverlay').classList.remove('show'); };
+window.onSndVol=function(v){ v=Number(v); document.getElementById('sndVolVal').textContent=v+'%'; setSoundCfg({vol:v}); };
+window.testSnd=function(){ getAudioCtx()?.resume?.(); playNotifSound(); };
+window.toggleSndRep=function(){
+  const on=!getSoundCfg().repeat; setSoundCfg({repeat:on});
+  document.getElementById('sndRep').className='sidebar-toggle'+(on?' on':'');
+  updateRing();
+};
+// โหมดวนซ้ำ: ดังซ้ำทุก 3 วินาทีตราบที่ยังมีออเดอร์รอรับ (ปิดไว้เป็นค่าเริ่มต้น)
+function updateRing(){
+  const need=getSoundCfg().repeat && allShopOrders.some(x=>x.status==="pending");
+  if(need){ if(!window._ringTimer) window._ringTimer=setInterval(()=>playNotifSound(),3000); }
+  else if(window._ringTimer){ clearInterval(window._ringTimer); window._ringTimer=null; }
 }
 function showOSNotif(title,body){
   if(!('Notification' in window)||Notification.permission!=='granted')return;
@@ -1155,6 +1206,7 @@ function listenOrders(){
       window._knownOrders.add(d.id);
     });
     allShopOrders.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    updateRing();
     renderOrders();
   }, err=>{
     document.getElementById("ordersList").innerHTML="<div style='padding:20px;text-align:center;color:#888'>โหลดออเดอร์ไม่ได้: "+err.message+"</div>";
