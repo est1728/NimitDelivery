@@ -103,14 +103,9 @@ export default async function handler(req, res) {
   const isTest = test === '1' || test === 1 || test === true;
 
   const message = {
-    notification: { title, body },
-    data: { orderId: orderId || '', url: url || '/track.html' },
-    webpush: {
-      notification: {
-        icon: '/icon-192.png',
-      },
-      fcmOptions: { link: url || '/track.html' },
-    },
+    // data-only: ให้ service worker (sw.js) เป็นตัวแสดงแจ้งเตือนเพียงทางเดียว กันเด้งซ้ำ 2 อัน (เดิมมีทั้งบล็อก notification ของ FCM และ sw แสดงซ้ำ)
+    data: { title: String(title), body: String(body), orderId: String(orderId || ''), type: String(type || ''), url: String(url || '/track.html') },
+    webpush: { headers: { Urgency: 'high', TTL: '120' } },
   };
 
   try {

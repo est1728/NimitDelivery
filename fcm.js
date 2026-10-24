@@ -103,7 +103,8 @@ async function _enableFcmNotificationsInner() {
 
     // รับ push ตอนแอปเปิดอยู่ — เล่นเสียงเตือนทุกครั้งเสมอ ไม่ว่าจะโชว์ผลลัพธ์แบบไหน
     onMessage(messaging, payload => {
-      const { title, body } = payload.notification || {};
+      if (window._fcmSilent) return; // หน้านี้จัดการเสียง/แจ้งเตือนเอง (เช่นหน้าร้านค้า) กันซ้ำ
+      const { title, body } = Object.assign({}, payload.notification || {}, payload.data || {});
       _fcmPlayDing();
       if (typeof window.showNotif === 'function') {
         window.showNotif('🔔', title, body, 'new');

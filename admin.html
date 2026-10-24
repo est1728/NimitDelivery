@@ -2162,7 +2162,7 @@ document.addEventListener('click', e => {
     copyToClipboard(t.dataset.copy, t);
     return;
   }
-  if (t.dataset.ext) { window.open(t.dataset.ext,'_blank'); return; }
+  if (t.dataset.ext) { if(/^shop-admin\.html/.test(t.dataset.ext)){try{localStorage.setItem('adminPass',String(Date.now()));}catch(e){}} window.open(t.dataset.ext,'_blank'); return; }
   if (t.dataset.goto) { location.href=t.dataset.goto; return; }
   if (t.dataset.docid) { openDetail(t.dataset.docid); return; }
   if (t.dataset.rid) { selRider=t.dataset.rid;document.querySelectorAll('.ro').forEach(r=>r.classList.remove('sel'));t.classList.add('sel');return; }
