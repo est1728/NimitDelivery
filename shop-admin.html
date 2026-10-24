@@ -459,11 +459,6 @@ document.addEventListener('DOMContentLoaded', window._updateInstallBtn);
       <div class="sidebar-item-text"><div class="sidebar-item-title">เสียงแจ้งเตือน</div><div class="sidebar-item-sub">ความดัง / เสียงวนซ้ำ / ทดลองเสียง</div></div>
       <div class="sidebar-arrow"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
     </button>
-    <button class="sidebar-item" onclick="window.shopLogout()">
-      <svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
-      <div class="sidebar-item-text"><div class="sidebar-item-title">ออกจากระบบ</div><div class="sidebar-item-sub">ต้องยืนยันเบอร์ใหม่ตอนเข้าครั้งหน้า</div></div>
-      <div class="sidebar-arrow"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
-    </button>
     <button class="sidebar-item" onclick="window.shareMenuLink()">
       <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L7.04 9.81C6.5 9.31 5.79 9 5 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
       <div class="sidebar-item-text"><div class="sidebar-item-title">แชร์ลิงก์เมนู</div><div class="sidebar-item-sub">คัดลอกลิงก์ให้ลูกค้าสั่งได้ตรงร้านนี้เลย</div></div>
@@ -801,15 +796,6 @@ const ACTIVE_STATUSES=["pending","accepted","picking","arrived","delivering"];
 const ADMIN_PHONE="0832582353";
 
 const shopSlug=new URLSearchParams(window.location.search).get("id");
-window._shopAuthOk=function(){
-  try{
-    const adm=Number(localStorage.getItem('adminPass')||0);
-    if(adm && Date.now()-adm<120000) return true;   // แอดมินกดดูร้านจากหน้าแอดมิน (ผ่าน 2 นาที)
-    const a=JSON.parse(localStorage.getItem('shopAuth')||'null');
-    return !!(a && a.slugs && a.slugs.includes(shopSlug) && Date.now()-a.ts<30*86400000);
-  }catch(e){return false;}
-};
-window.shopLogout=function(){try{localStorage.removeItem('shopAuth');}catch(e){} location.replace('shop-login.html');};
 window._shopSlug=shopSlug;
 let shopData=null,isOpen=false,detailUnsub=null;
 const thMonths=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
@@ -841,8 +827,6 @@ window.showIncomeTab=function(){
 
 async function initShop(){
   if(!shopSlug){showPage("notFoundPage");return;}
-  // ต้องเข้าสู่ระบบด้วยเบอร์+OTP ก่อน (ลิงก์ร้านยังใช้เหมือนเดิม แต่จะพาไปยืนยันเบอร์ก่อน) — แอดมินเปิดจากหน้าแอดมินผ่านได้
-  if(!window._shopAuthOk()){location.replace('shop-login.html?id='+encodeURIComponent(shopSlug));return;}
   // แสดง debug บน loading page
   const loadingMsg=document.getElementById('loadingStatus');
   if(loadingMsg)loadingMsg.textContent='กำลังเชื่อมต่อ...';
