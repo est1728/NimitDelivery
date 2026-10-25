@@ -1488,7 +1488,7 @@ async function openShop(id){
    const ix=x=>{const i=names.indexOf(x.category);return i<0?1e9:i;};
    m.sort((p,q)=>ix(p)-ix(q)||(p.order||0)-(q.order||0));}
   const cats=Array.isArray(s.categories)&&s.categories.length?s.categories.map(c=>c.name):[...new Set(m.map(x=>x.category).filter(Boolean))];
-  st.querySelector('.rm-cc').innerHTML=['ทั้งหมด',...cats].map((c,k)=>`<button class="rm-chip" data-a="cat" aria-pressed="${k===0}">${esc(c)}</button>`).join('');
+  st.querySelector('.rm-cc').innerHTML=cats.map(c=>`<button class="rm-chip" data-a="cat" aria-pressed="false">${esc(c)}</button>`).join('');
   build(2);
 }
 function closeShop(){
@@ -1536,7 +1536,10 @@ shopsEl.addEventListener('click',e=>{
   if(a==='pf')showPf(id);
   else if(a==='fav')toggleFav(b,id);
   else if(a==='go'){R.open===id?closeShop():openShop(id);}
-  else if(a==='cat'){R.mc=b.textContent;[...b.parentNode.children].forEach(x=>x.setAttribute('aria-pressed',x===b));build(1);}
+  else if(a==='cat'){ /* แตะชิปหมวด = หมุนวงแหวนไปเมนูแรกของหมวดนั้น (ไม่กรองแล้ว) */
+    const nm=b.textContent,i0=R.items.findIndex(x=>x.category===nm||nz2(x.category)===nz2(nm));
+    if(i0>=0&&R.B){const best=i0+R.B*Math.round((R.pos-i0)/R.B);tween(()=>R.pos,v=>R.pos=v,best,520,'p',true);}
+  }
   else if(a==='so')openSearch(b.closest('.rm-bar'));
   else if(a==='sx')closeSearch(b.closest('.rm-bar'));
   else if(a==='lst')openCt(id);
@@ -1548,20 +1551,18 @@ shopsEl.addEventListener('focusout',e=>{const i=e.target;if(i.classList&&i.class
 
 /* ---------- วงแหวน 3D ---------- */
 /* ไฮไลต์ชิปหมวดตามการ์ดตรงกลาง (เฉพาะแท็บทั้งหมด) แล้วจางหายเมื่อหยุดหมุน 3 วินาที */
+const nz2=t=>String(t||'').normalize('NFC').replace(/[\uFE0E\uFE0F\u200B-\u200D]/g,'').replace(/\s+/g,' ').trim();
 function hlChip(){
   if(!R.N||!R.B||R.open===null)return;
   const fi=((Math.round(R.pos)%R.N)+R.N)%R.N;
   if(R._fi===fi)return;
-  const first=R._fi===undefined;R._fi=fi;
-  if(first||R.mc!=='ทั้งหมด')return;
-  const cat=(R.items[fi%R.B]||{}).category;if(!cat)return;
+  R._fi=fi;
+  const cat=(R.items[fi%R.B]||{}).category||'';
   const st=stOf(R.open);if(!st)return;
   const row=st.querySelector('.rm-cc');if(!row)return;
-  const chips=[...row.children];chips.forEach(x=>x.classList.remove('hl'));
-  const ch=chips.find(x=>x.dataset.a==='cat'&&x.textContent===cat&&x.textContent!=='ทั้งหมด');if(!ch)return;
-  ch.classList.add('hl');
-  if(!row._touch)row.scrollTo({left:ch.offsetLeft-row.clientWidth/2+ch.offsetWidth/2,behavior:'smooth'});
-  clearTimeout(R._hlT);R._hlT=setTimeout(()=>chips.forEach(x=>x.classList.remove('hl')),3000);
+  let on=null;
+  [...row.children].forEach(x=>{const m=!!cat&&(x.textContent===cat||nz2(x.textContent)===nz2(cat));x.setAttribute('aria-pressed',m);if(m)on=x;});
+  if(on&&!row._touch)row.scrollTo({left:on.offsetLeft-row.clientWidth/2+on.offsetWidth/2,behavior:'smooth'});
 }
 function render(){
   hlChip();
