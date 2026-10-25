@@ -1483,6 +1483,10 @@ async function openShop(id){
   R.m=m;
   /* ชื่อหมวดของเมนูต้องตรงกับชื่อหมวดปัจจุบันของร้าน (อิง categoryId) กันกรณีเปลี่ยนชื่อหมวดแล้วเมนูยังเก็บชื่อเก่า */
   {const cn={};(Array.isArray(s.categories)?s.categories:[]).forEach(c=>{if(c&&c.id&&c.name)cn[c.id]=c.name;});m.forEach(x=>{if(x.categoryId&&cn[x.categoryId])x.category=cn[x.categoryId];});}
+  /* เรียงตามลำดับหมวดของร้าน จบทีละหมวดก่อนไปหมวดถัดไป (ในหมวดเรียงตามลำดับเมนู) หมวดที่ไม่รู้จักอยู่ท้าย */
+  {const names=(Array.isArray(s.categories)&&s.categories.length)?s.categories.map(c=>c.name):[...new Set(m.map(x=>x.category).filter(Boolean))];
+   const ix=x=>{const i=names.indexOf(x.category);return i<0?1e9:i;};
+   m.sort((p,q)=>ix(p)-ix(q)||(p.order||0)-(q.order||0));}
   const cats=Array.isArray(s.categories)&&s.categories.length?s.categories.map(c=>c.name):[...new Set(m.map(x=>x.category).filter(Boolean))];
   st.querySelector('.rm-cc').innerHTML=['ทั้งหมด',...cats].map((c,k)=>`<button class="rm-chip" data-a="cat" aria-pressed="${k===0}">${esc(c)}</button>`).join('');
   build(2);
