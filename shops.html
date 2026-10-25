@@ -361,6 +361,9 @@ a{color:inherit;}
 .rm-cc{position:absolute;left:44px;right:0;top:0;bottom:0;display:flex;gap:6px;align-items:center;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
 .rm-cc::-webkit-scrollbar{display:none}
 .rm-chip{flex-shrink:0;border:1px solid #D5DEEE;background:#fff;color:#64748b;padding:5px 11px;border-radius:999px;font-size:12px;font-family:inherit;cursor:pointer}
+.rm-chip{transition:box-shadow .25s}
+.rm-chip.hl{box-shadow:0 0 0 2px #2E6FE0}
+.rm-cb{position:absolute;left:3px;top:3px;max-width:78px;padding:1px 5px;border-radius:6px;background:rgba(11,44,99,.62);color:#fff;font-size:9px;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
 .rm-chip[aria-pressed=true]{background:#1550B8;border-color:#1550B8;color:#fff;font-weight:500}
 .rm-sb{position:absolute;left:0;top:0;width:36px;height:36px;z-index:3}
 .rm-bar.rs .rm-sb{width:100%}
@@ -382,7 +385,7 @@ a{color:inherit;}
 .rm-rc.front{border-color:#0E3B8C}
 .rm-dim{will-change:opacity;position:absolute;inset:-2px;border-radius:16px;background:#0b2c63;opacity:0;pointer-events:none}
 .rm-rc.so .rm-ico{filter:grayscale(1);opacity:.6}
-.rm-ico{width:100%;height:84px;border-radius:11px;display:grid;place-items:center;font-size:42px;overflow:hidden}
+.rm-ico{position:relative;width:100%;height:84px;border-radius:11px;display:grid;place-items:center;font-size:42px;overflow:hidden}
 .rm-ico img{width:100%;height:100%;object-fit:cover}
 .rm-t{font-size:13.5px;font-weight:500;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#0B2C63}
 .rm-p{font-size:14.5px;font-weight:600;color:#1550B8}
@@ -1495,11 +1498,11 @@ function build(fan){
   const nz=t=>String(t||'').normalize('NFC').replace(/[\uFE0E\uFE0F\u200B-\u200D]/g,'').replace(/\s+/g,' ').trim();
   R.items=R.m.filter(x=>(R.mc==='ทั้งหมด'||x.category===R.mc||nz(x.category)===nz(R.mc))&&(!q||(x.name||'').toLowerCase().includes(q)));
   const B=R.items.length;R.B=B;R.N=B?B*Math.ceil(12/B):0;R.pos=0;
-  clearRing();R.N=B?B*Math.ceil(12/B):0;
+  clearRing();R.N=B?B*Math.ceil(12/B):0;R._fi=undefined;
   for(let i=0;i<R.N;i++){
     const it=R.items[i%B],d=document.createElement('div'),sold=it.available===false||!isMenuWithinSchedule(it);
     d.className='rm-rc'+(sold?' so':'');d.dataset.i=i;
-    d.innerHTML=`<div class="rm-ico" style="background:${PAL[(i%B)%12]}33">${it.imgUrl?`<img data-src="${esc(it.imgUrl)}" decoding="async" alt="">`:ic('fork','big')}</div><div class="rm-t">${esc(it.name)}</div><div class="rm-p">${sold?'หมด':'฿'+calcPrice(it.price||0,it.gp)}</div><i class="rm-dim"></i>`;
+    d.innerHTML=`<div class="rm-ico" style="background:${PAL[(i%B)%12]}33">${it.imgUrl?`<img data-src="${esc(it.imgUrl)}" decoding="async" alt="">`:ic('fork','big')}${(R.mc==='ทั้งหมด'&&it.category)?`<span class="rm-cb">${esc(it.category)}</span>`:''}</div><div class="rm-t">${esc(it.name)}</div><div class="rm-p">${sold?'หมด':'฿'+calcPrice(it.price||0,it.gp)}</div><i class="rm-dim"></i>`;
     d._dim=d.lastChild;ring.appendChild(d);R.cards.push(d);
   }
   showNo(st,B?'':(R.m.length?'ไม่พบเมนูที่ค้นหา':'ร้านนี้ยังไม่มีเมนู'));
@@ -1512,6 +1515,8 @@ function closeSearch(bar){
   bar.classList.add('unsrch');setTimeout(()=>bar.classList.remove('rs','unsrch'),330);
   if(had&&R.open!==null&&R.m.length)build(0);
 }
+shopsEl.addEventListener('pointerdown',e=>{const row=e.target.closest&&e.target.closest('.rm-cc');if(row){row._touch=1;[...row.children].forEach(x=>x.classList.remove('hl'));clearTimeout(R._hlT);}});
+shopsEl.addEventListener('pointerup',e=>{document.querySelectorAll('.rm-cc').forEach(r=>{setTimeout(()=>{r._touch=0},1500)});});
 shopsEl.addEventListener('click',e=>{
   const b=e.target.closest('[data-a]');
   if(!b){ /* แตะที่ตัวการ์ดร้านเพื่อเปิดเมนู */
@@ -1538,7 +1543,24 @@ shopsEl.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.classList.co
 shopsEl.addEventListener('focusout',e=>{const i=e.target;if(i.classList&&i.classList.contains('rm-sin')&&!i.value&&!(e.relatedTarget&&e.relatedTarget.closest&&e.relatedTarget.closest('.rm-sb'))){const bar=i.closest('.rm-bar');setTimeout(()=>{if(document.activeElement!==i)closeSearch(bar)},200);}});
 
 /* ---------- วงแหวน 3D ---------- */
+/* ไฮไลต์ชิปหมวดตามการ์ดตรงกลาง (เฉพาะแท็บทั้งหมด) แล้วจางหายเมื่อหยุดหมุน 3 วินาที */
+function hlChip(){
+  if(!R.N||!R.B||R.open===null)return;
+  const fi=((Math.round(R.pos)%R.N)+R.N)%R.N;
+  if(R._fi===fi)return;
+  const first=R._fi===undefined;R._fi=fi;
+  if(first||R.mc!=='ทั้งหมด')return;
+  const cat=(R.items[fi%R.B]||{}).category;if(!cat)return;
+  const st=stOf(R.open);if(!st)return;
+  const row=st.querySelector('.rm-cc');if(!row)return;
+  const chips=[...row.children];chips.forEach(x=>x.classList.remove('hl'));
+  const ch=chips.find(x=>x.dataset.a==='cat'&&x.textContent===cat&&x.textContent!=='ทั้งหมด');if(!ch)return;
+  ch.classList.add('hl');
+  if(!row._touch)row.scrollTo({left:ch.offsetLeft-row.clientWidth/2+ch.offsetWidth/2,behavior:'smooth'});
+  clearTimeout(R._hlT);R._hlT=setTimeout(()=>chips.forEach(x=>x.classList.remove('hl')),3000);
+}
 function render(){
+  hlChip();
   const N=R.N,H=N/2,sp=R.sp;
   R.cards.forEach((el,i)=>{
     let d=(i-R.pos)%N;if(d>H)d-=N;else if(d<-H)d+=N;
