@@ -364,7 +364,7 @@ a{color:inherit;}
 .rm-chip{transition:box-shadow .25s}
 .rm-chip.hl{box-shadow:0 0 0 2px #2E6FE0}
 .rm-cb{position:absolute;left:3px;top:3px;max-width:78px;padding:1px 5px;border-radius:6px;background:rgba(11,44,99,.62);color:#fff;font-size:9px;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
-.rm-chip[aria-pressed=true]{background:#1550B8;border-color:#1550B8;color:#fff;font-weight:500}
+.rm-chip[aria-pressed=true]{background:#fff;border-color:#2E6FE0;box-shadow:0 0 0 1px #2E6FE0;color:#0E3B8C;font-weight:500}
 .rm-sb{position:absolute;left:0;top:0;width:36px;height:36px;z-index:3}
 .rm-bar.rs .rm-sb{width:100%}
 .rm-sbg{position:absolute;inset:0;border-radius:18px;background:#F4F8FE;border:1px solid #BFD0EE;transform-origin:left center}
@@ -1538,7 +1538,8 @@ shopsEl.addEventListener('click',e=>{
   else if(a==='go'){R.open===id?closeShop():openShop(id);}
   else if(a==='cat'){ /* แตะชิปหมวด = หมุนวงแหวนไปเมนูแรกของหมวดนั้น (ไม่กรองแล้ว) */
     const nm=b.textContent,i0=R.items.findIndex(x=>x.category===nm||nz2(x.category)===nz2(nm));
-    if(i0>=0&&R.B){const best=i0+R.B*Math.round((R.pos-i0)/R.B);tween(()=>R.pos,v=>R.pos=v,best,520,'p',true);}
+    /* ข้ามไปหมวดนั้นเลย ไม่ไล่ผ่านหมวดระหว่างทาง: ย้ายตำแหน่งทันทีแล้วกางวงใหม่ */
+    if(i0>=0&&R.B){R.tk.p=(R.tk.p||0)+1;R.pos=i0;R.sp=0;tween(()=>R.sp,v=>R.sp=v,1,420,'s');}
   }
   else if(a==='so')openSearch(b.closest('.rm-bar'));
   else if(a==='sx')closeSearch(b.closest('.rm-bar'));
