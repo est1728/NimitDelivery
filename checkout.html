@@ -303,6 +303,8 @@ async function init(){
       }catch(e){ loyaltyCards[shopId]={points:0}; }
     }
     await loadMyCoupons();
+    // คูปองที่ลูกค้ากด "ใช้" ไว้ที่หน้าแรก: เลือกให้เป็นคูปองหลักอัตโนมัติ (ถ้าเงื่อนไขไม่ผ่าน renderSummary จะปลดออกเอง)
+    try{ const pc=localStorage.getItem('preferCoupon'); if(pc){ const m=myCoupons.find(x=>x.claimId===pc); if(m) selectedCoupon=m; else localStorage.removeItem('preferCoupon'); } }catch(e){}
   }
   renderAddress();
   renderItems();

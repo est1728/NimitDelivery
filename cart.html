@@ -447,7 +447,7 @@ function renderHistory(orders){
       <div class="history-bottom">
         <div class="history-total">฿${o.grandTotal||0} · ${time}</div>
         <div style="display:flex;gap:6px">
-          ${o.status==="done"&&!localStorage.getItem("reviewed_"+o.docId)?`<button class="reorder-btn" style="background:linear-gradient(135deg,#f59e0b,#d97706)" onclick="event.stopPropagation();localStorage.setItem('reviewed_${o.docId}','1');window.location.href='review.html?orderId=${o.docId}'">⭐ ให้คะแนน</button>`:""}
+          ${o.status==="done"&&!localStorage.getItem("reviewed_"+o.docId)?`<button class="reorder-btn" style="background:linear-gradient(135deg,#f59e0b,#d97706)" onclick="event.stopPropagation();localStorage.setItem('reviewed_${o.docId}','1');window.location.href='shops.html?rate=${o.docId}'">ให้คะแนน</button>`:""}
           ${o.status==="done"?`<button class="reorder-btn" onclick="event.stopPropagation();window.reorder('${o.docId}')">สั่งซ้ำ</button>`:""}
         </div>
       </div>

@@ -176,24 +176,30 @@ a{color:inherit;}
 .sv .ic{width:46px;height:46px;border-radius:14px;margin:0 auto 6px;display:grid;place-items:center;}.sv .ic svg{width:26px;height:26px;}
 .sv b{font-size:13px;display:block;color:var(--blue-900);}.sv small{font-size:10.5px;color:#64748B;}
 .sv.soon{opacity:.55;}.sv.soon::after{content:"เร็วๆ นี้";position:absolute;top:-7px;right:8px;background:#F59E0B;color:#fff;font-size:10px;font-weight:700;border-radius:8px;padding:1px 7px;}
-.cbox{margin:14px 16px 0;background:var(--white);border-radius:18px;border:1px solid var(--line);padding:12px 0 12px 14px;box-shadow:0 2px 10px rgba(15,23,42,.05);}
-.cbox-h{display:flex;justify-content:space-between;align-items:center;padding-right:14px;margin-bottom:10px;}
-.cbox-h b{font-size:14.5px;color:var(--blue-900);}.cbox-h a{font-size:12px;color:var(--blue-700);font-weight:600;cursor:pointer;}
+.cbox{margin:12px 16px 0;background:var(--white);border-radius:16px;border:1px solid var(--line);padding:10px 0 10px 12px;box-shadow:0 2px 10px rgba(15,23,42,.05);}
+.cbox-h{display:flex;justify-content:space-between;align-items:center;padding-right:12px;margin-bottom:8px;}
+.cbox-h b{font-size:13.5px;color:var(--blue-900);}.cbox-h a{font-size:12px;color:var(--blue-700);font-weight:600;cursor:pointer;}
 .cbox-l{display:flex;gap:10px;overflow-x:auto;padding-right:14px;scrollbar-width:none;}.cbox-l::-webkit-scrollbar{display:none;}
-.cbx{flex:0 0 min(300px,86%);background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(15,23,42,.10);border:1px solid var(--line);display:flex;overflow:hidden;position:relative;transition:opacity .3s,transform .3s;}
-.cbx:only-child{flex:1 0 100%;}
-.cbx.gone{opacity:0;transform:scale(.9);}
-.cbx-l{width:78px;flex-shrink:0;background:linear-gradient(135deg,var(--blue-600),var(--blue-800));display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:8px 4px;position:relative;}
-.cbx-big{font-size:18px;font-weight:900;line-height:1.1;}
-.cbx-sub{font-size:9.5px;font-weight:700;margin-top:2px;opacity:.9;}
-.cbx-n{position:absolute;right:-6px;width:12px;height:12px;background:var(--white);border-radius:50%;}
-.cbx-n.t{top:-6px;}.cbx-n.b{bottom:-6px;}
-.cbx-r{flex:1;min-width:0;padding:9px 6px 9px 12px;display:flex;flex-direction:column;justify-content:center;gap:2px;}
-.cbx-t{font-size:13px;font-weight:800;color:var(--blue-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.cbx-m{font-size:11px;color:#64748B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.cbx-e{font-size:10.5px;color:#C2410C;}
-.cbx-b{display:flex;align-items:center;padding:0 12px 0 4px;flex-shrink:0;}
-.cbx-b u{height:30px;padding:0 14px;border-radius:20px;background:var(--blue-700);color:#fff;text-decoration:none;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;}
+.cbx{flex:0 0 250px;background:#fff;border-radius:12px;box-shadow:0 1px 6px rgba(15,23,42,.10);border:1px solid var(--line);display:flex;overflow:hidden;position:relative;transition:border-color .2s,box-shadow .2s;}
+.cbx.pick{border-color:var(--blue-600);box-shadow:0 0 0 1px var(--blue-600);}
+.cbx-l{width:62px;flex-shrink:0;background:linear-gradient(135deg,var(--blue-600),var(--blue-800));display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:6px 3px;position:relative;}
+.cbx-big{font-size:15px;font-weight:900;line-height:1.1;}
+.cbx-sub{font-size:8.5px;font-weight:700;margin-top:2px;opacity:.9;letter-spacing:.2px;}
+.cbx-n{position:absolute;right:-5px;width:10px;height:10px;background:var(--white);border-radius:50%;}
+.cbx-n.t{top:-5px;}.cbx-n.b{bottom:-5px;}
+.cbx-r{flex:1;min-width:0;padding:7px 4px 7px 10px;display:flex;flex-direction:column;justify-content:center;gap:1px;}
+.cbx-t{font-size:12px;font-weight:800;color:var(--blue-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cbx-m{font-size:10px;color:#64748B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cbx-e{font-size:10px;color:#C2410C;}
+.cbx-b{display:flex;align-items:center;padding:0 9px 0 2px;flex-shrink:0;}
+.cbx-b u{height:26px;padding:0 12px;border-radius:14px;background:var(--blue-700);color:#fff;text-decoration:none;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;border:1.5px solid var(--blue-700);}
+.cbx-b u.use{background:#fff;color:var(--blue-700);}
+.cbx-b u.off{background:#EEF2F9;color:#64748B;border-color:#EEF2F9;}
+.rv-rd{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:9px;border-top:1px solid var(--line);}
+.rv-rd span.l{font-size:12.5px;color:#475569;font-weight:600;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:8px;}
+.rv-rs{display:flex;gap:3px;flex-shrink:0;}
+.rv-rs i{line-height:0;color:#D5DBE7;cursor:pointer;}.rv-rs i.on{color:#F5B301;}
+.rv-rs svg{width:22px;height:22px;fill:currentColor;display:block;}
 
 /* ===== ACTIVE ORDER ===== */
 .ao{margin:14px 16px 0;background:linear-gradient(120deg,var(--blue-700),var(--blue-900));border-radius:18px;padding:14px 16px;cursor:pointer;box-shadow:0 8px 20px rgba(11,44,99,.25);display:none;position:relative;overflow:hidden;}
@@ -630,7 +636,7 @@ html.rm-lock,html.rm-lock body{overflow:hidden!important;overscroll-behavior:non
 
   <!-- COUPON BOX -->
   <div class="cbox" id="couponPromoEl" style="display:none">
-    <div class="cbox-h"><b id="couponPromoTitle">คูปองรอให้เก็บ</b><a onclick="location.href='coupon.html'">ดูทั้งหมด ›</a></div>
+    <div class="cbox-h"><b id="couponPromoTitle">คูปองของคุณ</b><a onclick="location.href='coupon.html'">ดูทั้งหมด ›</a></div>
     <div class="cbox-l" id="cboxList"></div>
   </div>
 
@@ -992,42 +998,60 @@ function renderRateCard(o){
 }
 function showReviewBox(o,n){
   const b=$('rvBody'); if(!b) return;
+  const hasRider=!!(o.riderId||o.riderName);
+  let rn=0;
   b.innerHTML=`<div class="rv-in"><div class="st-t">ขอบคุณสำหรับ ${n} ดาว</div><div class="st-s">เขียนข้อความรีวิวได้เลย (ไม่บังคับ)</div>
     <textarea id="rvTxt" maxlength="300" placeholder="เล่าให้ร้านฟังหน่อย เช่น อร่อย ส่งไว..."></textarea>
+    ${hasRider?`<div class="rv-rd"><span class="l">ไรเดอร์${o.riderName?' '+esc(o.riderName):''}</span><span class="rv-rs" id="rvRs">${[1,2,3,4,5].map(k=>`<i data-k="${k}"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></i>`).join('')}</span></div>`:''}
     <div class="rv-bt"><button class="rv-skip" id="rvSkip">ข้าม</button><button class="rv-send" id="rvSend">ส่งรีวิว</button></div></div>`;
+  document.querySelectorAll('#rvRs i').forEach(x=>x.onclick=()=>{ rn=+x.dataset.k; document.querySelectorAll('#rvRs i').forEach(y=>y.classList.toggle('on',+y.dataset.k<=rn)); });
   const done=async(withText)=>{
     const btn=$('rvSend'); if(btn) btn.disabled=true;
     const txt=withText?($('rvTxt').value||'').trim():'';
-    try{ await submitQuickReview(o,n,txt); toast(txt?'ส่งรีวิวแล้ว ขอบคุณครับ':'บันทึก '+n+' ดาวแล้ว'); }
+    try{ await submitQuickReview(o,n,txt,withText?rn:0); toast(txt?'ส่งรีวิวแล้ว ขอบคุณครับ':'บันทึกคะแนนแล้ว'); }
     catch(e){ toast('ส่งไม่สำเร็จ ลองใหม่อีกครั้ง'); if(btn) btn.disabled=false; return; }
-    try{ localStorage.setItem('rvDismiss_'+o.docId,'1'); }catch(e){}
+    try{ localStorage.setItem('rvDismiss_'+o.docId,'1'); localStorage.setItem('reviewed_'+o.docId,'1'); }catch(e){}
     window._slotKey='none'; setSlot('');
   };
   $('rvSkip').onclick=()=>done(false); $('rvSend').onclick=()=>done(true);
 }
-// บันทึกรีวิวรูปแบบเดียวกับ review.html (reviews/{orderId}) — ให้ดาวร้าน + ข้อความ (ไรเดอร์ไม่ให้คะแนนจากช่องนี้)
-async function submitQuickReview(o,n,txt){
+// บันทึกรีวิว reviews/{orderId}: ดาวร้าน + ข้อความ (ไม่บังคับ) + ดาวไรเดอร์ (ไม่บังคับ) เก็บเลขออเดอร์อ่านง่ายไว้ที่ orderNo
+async function submitQuickReview(o,n,txt,rider){
   const ex=await getDoc(doc(db,'reviews',o.docId));
   if(ex.exists()) return;
   await setDoc(doc(db,'reviews',o.docId),{
-    orderId:o.docId, shopId:o.shopId||'', shopName:o.shopName||'', riderId:o.riderId||'', riderName:o.riderName||'',
+    orderId:o.docId, orderNo:o.orderId||'', shopId:o.shopId||'', shopName:o.shopName||'', riderId:o.riderId||'', riderName:o.riderName||'',
     customerPhone:localStorage.getItem('customerPhone')||JSON.parse(localStorage.getItem('customerData')||'{}').phone||'',
-    shopRating:n, shopComment:txt, riderRating:0, riderComment:'', createdAt:serverTimestamp()
+    shopRating:n, shopComment:txt, riderRating:rider||0, riderComment:'', createdAt:serverTimestamp()
   });
-  if(o.shopId){
+  const bump=async(col,id,v)=>{
+    if(!id||!v) return;
     try{
-      const sd=await getDoc(doc(db,'shops',o.shopId));
+      const sd=await getDoc(doc(db,col,id));
       if(sd.exists()){
-        const d=sd.data(), cnt=(d.ratingCount||0)+1, avg=Math.round(((d.rating||0)*(cnt-1)+n)/cnt*10)/10;
-        await updateDoc(doc(db,'shops',o.shopId),{rating:avg,ratingCount:cnt});
+        const d=sd.data(), cnt=(d.ratingCount||0)+1, avg=Math.round(((d.rating||0)*(cnt-1)+v)/cnt*10)/10;
+        await updateDoc(doc(db,col,id),{rating:avg,ratingCount:cnt});
       }
     }catch(e){}
-  }
+  };
+  await bump('shops',o.shopId,n);
+  await bump('riders',o.riderId,rider);
 }
 async function renderActiveOrder(){
   const phone=JSON.parse(localStorage.getItem('customerData')||'{}').phone || localStorage.getItem('customerPhone');
   if(!phone){ if(window._slotKey!=='none'){ window._slotKey='none'; setSlot(''); } return; }
   try{
+    // เปิดจากลิงก์ให้คะแนน (?rate=รหัสออเดอร์): แสดงการ์ดให้คะแนนออเดอร์นั้นเลย ถ้ายังไม่เคยรีวิว
+    const rp=new URLSearchParams(location.search).get('rate');
+    if(rp && window._rateDone!==rp){
+      const od=await getDoc(doc(db,'orders',rp));
+      const rv0=await getDoc(doc(db,'reviews',rp));
+      if(od.exists() && od.data().status==='done' && !rv0.exists()){
+        const k='r:'+rp; if(window._slotKey!==k){ window._slotKey=k; renderRateCard({docId:rp,...od.data()}); window.scrollTo({top:0,behavior:'smooth'}); }
+        return;
+      }
+      window._rateDone=rp;
+    }
     const snap=await getDocs(query(collection(db,'orders'), where('customer.phone','==',phone)));
     let active=null, lastDone=null;
     const ts=o=>(o.createdAt?.toMillis?.()||0);
@@ -1120,46 +1144,74 @@ function tickFlash(){
 function renderRewards(){ $('rwEl').style.display='none'; }
 
 // ===================== COUPON PROMO BANNER =====================
+let CP_ITEMS=[];
+const noEmoji=t=>String(t||'').replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{2B50}\u{FE0F}]/gu,'').trim();
+const cpPhone=()=>JSON.parse(localStorage.getItem('customerData')||'{}').phone || localStorage.getItem('customerPhone');
+const cpPrefer=()=>{ try{ return localStorage.getItem('preferCoupon')||''; }catch(e){ return ''; } };
+// สถานะการ์ดคูปอง: ยังไม่เก็บ = [เก็บ] → เก็บแล้ว = [ใช้] → ตั้งเป็นคูปองหลัก = [นำออก]
+// การ์ดอยู่จนกว่าคูปองจะหมดอายุ/ถูกใช้ไปแล้ว (ใช้จริงที่หน้าชำระเงินแล้วเอกสาร claimedCoupons.used = true)
 async function renderCouponPromo(){
   try{
     const snap=await getDocs(collection(db,'coupons'));
     const now=Date.now(); const list=[];
     snap.forEach(d=>{ const c={id:d.id,...d.data()}; if(c.active!==false && c.endAt>now) list.push(c); });
-    const phone=JSON.parse(localStorage.getItem('customerData')||'{}').phone || localStorage.getItem('customerPhone');
-    const claimed=new Set();
+    const phone=cpPhone(); const claims={};
     if(phone){
-      try{ const cs=await getDocs(query(collection(db,'claimedCoupons'),where('phone','==',phone))); cs.forEach(d=>claimed.add(d.data().couponId)); }catch(e){}
+      try{
+        const cs=await getDocs(query(collection(db,'claimedCoupons'),where('phone','==',phone)));
+        cs.forEach(d=>{ const x=d.data(); const cur=claims[x.couponId];
+          if(!cur || (cur.used && !x.used)) claims[x.couponId]={claimId:d.id,used:!!x.used}; });
+      }catch(e){}
     }
-    const todo=list.filter(c=>!claimed.has(c.id)).sort((a,b)=>(a.endAt||0)-(b.endAt||0));
-    const csig=todo.map(c=>c.id).join(',');
-    if(csig===window._cpSig) return;
-    window._cpSig=csig;
-    if(!todo.length){ $('couponPromoEl').style.display='none'; return; }
-    $('couponPromoEl').style.display='block';
-    $('couponPromoTitle').textContent='คูปองรอให้เก็บ '+todo.length+' ใบ';
-    $('cboxList').innerHTML=todo.map(c=>{
-      const big=c.type==='percent'?c.value+'%':c.type==='fixed'?'฿'+c.value:'ส่งฟรี';
-      const sub=c.type==='freeship'?'FREE SHIP':'DISCOUNT';
-      const end=new Date(c.endAt).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'});
-      const meta=(c.minOrderAmount?'ขั้นต่ำ ฿'+c.minOrderAmount+' · ':'')+(c.shopId?(c.shopName||'ร้านเฉพาะ'):'ใช้ได้ทุกร้าน');
-      return `<div class="cbx" data-id="${esc(c.id)}"><div class="cbx-l"><div class="cbx-big">${esc(big)}</div><div class="cbx-sub">${sub}</div><i class="cbx-n t"></i><i class="cbx-n b"></i></div>
-        <div class="cbx-r"><div class="cbx-t">${esc(c.title||'')}</div><div class="cbx-m">${esc(meta)}</div><div class="cbx-e">หมดเขต ${end}</div></div>
-        <div class="cbx-b"><u onclick="claimHomeCoupon('${esc(c.id)}',this)">เก็บ</u></div></div>`;
-    }).join('');
+    const items=[];
+    list.forEach(c=>{ const cl=claims[c.id]; if(cl && cl.used) return; items.push({c,claimId:cl?cl.claimId:null}); });
+    items.sort((a,b)=>(a.c.endAt||0)-(b.c.endAt||0));
+    const prefer=cpPrefer();
+    if(prefer && !items.some(x=>x.claimId===prefer)){ try{ localStorage.removeItem('preferCoupon'); }catch(e){} }
+    const sig=items.map(x=>x.c.id+':'+(x.claimId||'')).join(',')+'|'+cpPrefer();
+    if(sig===window._cpSig) return;
+    window._cpSig=sig; CP_ITEMS=items; paintCoupons();
   }catch(e){ $('couponPromoEl').style.display='none'; }
 }
-async function claimHomeCoupon(id,btn){
-  const phone=JSON.parse(localStorage.getItem('customerData')||'{}').phone || localStorage.getItem('customerPhone');
-  if(!phone){ toast('กรุณาเข้าสู่ระบบก่อนเก็บคูปอง'); setTimeout(()=>location.href='login.html',700); return; }
-  btn.textContent='...';
-  try{
-    await addDoc(collection(db,'claimedCoupons'),{phone,couponId:id,claimedAt:serverTimestamp(),used:false});
-    const card=btn.closest('.cbx'); card.classList.add('gone'); toast('เก็บคูปองแล้ว');
-    setTimeout(()=>{ card.remove(); const n=document.querySelectorAll('#cboxList .cbx').length;
-      if(!n) $('couponPromoEl').style.display='none'; else $('couponPromoTitle').textContent='คูปองรอให้เก็บ '+n+' ใบ'; },320);
-  }catch(e){ btn.textContent='เก็บ'; toast('เก็บคูปองไม่สำเร็จ'); }
+function paintCoupons(){
+  const box=$('couponPromoEl');
+  if(!CP_ITEMS.length){ box.style.display='none'; return; }
+  box.style.display='block';
+  const prefer=cpPrefer();
+  $('couponPromoTitle').textContent='คูปองของคุณ ('+CP_ITEMS.length+')';
+  $('cboxList').innerHTML=CP_ITEMS.map(({c,claimId})=>{
+    const big=c.type==='percent'?c.value+'%':c.type==='fixed'?'฿'+c.value:'ส่งฟรี';
+    const sub=c.type==='freeship'?'FREE SHIP':'DISCOUNT';
+    const end=new Date(c.endAt).toLocaleDateString('th-TH',{day:'numeric',month:'short'});
+    const meta=(c.minOrderAmount?'ขั้นต่ำ ฿'+c.minOrderAmount+' · ':'')+'หมด '+end;
+    const picked=!!claimId && claimId===prefer;
+    const btn=!claimId?['เก็บ','']:picked?['นำออก','off']:['ใช้','use'];
+    return `<div class="cbx${picked?' pick':''}"><div class="cbx-l"><div class="cbx-big">${esc(big)}</div><div class="cbx-sub">${sub}</div><i class="cbx-n t"></i><i class="cbx-n b"></i></div>
+      <div class="cbx-r"><div class="cbx-t">${esc(noEmoji(c.title)||big)}</div><div class="cbx-m">${esc(meta)}</div></div>
+      <div class="cbx-b"><u class="${btn[1]}" onclick="cpAct('${esc(c.id)}',this)">${btn[0]}</u></div></div>`;
+  }).join('');
 }
-window.claimHomeCoupon=claimHomeCoupon; window.closeSlot=closeSlot;
+async function cpAct(couponId,btn){
+  const it=CP_ITEMS.find(x=>x.c.id===couponId); if(!it) return;
+  if(!it.claimId){
+    const phone=cpPhone();
+    if(!phone){ toast('กรุณาเข้าสู่ระบบก่อนเก็บคูปอง'); setTimeout(()=>location.href='login.html',700); return; }
+    btn.textContent='...';
+    try{
+      const ref=await addDoc(collection(db,'claimedCoupons'),{phone,couponId,claimedAt:serverTimestamp(),used:false});
+      it.claimId=ref.id; toast('เก็บคูปองแล้ว');
+    }catch(e){ btn.textContent='เก็บ'; toast('เก็บคูปองไม่สำเร็จ'); return; }
+  } else if(cpPrefer()!==it.claimId){
+    try{ localStorage.setItem('preferCoupon',it.claimId); }catch(e){}
+    toast('จะใช้คูปองนี้ก่อนตอนชำระเงิน');
+  } else {
+    try{ localStorage.removeItem('preferCoupon'); }catch(e){}
+    toast('นำคูปองออกแล้ว');
+  }
+  window._cpSig=CP_ITEMS.map(x=>x.c.id+':'+(x.claimId||'')).join(',')+'|'+cpPrefer();
+  paintCoupons();
+}
+window.cpAct=cpAct; window.closeSlot=closeSlot;
 
 /* ===================== CATEGORY BUTTONS ===================== */
 function catIconMarkup(b){
