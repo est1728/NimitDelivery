@@ -40,6 +40,7 @@ body{font-family:'IBM Plex Sans Thai','Prompt',Arial,sans-serif;background:var(-
   </div>
 </div>
 
+<script src="live.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -98,6 +99,7 @@ async function load(){
   }
 }
 load();
+NimitLive.watch(()=>{ load(); },{every:0});
 </script>
 </body>
 </html>

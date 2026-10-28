@@ -695,9 +695,10 @@ html.rm-lock,html.rm-lock body{overflow:hidden!important;overscroll-behavior:non
   <div class="toast" id="toastEl"></div>
 </div>
 
+<script src="live.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, getDoc, query, where, addDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, getDoc, query, where, addDoc, setDoc, updateDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const fbApp = initializeApp({
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -790,7 +791,7 @@ window.addEventListener('scroll',()=>{
       toast('กำลังอัปเดตร้านค้า...');
       setTimeout(()=>{
         document.getElementById('ptr').classList.remove('show');
-        renderShops();
+        liveRefresh(true);
         toast('อัปเดตร้านค้าล่าสุดแล้ว');
       },700);
     } else {
@@ -963,7 +964,7 @@ function setSlot(html){
 }
 function closeSlot(docId){
   try{ localStorage.setItem('rvDismiss_'+docId,'1'); }catch(e){}
-  setSlot('');
+  window._slotKey='none'; setSlot('');
 }
 function renderOrderCard(o){
   const i=OC_IDX[o.status]??0, pct=i/(OC_STEPS.length-1)*100;
@@ -1000,7 +1001,7 @@ function showReviewBox(o,n){
     try{ await submitQuickReview(o,n,txt); toast(txt?'ส่งรีวิวแล้ว ขอบคุณครับ':'บันทึก '+n+' ดาวแล้ว'); }
     catch(e){ toast('ส่งไม่สำเร็จ ลองใหม่อีกครั้ง'); if(btn) btn.disabled=false; return; }
     try{ localStorage.setItem('rvDismiss_'+o.docId,'1'); }catch(e){}
-    setSlot('');
+    window._slotKey='none'; setSlot('');
   };
   $('rvSkip').onclick=()=>done(false); $('rvSend').onclick=()=>done(true);
 }
@@ -1025,7 +1026,7 @@ async function submitQuickReview(o,n,txt){
 }
 async function renderActiveOrder(){
   const phone=JSON.parse(localStorage.getItem('customerData')||'{}').phone || localStorage.getItem('customerPhone');
-  if(!phone){ setSlot(''); return; }
+  if(!phone){ if(window._slotKey!=='none'){ window._slotKey='none'; setSlot(''); } return; }
   try{
     const snap=await getDocs(query(collection(db,'orders'), where('customer.phone','==',phone)));
     let active=null, lastDone=null;
@@ -1035,16 +1036,16 @@ async function renderActiveOrder(){
       if(SS.includes(o.status)){ if(!active||ts(o)>ts(active)) active=o; }
       else if(o.status==='done'){ if(!lastDone||ts(o)>ts(lastDone)) lastDone=o; }
     });
-    if(active){ renderOrderCard(active); return; }
+    if(active){ const k='o:'+active.docId+':'+active.status; if(window._slotKey!==k){ window._slotKey=k; renderOrderCard(active); } return; }
     if(lastDone && Date.now()-ts(lastDone)<3*86400000){
       let dismissed=false; try{ dismissed=!!localStorage.getItem('rvDismiss_'+lastDone.docId); }catch(e){}
       if(!dismissed){
         const rv=await getDoc(doc(db,'reviews',lastDone.docId));
-        if(!rv.exists()){ renderRateCard(lastDone); return; }
+        if(!rv.exists()){ const k='r:'+lastDone.docId; if(window._slotKey!==k){ window._slotKey=k; renderRateCard(lastDone); } return; }
       }
     }
-    setSlot('');
-  }catch(e){ setSlot(''); }
+    if(window._slotKey!=='none'){ window._slotKey='none'; setSlot(''); }
+  }catch(e){ /* คงการ์ดเดิมไว้ ลองใหม่รอบหน้า */ }
 }
 
 /* ===================== SERVICE BUTTONS ===================== */
@@ -1130,6 +1131,9 @@ async function renderCouponPromo(){
       try{ const cs=await getDocs(query(collection(db,'claimedCoupons'),where('phone','==',phone))); cs.forEach(d=>claimed.add(d.data().couponId)); }catch(e){}
     }
     const todo=list.filter(c=>!claimed.has(c.id)).sort((a,b)=>(a.endAt||0)-(b.endAt||0));
+    const csig=todo.map(c=>c.id).join(',');
+    if(csig===window._cpSig) return;
+    window._cpSig=csig;
     if(!todo.length){ $('couponPromoEl').style.display='none'; return; }
     $('couponPromoEl').style.display='block';
     $('couponPromoTitle').textContent='คูปองรอให้เก็บ '+todo.length+' ใบ';
@@ -1398,15 +1402,20 @@ async function getCustomerFranchiseZone(){
     return best;
   }catch(e){ return null; }
 }
-async function loadShopsData(){
+// quiet=true: โหลดซ้ำเงียบๆ (ข้อมูลสดจาก onSnapshot / ตอนกลับมาเปิดหน้า) — วาดใหม่เฉพาะเมื่อข้อมูลเปลี่ยนจริง และไม่วาดทับตอนลูกค้ากำลังเปิดการ์ดเมนู
+async function loadShopsData(quiet,preSnap){
+  const fresh=[];
   try{
-    const snap=await getDocs(collection(db,'shops'));
-    SHOPS=[]; snap.forEach(d=>SHOPS.push({id:d.id,...d.data()}));
-  }catch(e){ SHOPS=[]; }
+    const snap=preSnap||await getDocs(collection(db,'shops'));
+    snap.forEach(d=>fresh.push({id:d.id,...d.data()}));
+  }catch(e){ if(quiet) return; }
+  if(quiet){ const old={}; SHOPS.forEach(x=>{ if(x._dist!=null) old[x.id]=x._dist; }); fresh.forEach(x=>{ if(old[x.id]!=null) x._dist=old[x.id]; }); }
+  SHOPS=fresh;
   // กรองตามเขตพื้นที่ (ถ้าระบุหาเขตของลูกค้าได้): ให้เห็นร้านที่ยังไม่ผูกแฟรนไชส์ (ร้านกลาง) รวมกับร้านของแฟรนไชส์ที่ใกล้ที่สุด
   // ร้านรองรับได้หลายเขตพร้อมกัน (franchiseIds เป็น array กรณีร้านตกลงอยู่ 2 เขต) — ของเก่า (franchiseId เดี่ยว) ยังใช้ได้
   try{
-    const zone = await getCustomerFranchiseZone();
+    const zone = (quiet && window._zoneCache!==undefined) ? window._zoneCache : await getCustomerFranchiseZone();
+    window._zoneCache = zone;
     if(zone){
       SHOPS = SHOPS.filter(s => {
         const ids = s.franchiseIds || (s.franchiseId ? [s.franchiseId] : []);
@@ -1414,11 +1423,21 @@ async function loadShopsData(){
       });
       // เช็คแล้วอยู่นอกทุกเขตจริงๆ (ไม่ใช่แค่ยังไม่มีหมุด/ยังไม่มีเขตในระบบเลย) แจ้งทันทีที่หน้านี้เลย
       // ไม่รอให้ลึกไปถึง checkout เพราะกว่าจะรู้ตัวก็เสียเวลาเลือกของไปนานแล้ว — ยังกดปิดแล้วเดินดูร้านต่อได้ปกติ
-      if(zone.inside===false && window.openZoneOutModal) window.openZoneOutModal();
+      if(zone.inside===false && !quiet && window.openZoneOutModal) window.openZoneOutModal();
     }
   }catch(e){ /* กรองไม่สำเร็จ ไม่ควรกระทบการแสดงร้านหลัก ปล่อยผ่าน */ }
+  if(quiet){
+    const sig=JSON.stringify(SHOPS.map(x=>{ const c={...x}; delete c._dist; return c; }));
+    if(sig===window._shopsSig) return;
+    if(window.rmBusy&&window.rmBusy()){ window._shopsPending=true; return; }
+    window._shopsSig=sig;
+  } else {
+    window._shopsSig=JSON.stringify(SHOPS.map(x=>{ const c={...x}; delete c._dist; return c; }));
+  }
+  window._openSig=SHOPS.map(x=>effectiveOpen(x)?1:0).join('');
   renderPop();
   renderShops();
+  if(quiet) return;
   navigator.geolocation?.getCurrentPosition(p=>{
     const userLat=p.coords.latitude, userLng=p.coords.longitude;
     SHOPS.forEach(s=>{ if(s.lat&&s.lng) s._dist=calcDist(userLat,userLng,s.lat,s.lng); });
@@ -1604,6 +1623,7 @@ window.rmShopsHtml=function(list){return list.map(s=>{
     <button class="rm-sum" data-a="sum">สรุปการสั่งซื้อ</button><button class="rm-lst" data-a="lst" aria-label="ดูเมนูที่เลือกไว้"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg></button>
   </div></div>`;}).join('');};
 window.rmReset=function(){if(R.open!==null){R.open=null;R.sp=0;R.cards=[];document.body.appendChild(ring);ring.hidden=true;}};
+window.rmBusy=function(){return R.open!==null};
 
 function setOpen(st,on){
   const s=st.querySelector('.rm-shop');
@@ -2080,7 +2100,30 @@ renderFilters();
 updCart();
 loadNotifBadge();
 renderSkeleton();
-refreshCustomerLocation().then(loadShopsData);
+refreshCustomerLocation().then(()=>loadShopsData());
+
+/* ===================== อัปเดตสดไม่ต้องรีเฟรช ===================== */
+async function liveRefresh(force){
+  try{
+    if(force) await loadShopsData(true);
+    const busy=window.rmBusy&&window.rmBusy();
+    if(window._shopsPending && !busy){ window._shopsPending=false; await loadShopsData(true); }
+    // ร้านเปิด/ปิดตามเวลาที่ตั้งไว้ — เปลี่ยนสถานะเองโดยไม่มีเอกสารเปลี่ยน
+    const os=SHOPS.map(x=>effectiveOpen(x)?1:0).join('');
+    if(window._openSig!==undefined && os!==window._openSig && !busy){ renderPop(); renderShops(); }
+    window._openSig=os;
+  }catch(e){}
+  renderActiveOrder(); renderCouponPromo(); loadServiceCfg(); loadNotifBadge();
+}
+NimitLive.watch(liveRefresh,{every:25000});
+(function(){
+  let f1=true,f2=true;
+  try{ onSnapshot(collection(db,'shops'),snap=>{ if(f1){ f1=false; return; } loadShopsData(true,snap); },()=>{}); }catch(e){}
+  try{
+    const ph=JSON.parse(localStorage.getItem('customerData')||'{}').phone || localStorage.getItem('customerPhone');
+    if(ph) onSnapshot(query(collection(db,'orders'),where('customer.phone','==',ph)),()=>{ if(f2){ f2=false; return; } renderActiveOrder(); },()=>{});
+  }catch(e){}
+})();
 </script>
 <!-- ===== นอกพื้นที่ให้บริการ ===== -->
 <div class="zone-overlay" id="zoneOutOverlay">
