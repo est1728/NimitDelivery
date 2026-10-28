@@ -180,10 +180,20 @@ a{color:inherit;}
 .cbox-h{display:flex;justify-content:space-between;align-items:center;padding-right:14px;margin-bottom:10px;}
 .cbox-h b{font-size:14.5px;color:var(--blue-900);}.cbox-h a{font-size:12px;color:var(--blue-700);font-weight:600;cursor:pointer;}
 .cbox-l{display:flex;gap:10px;overflow-x:auto;padding-right:14px;scrollbar-width:none;}.cbox-l::-webkit-scrollbar{display:none;}
-.cbx{flex:0 0 200px;border-radius:12px;background:linear-gradient(120deg,#EAF1FF,#DBE8FF);border:1px dashed #9DB8EA;padding:9px 62px 9px 12px;position:relative;transition:opacity .3s,transform .3s;}
+.cbx{flex:0 0 min(300px,86%);background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(15,23,42,.10);border:1px solid var(--line);display:flex;overflow:hidden;position:relative;transition:opacity .3s,transform .3s;}
+.cbx:only-child{flex:1 0 100%;}
 .cbx.gone{opacity:0;transform:scale(.9);}
-.cbx b{font-size:15px;color:var(--blue-800);display:block;}.cbx small{font-size:11px;color:#64748B;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.cbx u{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:var(--blue-700);color:#fff;text-decoration:none;font-size:11px;font-weight:700;border-radius:8px;padding:5px 10px;cursor:pointer;}
+.cbx-l{width:78px;flex-shrink:0;background:linear-gradient(135deg,var(--blue-600),var(--blue-800));display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:8px 4px;position:relative;}
+.cbx-big{font-size:18px;font-weight:900;line-height:1.1;}
+.cbx-sub{font-size:9.5px;font-weight:700;margin-top:2px;opacity:.9;}
+.cbx-n{position:absolute;right:-6px;width:12px;height:12px;background:var(--white);border-radius:50%;}
+.cbx-n.t{top:-6px;}.cbx-n.b{bottom:-6px;}
+.cbx-r{flex:1;min-width:0;padding:9px 6px 9px 12px;display:flex;flex-direction:column;justify-content:center;gap:2px;}
+.cbx-t{font-size:13px;font-weight:800;color:var(--blue-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cbx-m{font-size:11px;color:#64748B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cbx-e{font-size:10.5px;color:#C2410C;}
+.cbx-b{display:flex;align-items:center;padding:0 12px 0 4px;flex-shrink:0;}
+.cbx-b u{height:30px;padding:0 14px;border-radius:20px;background:var(--blue-700);color:#fff;text-decoration:none;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;}
 
 /* ===== ACTIVE ORDER ===== */
 .ao{margin:14px 16px 0;background:linear-gradient(120deg,var(--blue-700),var(--blue-900));border-radius:18px;padding:14px 16px;cursor:pointer;box-shadow:0 8px 20px rgba(11,44,99,.25);display:none;position:relative;overflow:hidden;}
@@ -1124,9 +1134,13 @@ async function renderCouponPromo(){
     $('couponPromoEl').style.display='block';
     $('couponPromoTitle').textContent='คูปองรอให้เก็บ '+todo.length+' ใบ';
     $('cboxList').innerHTML=todo.map(c=>{
-      const big=c.type==='percent'?'ลด '+c.value+'%':c.type==='fixed'?'ลด ฿'+c.value:'ส่งฟรี';
-      const end=new Date(c.endAt).toLocaleDateString('th-TH',{day:'numeric',month:'short'});
-      return `<div class="cbx" data-id="${esc(c.id)}"><b>${esc(big)}</b><small>${c.minOrderAmount?'ขั้นต่ำ ฿'+c.minOrderAmount+' · ':''}หมด ${end}</small><u onclick="claimHomeCoupon('${esc(c.id)}',this)">เก็บ</u></div>`;
+      const big=c.type==='percent'?c.value+'%':c.type==='fixed'?'฿'+c.value:'ส่งฟรี';
+      const sub=c.type==='freeship'?'FREE SHIP':'DISCOUNT';
+      const end=new Date(c.endAt).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'});
+      const meta=(c.minOrderAmount?'ขั้นต่ำ ฿'+c.minOrderAmount+' · ':'')+(c.shopId?(c.shopName||'ร้านเฉพาะ'):'ใช้ได้ทุกร้าน');
+      return `<div class="cbx" data-id="${esc(c.id)}"><div class="cbx-l"><div class="cbx-big">${esc(big)}</div><div class="cbx-sub">${sub}</div><i class="cbx-n t"></i><i class="cbx-n b"></i></div>
+        <div class="cbx-r"><div class="cbx-t">${esc(c.title||'')}</div><div class="cbx-m">${esc(meta)}</div><div class="cbx-e">หมดเขต ${end}</div></div>
+        <div class="cbx-b"><u onclick="claimHomeCoupon('${esc(c.id)}',this)">เก็บ</u></div></div>`;
     }).join('');
   }catch(e){ $('couponPromoEl').style.display='none'; }
 }
