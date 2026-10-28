@@ -340,6 +340,12 @@ window.onerror = function(msg, url, line, col, error){
     <button onclick="rstQ()" style="width:100%;height:44px;border:2px solid var(--p);border-radius:12px;background:#fff;color:var(--p);font-size:14px;font-weight:700;cursor:pointer;margin-top:8px">🔄 Reset Quota (ถ้า quota ค้าง)</button>
   </div>
   <div class="card">
+    <div class="stitle">ปุ่มบริการหน้าแรก (ลูกค้า)</div>
+    <div class="hint" style="margin-bottom:12px">เลือกสถานะของแต่ละปุ่มบนหน้าแรก: เปิด = ใช้งานได้ / เร็วๆ นี้ = แสดงจางกดไม่ได้ / ปิด = ซ่อน</div>
+    <div id="hbRows"></div>
+    <button class="savbtn" onclick="saveHomeButtons()">บันทึกปุ่มบริการ</button>
+  </div>
+  <div class="card">
     <div class="stitle">🔔 VAPID Key (สำหรับแจ้งเตือน)</div>
     <div class="hint" style="margin-bottom:12px">ตั้งค่าที่นี่ครั้งเดียว ระบบแจ้งเตือนทุกหน้า (ลูกค้า/ไรเดอร์/แอดมิน/ร้านค้า) จะดึงค่านี้ไปใช้อัตโนมัติ ไม่ต้องแก้โค้ดในไฟล์ fcm.js เลย</div>
     <div style="margin-bottom:12px"><input class="inp" id="sVapidKey" placeholder="วางค่า VAPID key จาก Firebase Cloud Messaging"></div>
@@ -943,6 +949,25 @@ window.saveGpSettings=async function(){
   }catch(e){}
   renderDGpTiers(); renderDGpSubTiers();
 })();
+
+
+// ============ ปุ่มบริการหน้าแรก (settings/homeButtons) ============
+const HB_DEF=[['food','สั่งอาหาร','on'],['ride','เรียกรถรับส่งคน','soon'],['send','ฝากซื้อ/ส่งของ','soon']];
+function renderHbRows(cfg){
+  document.getElementById('hbRows').innerHTML=HB_DEF.map(([k,t,def])=>{
+    const v=cfg[k]||def;
+    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><div style="flex:1;font-size:14px;font-weight:600">${t}</div>`+
+      ['on','soon','off'].map(x=>`<label style="font-size:12px;display:flex;align-items:center;gap:3px"><input type="radio" name="hb_${k}" value="${x}" ${v===x?'checked':''}>${x==='on'?'เปิด':x==='soon'?'เร็วๆนี้':'ปิด'}</label>`).join('')+`</div>`;
+  }).join('');
+}
+window.saveHomeButtons=async function(){
+  const o={};
+  HB_DEF.forEach(([k])=>{ const c=document.querySelector('input[name="hb_'+k+'"]:checked'); o[k]=c?c.value:'on'; });
+  try{ await setDoc(doc(db,'settings','homeButtons'),{...o,updatedAt:serverTimestamp()},{merge:true});
+    if(typeof toast==='function') toast('บันทึกปุ่มบริการแล้ว','ok'); else alert('บันทึกแล้ว'); }
+  catch(e){ if(typeof toast==='function') toast('บันทึกไม่สำเร็จ: '+e.message,'er'); else alert('บันทึกไม่สำเร็จ: '+e.message); }
+};
+(async function(){ let cfg={}; try{ const sn=await getDoc(doc(db,'settings','homeButtons')); if(sn.exists()) cfg=sn.data(); }catch(e){} renderHbRows(cfg); })();
 
 // ============ แปลงรูปเก่า (base64) เป็นระบบใหม่ (Storage + ลิงก์) ============
 async function base64ToStorageUrl(base64Str){
