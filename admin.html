@@ -2392,6 +2392,40 @@ setInterval(()=>{ if($('ordersPage')?.classList.contains('on')) renderOrders(); 
 
 // ===== ADS MANAGEMENT =====
 
+
+// ===== ครอปรูปแบนเนอร์ 1080x330 (ซูม+ลาก, แสดงกรอบมุมโค้งและเขตปลอดภัยข้อความ) =====
+let _bnrBlob=null;
+(function(){
+  let img=null,sc=1,minSc=1,x=0,y=0,drag=null;
+  const $=id=>document.getElementById(id);
+  const W=()=>$('bcWrap').clientWidth, H=()=>$('bcWrap').clientHeight;
+  function clamp(){ const iw=img.naturalWidth*sc, ih=img.naturalHeight*sc; x=Math.min(0,Math.max(W()-iw,x)); y=Math.min(0,Math.max(H()-ih,y)); }
+  function paint(){ clamp(); const im=$('bcImg'); im.style.transform='translate('+x+'px,'+y+'px) scale('+sc+')'; }
+  function setZoom(z){ const cx=W()/2,cy=H()/2; const ns=minSc*z; x=cx-(cx-x)*(ns/sc); y=cy-(cy-y)*(ns/sc); sc=ns; paint(); }
+  window.openBnrCrop=function(inp){
+    const f=inp.files[0]; if(!f) return;
+    const url=URL.createObjectURL(f); const im=new Image();
+    im.onload=()=>{
+      img=im; const el=$('bcImg'); el.src=url; el.style.width=im.naturalWidth+'px'; el.style.height=im.naturalHeight+'px';
+      $('bnrCrop').style.display='flex';
+      minSc=Math.max(W()/im.naturalWidth,H()/im.naturalHeight); sc=minSc;
+      x=(W()-im.naturalWidth*sc)/2; y=(H()-im.naturalHeight*sc)/2; $('bcZoom').value=1; paint();
+    };
+    im.src=url;
+  };
+  window.bnrCropCancel=function(){ $('bnrCrop').style.display='none'; $('bnrFile').value=''; img=null; };
+  window.bnrCropOk=function(){
+    if(!img) return;
+    const cv=document.createElement('canvas'); cv.width=1080; cv.height=330; const k=1080/W();
+    const c=cv.getContext('2d'); c.drawImage(img,-x/sc,-y/sc,W()/sc,H()/sc,0,0,1080,330);
+    cv.toBlob(b=>{ _bnrBlob=b; $('bnrPrev').style.backgroundImage='url("'+URL.createObjectURL(b)+'")'; $('bnrCrop').style.display='none'; img=null; },'image/jpeg',0.9);
+  };
+  $('bcZoom').addEventListener('input',e=>{ if(img) setZoom(+e.target.value); });
+  const wrap=$('bcWrap');
+  wrap.addEventListener('pointerdown',e=>{ if(!img) return; drag={px:e.clientX,py:e.clientY,x,y}; wrap.setPointerCapture(e.pointerId); });
+  wrap.addEventListener('pointermove',e=>{ if(!drag) return; x=drag.x+e.clientX-drag.px; y=drag.y+e.clientY-drag.py; paint(); });
+  const up=()=>{drag=null;}; wrap.addEventListener('pointerup',up); wrap.addEventListener('pointercancel',up);
+})();
 // ===== แบนเนอร์หน้าแรกลูกค้า (settings/appBanner) =====
 let _bnrImg='';
 window.loadBannerCfg=async function(){
@@ -2406,8 +2440,7 @@ window.loadBannerCfg=async function(){
 };
 window.saveBanner=async function(){
   try{
-    const f=document.getElementById('bnrFile').files[0];
-    if(f){ showUploadProgress('อัพโหลดรูปแบนเนอร์...'); _bnrImg=await uploadFile(f,'banner'); hideUploadProgress(); }
+    if(_bnrBlob){ showUploadProgress('อัพโหลดรูปแบนเนอร์...'); _bnrImg=await uploadFile(new File([_bnrBlob],'banner_'+Date.now()+'.jpg',{type:'image/jpeg'}),'banner'); hideUploadProgress(); _bnrBlob=null; }
     await setDoc(doc(db,'settings','appBanner'),{on:document.getElementById('bnrOn').checked,imgUrl:_bnrImg,
       title:document.getElementById('bnrTitle').value.trim(),sub:document.getElementById('bnrSub').value.trim(),
       linkUrl:document.getElementById('bnrLink').value.trim(),imgOnly:document.getElementById('bnrOnly').checked,updatedAt:serverTimestamp()});
@@ -2981,9 +3014,9 @@ if(localStorage.getItem('fcmTokenSaved_admin')==='1'){
 
     <div style="border-top:1px solid #f0f2f5;margin-top:16px;padding-top:12px">
       <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:4px">แบนเนอร์หน้าแรกลูกค้า</div>
-      <div style="font-size:11px;color:#94a3b8;margin-bottom:10px">รูปแนะนำ 1080×330px · JPG/PNG · แสดงใต้ "ร้านแนะนำ"</div>
+      <div style="font-size:11px;color:#94a3b8;margin-bottom:10px">เลือกรูปอะไรก็ได้ แล้วครอปในหน้าต่างครอป (ผลลัพธ์ 1080×330px) · แสดงใต้ "ร้านแนะนำ"</div>
       <div id="bnrPrev" style="height:84px;border-radius:14px;background:#e2e8f0 center/cover no-repeat;margin-bottom:8px"></div>
-      <input id="bnrFile" type="file" accept="image/*" style="font-size:12px;margin-bottom:8px;width:100%">
+      <input id="bnrFile" type="file" accept="image/*" onchange="window.openBnrCrop(this)" style="font-size:12px;margin-bottom:8px;width:100%">
       <input id="bnrTitle" placeholder="หัวข้อ (ไม่ใส่ก็ได้)" style="width:100%;height:42px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:13px;margin-bottom:6px;outline:none">
       <input id="bnrSub" placeholder="ข้อความรอง (ไม่ใส่ก็ได้)" style="width:100%;height:42px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:13px;margin-bottom:6px;outline:none">
       <input id="bnrLink" placeholder="ลิงก์เมื่อกด เช่น https://... (ไม่ใส่ก็ได้)" style="width:100%;height:42px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:13px;margin-bottom:8px;outline:none">
@@ -3128,6 +3161,21 @@ if(localStorage.getItem('fcmTokenSaved_admin')==='1'){
   <div style="display:flex;gap:12px;margin-top:16px">
     <button onclick="window.cancelCrop()" style="height:42px;padding:0 24px;border:1.5px solid #fff;border-radius:21px;background:none;color:#fff;font-size:14px;cursor:pointer">ยกเลิก</button>
     <button onclick="window.confirmCrop()" style="height:42px;padding:0 24px;border:none;border-radius:21px;background:#1565C0;color:#fff;font-size:14px;font-weight:700;cursor:pointer">ใช้รูปนี้</button>
+  </div>
+</div>
+
+<div id="bnrCrop" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(7,18,40,.92);flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:12px">
+  <div style="color:#fff;font-size:14px;font-weight:700">ลากรูปและเลื่อนซูมให้พอดีกรอบ</div>
+  <div id="bcWrap" style="position:relative;width:100%;max-width:360px;aspect-ratio:1080/330;overflow:hidden;touch-action:none;background:#000;cursor:grab">
+    <img id="bcImg" draggable="false" style="position:absolute;left:0;top:0;transform-origin:0 0;max-width:none;user-select:none;-webkit-user-drag:none">
+    <div id="bcFrame" style="position:absolute;inset:0;border-radius:5%/16%;box-shadow:0 0 0 999px rgba(7,18,40,.62);pointer-events:none;outline:1.5px solid rgba(255,255,255,.8)"></div>
+    <div id="bcSafe" style="position:absolute;left:5%;top:12%;bottom:12%;width:57%;border:1.5px dashed rgba(255,255,255,.7);border-radius:6px;pointer-events:none"></div>
+  </div>
+  <div style="color:#cbd5e1;font-size:11px;text-align:center;max-width:360px">นอกกรอบโค้งคือส่วนที่ถูกตัดตามมุมโค้งบนหน้าแอพ · เส้นประคือพื้นที่ปลอดภัยสำหรับข้อความ (ซ้าย 60%) วางโลโก้/ตัวหนังสือไว้ในนี้</div>
+  <input id="bcZoom" type="range" min="1" max="4" step="0.01" value="1" style="width:100%;max-width:360px">
+  <div style="display:flex;gap:10px;width:100%;max-width:360px">
+    <button onclick="window.bnrCropCancel()" style="flex:1;height:46px;border:none;border-radius:14px;background:#334155;color:#fff;font-weight:700;cursor:pointer">ยกเลิก</button>
+    <button onclick="window.bnrCropOk()" style="flex:1;height:46px;border:none;border-radius:14px;background:#1565C0;color:#fff;font-weight:800;cursor:pointer">ใช้รูปนี้</button>
   </div>
 </div>
 </body>
