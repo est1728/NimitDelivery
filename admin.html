@@ -2391,12 +2391,38 @@ window.inviteAdmin = async function(){
 setInterval(()=>{ if($('ordersPage')?.classList.contains('on')) renderOrders(); }, 8000);
 
 // ===== ADS MANAGEMENT =====
+
+// ===== แบนเนอร์หน้าแรกลูกค้า (settings/appBanner) =====
+let _bnrImg='';
+window.loadBannerCfg=async function(){
+  try{
+    const sn=await getDoc(doc(db,'settings','appBanner')); const d=sn.exists()?sn.data():{};
+    _bnrImg=d.imgUrl||'';
+    document.getElementById('bnrTitle').value=d.title||''; document.getElementById('bnrSub').value=d.sub||'';
+    document.getElementById('bnrLink').value=d.linkUrl||''; document.getElementById('bnrOnly').checked=!!d.imgOnly;
+    document.getElementById('bnrOn').checked=sn.exists()?!!d.on:true;
+    document.getElementById('bnrPrev').style.backgroundImage=_bnrImg?'url("'+_bnrImg+'")':'';
+  }catch(e){}
+};
+window.saveBanner=async function(){
+  try{
+    const f=document.getElementById('bnrFile').files[0];
+    if(f){ showUploadProgress('อัพโหลดรูปแบนเนอร์...'); _bnrImg=await uploadFile(f,'banner'); hideUploadProgress(); }
+    await setDoc(doc(db,'settings','appBanner'),{on:document.getElementById('bnrOn').checked,imgUrl:_bnrImg,
+      title:document.getElementById('bnrTitle').value.trim(),sub:document.getElementById('bnrSub').value.trim(),
+      linkUrl:document.getElementById('bnrLink').value.trim(),imgOnly:document.getElementById('bnrOnly').checked,updatedAt:serverTimestamp()});
+    document.getElementById('bnrPrev').style.backgroundImage=_bnrImg?'url("'+_bnrImg+'")':'';
+    document.getElementById('bnrFile').value='';
+    alert('บันทึกแบนเนอร์เรียบร้อย');
+  }catch(e){hideUploadProgress();alert('ผิดพลาด: '+e.message);}
+};
 window.openAdCreate=function(){
   document.getElementById('adCreateSheet').style.display='flex';
   document.getElementById('adType').value='image';
   document.getElementById('adImgRow').style.display='';
   document.getElementById('adVidRow').style.display='none';
   document.getElementById('adLinkUrl').value='';
+  window.loadBannerCfg();
 };
 window.closeAdCreate=function(){
   document.getElementById('adCreateSheet').style.display='none';
@@ -2951,6 +2977,19 @@ if(localStorage.getItem('fcmTokenSaved_admin')==='1'){
     <div style="border-top:1px solid #f0f2f5;margin-top:16px;padding-top:12px">
       <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:10px">โฆษณาที่มีอยู่</div>
       <div id="adsList"><div style="color:#94a3b8;font-size:13px">กด "จัดการโฆษณา" เพื่อโหลดรายการ</div></div>
+    </div>
+
+    <div style="border-top:1px solid #f0f2f5;margin-top:16px;padding-top:12px">
+      <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:4px">แบนเนอร์หน้าแรกลูกค้า</div>
+      <div style="font-size:11px;color:#94a3b8;margin-bottom:10px">รูปแนะนำ 1080×330px · JPG/PNG · แสดงใต้ "ร้านแนะนำ"</div>
+      <div id="bnrPrev" style="height:84px;border-radius:14px;background:#e2e8f0 center/cover no-repeat;margin-bottom:8px"></div>
+      <input id="bnrFile" type="file" accept="image/*" style="font-size:12px;margin-bottom:8px;width:100%">
+      <input id="bnrTitle" placeholder="หัวข้อ (ไม่ใส่ก็ได้)" style="width:100%;height:42px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:13px;margin-bottom:6px;outline:none">
+      <input id="bnrSub" placeholder="ข้อความรอง (ไม่ใส่ก็ได้)" style="width:100%;height:42px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:13px;margin-bottom:6px;outline:none">
+      <input id="bnrLink" placeholder="ลิงก์เมื่อกด เช่น https://... (ไม่ใส่ก็ได้)" style="width:100%;height:42px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:13px;margin-bottom:8px;outline:none">
+      <label style="display:block;font-size:13px;margin-bottom:6px"><input type="checkbox" id="bnrOnly"> แสดงรูปอย่างเดียว (ไม่ทับข้อความ)</label>
+      <label style="display:block;font-size:13px;margin-bottom:10px"><input type="checkbox" id="bnrOn" checked> เปิดแสดงแบนเนอร์</label>
+      <button onclick="window.saveBanner()" style="width:100%;height:46px;border:none;border-radius:14px;background:linear-gradient(135deg,#083570,#1565C0);color:#fff;font-size:14px;font-weight:800;cursor:pointer">บันทึกแบนเนอร์</button>
     </div>
   </div>
 </div>
