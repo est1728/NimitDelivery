@@ -2399,14 +2399,14 @@ let _bnrBlob=null;
   let img=null,sc=1,minSc=1,x=0,y=0,drag=null;
   const $=id=>document.getElementById(id);
   const W=()=>$('bcWrap').clientWidth, H=()=>$('bcWrap').clientHeight;
-  function clamp(){ const iw=img.naturalWidth*sc, ih=img.naturalHeight*sc; x=Math.min(0,Math.max(W()-iw,x)); y=Math.min(0,Math.max(H()-ih,y)); }
+  function clamp(){ const iw=img.naturalWidth*sc, ih=img.naturalHeight*sc; const a1=Math.min(0,W()-iw),b1=Math.max(0,W()-iw),a2=Math.min(0,H()-ih),b2=Math.max(0,H()-ih); x=Math.min(b1,Math.max(a1,x)); y=Math.min(b2,Math.max(a2,y)); }
   function paint(){ clamp(); const im=$('bcImg'); im.style.transform='translate('+x+'px,'+y+'px) scale('+sc+')'; }
   function setZoom(z){ const cx=W()/2,cy=H()/2; const ns=minSc*z; x=cx-(cx-x)*(ns/sc); y=cy-(cy-y)*(ns/sc); sc=ns; paint(); }
   window.openBnrCrop=function(inp){
     const f=inp.files[0]; if(!f) return;
     const url=URL.createObjectURL(f); const im=new Image();
     im.onload=()=>{
-      img=im; const el=$('bcImg'); el.src=url; el.style.width=im.naturalWidth+'px'; el.style.height=im.naturalHeight+'px';
+      img=im; const el=$('bcImg'); $('bcBg').src=url; el.src=url; el.style.width=im.naturalWidth+'px'; el.style.height=im.naturalHeight+'px';
       $('bnrCrop').style.display='flex';
       minSc=Math.max(W()/im.naturalWidth,H()/im.naturalHeight); sc=minSc;
       x=(W()-im.naturalWidth*sc)/2; y=(H()-im.naturalHeight*sc)/2; $('bcZoom').value=1; paint();
@@ -2417,7 +2417,7 @@ let _bnrBlob=null;
   window.bnrCropOk=function(){
     if(!img) return;
     const cv=document.createElement('canvas'); cv.width=1080; cv.height=330; const k=1080/W();
-    const c=cv.getContext('2d'); c.drawImage(img,-x/sc,-y/sc,W()/sc,H()/sc,0,0,1080,330);
+    const c=cv.getContext('2d'); const cs=Math.max(1080/img.naturalWidth,330/img.naturalHeight); c.filter='blur(18px) brightness(.85)'; c.drawImage(img,(1080-img.naturalWidth*cs)/2,(330-img.naturalHeight*cs)/2,img.naturalWidth*cs,img.naturalHeight*cs); c.filter='none'; c.drawImage(img,x*k,y*k,img.naturalWidth*sc*k,img.naturalHeight*sc*k);
     cv.toBlob(b=>{ _bnrBlob=b; $('bnrPrev').style.backgroundImage='url("'+URL.createObjectURL(b)+'")'; $('bnrCrop').style.display='none'; img=null; },'image/jpeg',0.9);
   };
   $('bcZoom').addEventListener('input',e=>{ if(img) setZoom(+e.target.value); });
@@ -3165,14 +3165,15 @@ if(localStorage.getItem('fcmTokenSaved_admin')==='1'){
 </div>
 
 <div id="bnrCrop" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(7,18,40,.92);flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:12px">
-  <div style="color:#fff;font-size:14px;font-weight:700">ลากรูปและเลื่อนซูมให้พอดีกรอบ</div>
+  <div style="color:#fff;font-size:14px;font-weight:700">ลากรูป เลื่อนซูมเข้า/ออกให้พอดีกรอบ (ซูมออกได้ ส่วนว่างจะเติมด้วยภาพเบลอ)</div>
   <div id="bcWrap" style="position:relative;width:100%;max-width:360px;aspect-ratio:1080/330;overflow:hidden;touch-action:none;background:#000;cursor:grab">
+    <img id="bcBg" draggable="false" style="position:absolute;inset:-12%;width:124%;height:124%;object-fit:cover;filter:blur(14px) brightness(.85);pointer-events:none">
     <img id="bcImg" draggable="false" style="position:absolute;left:0;top:0;transform-origin:0 0;max-width:none;user-select:none;-webkit-user-drag:none">
     <div id="bcFrame" style="position:absolute;inset:0;border-radius:5%/16%;box-shadow:0 0 0 999px rgba(7,18,40,.62);pointer-events:none;outline:1.5px solid rgba(255,255,255,.8)"></div>
     <div id="bcSafe" style="position:absolute;left:5%;top:12%;bottom:12%;width:57%;border:1.5px dashed rgba(255,255,255,.7);border-radius:6px;pointer-events:none"></div>
   </div>
   <div style="color:#cbd5e1;font-size:11px;text-align:center;max-width:360px">นอกกรอบโค้งคือส่วนที่ถูกตัดตามมุมโค้งบนหน้าแอพ · เส้นประคือพื้นที่ปลอดภัยสำหรับข้อความ (ซ้าย 60%) วางโลโก้/ตัวหนังสือไว้ในนี้</div>
-  <input id="bcZoom" type="range" min="1" max="4" step="0.01" value="1" style="width:100%;max-width:360px">
+  <input id="bcZoom" type="range" min="0.3" max="4" step="0.01" value="1" style="width:100%;max-width:360px">
   <div style="display:flex;gap:10px;width:100%;max-width:360px">
     <button onclick="window.bnrCropCancel()" style="flex:1;height:46px;border:none;border-radius:14px;background:#334155;color:#fff;font-weight:700;cursor:pointer">ยกเลิก</button>
     <button onclick="window.bnrCropOk()" style="flex:1;height:46px;border:none;border-radius:14px;background:#1565C0;color:#fff;font-weight:800;cursor:pointer">ใช้รูปนี้</button>
