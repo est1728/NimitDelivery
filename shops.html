@@ -275,6 +275,9 @@ a{color:inherit;}
 .pop-row::-webkit-scrollbar{display:none;}
 .pop-card{background:var(--white);border-radius:14px;width:132px;flex-shrink:0;overflow:hidden;border:1px solid var(--line);cursor:pointer;}
 .pop-img{width:100%;height:78px;display:flex;align-items:center;justify-content:center;font-size:32px;}
+.pop-ph{width:100%;height:100%;display:grid;place-items:center;background:linear-gradient(135deg,#E3EDFF,#F1F6FF);}
+.pop-ph svg{width:34px;height:34px;fill:#9DB8EA;}
+.pop-st{width:11px;height:11px;fill:#F5B301;vertical-align:-1px;}
 .pop-body{padding:8px 10px 10px;}
 .pop-name{font-size:12.5px;font-weight:600;color:var(--ink-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .pop-meta{font-size:10.5px;color:var(--ink-500);margin-top:3px;}
@@ -1328,10 +1331,12 @@ function shopScore(s){
 function renderPop(){
   const pop=[...SHOPS].filter(s=>s.isOpen).sort((a,b)=>shopScore(b)-shopScore(a)).slice(0,5);
   document.getElementById('popRow').innerHTML=pop.map((s,i)=>{
-    const img=s.bannerUrl?`<img src="${esc(s.bannerUrl)}" style="width:100%;height:100%;object-fit:cover">`:'';
+    const pic=s.bannerUrl||s.avatarUrl;
+    const img=pic?`<img src="${esc(pic)}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover">`
+      :`<div class="pop-ph"><svg viewBox="0 0 24 24"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/></svg></div>`;
     return `<div class="pop-card press" onclick="pick('${s.id}','${(s.name||'').replace(/'/g,"\\'")}')">
       <div class="pop-img" style="position:relative">${img}</div>
-      <div class="pop-body"><div class="pop-name">${esc(s.name)}</div><div class="pop-meta">⭐ ${(parseFloat(s.rating)||0).toFixed(1)} · ${esc(s.deliveryTime||'20-30')} นาที${s._dist!=null?' · '+(s._dist<1?Math.round(s._dist*1000)+'m':s._dist.toFixed(2)+'km'):''}</div></div>
+      <div class="pop-body"><div class="pop-name">${esc(s.name)}</div><div class="pop-meta"><svg class="pop-st" viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg> ${(parseFloat(s.rating)||0).toFixed(1)} · ${esc(s.deliveryTime||'20-30')} นาที${s._dist!=null?' · '+(s._dist<1?Math.round(s._dist*1000)+'m':s._dist.toFixed(2)+'km'):''}</div></div>
     </div>`;
   }).join('');
   applyStagger('#popRow','.pop-card');
