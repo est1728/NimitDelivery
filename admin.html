@@ -2426,26 +2426,51 @@ let _bnrBlob=null;
   wrap.addEventListener('pointermove',e=>{ if(!drag) return; x=drag.x+e.clientX-drag.px; y=drag.y+e.clientY-drag.py; paint(); });
   const up=()=>{drag=null;}; wrap.addEventListener('pointerup',up); wrap.addEventListener('pointercancel',up);
 })();
-// ===== แบนเนอร์หน้าแรกลูกค้า (settings/appBanner) =====
-let _bnrImg='';
+// ===== แบนเนอร์หน้าแรกลูกค้า (settings/appBanner: on, sec, items[{imgUrl,title,sub,linkUrl,imgOnly}]) =====
+let _bnrImg='', _bnrItems=[], _bnrEdit=-1;
+const _bnrQ=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function bnrForm(it){
+  _bnrImg=(it&&it.imgUrl)||''; _bnrBlob=null;
+  document.getElementById('bnrTitle').value=(it&&it.title)||''; document.getElementById('bnrSub').value=(it&&it.sub)||'';
+  document.getElementById('bnrLink').value=(it&&it.linkUrl)||''; document.getElementById('bnrOnly').checked=!!(it&&it.imgOnly);
+  document.getElementById('bnrPrev').style.backgroundImage=_bnrImg?'url("'+_bnrImg+'")':''; document.getElementById('bnrFile').value='';
+  document.getElementById('bnrSaveBtn').textContent=_bnrEdit>=0?'บันทึกการแก้ไขแบนเนอร์ที่ '+(_bnrEdit+1):'เพิ่มเป็นแบนเนอร์ใหม่';
+  document.getElementById('bnrNewBtn').style.display=_bnrEdit>=0?'block':'none';
+}
+function bnrRenderList(){
+  const el=document.getElementById('bnrList');
+  el.innerHTML=_bnrItems.length?_bnrItems.map((it,i)=>'<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f0f2f5'+(i===_bnrEdit?';background:#eef4ff':'')+'">'
+    +'<div style="width:78px;height:28px;border-radius:6px;background:#e2e8f0 center/cover no-repeat;flex-shrink:0;background-image:url(\''+_bnrQ(it.imgUrl)+'\')"></div>'
+    +'<div style="flex:1;min-width:0;font-size:12px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+(i+1)+'. '+_bnrQ(it.title||'(ไม่มีหัวข้อ)')+'</div>'
+    +'<button onclick="window.bnrMove('+i+',-1)" style="border:none;background:#f1f5f9;border-radius:8px;width:28px;height:28px">↑</button>'
+    +'<button onclick="window.bnrPick('+i+')" style="border:none;background:#e0ecff;color:#1565C0;border-radius:8px;height:28px;padding:0 8px;font-size:12px">แก้ไข</button>'
+    +'<button onclick="window.bnrDel('+i+')" style="border:none;background:#fee2e2;color:#b91c1c;border-radius:8px;height:28px;padding:0 8px;font-size:12px">ลบ</button></div>').join('')
+    :'<div style="font-size:12px;color:#94a3b8;padding:6px 0">ยังไม่มีแบนเนอร์</div>';
+}
+async function bnrPersist(){
+  await setDoc(doc(db,'settings','appBanner'),{on:document.getElementById('bnrOn').checked,
+    sec:Math.max(2,Math.min(15,+document.getElementById('bnrSec').value||4)),items:_bnrItems,updatedAt:serverTimestamp()});
+}
 window.loadBannerCfg=async function(){
   try{
     const sn=await getDoc(doc(db,'settings','appBanner')); const d=sn.exists()?sn.data():{};
-    _bnrImg=d.imgUrl||'';
-    document.getElementById('bnrTitle').value=d.title||''; document.getElementById('bnrSub').value=d.sub||'';
-    document.getElementById('bnrLink').value=d.linkUrl||''; document.getElementById('bnrOnly').checked=!!d.imgOnly;
-    document.getElementById('bnrOn').checked=sn.exists()?!!d.on:true;
-    document.getElementById('bnrPrev').style.backgroundImage=_bnrImg?'url("'+_bnrImg+'")':'';
+    _bnrItems=Array.isArray(d.items)?d.items.slice():(d.imgUrl||d.title?[{imgUrl:d.imgUrl||'',title:d.title||'',sub:d.sub||'',linkUrl:d.linkUrl||'',imgOnly:!!d.imgOnly}]:[]);
+    document.getElementById('bnrOn').checked=sn.exists()?!!d.on:true; document.getElementById('bnrSec').value=d.sec||4;
+    _bnrEdit=-1; bnrForm(null); bnrRenderList();
   }catch(e){}
 };
+window.bnrPick=function(i){ _bnrEdit=i; bnrForm(_bnrItems[i]); bnrRenderList(); };
+window.bnrNew=function(){ _bnrEdit=-1; bnrForm(null); bnrRenderList(); };
+window.bnrMove=async function(i,d){ const k=i+d; if(k<0||k>=_bnrItems.length) return; [_bnrItems[i],_bnrItems[k]]=[_bnrItems[k],_bnrItems[i]]; _bnrEdit=-1; try{await bnrPersist();}catch(e){alert('ผิดพลาด: '+e.message);} bnrForm(null); bnrRenderList(); };
+window.bnrDel=async function(i){ if(!confirm('ลบแบนเนอร์ที่ '+(i+1)+'?')) return; _bnrItems.splice(i,1); _bnrEdit=-1; try{await bnrPersist();}catch(e){alert('ผิดพลาด: '+e.message);} bnrForm(null); bnrRenderList(); };
 window.saveBanner=async function(){
   try{
     if(_bnrBlob){ showUploadProgress('อัพโหลดรูปแบนเนอร์...'); _bnrImg=await uploadFile(new File([_bnrBlob],'banner_'+Date.now()+'.jpg',{type:'image/jpeg'}),'banner'); hideUploadProgress(); _bnrBlob=null; }
-    await setDoc(doc(db,'settings','appBanner'),{on:document.getElementById('bnrOn').checked,imgUrl:_bnrImg,
-      title:document.getElementById('bnrTitle').value.trim(),sub:document.getElementById('bnrSub').value.trim(),
-      linkUrl:document.getElementById('bnrLink').value.trim(),imgOnly:document.getElementById('bnrOnly').checked,updatedAt:serverTimestamp()});
-    document.getElementById('bnrPrev').style.backgroundImage=_bnrImg?'url("'+_bnrImg+'")':'';
-    document.getElementById('bnrFile').value='';
+    const it={imgUrl:_bnrImg,title:document.getElementById('bnrTitle').value.trim(),sub:document.getElementById('bnrSub').value.trim(),
+      linkUrl:document.getElementById('bnrLink').value.trim(),imgOnly:document.getElementById('bnrOnly').checked};
+    if(!it.imgUrl&&!it.title){ alert('ใส่รูปหรือหัวข้ออย่างน้อยหนึ่งอย่าง'); return; }
+    if(_bnrEdit>=0) _bnrItems[_bnrEdit]=it; else { if(_bnrItems.length>=6){ alert('มีแบนเนอร์ได้สูงสุด 6 อัน'); return; } _bnrItems.push(it); }
+    await bnrPersist(); _bnrEdit=-1; bnrForm(null); bnrRenderList();
     alert('บันทึกแบนเนอร์เรียบร้อย');
   }catch(e){hideUploadProgress();alert('ผิดพลาด: '+e.message);}
 };
@@ -3015,14 +3040,17 @@ if(localStorage.getItem('fcmTokenSaved_admin')==='1'){
     <div style="border-top:1px solid #f0f2f5;margin-top:16px;padding-top:12px">
       <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:4px">แบนเนอร์หน้าแรกลูกค้า</div>
       <div style="font-size:11px;color:#94a3b8;margin-bottom:10px">เลือกรูปอะไรก็ได้ แล้วครอปในหน้าต่างครอป (ผลลัพธ์ 1080×393px) · แสดงใต้ "ร้านแนะนำ"</div>
+      <div id="bnrList" style="margin-bottom:10px"></div>
+      <div style="display:flex;gap:10px;align-items:center;font-size:13px;margin-bottom:10px"><label><input type="checkbox" id="bnrOn" checked> เปิดแสดงแบนเนอร์</label><span style="margin-left:auto">สลับทุก <input id="bnrSec" type="number" min="2" max="15" value="4" style="width:46px;height:30px;border:1.5px solid #e2e8f0;border-radius:8px;text-align:center"> วิ</span></div>
+      <div style="font-size:12px;font-weight:700;color:#475569;margin-bottom:6px">เพิ่ม / แก้ไขแบนเนอร์ (สูงสุด 6 อัน)</div>
       <div id="bnrPrev" style="height:84px;border-radius:14px;background:#e2e8f0 center/cover no-repeat;margin-bottom:8px"></div>
       <input id="bnrFile" type="file" accept="image/*" onchange="window.openBnrCrop(this)" style="font-size:12px;margin-bottom:8px;width:100%">
       <input id="bnrTitle" placeholder="หัวข้อ (ไม่ใส่ก็ได้)" style="width:100%;height:42px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:13px;margin-bottom:6px;outline:none">
       <input id="bnrSub" placeholder="ข้อความรอง (ไม่ใส่ก็ได้)" style="width:100%;height:42px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:13px;margin-bottom:6px;outline:none">
       <input id="bnrLink" placeholder="ลิงก์เมื่อกด เช่น https://... (ไม่ใส่ก็ได้)" style="width:100%;height:42px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:13px;margin-bottom:8px;outline:none">
       <label style="display:block;font-size:13px;margin-bottom:6px"><input type="checkbox" id="bnrOnly"> แสดงรูปอย่างเดียว (ไม่ทับข้อความ)</label>
-      <label style="display:block;font-size:13px;margin-bottom:10px"><input type="checkbox" id="bnrOn" checked> เปิดแสดงแบนเนอร์</label>
-      <button onclick="window.saveBanner()" style="width:100%;height:46px;border:none;border-radius:14px;background:linear-gradient(135deg,#083570,#1565C0);color:#fff;font-size:14px;font-weight:800;cursor:pointer">บันทึกแบนเนอร์</button>
+      <button onclick="window.saveBanner()" id="bnrSaveBtn" style="width:100%;height:46px;border:none;border-radius:14px;background:linear-gradient(135deg,#083570,#1565C0);color:#fff;font-size:14px;font-weight:800;cursor:pointer">เพิ่มเป็นแบนเนอร์ใหม่</button>
+      <button id="bnrNewBtn" onclick="window.bnrNew()" style="display:none;width:100%;height:38px;border:none;background:none;color:#64748b;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px">ยกเลิกการแก้ไข / เพิ่มอันใหม่</button>
     </div>
   </div>
 </div>

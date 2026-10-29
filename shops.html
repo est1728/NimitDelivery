@@ -176,6 +176,12 @@ a{color:inherit;}
 .sv .ic{width:46px;height:46px;border-radius:14px;margin:0 auto 6px;display:grid;place-items:center;}.sv .ic svg{width:26px;height:26px;}
 .sv b{font-size:13px;display:block;color:var(--blue-900);}.sv small{font-size:10.5px;color:#64748B;}
 .sv.soon{opacity:.55;}.sv.soon::after{content:"เร็วๆ นี้";position:absolute;top:-7px;right:8px;background:#F59E0B;color:#fff;font-size:10px;font-weight:700;border-radius:8px;padding:1px 7px;}
+.bnrw{margin:16px 16px 0;position:relative;}
+.bnrt{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;border-radius:18px;box-shadow:0 6px 16px rgba(14,59,140,.22);}
+.bnrt::-webkit-scrollbar{display:none;}
+.bnrt .bnr{margin:0;flex:0 0 100%;scroll-snap-align:start;border-radius:0;box-shadow:none;}
+.bnrd{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);display:flex;gap:4px;pointer-events:none;}
+.bnrd i{width:5px;height:5px;border-radius:3px;background:rgba(255,255,255,.55);transition:width .2s;}.bnrd i.on{width:14px;background:#fff;}
 .bnr{margin:16px 16px 0;aspect-ratio:1080/393;border-radius:18px;position:relative;overflow:hidden;box-shadow:0 6px 16px rgba(14,59,140,.22);background:#0E3B8C center/cover no-repeat;cursor:pointer;}
 .bnr.ph{background:linear-gradient(110deg,#0E3B8C,#2E6FE0 65%,#5B96F0);}
 .bnr .shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(7,27,61,.65),rgba(7,27,61,0) 70%);}
@@ -668,7 +674,7 @@ html.rm-lock,html.rm-lock body{overflow:hidden!important;overscroll-behavior:non
   </div>
 
   <!-- APP BANNER (ตั้งค่าที่แอดมิน: settings/appBanner) -->
-  <div class="bnr" id="bnrEl" style="display:none" onclick="bnrGo()"></div>
+  <div class="bnrw" id="bnrEl" style="display:none"><div class="bnrt" id="bnrTrack"></div><div class="bnrd" id="bnrDots"></div></div>
 
   <!-- CATEGORY BUTTONS -->
   <div class="sec">
@@ -1108,17 +1114,34 @@ function renderServices(){
     if(b.go) b.go(); else location.href=b.url;
   });
 }
-/* ===== แบนเนอร์แอพ (settings/appBanner: on,imgUrl,title,sub,linkUrl,imgOnly) ===== */
-let BNR={};
-function renderBanner(){
-  const el=document.getElementById('bnrEl'); if(!el) return;
-  if(!BNR||!BNR.on||(!BNR.imgUrl&&!BNR.title)){ el.style.display='none'; return; }
-  el.style.display='block';
-  el.className='bnr'+(BNR.imgUrl?'':' ph')+(BNR.imgUrl&&BNR.imgOnly?' only':'');
-  el.style.backgroundImage=BNR.imgUrl?'url("'+String(BNR.imgUrl).replace(/"/g,'%22')+'")':'';
-  el.innerHTML=(BNR.imgUrl?'<div class="shade"></div>':'')+'<div class="tx"><b>'+esc(BNR.title||'')+'</b><small>'+esc(BNR.sub||'')+'</small></div>';
+/* ===== แบนเนอร์แอพ (settings/appBanner: on, sec, items[{imgUrl,title,sub,linkUrl,imgOnly}]) — เลื่อนอัตโนมัติ ===== */
+let BNR={}, _bnrSig='', _bnrTimer=null;
+function bnrItems(){
+  if(!BNR||!BNR.on) return [];
+  const l=Array.isArray(BNR.items)?BNR.items:((BNR.imgUrl||BNR.title)?[BNR]:[]);
+  return l.filter(it=>it&&(it.imgUrl||it.title));
 }
-function bnrGo(){ if(BNR&&BNR.linkUrl){ if(/^https?:/i.test(BNR.linkUrl)) window.open(BNR.linkUrl,'_blank'); else location.href=BNR.linkUrl; } }
+function renderBanner(){
+  const w=document.getElementById('bnrEl'); if(!w) return;
+  const items=bnrItems(); const sig=JSON.stringify([items,BNR&&BNR.sec]);
+  if(sig===_bnrSig) return; _bnrSig=sig;
+  clearInterval(_bnrTimer);
+  if(!items.length){ w.style.display='none'; return; }
+  w.style.display='block';
+  const tr=document.getElementById('bnrTrack'), dots=document.getElementById('bnrDots');
+  tr.innerHTML=items.map((it,i)=>'<div class="bnr'+(it.imgUrl?'':' ph')+(it.imgUrl&&it.imgOnly?' only':'')+'" data-i="'+i+'" style="'+(it.imgUrl?'background-image:url(&quot;'+String(it.imgUrl).replace(/"/g,'%22')+'&quot;)':'')+'">'
+    +(it.imgUrl?'<div class="shade"></div>':'')+'<div class="tx"><b>'+esc(it.title||'')+'</b><small>'+esc(it.sub||'')+'</small></div></div>').join('');
+  dots.innerHTML=items.length>1?items.map((_,i)=>'<i'+(i?'':' class="on"')+'></i>').join(''):'';
+  tr.scrollLeft=0;
+  tr.onclick=e=>{ const b=e.target.closest('.bnr'); if(!b) return; const it=items[+b.dataset.i]; if(it&&it.linkUrl){ if(/^https?:/i.test(it.linkUrl)) window.open(it.linkUrl,'_blank'); else location.href=it.linkUrl; } };
+  let paused=false;
+  const idx=()=>Math.round(tr.scrollLeft/Math.max(1,tr.clientWidth));
+  tr.onscroll=()=>{ const k=idx(); [...dots.children].forEach((d,i)=>d.classList.toggle('on',i===k)); };
+  tr.ontouchstart=()=>{paused=true;}; tr.ontouchend=()=>{setTimeout(()=>{paused=false;},4000);};
+  if(items.length>1){
+    _bnrTimer=setInterval(()=>{ if(paused||document.hidden) return; const k=(idx()+1)%items.length; tr.scrollTo({left:k*tr.clientWidth,behavior:'smooth'}); },Math.max(2,Math.min(15,+BNR.sec||4))*1000);
+  }
+}
 async function loadBanner(){
   try{ BNR=JSON.parse(localStorage.getItem('appBanner')||'{}'); }catch(e){ BNR={}; }
   renderBanner();
