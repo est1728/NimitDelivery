@@ -8,13 +8,13 @@
   var PRESETS={
     'default':{name:'ปกติ',vars:{},themeColor:'#0B2C63',swatch:['#071B3D','#0E3B8C','#2E6FE0']},
     'halloween':{name:'ฮาโลวีน',themeColor:'#1A0B2E',swatch:['#1A0B2E','#5A2A9A','#FF7A18'],
-      mascotDir:'theme/halloween/mascot/',deco:{header:'theme/halloween/header.webp'},
+      mascotDir:'theme/halloween/mascot/',sprites:['web','pumpkin','bat','ghost'],spriteDir:'theme/halloween/deco/',deco:{header:'theme/halloween/header.webp'},
       vars:{'--blue-900':'#1A0B2E','--blue-800':'#2A1048','--blue-700':'#4B1F7C','--blue-600':'#6A2FB0','--blue-500':'#8A4FD6',
             '--blue-100':'#EFE5FB','--blue-50':'#F8F3FE','--bg':'#F8F4FC',
             '--t1':'#EDE2FB','--t2':'#F6F0FE','--t3':'#E2D2F6','--t4':'#EEE3FA','--t5':'#E6DAF5','--t6':'#D3BFEF',
             '--amber-500':'#FF7A18','--amber-600':'#E0620A','--amber-100':'#FFE9D6'}}
   };
-  var KEY='appThemeCfg', root=document.documentElement, applied='default', applyVars=[];
+  var KEY='appThemeCfg', root=document.documentElement, applied='default', applyVars=[], spriteNames=[];
   var script=document.currentScript; var noApply=script&&script.hasAttribute('data-noapply');
   function today(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
   function pick(cfg){
@@ -40,6 +40,11 @@
     for(var i=0;i<applyVars.length;i++) root.style.removeProperty(applyVars[i]);
     applyVars=[]; for(var k in p.vars){ root.style.setProperty(k,p.vars[k]); applyVars.push(k); }
     root.setAttribute('data-theme',id); applied=id;
+    /* สไปรต์ตกแต่ง: โหลดได้จึงตั้งตัวแปร --sp-NAME และเพิ่มชื่อใน data-sp (ไม่มีไฟล์ = ไม่แสดง ไม่พัง) */
+    spriteNames.forEach(function(n){ root.style.removeProperty('--sp-'+n); }); spriteNames=[]; root.removeAttribute('data-sp');
+    (p.sprites||[]).forEach(function(n){ var u=p.spriteDir+n+'.webp', im=new Image();
+      im.onload=function(){ if(applied!==id) return; root.style.setProperty('--sp-'+n,'url("'+u+'")'); spriteNames.push(n); root.setAttribute('data-sp',spriteNames.join(' ')); };
+      im.src=u; });
     var m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content',p.themeColor||'#0B2C63');
     function after(){ paintDeco(p); refreshImgs(); try{ window.dispatchEvent(new CustomEvent('themechange',{detail:{id:id}})); }catch(e){} }
     if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',after); else after();

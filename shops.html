@@ -421,6 +421,16 @@ a{color:inherit;}
 #pupX{position:absolute;border:none;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%);-webkit-tap-highlight-color:transparent}
 #pupX.vis{background:rgba(15,23,42,.78);border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 #pupX.hid{background:transparent;opacity:0}
+/* ===== ธีมเทศกาล: ปรับหัวเว็บ + ช่องสไปรต์ตกแต่ง (ไม่มีไฟล์สไปรต์ก็ไม่แสดง) ===== */
+.tb-mas{display:none;position:absolute;right:8px;bottom:6px;height:78px;width:auto;z-index:2;pointer-events:none;filter:drop-shadow(0 3px 5px rgba(0,0,0,.35));}
+html[data-theme="halloween"] .tb-mas{display:block;}
+html[data-theme="halloween"] .srch{margin-right:84px;}
+html[data-theme="halloween"] .tb-deco{background-size:auto 100%;background-position:left center;-webkit-mask-image:linear-gradient(90deg,#000 55%,transparent 72%);mask-image:linear-gradient(90deg,#000 55%,transparent 72%);}
+html[data-sp~="web"] .sv::before,html[data-sp~="web"] .cbox::before{content:'';position:absolute;top:0;right:0;width:46px;height:46px;background:var(--sp-web) top right/contain no-repeat;pointer-events:none;z-index:1;}
+html[data-sp~="web"] .sv::before{border-top-right-radius:18px;}
+html[data-sp~="pumpkin"] .sec-t::before{width:22px;height:22px;background:var(--sp-pumpkin) center/contain no-repeat;border-radius:0;}
+html[data-sp~="bat"] .sec-hd{position:relative;}
+html[data-sp~="bat"] .sec-hd::after{content:'';position:absolute;right:62px;top:-4px;width:30px;height:20px;background:var(--sp-bat) center/contain no-repeat;pointer-events:none;opacity:.9;}
 </style>
 <style id="rm-css">
 .rm-stage{width:100%;display:flex;flex-direction:column;align-items:center;will-change:transform}
@@ -616,6 +626,7 @@ html.rm-lock,html.rm-lock body{overflow:hidden!important;overscroll-behavior:non
         </button>
       </div>
     </div>
+    <img class="tb-mas" data-m="wave" alt="" onerror="this.style.display='none'">
     <div class="srch">
       <svg class="srch-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
       <input id="srchBox" placeholder="ค้นหาร้านหรือเมนู..." readonly onclick="location.href='search.html'">
