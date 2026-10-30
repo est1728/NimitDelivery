@@ -2474,13 +2474,59 @@ window.saveBanner=async function(){
     alert('บันทึกแบนเนอร์เรียบร้อย');
   }catch(e){hideUploadProgress();alert('ผิดพลาด: '+e.message);}
 };
+
+/* ===== ป้ายเด้งตอนเปิดแอพ: settings/popup ===== */
+let _pupFile=null,_pupUrl='';
+function pupPos(){
+  const m=document.getElementById('pupPos').value;
+  if(m==='tl') return {x:6,y:4,sz:34}; if(m==='below') return {x:50,y:108,sz:34};
+  if(m==='custom') return {x:+document.getElementById('pupX').value||0,y:+document.getElementById('pupY').value||0,sz:+document.getElementById('pupSz').value||40};
+  return {x:94,y:4,sz:34};
+}
+window.pupRefresh=function(){
+  document.getElementById('pupXY').style.display=document.getElementById('pupPos').value==='custom'?'grid':'none';
+  const p=pupPos(),d=document.getElementById('pupDot'),box=document.getElementById('pupBox');
+  const has=!!(_pupFile||_pupUrl); box.style.display=has?'block':'none'; document.getElementById('pupNone').style.display=has?'none':'';
+  d.style.left=p.x+'%'; d.style.top=p.y+'%'; d.style.width=d.style.height=Math.round(p.sz*0.75)+'px'; d.style.lineHeight=Math.round(p.sz*0.75)+'px';
+  d.style.margin='-'+Math.round(p.sz*0.375)+'px 0 0 -'+Math.round(p.sz*0.375)+'px';
+  const hide=document.getElementById('pupHide').checked; d.style.background=hide?'rgba(239,68,68,.25)':'rgba(15,23,42,.75)';
+  d.style.border=hide?'1.5px dashed #ef4444':'none'; d.style.color=hide?'transparent':'#fff';
+};
+window.pupPick=function(inp){
+  const f=inp.files&&inp.files[0]; if(!f) return; _pupFile=f;
+  document.getElementById('pupImg').src=URL.createObjectURL(f); window.pupRefresh();
+};
+window.loadPopupCfg=async function(){
+  try{
+    const sn=await getDoc(doc(db,'settings','popup')); const d=sn.exists()?sn.data():{};
+    _pupFile=null; _pupUrl=d.imgUrl||''; document.getElementById('pupImg').src=_pupUrl;
+    document.getElementById('pupOn').checked=!!d.on; document.getElementById('pupLink').value=d.linkUrl||'';
+    document.getElementById('pupPos').value=d.closePos||'tr'; document.getElementById('pupFreq').value=d.freq||'session';
+    document.getElementById('pupX').value=d.closeX!=null?d.closeX:94; document.getElementById('pupY').value=d.closeY!=null?d.closeY:26; document.getElementById('pupSz').value=d.closeSize||40;
+    document.getElementById('pupHide').checked=!!d.closeHidden; document.getElementById('pupStart').value=d.start||''; document.getElementById('pupEnd').value=d.end||'';
+    window.pupRefresh();
+  }catch(e){}
+};
+window.savePopup=async function(){
+  try{
+    if(_pupFile){ showUploadProgress('อัพโหลดรูปป้ายเด้ง...'); _pupUrl=await uploadFile(_pupFile,'popup'); hideUploadProgress(); _pupFile=null; }
+    const on=document.getElementById('pupOn').checked;
+    if(on&&!_pupUrl){ alert('เลือกรูปก่อนเปิดแสดง'); return; }
+    await setDoc(doc(db,'settings','popup'),{on,imgUrl:_pupUrl,linkUrl:document.getElementById('pupLink').value.trim(),
+      closePos:document.getElementById('pupPos').value,closeX:+document.getElementById('pupX').value||0,closeY:+document.getElementById('pupY').value||0,
+      closeSize:+document.getElementById('pupSz').value||40,closeHidden:document.getElementById('pupHide').checked,
+      freq:document.getElementById('pupFreq').value,start:document.getElementById('pupStart').value,end:document.getElementById('pupEnd').value,
+      ver:Date.now(),updatedAt:serverTimestamp()});
+    alert('บันทึกป้ายเด้งเรียบร้อย');
+  }catch(e){hideUploadProgress();alert('ผิดพลาด: '+e.message);}
+};
 window.openAdCreate=function(){
   document.getElementById('adCreateSheet').style.display='flex';
   document.getElementById('adType').value='image';
   document.getElementById('adImgRow').style.display='';
   document.getElementById('adVidRow').style.display='none';
   document.getElementById('adLinkUrl').value='';
-  window.loadBannerCfg();
+  window.loadBannerCfg(); window.loadPopupCfg();
 };
 window.closeAdCreate=function(){
   document.getElementById('adCreateSheet').style.display='none';
@@ -3051,6 +3097,35 @@ if(localStorage.getItem('fcmTokenSaved_admin')==='1'){
       <label style="display:block;font-size:13px;margin-bottom:6px"><input type="checkbox" id="bnrOnly"> แสดงรูปอย่างเดียว (ไม่ทับข้อความ)</label>
       <button onclick="window.saveBanner()" id="bnrSaveBtn" style="width:100%;height:46px;border:none;border-radius:14px;background:linear-gradient(135deg,#083570,#1565C0);color:#fff;font-size:14px;font-weight:800;cursor:pointer">เพิ่มเป็นแบนเนอร์ใหม่</button>
       <button id="bnrNewBtn" onclick="window.bnrNew()" style="display:none;width:100%;height:38px;border:none;background:none;color:#64748b;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px">ยกเลิกการแก้ไข / เพิ่มอันใหม่</button>
+    </div>
+
+    <div style="border-top:1px solid #f0f2f5;margin-top:16px;padding-top:12px">
+      <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:4px">ป้ายเด้งตอนเปิดแอพ (ป๊อปอัพ)</div>
+      <div style="font-size:11px;color:#94a3b8;margin-bottom:10px">ใช้ภาพ PNG พื้นหลังโปร่งใสได้ (ตัวละครล้นออกนอกกรอบได้) · ไม่ต้องครอป แสดงตามสัดส่วนภาพจริง</div>
+      <label style="display:block;font-size:13px;margin-bottom:8px"><input type="checkbox" id="pupOn"> เปิดแสดงป้ายเด้ง</label>
+      <div id="pupPrev" style="position:relative;height:210px;border-radius:14px;margin-bottom:8px;background:repeating-conic-gradient(#e5e7eb 0% 25%,#f8fafc 0% 50%) 50%/16px 16px;display:flex;align-items:center;justify-content:center">
+        <div id="pupBox" style="position:relative;display:none;height:90%"><img id="pupImg" style="height:100%;display:block"><div id="pupDot" style="position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:rgba(15,23,42,.75);color:#fff;font-size:15px;line-height:26px;text-align:center;font-weight:700">×</div></div>
+        <span id="pupNone" style="font-size:12px;color:#94a3b8">ยังไม่มีรูป</span>
+      </div>
+      <input id="pupFile" type="file" accept="image/png,image/webp,image/jpeg" onchange="window.pupPick(this)" style="font-size:12px;margin-bottom:8px;width:100%">
+      <input id="pupLink" placeholder="ลิงก์เมื่อกดที่รูป เช่น coupon.html หรือ https://... (ไม่ใส่ก็ได้)" style="width:100%;height:42px;border:1.5px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:13px;outline:none;margin-bottom:8px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <label style="font-size:12px;color:#475569">ปุ่มปิดอยู่ตรงไหน
+          <select id="pupPos" onchange="window.pupRefresh()" style="width:100%;height:40px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;margin-top:3px"><option value="tr">มุมขวาบน</option><option value="tl">มุมซ้ายบน</option><option value="below">ใต้รูป ตรงกลาง</option><option value="custom">กำหนดเอง (X / Y %)</option></select></label>
+        <label style="font-size:12px;color:#475569">แสดงบ่อยแค่ไหน
+          <select id="pupFreq" style="width:100%;height:40px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;margin-top:3px"><option value="session">ครั้งเดียวต่อการเปิดแอพ</option><option value="daily">วันละครั้ง</option><option value="once">ครั้งเดียว (จนกว่าจะแก้ป้าย)</option><option value="always">ทุกครั้งที่เข้าหน้าแรก</option></select></label>
+      </div>
+      <div id="pupXY" style="display:none;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+        <label style="font-size:12px;color:#475569">X %<input id="pupX" type="number" min="0" max="100" value="94" oninput="window.pupRefresh()" style="width:100%;height:38px;border:1.5px solid #e2e8f0;border-radius:10px;text-align:center"></label>
+        <label style="font-size:12px;color:#475569">Y %<input id="pupY" type="number" min="0" max="100" value="26" oninput="window.pupRefresh()" style="width:100%;height:38px;border:1.5px solid #e2e8f0;border-radius:10px;text-align:center"></label>
+        <label style="font-size:12px;color:#475569">ขนาด px<input id="pupSz" type="number" min="24" max="80" value="40" oninput="window.pupRefresh()" style="width:100%;height:38px;border:1.5px solid #e2e8f0;border-radius:10px;text-align:center"></label>
+      </div>
+      <label style="display:block;font-size:13px;margin-bottom:8px"><input type="checkbox" id="pupHide" onchange="window.pupRefresh()"> ปุ่มปิดล่องหน (ใช้เมื่อรูปมีกากบาทอยู่แล้ว · วางจุดกดทับกากบาทในรูป)</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <label style="font-size:12px;color:#475569">เริ่มแสดง<input id="pupStart" type="date" style="width:100%;height:38px;border:1.5px solid #e2e8f0;border-radius:10px;padding:0 8px"></label>
+        <label style="font-size:12px;color:#475569">หยุดแสดง<input id="pupEnd" type="date" style="width:100%;height:38px;border:1.5px solid #e2e8f0;border-radius:10px;padding:0 8px"></label>
+      </div>
+      <button onclick="window.savePopup()" style="width:100%;height:46px;border:none;border-radius:14px;background:linear-gradient(135deg,#083570,#1565C0);color:#fff;font-size:14px;font-weight:800;cursor:pointer">บันทึกป้ายเด้ง</button>
     </div>
   </div>
 </div>

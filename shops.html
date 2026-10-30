@@ -412,6 +412,15 @@ a{color:inherit;}
 .zone-desc{font-size:13px;color:var(--ink-500);line-height:1.7;margin-bottom:22px;}
 .zone-btn-pri{width:100%;height:48px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--blue-600),var(--blue-700));color:#fff;font-size:14.5px;font-weight:800;cursor:pointer;margin-bottom:10px;}
 .zone-btn-sec{width:100%;height:44px;border:none;border-radius:14px;background:var(--bg);color:var(--ink-500);font-size:13.5px;font-weight:700;cursor:pointer;}
+/* ===== ป้ายเด้งตอนเปิดแอพ ===== */
+#pupOv{position:fixed;inset:0;z-index:99990;display:none;align-items:center;justify-content:center;background:rgba(8,6,20,.62);opacity:0;transition:opacity .22s}
+#pupOv.show{display:flex}#pupOv.in{opacity:1}
+#pupBx{position:relative;max-width:min(88vw,440px);max-height:78vh;transform:scale(.86) translateY(14px);transition:transform .28s cubic-bezier(.2,1.3,.4,1)}
+#pupOv.in #pupBx{transform:none}
+#pupIm{display:block;max-width:100%;max-height:78vh;width:auto;height:auto;-webkit-user-drag:none;user-select:none}
+#pupX{position:absolute;border:none;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%);-webkit-tap-highlight-color:transparent}
+#pupX.vis{background:rgba(15,23,42,.78);border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+#pupX.hid{background:transparent;opacity:0}
 </style>
 <style id="rm-css">
 .rm-stage{width:100%;display:flex;flex-direction:column;align-items:center;will-change:transform}
@@ -1167,6 +1176,34 @@ async function loadBanner(){
     BNR=sn.exists()?sn.data():{};
     try{ localStorage.setItem('appBanner',JSON.stringify(BNR)); }catch(e){}
     renderBanner();
+  }catch(e){}
+}
+/* ===================== ป้ายเด้งตอนเปิดแอพ (settings/popup) ===================== */
+async function loadPopup(){
+  try{
+    const sn=await getDoc(doc(db,'settings','popup')); if(!sn.exists()) return; const c=sn.data();
+    if(!c.on||!c.imgUrl) return;
+    const t=new Date(), today=t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2);
+    if(c.start&&today<c.start) return; if(c.end&&today>c.end) return;
+    const fq=c.freq||'session', ver=String(c.ver||0); let seen={};
+    try{ seen=JSON.parse(localStorage.getItem('pupSeen')||'{}'); }catch(e){}
+    if(fq==='session'){ try{ if(sessionStorage.getItem('pupShown')===ver) return; }catch(e){} }
+    if(fq==='daily'&&seen.ver===ver&&seen.day===today) return;
+    if(fq==='once'&&seen.ver===ver) return;
+    const im=$('pupIm'); await new Promise((ok,no)=>{ im.onload=ok; im.onerror=no; im.src=c.imgUrl; });
+    const pos={tr:[94,4,34],tl:[6,4,34],below:[50,108,34]}[c.closePos]||(c.closePos==='custom'?[+c.closeX||0,+c.closeY||0,+c.closeSize||40]:[94,4,34]);
+    const x=$('pupX'), sz=pos[2];
+    x.style.left=pos[0]+'%'; x.style.top=pos[1]+'%'; x.style.width=x.style.height=sz+'px';
+    x.className=c.closeHidden?'hid':'vis';
+    x.innerHTML=c.closeHidden?'':'<svg width="'+Math.round(sz*0.44)+'" height="'+Math.round(sz*0.44)+'" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>';
+    const ov=$('pupOv');
+    const close=()=>{ ov.classList.remove('in'); setTimeout(()=>{ ov.classList.remove('show'); },230); document.body.style.overflow=''; };
+    x.onclick=e=>{ e.stopPropagation(); close(); };
+    ov.onclick=e=>{ if(e.target===ov) close(); };
+    im.onclick=()=>{ const u=(c.linkUrl||'').trim(); close(); if(u) setTimeout(()=>{ location.href=u; },120); };
+    im.style.cursor=c.linkUrl?'pointer':'default';
+    ov.classList.add('show'); document.body.style.overflow='hidden'; requestAnimationFrame(()=>requestAnimationFrame(()=>ov.classList.add('in')));
+    try{ sessionStorage.setItem('pupShown',ver); localStorage.setItem('pupSeen',JSON.stringify({ver,day:today})); }catch(e){}
   }catch(e){}
 }
 async function loadServiceCfg(){
@@ -2213,6 +2250,7 @@ loadAds();
 renderActiveOrder();
 loadServiceCfg();
 loadBanner();
+loadPopup();
 renderRewards();
 renderFlash();
 renderCouponPromo();
@@ -2304,5 +2342,6 @@ window.openZoneOutModal=function(){ document.getElementById('zoneOutOverlay').cl
   upd();
 })();
 </script>
+<div id="pupOv"><div id="pupBx"><img id="pupIm" alt=""><button id="pupX" aria-label="ปิด"></button></div></div>
 </body>
 </html>
