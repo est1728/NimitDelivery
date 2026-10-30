@@ -206,6 +206,7 @@ body{background:var(--g);min-height:100vh;}
 .emp p{font-size:14px;font-weight:700;color:var(--t);margin-bottom:4px;}
 .emp span{font-size:13px;color:var(--s);}
 </style>
+<script src="theme.js" data-noapply></script>
 </head>
 <body>
 <script>
@@ -344,6 +345,14 @@ window.onerror = function(msg, url, line, col, error){
     <div class="hint" style="margin-bottom:12px">เลือกสถานะของแต่ละปุ่มบนหน้าแรก: เปิด = ใช้งานได้ / เร็วๆ นี้ = แสดงจางกดไม่ได้ / ปิด = ซ่อน</div>
     <div id="hbRows"></div>
     <button class="savbtn" onclick="saveHomeButtons()">บันทึกปุ่มบริการ</button>
+  </div>
+  <div class="card">
+    <div class="stitle">ธีมเทศกาล (ใช้ร่วมกันทั้งระบบ)</div>
+    <div class="hint" style="margin-bottom:12px">เลือกธีมที่ลูกค้าจะเห็น (สี มาสคอต ภาพตกแต่ง) ตั้งวันเริ่ม-จบได้ เมื่อพ้นวันจบระบบกลับเป็นธีมปกติเอง</div>
+    <div id="thRows"></div>
+    <div style="display:flex;gap:8px;margin:6px 0 10px;align-items:center;font-size:12px"><span>เริ่ม</span><input class="inp" id="thStart" type="date" style="flex:1"><span>จบ</span><input class="inp" id="thEnd" type="date" style="flex:1"></div>
+    <div class="hint" id="thNow" style="margin-bottom:10px"></div>
+    <button class="savbtn" onclick="saveTheme()">บันทึกธีม</button>
   </div>
   <div class="card">
     <div class="stitle">🔔 VAPID Key (สำหรับแจ้งเตือน)</div>
@@ -968,6 +977,26 @@ window.saveHomeButtons=async function(){
   catch(e){ if(typeof toast==='function') toast('บันทึกไม่สำเร็จ: '+e.message,'er'); else alert('บันทึกไม่สำเร็จ: '+e.message); }
 };
 (async function(){ let cfg={}; try{ const sn=await getDoc(doc(db,'settings','homeButtons')); if(sn.exists()) cfg=sn.data(); }catch(e){} renderHbRows(cfg); })();
+
+
+// ============ ธีมเทศกาล (settings/theme) ============
+function renderThRows(cfg){
+  const cur=cfg.active||'default';
+  document.getElementById('thRows').innerHTML=NimitTheme.list().map(t=>`<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid ${cur===t.id?'var(--p)':'#E2E8F0'};border-radius:12px;margin-bottom:8px;cursor:pointer">
+    <input type="radio" name="thSel" value="${t.id}" ${cur===t.id?'checked':''}>
+    <span style="flex:1;font-size:14px;font-weight:700">${t.name}</span>
+    <span style="display:flex;gap:4px">${t.swatch.map(c=>`<i style="width:18px;height:18px;border-radius:50%;background:${c};display:block"></i>`).join('')}</span></label>`).join('');
+  document.getElementById('thStart').value=cfg.start||''; document.getElementById('thEnd').value=cfg.end||'';
+  const now=NimitTheme.pick(cfg); document.getElementById('thNow').textContent='ธีมที่ลูกค้าเห็นตอนนี้: '+NimitTheme.presets[now].name;
+}
+window.saveTheme=async function(){
+  const c=document.querySelector('input[name="thSel"]:checked'); const o={active:c?c.value:'default',start:document.getElementById('thStart').value||'',end:document.getElementById('thEnd').value||''};
+  try{ await setDoc(doc(db,'settings','theme'),{...o,updatedAt:serverTimestamp()});
+    try{localStorage.setItem('appThemeCfg',JSON.stringify(o));}catch(e){}
+    renderThRows(o); if(typeof toast==='function') toast('บันทึกธีมแล้ว','ok'); else alert('บันทึกแล้ว'); }
+  catch(e){ if(typeof toast==='function') toast('บันทึกไม่สำเร็จ: '+e.message,'er'); else alert('บันทึกไม่สำเร็จ: '+e.message); }
+};
+(async function(){ let cfg={}; try{ const sn=await getDoc(doc(db,'settings','theme')); if(sn.exists()) cfg=sn.data(); }catch(e){} renderThRows(cfg); })();
 
 // ============ แปลงรูปเก่า (base64) เป็นระบบใหม่ (Storage + ลิงก์) ============
 async function base64ToStorageUrl(base64Str){
