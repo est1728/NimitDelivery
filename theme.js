@@ -17,9 +17,11 @@
   var KEY='appThemeCfg', root=document.documentElement, applied='default', applyVars=[], spriteNames=[];
   var script=document.currentScript; var noApply=script&&script.hasAttribute('data-noapply');
   function today(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+  function nowStr(){var d=new Date();return today()+'T'+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
+  function norm(v,end){ if(!v) return ''; return v.length<=10 ? v+(end?'T23:59':'T00:00') : v; }
   function pick(cfg){
     if(!cfg||!cfg.active||!PRESETS[cfg.active]||cfg.active==='default') return 'default';
-    var t=today(); if(cfg.start&&t<cfg.start) return 'default'; if(cfg.end&&t>cfg.end) return 'default';
+    if(cfg.mode!=='manual'){ var n=nowStr(), s=norm(cfg.start), e=norm(cfg.end,1); if(s&&n<s) return 'default'; if(e&&n>e) return 'default'; }
     return cfg.active;
   }
   function paintDeco(p){
@@ -58,7 +60,7 @@
       if(noApply) return Promise.resolve();
       var url='https://firestore.googleapis.com/v1/projects/nimit-delivery/databases/(default)/documents/settings/theme?key=AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4';
       return fetch(url).then(function(r){ if(r.status===404) return {fields:{}}; if(!r.ok) throw 0; return r.json(); }).then(function(j){
-        var f=(j&&j.fields)||{}, cfg={active:(f.active&&f.active.stringValue)||'default',start:(f.start&&f.start.stringValue)||'',end:(f.end&&f.end.stringValue)||''};
+        var f=(j&&j.fields)||{}, cfg={active:(f.active&&f.active.stringValue)||'default',start:(f.start&&f.start.stringValue)||'',end:(f.end&&f.end.stringValue)||'',mode:(f.mode&&f.mode.stringValue)||''};
         try{localStorage.setItem(KEY,JSON.stringify(cfg));}catch(e){}
         var id=pick(cfg); if(id!==applied) apply(id);
       }).catch(function(){});

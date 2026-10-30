@@ -415,11 +415,12 @@ a{color:inherit;}
 /* ===== ป้ายเด้งตอนเปิดแอพ ===== */
 #pupOv{position:fixed;inset:0;z-index:99990;display:none;align-items:center;justify-content:center;background:rgba(8,6,20,.62);opacity:0;transition:opacity .22s}
 #pupOv.show{display:flex}#pupOv.in{opacity:1}
-#pupBx{position:relative;max-width:min(88vw,440px);max-height:78vh;transform:scale(.86) translateY(14px);transition:transform .28s cubic-bezier(.2,1.3,.4,1)}
+#pupBx{position:relative;transform:scale(.86) translateY(14px);transition:transform .28s cubic-bezier(.2,1.3,.4,1)}
 #pupOv.in #pupBx{transform:none}
-#pupIm{display:block;max-width:100%;max-height:78vh;width:auto;height:auto;-webkit-user-drag:none;user-select:none}
+#pupIm{display:block;width:100%;height:auto;-webkit-user-drag:none;user-select:none}
 #pupX{position:absolute;border:none;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%);-webkit-tap-highlight-color:transparent}
 #pupX.vis{background:rgba(15,23,42,.78);border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+#pupSk{position:absolute;left:50%;top:100%;transform:translateX(-50%);white-space:nowrap;margin-top:12px;padding:7px 16px;border-radius:20px;background:rgba(15,10,30,.55);color:#fff;font-size:13px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;}
 #pupX.hid{background:transparent;opacity:0}
 /* ===== ธีมเทศกาล: ปรับหัวเว็บ + ช่องสไปรต์ตกแต่ง (ไม่มีไฟล์สไปรต์ก็ไม่แสดง) ===== */
 .tb-mas{display:none;position:absolute;right:8px;bottom:6px;height:78px;width:auto;z-index:2;pointer-events:none;filter:drop-shadow(0 3px 5px rgba(0,0,0,.35));}
@@ -1199,15 +1200,20 @@ async function loadPopup(){
   try{
     const sn=await getDoc(doc(db,'settings','popup')); if(!sn.exists()) return; const c=sn.data();
     if(!c.on||!c.imgUrl) return;
-    const t=new Date(), today=t.getFullYear()+'-'+('0'+(t.getMonth()+1)).slice(-2)+'-'+('0'+t.getDate()).slice(-2);
-    if(c.start&&today<c.start) return; if(c.end&&today>c.end) return;
+    const t=new Date(), p2=n=>('0'+n).slice(-2), today=t.getFullYear()+'-'+p2(t.getMonth()+1)+'-'+p2(t.getDate()), nowS=today+'T'+p2(t.getHours())+':'+p2(t.getMinutes());
+    const nm=(v,e)=>!v?'':(v.length<=10?v+(e?'T23:59':'T00:00'):v);
+    if(c.mode!=='manual'){ const st=nm(c.start,0), en=nm(c.end,1); if(st&&nowS<st) return; if(en&&nowS>en) return; }
     const fq=c.freq||'session', ver=String(c.ver||0); let seen={};
     try{ seen=JSON.parse(localStorage.getItem('pupSeen')||'{}'); }catch(e){}
+    try{ const sk=JSON.parse(localStorage.getItem('pupSkip')||'{}'); if(sk.ver===ver&&sk.day===today) return; }catch(e){}
     if(fq==='session'){ try{ if(sessionStorage.getItem('pupShown')===ver) return; }catch(e){} }
     if(fq==='daily'&&seen.ver===ver&&seen.day===today) return;
     if(fq==='once'&&seen.ver===ver) return;
     const im=$('pupIm'); await new Promise((ok,no)=>{ im.onload=ok; im.onerror=no; im.src=c.imgUrl; });
-    const pos={tr:[94,4,34],tl:[6,4,34],below:[50,108,34]}[c.closePos]||(c.closePos==='custom'?[+c.closeX||0,+c.closeY||0,+c.closeSize||40]:[94,4,34]);
+    const lg={tr:[94,4],tl:[6,4],below:[50,108]}[c.closePos];
+    const pos=[lg?lg[0]:(c.closeX!=null?+c.closeX:94), lg?lg[1]:(c.closeY!=null?+c.closeY:4), +c.closeSize||34];
+    const asp=(im.naturalWidth/im.naturalHeight)||0.72, bw=Math.min((+c.scale||88)/100*innerWidth, 0.85*innerHeight*asp, 520);
+    $('pupBx').style.width=Math.round(bw)+'px';
     const x=$('pupX'), sz=pos[2];
     x.style.left=pos[0]+'%'; x.style.top=pos[1]+'%'; x.style.width=x.style.height=sz+'px';
     x.className=c.closeHidden?'hid':'vis';
@@ -1215,6 +1221,8 @@ async function loadPopup(){
     const ov=$('pupOv');
     const close=()=>{ ov.classList.remove('in'); setTimeout(()=>{ ov.classList.remove('show'); },230); document.body.style.overflow=''; };
     x.onclick=e=>{ e.stopPropagation(); close(); };
+    const sk=$('pupSk'); sk.style.marginTop=(pos[1]>100?Math.round((pos[1]-100)/100*(bw/asp)+sz/2+8):12)+'px';
+    sk.onclick=e=>{ e.stopPropagation(); try{ localStorage.setItem('pupSkip',JSON.stringify({ver,day:today})); }catch(_){} close(); };
     ov.onclick=e=>{ if(e.target===ov) close(); };
     im.onclick=()=>{ const u=(c.linkUrl||'').trim(); close(); if(u) setTimeout(()=>{ location.href=u; },120); };
     im.style.cursor=c.linkUrl?'pointer':'default';
@@ -2358,6 +2366,6 @@ window.openZoneOutModal=function(){ document.getElementById('zoneOutOverlay').cl
   upd();
 })();
 </script>
-<div id="pupOv"><div id="pupBx"><img id="pupIm" alt=""><button id="pupX" aria-label="ปิด"></button></div></div>
+<div id="pupOv"><div id="pupBx"><img id="pupIm" alt=""><button id="pupX" aria-label="ปิด"></button><div id="pupSk">ไม่แสดงวันนี้</div></div></div>
 </body>
 </html>

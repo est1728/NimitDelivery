@@ -348,9 +348,13 @@ window.onerror = function(msg, url, line, col, error){
   </div>
   <div class="card">
     <div class="stitle">ธีมเทศกาล (ใช้ร่วมกันทั้งระบบ)</div>
-    <div class="hint" style="margin-bottom:12px">เลือกธีมที่ลูกค้าจะเห็น (สี มาสคอต ภาพตกแต่ง) ตั้งวันเริ่ม-จบได้ เมื่อพ้นวันจบระบบกลับเป็นธีมปกติเอง</div>
+    <div class="hint" style="margin-bottom:12px">เลือกธีมที่ลูกค้าจะเห็น (สี มาสคอต ภาพตกแต่ง) เลือกได้ 2 แบบ: ตั้งเวลา (เริ่ม-จบอัตโนมัติ) หรือเปิดจนกว่าจะปิดเอง</div>
     <div id="thRows"></div>
-    <div style="display:flex;gap:8px;margin:6px 0 10px;align-items:center;font-size:12px"><span>เริ่ม</span><input class="inp" id="thStart" type="date" style="flex:1"><span>จบ</span><input class="inp" id="thEnd" type="date" style="flex:1"></div>
+    <div style="display:flex;gap:8px;margin:6px 0 8px">
+      <label style="flex:1;display:flex;align-items:center;gap:6px;padding:9px 10px;border:1.5px solid #E2E8F0;border-radius:12px;font-size:13px;font-weight:600"><input type="radio" name="thMode" value="timed" onchange="thModeUi()"> ตั้งเวลา</label>
+      <label style="flex:1;display:flex;align-items:center;gap:6px;padding:9px 10px;border:1.5px solid #E2E8F0;border-radius:12px;font-size:13px;font-weight:600"><input type="radio" name="thMode" value="manual" onchange="thModeUi()"> เปิดจนกว่าจะปิด</label>
+    </div>
+    <div id="thTimes" style="display:flex;gap:8px;margin:0 0 10px;align-items:center;font-size:12px"><span>เริ่ม</span><input class="inp" id="thStart" type="datetime-local" style="flex:1"><span>จบ</span><input class="inp" id="thEnd" type="datetime-local" style="flex:1"></div>
     <div class="hint" id="thNow" style="margin-bottom:10px"></div>
     <button class="savbtn" onclick="saveTheme()">บันทึกธีม</button>
   </div>
@@ -986,11 +990,14 @@ function renderThRows(cfg){
     <input type="radio" name="thSel" value="${t.id}" ${cur===t.id?'checked':''}>
     <span style="flex:1;font-size:14px;font-weight:700">${t.name}</span>
     <span style="display:flex;gap:4px">${t.swatch.map(c=>`<i style="width:18px;height:18px;border-radius:50%;background:${c};display:block"></i>`).join('')}</span></label>`).join('');
-  document.getElementById('thStart').value=cfg.start||''; document.getElementById('thEnd').value=cfg.end||'';
+  const nm=n=>!n?'':(n.length<=10?n+'T00:00':n);
+  document.getElementById('thStart').value=nm(cfg.start||''); document.getElementById('thEnd').value=(cfg.end&&cfg.end.length<=10)?cfg.end+'T23:59':(cfg.end||'');
+  const mode=cfg.mode==='manual'?'manual':'timed'; document.querySelector('input[name="thMode"][value="'+mode+'"]').checked=true; window.thModeUi();
   const now=NimitTheme.pick(cfg); document.getElementById('thNow').textContent='ธีมที่ลูกค้าเห็นตอนนี้: '+NimitTheme.presets[now].name;
 }
+window.thModeUi=function(){ const m=document.querySelector('input[name="thMode"]:checked'); document.getElementById('thTimes').style.display=(m&&m.value==='manual')?'none':'flex'; };
 window.saveTheme=async function(){
-  const c=document.querySelector('input[name="thSel"]:checked'); const o={active:c?c.value:'default',start:document.getElementById('thStart').value||'',end:document.getElementById('thEnd').value||''};
+  const c=document.querySelector('input[name="thSel"]:checked'); const md=document.querySelector('input[name="thMode"]:checked'); const mode=md?md.value:'timed'; const o={active:c?c.value:'default',mode,start:mode==='manual'?'':(document.getElementById('thStart').value||''),end:mode==='manual'?'':(document.getElementById('thEnd').value||'')};
   try{ await setDoc(doc(db,'settings','theme'),{...o,updatedAt:serverTimestamp()});
     try{localStorage.setItem('appThemeCfg',JSON.stringify(o));}catch(e){}
     renderThRows(o); if(typeof toast==='function') toast('บันทึกธีมแล้ว','ok'); else alert('บันทึกแล้ว'); }
