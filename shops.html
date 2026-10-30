@@ -131,7 +131,7 @@ a{color:inherit;}
 .ad-ph{width:100%;aspect-ratio:2.1/1;display:flex;align-items:center;justify-content:center;overflow:hidden;}
 .ad-ph span{animation:float2 3s ease-in-out infinite;display:inline-block;}
 @keyframes float2{0%,100%{transform:translateY(0) rotate(0);}50%{transform:translateY(-6px) rotate(-4deg);}}
-.ad-cap{position:relative;margin-top:-46px;padding:0 16px 14px;background:linear-gradient(transparent,rgba(7,27,61,.75));color:var(--white);font-family:'Prompt';font-weight:600;font-size:15px;}
+.ad-cap{position:absolute;left:0;right:0;bottom:0;padding:34px 16px 12px;background:linear-gradient(transparent,rgba(7,27,61,.75));color:var(--white);font-family:'Prompt';font-weight:600;font-size:15px;}
 .ad-cap span{display:block;font-family:'IBM Plex Sans Thai';font-weight:400;font-size:11px;color:rgba(255,255,255,.82);margin-top:2px;}
 .ads-dots{display:flex;justify-content:center;gap:5px;padding:9px 0;}
 .ads-dots .d{width:5px;height:5px;border-radius:3px;background:var(--line);cursor:pointer;transition:all .3s var(--bounce);}
@@ -591,6 +591,7 @@ html.rm-lock,html.rm-lock body{overflow:hidden!important;overscroll-behavior:non
 .rm-bk .rm-i,.rm-xx .rm-i{width:18px;height:18px}
 .rm-pfa{color:#fff}
 @media (prefers-reduced-motion:reduce){.rm-shop,.rm-ov,.rm-sheet,.rm-th,.rm-cap,.rm-bar{transition:none}.rm-sbg{animation:none!important}}
+html[data-sp~="cbg"] .cbox{background:var(--sp-cbg) center/cover no-repeat,linear-gradient(160deg,var(--t1) 0%,var(--t2) 55%,#FFFFFF 100%);}
 </style>
 </head>
 <body>
