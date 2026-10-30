@@ -153,6 +153,12 @@ a{color:inherit;}
 .rv-bt button{flex:1;height:38px;border-radius:11px;border:none;font:inherit;font-size:13px;font-weight:700;cursor:pointer;}
 .rv-skip{background:#EEF2F9;color:#64748B;}.rv-send{background:var(--blue-700);color:#fff;}.rv-send:disabled{opacity:.6;}
 .oc{cursor:pointer;}
+.oc-m{height:58px;width:auto;flex-shrink:0;margin:-4px 0 -4px -2px;display:block;}
+.st-m{position:absolute;right:14px;top:14px;height:66px;width:auto;pointer-events:none;}
+.hasm .st-t,.hasm .st-s{padding-right:84px;}
+.closed-lbl{display:flex;align-items:center;gap:8px;}.closed-lbl img{height:46px;width:auto;margin:-8px 0 -8px -4px;}
+.emp{display:flex;align-items:center;gap:12px;margin:6px 16px 0;padding:12px 14px;background:#fff;border:1px solid #DBE6FB;border-radius:18px;}
+.emp img{height:78px;width:auto;flex-shrink:0;}.emp b{display:block;font-size:14px;color:var(--blue-900);}.emp small{display:block;font-size:12px;color:#64748B;margin-top:2px;}
 .oc-r1{display:flex;align-items:center;gap:10px;}
 .oc-ic{width:38px;height:38px;border-radius:12px;background:#E8F0FE;display:grid;place-items:center;position:relative;flex-shrink:0;fill:var(--blue-700);}.oc-ic svg{width:22px;height:22px;}
 .oc-ic::after{content:"";position:absolute;inset:-4px;border-radius:15px;border:2px solid var(--blue-500);opacity:0;animation:ocpl 1.8s ease-out infinite;}
@@ -986,6 +992,8 @@ const SS=['pending','accepted','picking','arrived','delivering'];
 const STATUS_LABEL={pending:'รอรับออเดอร์',accepted:'รับงานแล้ว',picking:'ไรเดอร์กำลังไปร้าน',arrived:'ถึงร้านแล้ว',delivering:'ไรเดอร์กำลังส่งมาหาคุณ'};
 const OC_STEPS=['รอรับงาน','ไรเดอร์รับงาน','ถึงร้านแล้ว','กำลังส่ง'];
 const OC_IDX={pending:0,accepted:1,picking:1,arrived:2,delivering:3};
+const OC_MASCOT=['drink','chat','cook','moto']; // รอรับงาน / ไรเดอร์รับงาน / ถึงร้านแล้ว / กำลังส่ง
+const RV_MASCOT=['sick','stress','chat','thumb','thanks'];
 function setSlot(html){
   const el=$('stSlot'); if(!el) return;
   if(!html){ el.classList.remove('show'); setTimeout(()=>{ if(!el.classList.contains('show')) el.innerHTML=''; },450); return; }
@@ -1000,7 +1008,7 @@ function renderOrderCard(o){
   const i=OC_IDX[o.status]??0, pct=i/(OC_STEPS.length-1)*100;
   const sub=(o.orderId?'#'+esc(o.orderId)+' · ':'')+esc(o.shopName||'')+(o.riderName?' · '+esc(o.riderName):'');
   setSlot(`<div class="st-card oc" onclick="location.href='track.html?orderId=${o.docId}'">
-    <div class="oc-r1"><div class="oc-ic"><svg viewBox="0 0 24 24"><path d="M19 7c0-1.1-.9-2-2-2h-3v2h3v2.65L13.52 14H10V9H6c-2.21 0-4 1.79-4 4v3h2c0 1.66 1.34 3 3 3s3-1.34 3-3h4.48L19 10.35V7zM7 17c-.55 0-1-.45-1-1h2c0 .55-.45 1-1 1zM5 6h5v2H5zm14 7c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm0 4c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/></svg></div><div class="oc-tt"><b>${esc(STATUS_LABEL[o.status]||o.status)}</b><small>${sub}</small></div><div class="oc-go">›</div></div>
+    <div class="oc-r1"><img class="oc-m" src="mascot/${OC_MASCOT[i]}.webp" alt=""><div class="oc-tt"><b>${esc(STATUS_LABEL[o.status]||o.status)}</b><small>${sub}</small></div><div class="oc-go">›</div></div>
     <div class="oc-trk"><div class="oc-ln"></div><div class="oc-fl" id="ocFl"></div>
       ${OC_STEPS.map((_,k)=>`<i class="oc-dt${k<=i?' d':''}" style="left:${k/(OC_STEPS.length-1)*100}%"></i>`).join('')}
       <span class="oc-rd" id="ocRd"><i><svg viewBox="0 0 24 24"><path d="M19 7c0-1.1-.9-2-2-2h-3v2h3v2.65L13.52 14H10V9H6c-2.21 0-4 1.79-4 4v3h2c0 1.66 1.34 3 3 3s3-1.34 3-3h4.48L19 10.35V7zM7 17c-.55 0-1-.45-1-1h2c0 .55-.45 1-1 1zM5 6h5v2H5zm14 7c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm0 4c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/></svg></i></span></div>
@@ -1008,7 +1016,7 @@ function renderOrderCard(o){
   setTimeout(()=>{ const f=$('ocFl'),r=$('ocRd'); if(f) f.style.width=pct+'%'; if(r) r.style.left=pct+'%'; },80);
 }
 function renderRateCard(o){
-  setSlot(`<div class="st-card"><span class="st-x" onclick="closeSlot('${o.docId}')"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></span>
+  setSlot(`<div class="st-card hasm" id="rvCard"><img class="st-m" id="rvM" src="mascot/thumb.webp" alt=""><span class="st-x" onclick="closeSlot('${o.docId}')"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></span>
     <div id="rvBody"><div class="st-t">สั่งสำเร็จแล้ว! ให้คะแนนออเดอร์นี้</div>
     <div class="st-s">${esc(o.shopName||'')}</div>
     <div class="st-stars">${[1,2,3,4,5].map(n=>`<span data-n="${n}"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></span>`).join('')}</div></div></div>`);
@@ -1016,12 +1024,14 @@ function renderRateCard(o){
     document.querySelectorAll('#stSlot .st-stars span').forEach(sp=>sp.onclick=()=>{
       const n=+sp.dataset.n;
       document.querySelectorAll('#stSlot .st-stars span').forEach(x=>x.classList.toggle('on',+x.dataset.n<=n));
+      const mm=$('rvM'); if(mm) mm.src='mascot/'+RV_MASCOT[n-1]+'.webp';
       setTimeout(()=>showReviewBox(o,n),350);
     });
   },50);
 }
 function showReviewBox(o,n){
   const b=$('rvBody'); if(!b) return;
+  const mm=$('rvM'); if(mm) mm.remove(); const rc=$('rvCard'); if(rc) rc.classList.remove('hasm');
   const hasRider=!!(o.riderId||o.riderName);
   let rn=0;
   b.innerHTML=`<div class="rv-in"><div class="st-t">ขอบคุณสำหรับ ${n} ดาว</div><div class="st-s">เขียนข้อความรีวิวได้เลย (ไม่บังคับ)</div>
@@ -1454,14 +1464,22 @@ function applyFilters(list){
   else out.sort((a,b)=>shopScore(b)-shopScore(a)); // 'แนะนำ' ค่าเริ่มต้น
   return out;
 }
+function emptyShops(){
+  let m='wow',t='ไม่พบร้านค้า',d='ลองเลือกตัวกรองอื่น';
+  if(activeFilters.has('fav')){ m='heart'; t='ยังไม่มีร้านโปรด'; d='กดหัวใจที่ร้านที่ชอบ แล้วจะมาอยู่ตรงนี้'; }
+  else if(activeFilters.has('open')){ m='lie'; t='ตอนนี้ยังไม่มีร้านที่เปิดอยู่'; d='ลองกลับมาใหม่ในช่วงเวลาเปิดร้าน'; }
+  else if(!SHOPS.length){ m='wow'; t='ยังไม่มีร้านในพื้นที่ของคุณ'; d='เรากำลังเพิ่มร้านใกล้คุณ'; }
+  return `<div class="emp"><img src="mascot/${m}.webp" alt=""><div><b>${t}</b><small>${d}</small></div></div>`;
+}
 function renderShops(){
   window.rmReset&&window.rmReset();
   const filtered=applyFilters(SHOPS);
   const open=filtered.filter(s=>effectiveOpen(s)), closed=filtered.filter(s=>!effectiveOpen(s));
   document.getElementById('shopsHd').textContent=activeFilters.size===1&&activeFilters.has('rec')?'ร้านทั้งหมด':`ร้านทั้งหมด (${filtered.length})`;
   document.getElementById('shopsEl').innerHTML=
-    `<div class="shops-cont">${window.rmShopsHtml(open)}</div>`
-    +(closed.length?`<div class="closed-lbl">ร้านที่ปิดอยู่ตอนนี้</div><div class="shops-cont">${window.rmShopsHtml(closed)}</div>`:'');
+    (filtered.length?'':emptyShops())
+    +`<div class="shops-cont">${window.rmShopsHtml(open)}</div>`
+    +(closed.length?`<div class="closed-lbl"><img src="mascot/lie.webp" alt="">ร้านที่ปิดอยู่ตอนนี้</div><div class="shops-cont">${window.rmShopsHtml(closed)}</div>`:'');
   applyStagger('#shopsEl','.sc');
 }
 
