@@ -8,7 +8,7 @@
   var PRESETS={
     'default':{name:'ปกติ',vars:{},themeColor:'#0B2C63',swatch:['#071B3D','#0E3B8C','#2E6FE0']},
     'halloween':{name:'ฮาโลวีน',themeColor:'#1A0B2E',swatch:['#1A0B2E','#5A2A9A','#FF7A18'],
-      mascotDir:'theme/halloween/mascot/',sprites:['web','pumpkin','bat','ghost'],spriteDir:'theme/halloween/deco/',deco:{header:'theme/halloween/header.webp'},
+      mascotDir:'theme/halloween/mascot/',sprites:['web','pumpkin','bat','ghost','peek','sit'],spriteDir:'theme/halloween/deco/',deco:{header:'theme/halloween/header.webp'},
       vars:{'--blue-900':'#1A0B2E','--blue-800':'#2A1048','--blue-700':'#4B1F7C','--blue-600':'#6A2FB0','--blue-500':'#8A4FD6',
             '--blue-100':'#EFE5FB','--blue-50':'#F8F3FE','--bg':'#F8F4FC',
             '--t1':'#EDE2FB','--t2':'#F6F0FE','--t3':'#E2D2F6','--t4':'#EEE3FA','--t5':'#E6DAF5','--t6':'#D3BFEF',

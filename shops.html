@@ -431,6 +431,11 @@ html[data-sp~="web"] .sv::before{border-top-right-radius:18px;}
 html[data-sp~="pumpkin"] .sec-t::before{width:22px;height:22px;background:var(--sp-pumpkin) center/contain no-repeat;border-radius:0;}
 html[data-sp~="web"] .sv.soon::after{z-index:3;}
 html[data-sp~="bat"] .sc-banner::after{content:'';position:absolute;top:6px;right:62px;width:34px;height:24px;background:var(--sp-bat) center/contain no-repeat;pointer-events:none;z-index:2;}
+html[data-sp~="peek"] .cbox{overflow:visible;margin-top:50px;}
+html[data-sp~="peek"]:not([data-sp~="web"]) .cbox::before{display:none;}
+html[data-sp~="peek"] .cbox::after{content:'';position:absolute;right:96px;bottom:100%;margin-bottom:-3px;width:76px;height:64px;background:var(--sp-peek) bottom center/contain no-repeat;pointer-events:none;z-index:3;}
+html[data-sp~="sit"] .svc{position:relative;}
+html[data-sp~="sit"] .svc::after{content:'';position:absolute;right:76px;top:-46px;width:58px;height:64px;background:var(--sp-sit) bottom center/contain no-repeat;pointer-events:none;z-index:3;}
 </style>
 <style id="rm-css">
 .rm-stage{width:100%;display:flex;flex-direction:column;align-items:center;will-change:transform}
