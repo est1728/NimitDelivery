@@ -89,10 +89,10 @@ h1{font-size:18px;margin:0;font-weight:600}
 .sheet.min .fold{background:var(--pin);color:#fff}
 .fold svg{transition:transform .3s}
 .sheet.min .fold svg{transform:rotate(180deg)}
-.place{display:flex;gap:12px;align-items:flex-start;background:var(--bg);border-radius:16px;padding:12px 14px;min-height:66px;cursor:pointer}
+.place{display:flex;gap:12px;align-items:flex-start;background:var(--bg);border-radius:16px;padding:12px 14px;min-height:84px;cursor:pointer}
 .place .ic{flex:none;width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--pin),var(--pin2));display:grid;place-items:center;color:#fff}
-.place strong{display:block;font-weight:600;font-size:15px}
-.place span{display:block;color:var(--sub);font-size:12.5px;line-height:1.35;margin-top:2px}
+.place strong{display:block;font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100vw - 110px)}
+.place span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:var(--sub);font-size:12.5px;line-height:1.35;margin-top:2px}
 .place.load strong,.place.load span{color:transparent;border-radius:6px;background:linear-gradient(90deg,var(--line) 25%,var(--bg) 50%,var(--line) 75%);background-size:200% 100%;animation:sh 1.1s infinite}
 .place.load strong{width:55%}.place.load span{width:90%;margin-top:6px}
 @keyframes sh{to{background-position:-200% 0}}
@@ -385,7 +385,7 @@ function layout(){
   const d=vis-SH,fly=dest&&map&&map.isMoving()?dest:null,c0=fly?fly.ll:pinLL();SH=vis;root.style.setProperty('--shh',vis+'px');
   if(!ready){const c=pinLL();cur.lat=c.lat;cur.lng=c.lng;ready=true;requestAnimationFrame(()=>root.classList.add('ready'));return}
   // แผงเปลี่ยนความสูง: ให้พิกัดใต้หมุดคงเดิม
-  if(map&&Math.abs(d)>1&&!mq.matches){syncing=true;map.easeTo({center:[c0.lng,c0.lat],zoom:fly?fly.z:map.getZoom(),offset:[0,-vis/2],duration:380,essential:true});map.once('moveend',()=>{syncing=false})}
+  if(map&&Math.abs(d)>1&&!mq.matches&&!(map.isMoving()&&!dest)){syncing=true;map.easeTo({center:[c0.lng,c0.lat],zoom:fly?fly.z:map.getZoom(),offset:[0,-vis/2],duration:380,essential:true});map.once('moveend',()=>{syncing=false})}
 }
 {let raf;const go=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(layout)};
  new ResizeObserver(go).observe($('#sheet'));
@@ -420,7 +420,7 @@ function enter(s,k){
   $('#place').hidden=!(s==='pick'||s==='detail');
   $('#ttl').textContent=ttl();
   sheet.classList.remove('min');$('.fields').inert=false;foldLabel(false);sheet.scrollTop=0;
-  setInteractive(s==='pick');
+  setInteractive(s!=='detail');   // ล็อกแผนที่เฉพาะตอนกรอกรายละเอียด (กันพิกัดหมุดขยับตอนพิมพ์) ที่เหลือเลื่อน/ซูมได้
   if(s==='pick'){
     if(!pinned){$('#pname').textContent='ยังไม่ได้ปักหมุด';$('#paddr').textContent='เลื่อนแผนที่ แตะบนแผนที่ หรือค้นหาชื่อสถานที่';setLoading(false)}
     $('#pickBack').textContent=fromList?'ยกเลิก':(kind==='register'?'ย้อนกลับ':'ยกเลิก');
@@ -442,7 +442,9 @@ const pin=$('#pin');
 if(map){
 map.on('dragstart',()=>{if(S==='pick')pinned=true});
 map.on('movestart',()=>pin.classList.add('lift'));
-map.on('moveend',()=>{if(syncing)return;dest=null;pin.classList.remove('lift');if(S!=='pick'||!pinned)return;
+// ผู้ใช้เริ่มลาก/ซูมระหว่างแผนที่กำลังเลื่อนตามแผง: ให้ผู้ใช้คุมต่อทันที
+['mousedown','touchstart'].forEach(ev=>map.on(ev,()=>{if(syncing)map.stop()}));
+map.on('moveend',()=>{pin.classList.remove('lift');if(syncing)return;dest=null;if(S!=='pick'||!pinned)return;
   const c=pinLL();cur.lat=c.lat;cur.lng=c.lng;clearTimeout(tmr);setLoading(true);tmr=setTimeout(reverse,350)});
 map.on('click',e=>{if(S!=='pick')return;pinned=true;goTo(e.lngLat,Math.max(map.getZoom(),17.5),{duration:.5})});
 }
