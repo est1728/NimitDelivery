@@ -83,7 +83,26 @@ a{color:inherit;}
 .brand-name{font-family:'Prompt';font-weight:600;font-size:16.5px;color:var(--white);line-height:1.15;}
 .login-chip{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.14);border-radius:12px;padding:3px 9px;margin-top:5px;cursor:pointer;}
 .login-chip span{font-size:11.5px;font-weight:600;color:var(--white);}
-.login-chip svg{width:11px;height:11px;fill:rgba(255,255,255,.75);}
+.login-chip svg{width:13px;height:13px;fill:rgba(255,255,255,.85);}
+/* เลือกที่อยู่จัดส่ง (เด้งลงมาจากด้านบน) */
+.adr-ov{position:fixed;inset:0;z-index:2600;background:rgba(7,27,61,.45);opacity:0;pointer-events:none;transition:opacity .25s}
+.adr-ov.show{opacity:1;pointer-events:auto}
+.adr{position:fixed;left:0;right:0;top:0;z-index:2601;background:var(--white);border-radius:0 0 22px 22px;box-shadow:0 14px 40px rgba(7,27,61,.3);padding:calc(14px + env(safe-area-inset-top,0px)) 16px 16px;max-height:82vh;overflow-y:auto;transform:translateY(-105%);transition:transform .32s cubic-bezier(.22,.61,.36,1)}
+.adr.show{transform:none}
+.adr-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
+.adr-h b{font-size:17px;font-weight:700;color:var(--ink-900)}
+.adr-x{width:34px;height:34px;border:0;border-radius:50%;background:var(--blue-50);color:var(--ink-700);display:grid;place-items:center;cursor:pointer}
+.adr-sub{font-size:12.5px;color:var(--ink-500);margin-bottom:10px}
+.adr-it{display:flex;gap:12px;align-items:flex-start;padding:12px 12px;border:1.5px solid var(--line);border-radius:14px;margin-bottom:8px;cursor:pointer;background:var(--white)}
+.adr-it.on{border-color:var(--blue-600);background:var(--blue-50)}
+.adr-rd{flex:none;width:20px;height:20px;border-radius:50%;border:2px solid var(--ink-300);margin-top:2px;display:grid;place-items:center}
+.adr-it.on .adr-rd{border-color:var(--blue-600)}
+.adr-it.on .adr-rd::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--blue-600)}
+.adr-t{flex:1;min-width:0}
+.adr-t b{display:block;font-size:14.5px;font-weight:600;color:var(--ink-900)}
+.adr-t span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:12.5px;color:var(--ink-500);line-height:1.4;margin-top:2px}
+.adr-add{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:46px;border:1.5px dashed var(--blue-600);border-radius:14px;background:none;color:var(--blue-600);font:inherit;font-size:14.5px;font-weight:600;cursor:pointer;margin-top:4px}
+.adr-mg{display:block;margin:10px auto 0;border:0;background:none;color:var(--ink-500);font:inherit;font-size:13px;cursor:pointer;text-decoration:underline}
 .tb-icons{display:flex;gap:8px;flex-shrink:0;position:relative;z-index:1;}
 .icon-btn{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.13);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;}
 .icon-btn svg{width:18px;height:18px;fill:var(--white);}
@@ -623,7 +642,7 @@ html[data-sp~="cbg"] .cbox-ic{background:var(--amber-500,#FF7A18);}
           <div class="brand-name">Nimit Delivery</div>
           <div class="login-chip press" onclick="handleLoginChip()">
             <span id="loginChipText">เข้าสู่ระบบ</span>
-            <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
           </div>
         </div>
       </div>
@@ -658,7 +677,7 @@ html[data-sp~="cbg"] .cbox-ic{background:var(--amber-500,#FF7A18);}
       <button class="sb-close press" onclick="closeSidebar()">✕</button>
     </div>
     <div class="sb-body">
-      <button class="sb-item" onclick="location.href='address.html'">
+      <button class="sb-item" onclick="location.href='login.html?mode=address&next=shops.html'">
         <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>
         <div class="sb-item-text"><div class="sb-item-t">ที่อยู่จัดส่ง</div><div class="sb-item-s" id="sbAddressText">เพิ่มที่อยู่จัดส่ง</div></div>
         <svg class="sb-arrow" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
@@ -767,6 +786,8 @@ html[data-sp~="cbg"] .cbox-ic{background:var(--amber-500,#FF7A18);}
 </div>
 
 <script src="live.js"></script>
+<div class="adr-ov" id="adrOv" onclick="closeAddrSheet()"></div>
+<div class="adr" id="adr" role="dialog" aria-label="เลือกที่อยู่จัดส่ง"></div>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, getDocs, doc, getDoc, query, where, addDoc, setDoc, updateDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -878,8 +899,45 @@ function closeSidebar(){document.getElementById('sbOverlay').classList.remove('s
 function handleLoginChip(){
   const cd=JSON.parse(localStorage.getItem('customerData')||'{}');
   const phone = cd.phone || localStorage.getItem('customerPhone');
-  location.href = phone ? 'address.html' : 'login.html';
+  if(!phone){ location.href='login.html?next=shops.html'; return; }
+  openAddrSheet();
 }
+/* ===== เลือกที่อยู่จัดส่ง (เด้งลงมาจากด้านบน) ===== */
+const ADR_PIN='<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>';
+function addrList(){ try{ return (JSON.parse(localStorage.getItem('addresses')||'[]')||[]).filter(a=>a&&a.address); }catch(e){ return []; } }
+function openAddrSheet(){
+  const cd=JSON.parse(localStorage.getItem('customerData')||'{}');
+  const phone = cd.phone || localStorage.getItem('customerPhone') || '';
+  const l=addrList();
+  let di=parseInt(localStorage.getItem('defaultAddress')||'0')||0; if(di<0||di>=l.length) di=0;
+  const rows=l.map((a,i)=>`<div class="adr-it${i===di?' on':''}" onclick="chooseAddr(${i})"><div class="adr-rd"></div><div class="adr-t"><b>${esc(a.label||a.tag||('ที่อยู่ '+(i+1)))}${i===di?' · ใช้อยู่':''}</b><span>${esc(a.address)}</span></div></div>`).join('');
+  $('adr').innerHTML=`<div class="adr-h"><b>ที่อยู่จัดส่ง</b><button class="adr-x" type="button" aria-label="ปิด" onclick="closeAddrSheet()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <div class="adr-sub">${esc((cd.name?cd.name+' · ':'')+phone)}</div>
+    ${rows||'<div class="adr-sub">ยังไม่มีที่อยู่ที่บันทึกไว้</div>'}
+    ${l.length<5?'<button class="adr-add" type="button" onclick="location.href=\'login.html?mode=address&add=1&next=shops.html\'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>เพิ่มที่อยู่ใหม่</button>':''}
+    ${l.length?'<button class="adr-mg" type="button" onclick="location.href=\'login.html?mode=address&next=shops.html\'">แก้ไขหรือลบที่อยู่</button>':''}`;
+  $('adrOv').classList.add('show'); $('adr').classList.add('show');
+}
+function closeAddrSheet(){ $('adrOv').classList.remove('show'); $('adr').classList.remove('show'); }
+async function chooseAddr(i){
+  const l=addrList(); if(!l[i]) return;
+  const cd=JSON.parse(localStorage.getItem('customerData')||'{}');
+  const phone = cd.phone || localStorage.getItem('customerPhone') || '';
+  const [a]=l.splice(i,1); l.unshift(a);
+  localStorage.setItem('addresses', JSON.stringify(l));
+  localStorage.setItem('defaultAddress','0');
+  localStorage.setItem('customerData', JSON.stringify({...cd, phone, address:a.address, lat:a.lat==null?null:a.lat, lng:a.lng==null?null:a.lng}));
+  renderLoginChip(); closeAddrSheet();
+  try{
+    if(phone){
+      const clean=JSON.parse(JSON.stringify(l.slice(0,5)));
+      await setDoc(doc(db,'customers',phone), {phone, addresses:clean, address:a.address||'', lat:a.lat==null?null:a.lat, lng:a.lng==null?null:a.lng, updatedAt:serverTimestamp()}, {merge:true});
+    }
+  }catch(e){}
+  toast('เปลี่ยนที่อยู่จัดส่งแล้ว');
+  setTimeout(()=>location.reload(),350);   // คำนวณพื้นที่ให้บริการ/ค่าส่งใหม่ตามที่อยู่ที่เลือก
+}
+window.openAddrSheet=openAddrSheet; window.closeAddrSheet=closeAddrSheet; window.chooseAddr=chooseAddr;
 function doLogout(){
   localStorage.removeItem('customerData');
   localStorage.removeItem('customerPhone');
@@ -959,7 +1017,23 @@ async function refreshCustomerLocation(){
     // โดยตั้งเป็น "ที่อยู่เริ่มต้น (default)" ตามที่ต้องการ ใช้ _adminSynced เป็นตัวมาร์คไว้เพื่ออัปเดตช่องเดิมซ้ำ
     // ในครั้งถัดไป (ไม่ใช่เพิ่มรายการใหม่ทุกครั้งที่เปิดหน้า) และเช็ค updatedAt ก่อนว่าเป็นข้อมูลใหม่จริงๆ
     // ไม่งั้นจะรันทุกครั้งที่เปิดหน้าโดยไม่จำเป็นและอาจไปเขียนทับที่อยู่เริ่มต้นที่ลูกค้าเพิ่งเลือกเองสดๆ
-    if(data.address || (data.lat && data.lng)){
+    if(Array.isArray(data.addresses) && data.addresses.length){
+      // หน้า login ใหม่เก็บรายการที่อยู่ทั้งหมดไว้ใน addresses[] (ที่อยู่หลักอยู่ลำดับแรก) ใช้เป็นหลัก
+      const uMs = data.updatedAt?.toMillis ? data.updatedAt.toMillis() : (data.updatedAt ? new Date(data.updatedAt).getTime() : 0);
+      const lastA = parseInt(localStorage.getItem('lastAdminAddrSync')||'0');
+      if(uMs && uMs > lastA){
+        const near=(a,b)=>a&&b&&a.lat!=null&&b.lat!=null&&Math.abs(a.lat-b.lat)<1e-5&&Math.abs(a.lng-b.lng)<1e-5;
+        let l=data.addresses.map(a=>({...a, phone, name:a.name||data.name||''}));
+        if(data.address && data.lat!=null){
+          const p={name:data.name||'',phone,address:data.address,lat:data.lat,lng:data.lng,tag:'บ้าน',label:'บ้าน'};
+          const ex=l.find(a=>near(a,p)); l=[ex||p, ...l.filter(a=>a!==ex)];
+        }
+        localStorage.setItem('addresses', JSON.stringify(l.slice(0,5)));
+        localStorage.setItem('defaultAddress','0');
+        localStorage.setItem('lastAdminAddrSync', String(uMs));
+        const a0=l[0]; if(a0){ const cd2=JSON.parse(localStorage.getItem('customerData')||'{}'); localStorage.setItem('customerData', JSON.stringify({...cd2, address:a0.address, lat:a0.lat, lng:a0.lng})); renderLoginChip(); }
+      }
+    } else if(data.address || (data.lat && data.lng)){
       const updatedAtMs = data.updatedAt?.toMillis ? data.updatedAt.toMillis() : (data.updatedAt ? new Date(data.updatedAt).getTime() : 0);
       const lastApplied = parseInt(localStorage.getItem('lastAdminAddrSync')||'0');
       if(updatedAtMs && updatedAtMs > lastApplied){
