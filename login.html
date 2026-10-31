@@ -1,189 +1,650 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="th" data-theme="light">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nimit Delivery</title>
-<style>
-:root {
-  --primary:#0c4aa6; --primary-dark:#083570; --primary-light:#e8f0fe;
-  --gray:#f5f6f8; --text:#0f172a; --subtext:#64748b;
-}
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Arial',sans-serif;}
-body{background:#fff;min-height:100vh;display:flex;flex-direction:column;}
-
-.topbar{padding:16px 20px;border-bottom:1px solid #f0f0f0;}
-.logo{font-size:20px;font-weight:800;color:var(--primary);}
-
-.hero{background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:36px 24px 48px;border-radius:0 0 32px 32px;}
-.hero h1{font-size:26px;font-weight:800;color:#fff;margin-bottom:6px;}
-.hero p{font-size:15px;color:rgba(255,255,255,0.85);}
-
-.container{padding:24px 20px;flex:1;}
-.label{font-size:13px;font-weight:700;color:var(--subtext);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;}
-
-.phone-input{width:100%;height:56px;border:2px solid #e0e0e0;border-radius:16px;padding:0 20px;font-size:18px;outline:none;transition:border 0.2s;background:#fff;}
-.phone-input:focus{border-color:var(--primary);}
-
-.saved-badge{display:none;align-items:center;gap:8px;background:var(--primary-light);border-radius:12px;padding:10px 14px;margin-top:10px;font-size:13px;color:var(--primary);font-weight:700;}
-.saved-badge svg{width:16px;height:16px;fill:var(--primary);flex-shrink:0;}
-.saved-badge-clear{margin-left:auto;font-size:12px;color:var(--subtext);cursor:pointer;font-weight:600;text-decoration:underline;}
-
-.error-msg{color:#e53935;font-size:13px;margin-top:6px;display:none;}
-
-.next-btn{width:100%;height:56px;border:none;border-radius:16px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:17px;font-weight:800;margin-top:20px;cursor:pointer;box-shadow:0 6px 16px rgba(12,74,166,0.3);}
-.next-btn:disabled{background:#c5cfe8;box-shadow:none;cursor:not-allowed;}
-
-.note{margin-top:24px;text-align:center;color:var(--subtext);font-size:13px;line-height:1.6;}
-</style>
-<link rel="icon" href="/icon-192.png">
-<link rel="apple-touch-icon" href="/icon-192.png">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0c4aa6">
+<title>เข้าสู่ระบบ - Nimit Delivery</title>
+<script>(function(){try{var t=localStorage.getItem('nd_theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.dataset.theme=t}catch(e){}})()</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{--ink:#0b1b3a;--sub:#5b6b88;--line:#dde5f2;--bg:#eef3fb;--card:#fff;--pin:#0c4aa6;--pin2:#2f6df0;--glow:rgba(12,74,166,.14);--sh:rgba(11,27,58,.2);--bad:#e03131}
+:root[data-theme=dark]{--ink:#e8eefc;--sub:#8fa0c4;--line:#243256;--bg:#0a1226;--card:#121c36;--pin:#4c8dff;--pin2:#2f6df0;--glow:rgba(76,141,255,.2);--sh:rgba(0,0,0,.5)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{font-family:'Prompt',system-ui,sans-serif;background:var(--bg);color:var(--ink);overflow:hidden;transition:background .3s,color .3s}
+button{font:inherit;color:inherit}
+.app{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden}
+.mapbox{position:absolute;inset:0}
+#map{position:absolute;inset:0;background:var(--bg)}
+.leaflet-container{font-family:inherit}
+.leaflet-popup-content-wrapper{background:var(--card);color:var(--ink);border-radius:14px}
+.leaflet-popup-tip{background:var(--card)}
+.leaflet-control-attribution{font-size:9px!important}
+.ib{flex:none;width:50px;height:50px;border:0;border-radius:14px;background:var(--card);color:var(--ink);box-shadow:0 6px 22px var(--sh);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;transition:transform .15s}
+.ib small{font-size:10px;line-height:1;color:var(--sub)}
+.ib:active{transform:scale(.92)}
+.ib:focus-visible,.chip:focus-visible,.go:focus-visible,.auto:focus-visible{outline:2px solid var(--pin);outline-offset:2px}
+/* top: search, theme, categories */
+.top{position:absolute;z-index:1000;left:12px;right:12px;top:calc(12px + env(safe-area-inset-top,0px))}
+.bar{display:flex;gap:8px}
+.search{flex:1;min-width:0;display:flex;align-items:center;gap:8px;background:var(--card);border-radius:14px;padding:0 12px;height:50px;box-shadow:0 6px 22px var(--sh)}
+.search svg{flex:none;color:var(--sub)}
+.search input{flex:1;border:0;outline:0;background:none;font:inherit;font-size:15px;color:var(--ink);min-width:0}
+.search .x{border:0;background:var(--bg);color:var(--sub);width:26px;height:26px;border-radius:50%;cursor:pointer;display:none;font-size:16px;line-height:1}
+.search.has .x{display:block}
+.moon{display:block}.sun{display:none}
+:root[data-theme=dark] .moon{display:none}:root[data-theme=dark] .sun{display:block}
+.results{position:absolute;z-index:5;left:0;right:58px;top:58px;margin:0;padding:0;background:var(--card);border-radius:14px;box-shadow:0 10px 30px var(--sh);overflow:hidden;max-height:0;transition:max-height .25s}
+.results.open{max-height:300px;overflow-y:auto}
+.results li{list-style:none;padding:11px 14px;border-bottom:1px solid var(--line);cursor:pointer;display:flex;gap:10px;font-size:14px}
+.results li:last-child{border:0}
+.results li:hover,.results li:focus{background:var(--bg);outline:0}
+.results svg{flex:none;color:var(--pin);margin-top:2px}
+.results b{display:block;font-weight:500}
+.results small{color:var(--sub);display:block;line-height:1.3}
+.results .empty{color:var(--sub);cursor:default}
+.cats{display:flex;gap:8px;overflow-x:auto;padding:10px 2px 6px;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.chip{flex:none;border:0;background:var(--card);color:var(--ink);font-size:13px;padding:8px 14px;border-radius:99px;cursor:pointer;box-shadow:0 3px 12px var(--sh);display:flex;align-items:center;gap:6px;transition:.18s}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.chip.on{background:var(--pin);color:#fff}
+.chip.on i{background:#fff}
+.chip:active{transform:scale(.95)}
+/* pin */
+.pin{position:absolute;z-index:900;left:50%;top:calc((100% - var(--shh,0px))/2);width:30px;height:38px;margin:-38px 0 0 -15px;pointer-events:none;transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
+.pin svg{width:100%;height:100%;filter:drop-shadow(0 4px 4px rgba(0,0,0,.3))}
+.pin path{fill:var(--pin)}
+.pin.lift{transform:translateY(-11px)}
+.pin.bump{animation:bump .5s}
+@keyframes bump{30%{transform:translateY(-15px)}60%{transform:translateY(0)}80%{transform:translateY(-4px)}}
+.pin-shadow{position:absolute;z-index:899;left:50%;top:calc((100% - var(--shh,0px))/2);width:10px;height:4px;margin:-2px 0 0 -5px;border-radius:50%;background:rgba(0,0,0,.35);transition:transform .25s;pointer-events:none}
+.pin.lift+.pin-shadow{transform:scale(.6);opacity:.6}
+/* controls */
+.auto.busy svg{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.auto{position:absolute;z-index:1000;left:12px;bottom:calc(var(--shh,0px) + 14px);display:flex;flex-direction:column;align-items:center;gap:4px;border:0;background:none;padding:0;cursor:pointer}
+.ready .auto{transition:bottom .38s cubic-bezier(.22,.61,.36,1)}
+.auto .ac{width:50px;height:50px;border-radius:50%;background:var(--pin);color:#fff;display:grid;place-items:center;box-shadow:0 8px 22px var(--sh);transition:transform .15s}
+.auto:active .ac{transform:scale(.92)}
+.auto .al{font-size:11.5px;font-weight:500;color:var(--ink);background:var(--card);padding:1px 9px;border-radius:99px;box-shadow:0 2px 8px var(--sh)}
+.ctrls{align-items:center;position:absolute;z-index:1000;right:12px;bottom:calc(var(--shh,0px) + 14px);display:flex;flex-direction:column;gap:8px}
+.ctrls .ib{width:46px;height:46px;border-radius:12px}
+.me{width:18px;height:18px;border-radius:50%;background:#2f7bff;border:3px solid #fff;box-shadow:0 0 0 0 rgba(47,123,255,.5);animation:pulse 2s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 18px rgba(47,123,255,0)}100%{box-shadow:0 0 0 0 rgba(47,123,255,0)}}
+.poi{width:32px;height:32px;border-radius:50%;background:var(--c);border:2px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.35);display:grid;place-items:center}
+.poi svg{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.pp{min-width:150px;font-family:'Prompt',sans-serif;font-size:13px;line-height:1.4}
+.pp b{display:block;font-size:14px;font-weight:600}
+.pp .pt{color:var(--pin);margin-bottom:3px}
+.pp div{color:var(--sub)}
+.pp button{margin-top:8px;width:100%;border:0;border-radius:10px;background:var(--pin);color:#fff;padding:8px;font-size:13px;cursor:pointer}
+/* sheet */
+.sheet{position:absolute;left:0;right:0;z-index:1001;background:var(--card);border-radius:24px 24px 0 0;box-shadow:0 -10px 30px var(--sh);max-height:min(66%,calc(100% - var(--kb,0px) - 64px));bottom:var(--kb,0px);overflow-y:auto;padding:0 18px calc(16px + env(safe-area-inset-bottom,0px));animation:up .6s cubic-bezier(.2,.9,.3,1) backwards;transform:translateY(var(--fy,0px));will-change:transform;transition:background .3s,transform .38s cubic-bezier(.22,.61,.36,1)}
+@keyframes up{from{transform:translateY(100%)}to{transform:none}}
+.grab{display:block;width:100%;height:24px;border:0;background:var(--card);cursor:pointer;padding:0;position:sticky;top:0;z-index:2}
+.grab::before{content:"";display:block;width:42px;height:4px;border-radius:2px;background:var(--line);margin:10px auto 0}
+.head{display:flex;align-items:center;justify-content:space-between;position:sticky;top:24px;z-index:2;background:var(--card);padding:2px 0 10px}
+h1{font-size:18px;margin:0;font-weight:600}
+.fold{flex:none;height:36px;border:0;border-radius:99px;background:var(--bg);display:flex;align-items:center;gap:6px;padding:0 14px;font-size:13px;font-weight:500;cursor:pointer}
+.sheet.min .fold{background:var(--pin);color:#fff}
+.fold svg{transition:transform .3s}
+.sheet.min .fold svg{transform:rotate(180deg)}
+.place{display:flex;gap:12px;align-items:flex-start;background:var(--bg);border-radius:16px;padding:12px 14px;min-height:66px;cursor:pointer}
+.place .ic{flex:none;width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--pin),var(--pin2));display:grid;place-items:center;color:#fff}
+.place strong{display:block;font-weight:600;font-size:15px}
+.place span{display:block;color:var(--sub);font-size:12.5px;line-height:1.35;margin-top:2px}
+.place.load strong,.place.load span{color:transparent;border-radius:6px;background:linear-gradient(90deg,var(--line) 25%,var(--bg) 50%,var(--line) 75%);background-size:200% 100%;animation:sh 1.1s infinite}
+.place.load strong{width:55%}.place.load span{width:90%;margin-top:6px}
+@keyframes sh{to{background-position:-200% 0}}
+.fields{display:block}
+.fields>div{padding-top:12px}
+.ready .pin,.ready .pin-shadow{transition:transform .25s cubic-bezier(.3,1.6,.5,1),top .38s cubic-bezier(.22,.61,.36,1)}
+.ready .ctrls{transition:bottom .38s cubic-bezier(.22,.61,.36,1)}
+.sv{flex:none;display:flex;align-items:center;gap:4px}
+.del{flex:none;min-width:30px;height:30px;padding:0 8px;border:1.5px solid var(--line);border-radius:99px;background:none;color:var(--sub);display:grid;place-items:center;cursor:pointer;font-size:12px}
+.del.ask{border-color:var(--bad);color:var(--bad);font-weight:500}
+.cap{margin:0 0 6px;font-size:12px;color:var(--sub)}
+.link{border:0;background:none;color:var(--pin);font-size:13px;font-weight:500;padding:0 0 10px;cursor:pointer}
+.link[hidden]{display:none}
+.saved .chip.sel{border-color:var(--pin);background:var(--glow)}
+.saved .chip.two{flex-direction:column;align-items:flex-start;gap:1px;border-radius:14px;padding:7px 13px;max-width:180px;text-align:left}
+.chip.two strong{font-weight:500;font-size:13px}
+.chip.two small{font-size:11.5px;color:var(--sub);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.saved{display:flex;gap:8px;overflow-x:auto;padding-bottom:12px;scrollbar-width:none}
+.saved .chip{box-shadow:none;border:1.5px solid var(--line);background:none}
+.tags{display:flex;gap:8px;margin-bottom:12px}
+.tags label{flex:1}
+.tags input{position:absolute;opacity:0}
+.tags span{display:block;text-align:center;padding:9px 0;border:1.5px solid var(--line);border-radius:12px;font-size:14px;cursor:pointer;transition:.18s}
+.tags input:checked+span{border-color:var(--pin);background:var(--glow);color:var(--pin);font-weight:500}
+.tags input:focus-visible+span{outline:2px solid var(--pin);outline-offset:2px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.f{position:relative;margin-bottom:10px}
+.f input,.f textarea{width:100%;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:21px 12px 7px;font:inherit;font-size:16px;outline:0;transition:border-color .2s,box-shadow .2s;resize:none}
+.f label{position:absolute;left:13px;top:15px;font-size:15px;color:var(--sub);pointer-events:none;transition:.18s;white-space:nowrap;max-width:calc(100% - 26px);overflow:hidden;text-overflow:ellipsis}
+.f input:focus+label,.f input:not(:placeholder-shown)+label,.f textarea:focus+label,.f textarea:not(:placeholder-shown)+label{top:6px;font-size:11.5px}
+.f input:focus,.f textarea:focus{border-color:var(--pin);box-shadow:0 0 0 4px var(--glow)}
+.f.err input,.f.err textarea{border-color:var(--bad);animation:shake .35s}
+.f small{display:none;color:var(--bad);font-size:12px;margin:3px 4px 0}
+.f.err small{display:block}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.go{width:100%;height:54px;border:0;border-radius:15px;background:linear-gradient(135deg,var(--pin),var(--pin2));color:#fff;font-size:16.5px;font-weight:600;cursor:pointer;margin-top:4px;box-shadow:0 8px 20px var(--glow);transition:transform .15s}
+.go:active{transform:scale(.98)}
+.go[disabled]{opacity:.8}
+.toast{position:fixed;z-index:3000;left:50%;top:calc(120px + env(safe-area-inset-top,0px));transform:translate(-50%,-30px);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:14px;font-size:13.5px;opacity:0;pointer-events:none;transition:.3s;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media (min-width:820px){
+ .sheet{bottom:auto!important}
+ .app{flex-direction:row-reverse}
+ .mapbox{position:relative;inset:auto;flex:1}
+ .sheet{position:relative;left:auto;right:auto;bottom:auto;width:430px;max-height:none;height:100dvh;border-radius:0;margin:0;animation:none}
+ .grab{display:none}
+ .sheet{transform:none!important}
+ .fold{display:none}
+ .sheet::before{content:"";display:block;height:14px}
+ .top{right:auto;width:min(480px,calc(100% - 24px))}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.pane[hidden],#place[hidden],[hidden]{display:none!important}
+.search input::-webkit-search-cancel-button{display:none}
+.pc{display:flex;gap:10px;align-items:flex-start;border:1.5px solid var(--line);border-radius:16px;padding:12px 14px;margin-top:8px;cursor:pointer}
+.pc.sel{border-color:var(--pin);background:var(--glow)}
+.pc .k{display:block;font-size:11.5px;color:var(--sub)}
+.pc strong{display:block;font-size:15px;font-weight:600;margin-top:1px}
+.pc .a{display:block;font-size:12.5px;color:var(--sub);line-height:1.35;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pc .t{flex:1;min-width:0}
+.pc .ed{flex:none;width:34px;height:34px;border:0;border-radius:50%;background:none;color:var(--pin);display:grid;place-items:center;cursor:pointer}
+.more{width:100%;display:flex;justify-content:space-between;align-items:center;border:0;background:none;color:var(--pin);font-size:14px;font-weight:500;padding:12px 4px 8px;cursor:pointer}
+.more svg{transition:transform .25s}.more.open svg{transform:rotate(180deg)}
+.orow{display:flex;align-items:center;gap:8px;padding:9px 4px;border-top:1px solid var(--line);cursor:pointer}
+.orow.sel .t b{color:var(--pin)}
+.orow .t{flex:1;min-width:0}.orow b{display:block;font-weight:500;font-size:14px}
+.orow small{display:block;color:var(--sub);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.orow .dots{flex:none;width:34px;height:34px;border:0;border-radius:50%;background:none;color:var(--sub);display:grid;place-items:center;cursor:pointer;font-size:20px;line-height:1;letter-spacing:1px}
+.mn{display:flex;gap:8px;padding:2px 4px 10px}
+.mn button{flex:1;height:36px;border:1.5px solid var(--line);border-radius:10px;background:none;font-size:13px;cursor:pointer}
+.mn .dl{color:var(--bad);border-color:var(--bad)}
+.mn .dl.ask{background:var(--bad);color:#fff}
+.addrow{display:flex;align-items:center;gap:8px;width:100%;border:1.5px dashed var(--line);border-radius:14px;background:none;color:var(--pin);font-size:14px;font-weight:500;padding:11px 14px;margin:8px 0 4px;cursor:pointer}
+
+.pane{display:block}
+.nopin .pin,.nopin .pin-shadow,.nopin .auto,.nopin .ctrls,.nopin .search{display:none}
+.nopin .bar{justify-content:flex-end}
+.note{margin:10px 2px 0;font-size:12.5px;color:var(--sub);text-align:center;line-height:1.5}
+.hint{margin:-4px 4px 10px;font-size:12px;color:var(--sub)}
+.ghost{width:100%;height:46px;border:1.5px solid var(--line);border-radius:14px;background:none;font-size:14.5px;font-weight:500;cursor:pointer;margin-top:8px}
+.welcome{display:flex;gap:12px;align-items:center;background:var(--bg);border-radius:16px;padding:12px 14px;margin-bottom:12px}
+.welcome .av{flex:none;width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--pin),var(--pin2));color:#fff;display:grid;place-items:center;font-size:18px;font-weight:600}
+.welcome strong{display:block;font-weight:600;font-size:16px}
+.welcome span{display:block;color:var(--sub);font-size:13px}
+.rl{display:flex;gap:10px;align-items:flex-start;padding:9px 2px;border-bottom:1px solid var(--line);font-size:13.5px}
+.rl:last-child{border:0}
+.rl b{display:block;font-weight:500}
+.rl small{display:block;color:var(--sub);font-size:12px;line-height:1.35}
+.rl em{font-style:normal;font-size:11px;color:var(--pin);border:1px solid var(--pin);border-radius:99px;padding:0 7px;margin-left:6px}
+.link.sm{padding:6px 0 0;font-size:12.5px}
+.rowb{display:flex;justify-content:space-between;align-items:center}
+.go.busy{opacity:.7}
+</style>
 </head>
 <body>
+<div class="app" id="app">
+ <div class="mapbox">
+  <div id="map"></div>
+  <div class="top">
+   <div class="bar">
+    <div class="search" id="sbox">
+     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+     <input id="q" type="text" inputmode="search" enterkeyhint="search" placeholder="ค้นหาที่อยู่ ถนน หรือชื่อสถานที่" autocomplete="off" aria-label="ค้นหาที่อยู่">
+     <button class="x" id="qx" type="button" aria-label="ล้างคำค้นหา">×</button>
+    </div>
+    <button class="ib" id="theme" type="button" aria-label="เปลี่ยนธีมสว่างหรือมืด">
+     <svg class="moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.800z"/></svg>
+     <svg class="sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.900 4.900l1.400 1.400M17.700 17.700l1.400 1.400M2 12h2M20 12h2M4.900 19.100l1.400-1.400M17.700 6.300l1.400-1.400"/></svg>
+     <small>ธีม</small>
+    </button>
+    <ul class="results" id="res"></ul>
+   </div>
+  </div>
+  <div class="pin" id="pin"><svg viewBox="0 0 44 56"><path d="M22 0C10 0 0 9.600 0 21.600 0 37 22 56 22 56s22-19 22-34.400C44 9.600 34 0 22 0z"/><circle cx="22" cy="21" r="8" fill="#fff"/></svg></div>
+  <div class="pin-shadow"></div>
+  <button class="auto" id="auto" type="button" aria-label="ปักหมุดตำแหน่งปัจจุบัน"><span class="ac"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></span><span class="al">ปักหมุด</span></button>
+  <div class="ctrls">
+   <button class="ib" id="style" type="button" aria-label="สลับสไตล์แผนที่"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/></svg><small>แผนที่</small></button>
+   <button class="ib" id="zi" type="button" aria-label="ซูมเข้า"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+   <button class="ib" id="zo" type="button" aria-label="ซูมออก"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+  </div>
+ </div>
 
-<div class="topbar"><div class="logo">Nimit Delivery</div></div>
-
-<div class="hero">
-  <h1>ยินดีต้อนรับ</h1>
-  <p>ใส่เบอร์โทรเพื่อเริ่มสั่งอาหาร</p>
-</div>
-
-<div class="container">
-  <div class="label">เบอร์โทรศัพท์</div>
-  <input id="phone" class="phone-input" type="tel" placeholder="08X-XXX-XXXX"
-    oninput="window.onPhoneInput(this)" autocomplete="tel">
-
-  <div id="savedBadge" class="saved-badge">
-    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-    <span id="savedBadgeText">จำเบอร์ไว้แล้ว</span>
-    <span class="saved-badge-clear" onclick="window.clearSaved()">เปลี่ยน</span>
+ <form class="sheet" id="sheet" novalidate>
+  <button class="grab" id="grab" type="button" aria-label="ย่อหรือขยายแผง"></button>
+  <div class="head">
+   <h1 id="ttl">เข้าสู่ระบบ Nimit Delivery</h1>
+   <button class="fold" id="fold" type="button" aria-expanded="true"><span id="foldT">ดูแผนที่</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+  </div>
+  <div class="place load" id="place" hidden>
+   <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.500A2.500 2.500 0 1 1 12 6.500a2.500 2.500 0 0 1 0 5z"/></svg></div>
+   <div><strong id="pname">ยังไม่ได้ปักหมุด</strong><span id="paddr">กดปุ่ม "ปักหมุด" มุมซ้ายล่างเพื่อใช้ตำแหน่งปัจจุบัน หรือเลื่อนแผนที่/ค้นหาเอง</span></div>
   </div>
 
-  <div id="error" class="error-msg">กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (10 หลัก ขึ้นต้นด้วย 0)</div>
+  <div class="fields">
+   <!-- 1) กรอกเบอร์ -->
+   <div class="pane" id="pPhone"><div style="padding-top:12px">
+    <div class="f" id="fph"><input id="phone" type="tel" maxlength="16" placeholder=" " autocomplete="tel" enterkeyhint="go"><label for="phone">เบอร์โทร (10 หลัก)</label><small>กรอกเบอร์โทร 10 หลัก ขึ้นต้นด้วย 0</small></div>
+    <button class="link" id="forget" type="button" hidden>ไม่ใช่เบอร์นี้ ใช้เบอร์อื่น</button>
+    <button class="go" id="goPhone" type="submit">ต่อไป</button>
+    <p class="note">มีบัญชีอยู่แล้วจะเข้าสู่ระบบให้ทันที ถ้ายังไม่มีจะพาไปสมัครต่อ ไม่ต้องตั้งรหัสผ่าน</p>
+   </div></div>
 
-  <button class="next-btn" id="nextBtn" onclick="window.nextPage()" disabled>ถัดไป</button>
+   <!-- 2) มีบัญชีแล้ว -->
+   <div class="pane" id="pLogin" hidden><div style="padding-top:12px">
+    <div class="welcome"><div class="av" id="av">?</div><div><strong id="wName">ยินดีต้อนรับกลับ</strong><span id="wPhone"></span></div></div>
+    <p class="cap">ที่อยู่ที่บันทึกไว้</p>
+    <div id="rl"></div>
+    <button class="go" id="goLogin" type="submit" style="margin-top:12px">เข้าสู่ระบบ</button>
+    <button class="ghost" id="toEdit" type="button">เพิ่มหรือแก้ไขที่อยู่</button>
+    <button class="link sm" id="notMe" type="button">ไม่ใช่เบอร์ของฉัน</button>
+   </div></div>
 
-  <div class="note">ระบบจะจำเบอร์ของคุณสำหรับครั้งถัดไป<br>ไม่ต้องสมัครสมาชิก</div>
+   <!-- 3) สมัครใหม่ / แก้ไขที่อยู่ -->
+   <div class="pane" id="pForm" hidden><div style="padding-top:12px">
+    <div class="rowb"><p class="cap" id="phCap" style="margin:0"></p><button class="link sm" id="back" type="button" style="padding:0">ย้อนกลับ</button></div>
+    <div id="svWrap" hidden>
+     <div id="svBox"></div>
+     <p class="cap" id="editCap" style="margin-top:12px;font-weight:500;color:var(--ink)"></p>
+    </div>
+    <p class="cap" style="margin-top:6px">ประเภทของที่อยู่นี้</p>
+    <div class="tags" role="radiogroup" aria-label="ประเภทที่อยู่">
+     <label><input type="radio" name="tag" value="บ้าน" checked><span>บ้าน</span></label>
+     <label><input type="radio" name="tag" value="ที่ทำงาน"><span>ที่ทำงาน</span></label>
+     <label><input type="radio" name="tag" value="อื่นๆ"><span>อื่นๆ</span></label>
+    </div>
+    <div class="f" id="fl" hidden><input id="label" placeholder=" " maxlength="30"><label for="label">ตั้งชื่อที่อยู่นี้ (ไม่บังคับ)</label></div>
+    <div class="f" id="fn"><input id="name" placeholder=" " autocomplete="name"><label for="name">ชื่อ-นามสกุล</label><small>กรอกชื่อของคุณ</small></div>
+    <div class="f" id="fa"><textarea id="addr" rows="2" placeholder=" "></textarea><label for="addr">ที่อยู่ตามแผนที่ (แก้ไขได้)</label><small>ปักหมุดบนแผนที่ หรือพิมพ์ที่อยู่</small></div>
+    <button class="link sm" id="useMap" type="button" hidden style="padding:0 0 10px">ใช้ที่อยู่จากหมุดตำแหน่งนี้แทน</button>
+    <div class="f" style="margin-bottom:4px"><input id="note" placeholder=" "><label for="note">บ้านเลขที่ ชั้น ห้อง จุดสังเกต</label></div>
+    <p class="hint">ไรเดอร์จะเห็นข้อความนี้ตอนไปส่งของ</p>
+    <button class="go" id="go" type="submit">สมัครและเข้าสู่ระบบ</button>
+   </div></div>
+  </div>
+ </form>
 </div>
+<div class="toast" id="toast" role="status"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-const db = getFirestore(initializeApp({
+import { initializeFirestore, doc, getDoc, setDoc, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const db = initializeFirestore(initializeApp({
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
   authDomain:"nimit-delivery.firebaseapp.com",
   projectId:"nimit-delivery",
   storageBucket:"nimit-delivery.firebasestorage.app",
   messagingSenderId:"233476256130",
   appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
-}));
-
-// ถ้ามีเบอร์จำไว้ → เติมให้ แต่ไม่ redirect อัตโนมัติ (ให้กดเองทุกครั้ง)
-const saved = localStorage.getItem("customerPhone");
-if(saved){
-  document.getElementById("phone").value = saved;
-  document.getElementById("nextBtn").disabled = false;
-  const badge = document.getElementById("savedBadge");
-  badge.style.display = "flex";
-  document.getElementById("savedBadgeText").textContent = "เบอร์ที่จำไว้: "+saved;
-}
-
-window.onPhoneInput = function(el){
-  const val = el.value.replace(/[^0-9A-Za-z_-]/g,'');
-  el.value = val;
-  document.getElementById("nextBtn").disabled = val.length < 6;
-  document.getElementById("error").style.display = "none";
-  document.getElementById("savedBadge").style.display = "none";
-}
-
-window.clearSaved = function(){
-  localStorage.removeItem("customerPhone");
-  localStorage.removeItem("customerData");
-  localStorage.removeItem("addresses");
-  document.getElementById("phone").value = "";
-  document.getElementById("nextBtn").disabled = true;
-  document.getElementById("savedBadge").style.display = "none";
-  document.getElementById("phone").focus();
-}
-
-window.nextPage = async function(){
-  const phone = document.getElementById("phone").value.replace(/[^0-9A-Za-z_-]/g,'');
-  if(phone.length < 6){ document.getElementById("error").style.display="block"; return; }
-
-  if(phone==="KJNFY63ESTC_C"){ location.href="./admin.html"; return; }
-  if(phone==="KJNFY63ESTC_CUI"){ location.href="./developer.html"; return; }
-
-  // เช็ครูปแบบเบอร์โทรไทยจริงๆ (10 หลัก ขึ้นต้นด้วย 0) ก่อนจะถือว่าเป็นเบอร์ลูกค้า
-  // กันเคสพิมพ์รหัสลับผิดไปตัวเดียวแล้วดันหลุดมาเป็น "ลูกค้าใหม่" สร้างข้อมูลขยะในระบบลูกค้า
-  if(!/^0[0-9]{9}$/.test(phone)){
-    document.getElementById("error").style.display="block";
-    return;
-  }
-  document.getElementById("error").style.display="none";
-
-  const btn=document.getElementById("nextBtn");
-  btn.disabled=true; btn.textContent="กำลังเข้า...";
-
-  const prevPhone = localStorage.getItem("customerPhone");
-  localStorage.setItem("customerPhone", phone);
-  if(prevPhone && prevPhone!==phone){
-    localStorage.removeItem("addresses");
-    localStorage.removeItem("customerData");
-    localStorage.removeItem("defaultAddress");
-  }
-
-  // เช็ค Firestore เสมอทุกครั้ง ไม่เชื่อแคชใน localStorage เพียงอย่างเดียวอีกต่อไป
-  // (กันเคสลูกค้าที่ยังกรอกที่อยู่ไม่เสร็จ/ไม่เคยกรอกเลย ไม่ให้หลุดเข้าหน้าร้านไปได้โดยไม่ผ่านการลงทะเบียนจริง)
-  try{
-    const snap = await getDoc(doc(db,"customers",phone));
-    const d = snap.exists() ? snap.data() : null;
-    if(d && d.registered){
-      localStorage.setItem("customerData", JSON.stringify(d));
-      // บันทึกบัญชีนี้ไว้ในรายการ "สลับบัญชี" ด้วย (ถ้ายังไม่มี หรืออัปเดตถ้ามีอยู่แล้ว) ไม่ซ้ำกันตามเบอร์โทร
-      try{
-        const saved = JSON.parse(localStorage.getItem("savedAccounts")||"[]");
-        const idx = saved.findIndex(a=>a.phone===phone);
-        const entry = {phone, name:d.name||"", address:d.address||"", lat:d.lat||null, lng:d.lng||null};
-        if(idx>=0) saved[idx]=entry; else saved.push(entry);
-        localStorage.setItem("savedAccounts", JSON.stringify(saved));
-      }catch(e){}
-      if(d.address){
-        localStorage.setItem("addresses",JSON.stringify([{name:d.name||"",phone,address:d.address,lat:d.lat||null,lng:d.lng||null}]));
-        localStorage.setItem("defaultAddress","0");
-      }
-      // ถ้ามาจากหน้าที่กดใส่ตะกร้าแล้วถูกเด้งมาให้เข้าสู่ระบบก่อน ให้พากลับไปหน้านั้นต่อเลย ไม่ใช่เด้งไป shops.html เฉยๆ
-      const returnUrl = sessionStorage.getItem("loginReturnUrl");
-      if(returnUrl){ sessionStorage.removeItem("loginReturnUrl"); location.replace(returnUrl); return; }
-      location.replace("./shops.html"); // ถือว่าล็อกอินสำเร็จแล้ว ไม่ควรย้อนกลับมาหน้ากรอกเบอร์ได้อีก
-    } else {
-      // ลูกค้าใหม่ หรือเคยเริ่มกรอกไว้แต่ยังไม่กดบันทึกจบ (ยังไม่มี registered:true):
-      // บันทึกข้อมูลเบื้องต้น (แค่เบอร์โทร) ลง Firestore ทันทีตั้งแต่ล็อกอินครั้งแรก ไม่ทับข้อมูลที่เคยกรอกไว้บางส่วน (merge)
-      // ไม่ต้องรอให้กรอกฟอร์ม register.html จนครบก่อน — กันกรณีเขากรอกไม่จบแล้วข้อมูลไม่ขึ้นที่หน้าลูกค้าของแอดมินเลย
-      try{ await setDoc(doc(db,"customers",phone),{phone,createdAt:new Date().toISOString()},{merge:true}); }catch(e2){}
-      sessionStorage.setItem("newCustomer","1");
-      sessionStorage.setItem("addrBack","shops.html");
-      location.href="./register.html";
-    }
-  }catch(e){
-    // Firestore error → ถ้าไม่มีที่อยู่เลย ไป register.html
-    sessionStorage.setItem("newCustomer","1");
-    sessionStorage.setItem("addrBack","shops.html");
-    location.href="./register.html";
-  }
-}
-
-document.getElementById("phone").addEventListener("keydown",e=>{ if(e.key==="Enter") window.nextPage(); });
-
-// รีเซ็ตปุ่มเมื่อกลับมาหน้านี้ด้วย back navigation (bfcache)
-window.addEventListener("pageshow", function(e){
-  const btn = document.getElementById("nextBtn");
-  const phone = document.getElementById("phone").value.trim();
-  btn.disabled = phone.length < 6;
-  btn.textContent = "ถัดไป";
-});
+}), { experimentalAutoDetectLongPolling: true });
+// customers/{phone} = {phone,name,address,lat,lng,addresses[],createdAt,registered,updatedAt}
+// address/lat/lng = ที่อยู่หลัก (addresses[0]) เก็บไว้ให้ checkout/แอดมิน/แอพอ่านต่อได้เหมือนเดิม
+window.ndCloud = {
+  async get(phone){ const s = await getDoc(doc(db,'customers',phone)); return s.exists() ? s.data() : null; },
+  // สมัครแบบ transaction: ถ้ามีคนสมัครเบอร์นี้ไปแล้ว (registered) จะไม่เขียนทับ แต่โยน EXISTS กลับไป
+  async register(phone, d){
+    const ref = doc(db,'customers',phone);
+    await runTransaction(db, async tx => {
+      const s = await tx.get(ref), old = s.exists() ? s.data() : {};
+      if(old.registered) throw new Error('EXISTS');
+      tx.set(ref, {...d, phone, createdAt: old.createdAt || new Date().toISOString(), registered:true, updatedAt: serverTimestamp()}, {merge:true});
+    });
+  },
+  // แก้ที่อยู่ (ไม่แตะชื่อ)
+  async patch(phone, d){ await setDoc(doc(db,'customers',phone), {...d, phone, updatedAt: serverTimestamp()}, {merge:true}); }
+};
 </script>
-<script src="motion.js"></script>
+<script>
+const $=s=>document.querySelector(s), root=document.documentElement, app=$('#app');
+const NOM='https://nominatim.openstreetmap.org';
+const ua=navigator.userAgent, inApp=/Line\/|FBAN|FBAV|Instagram|Messenger/i.test(ua), isIOS=/iPhone|iPad|iPod/i.test(ua)||(/Macintosh/i.test(ua)&&navigator.maxTouchPoints>1);
+let cur={lat:13.7563,lng:100.5018,placeName:'',geoText:''}, pinned=false, ctl, me, tmr, tl, mstyle='detail';
+let mode='phone', kind='register', PH='', ACC=null, list=[], selIdx=null;
+const ls=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};
+const phoneOk=p=>/^0\d{9}$/.test(p);
+function toast(t,ms=2600){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),ms)}
+function whenCloud(){return new Promise((ok,no)=>{let n=0;const t=setInterval(()=>{if(window.ndCloud){clearInterval(t);ok(window.ndCloud)}else if(++n>60){clearInterval(t);no(new Error('ยังเชื่อมต่อฐานข้อมูลไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่'))}},100)})}
+// กลับไปหน้าที่ส่งมา: ?next=หน้า.html หรือ loginReturnUrl ที่หน้าอื่นเก็บไว้ (เฉพาะโดเมนเดียวกัน)
+function nextUrl(){
+  const cand=[new URLSearchParams(location.search).get('next'),sessionStorage.getItem('loginReturnUrl')];
+  sessionStorage.removeItem('loginReturnUrl');
+  for(const u of cand){if(!u)continue;try{const x=new URL(u,location.href);if(x.origin===location.origin&&!/login\.html$/i.test(x.pathname))return x.pathname.replace(/^\//,'')+x.search+x.hash}catch(e){}}
+  return 'shops.html';
+}
+function normPhone(v){v=String(v||'').trim();if(/[A-Za-z_]/.test(v))return v.replace(/[^0-9A-Za-z_-]/g,'');let d=v.replace(/\D/g,'');if(d.startsWith('66')&&d.length===11)d='0'+d.slice(2);return d}
+const mask=n=>{n=(n||'').trim();return n?Array.from(n)[0]+'***':'ลูกค้า'};
+
+/* ---------- map ---------- */
+const map=L.map('map',{zoomControl:false,maxZoom:20}).setView([cur.lat,cur.lng],16);
+const T={
+ detail:{u:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',o:{maxNativeZoom:19,maxZoom:20,attribution:'© OpenStreetMap'}},
+ clean:{u:'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',o:{maxZoom:20,subdomains:'abcd',attribution:'© OpenStreetMap © CARTO'}},
+ dark:{u:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',o:{maxZoom:20,subdomains:'abcd',attribution:'© OpenStreetMap © CARTO'}}};
+let terr=0,ready=false,syncing=false,SH=0;
+function tiles(){const k=root.dataset.theme==='dark'?'dark':mstyle;tl&&map.removeLayer(tl);tl=L.tileLayer(T[k].u,T[k].o).addTo(map);tl.bringToBack();tl.on('tileerror',()=>{if(++terr===4)toast('โหลดแผนที่ไม่ได้ ตรวจสอบอินเทอร์เน็ต หรือเปิดไฟล์นี้ผ่านเว็บจริง (https)',6000)})}
+function setTheme(t){root.dataset.theme=t;try{localStorage.setItem('nd_theme',t)}catch(e){}$('meta[name=theme-color]').content=t==='dark'?'#0a1226':'#0c4aa6';tiles()}
+$('#theme').onclick=()=>setTheme(root.dataset.theme==='dark'?'light':'dark');
+$('#style').onclick=()=>{mstyle=mstyle==='detail'?'clean':'detail';tiles();toast(mstyle==='detail'?'แผนที่แบบละเอียด':'แผนที่แบบเรียบ'+(root.dataset.theme==='dark'?' (ธีมมืดใช้แผนที่โทนมืด)':''))};
+$('#zi').onclick=()=>map.zoomIn();$('#zo').onclick=()=>map.zoomOut();
+const mq=matchMedia('(min-width:820px)');
+const shh=()=>mq.matches?0:SH;
+function pinLL(){const s=map.getSize();return map.containerPointToLatLng([s.x/2,(s.y-shh())/2])}
+function goTo(ll,z,o){ll=L.latLng(ll);z=z||map.getZoom();map.flyTo(map.unproject(map.project(ll,z).add([0,shh()/2]),z),z,o)}
+function layout(){
+  const s=$('#sheet'),f=$('.fields'),H=s.offsetHeight,min=s.classList.contains('min');
+  let vis=H,ty=0;
+  if(mq.matches)vis=0;
+  else if(min){ty=Math.max(0,H-(f.offsetTop+(parseFloat(getComputedStyle(s).paddingBottom)||0)));vis=H-ty}
+  s.style.setProperty('--fy',ty+'px');
+  const d=vis-SH;SH=vis;root.style.setProperty('--shh',vis+'px');
+  if(!ready){const c=pinLL();cur.lat=c.lat;cur.lng=c.lng;ready=true;requestAnimationFrame(()=>root.classList.add('ready'));return}
+  if(Math.abs(d)>1&&!mq.matches){syncing=true;map.once('moveend',()=>{syncing=false});map.panBy([0,d/2],{animate:true,duration:.38,easeLinearity:.25,noMoveStart:true})}
+}
+{let raf;const go=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(layout)};
+ new ResizeObserver(go).observe($('#sheet'));
+ addEventListener('resize',()=>{map.invalidateSize();go()})}
+tiles();
+// คีย์บอร์ด (iOS/Android): ยกแผงขึ้นเหนือคีย์บอร์ด ไม่ย่อแผนที่ พิกัดใต้หมุดจึงไม่เลื่อน
+if(window.visualViewport){const vv=visualViewport;
+  const kb=()=>{const k=mq.matches?0:Math.max(0,Math.round(innerHeight-vv.height-vv.offsetTop));root.style.setProperty('--kb',k+'px');window.scrollTo(0,0)};
+  vv.addEventListener('resize',kb);vv.addEventListener('scroll',kb)}
+$('#sheet').addEventListener('focusin',e=>{if(/INPUT|TEXTAREA/.test(e.target.tagName))setTimeout(()=>e.target.scrollIntoView&&e.target.scrollIntoView({block:'center',behavior:'smooth'}),320)});
+
+/* ---------- sheet fold ---------- */
+const sheet=$('#sheet');
+function foldLabel(min){$('#foldT').textContent=min?(mode==='form'?'กรอกข้อมูลต่อ':'กลับมากรอก'):'ดูแผนที่'}
+function fold(min){sheet.classList.toggle('min',min);$('#fold').setAttribute('aria-expanded',String(!min));$('.fields').inert=min;foldLabel(min);if(min)sheet.scrollTop=0;layout()}
+$('#fold').onclick=$('#grab').onclick=()=>fold(!sheet.classList.contains('min'));
+$('#place').onclick=()=>sheet.classList.contains('min')&&fold(false);
+[$('#grab'),$('.head')].forEach(n=>{
+  let y0=null,moved=false;n.style.touchAction='none';
+  n.addEventListener('pointerdown',e=>{y0=e.clientY;moved=false;try{n.setPointerCapture(e.pointerId)}catch(x){}});
+  n.addEventListener('pointermove',e=>{if(y0!=null&&Math.abs(e.clientY-y0)>8)moved=true});
+  n.addEventListener('pointerup',e=>{if(y0==null)return;const dy=e.clientY-y0;y0=null;if(Math.abs(dy)>24){moved=true;fold(dy>0)}});
+  n.addEventListener('pointercancel',()=>{y0=null});
+  n.addEventListener('click',e=>{if(moved){e.stopImmediatePropagation();e.preventDefault();moved=false}},true);
+});
+
+/* ---------- mode ---------- */
+const TTL={phone:'เข้าสู่ระบบ Nimit Delivery',login:'ยินดีต้อนรับกลับ',register:'สมัครสมาชิก',edit:'ที่อยู่ของฉัน'};
+function setMode(m,k){
+  mode=m==='register'||m==='edit'?'form':m; if(k)kind=k;
+  app.classList.toggle('nopin',m==='phone');
+  $('#pPhone').hidden=m!=='phone';$('#pLogin').hidden=m!=='login';$('#pForm').hidden=mode!=='form';
+  $('#place').hidden=mode!=='form';
+  $('#ttl').textContent=TTL[m==='form'?kind:m]||TTL[m];
+  sheet.classList.remove('min');$('.fields').inert=false;foldLabel(false);sheet.scrollTop=0;
+  if(mode==='form'){
+    const reg=kind==='register';
+    $('#fn').hidden=!reg;$('#svWrap').hidden=reg;
+    $('#go').textContent=reg?'สมัครและเข้าสู่ระบบ':'บันทึกที่อยู่';
+    $('#phCap').textContent='เบอร์โทร '+PH;
+    if(!reg)renderSaved();
+    if(!pinned){$('#pname').textContent='ยังไม่ได้ปักหมุด';$('#paddr').textContent='กดปุ่ม "ปักหมุด" มุมซ้ายล่างเพื่อใช้ตำแหน่งปัจจุบัน หรือเลื่อนแผนที่/ค้นหาเอง';setLoading(false)}
+    syncLabel();
+  }
+  setTimeout(layout,0);
+}
+
+/* ---------- pin + reverse geocode ---------- */
+const pin=$('#pin');
+map.on('dragstart',()=>{if(mode==='form')pinned=true});
+map.on('movestart',()=>pin.classList.add('lift'));
+map.on('moveend',()=>{if(syncing)return;pin.classList.remove('lift');if(mode!=='form'||!pinned)return;
+  const c=pinLL();cur.lat=c.lat;cur.lng=c.lng;clearTimeout(tmr);setLoading(true);tmr=setTimeout(reverse,350)});
+map.on('click',e=>{if(mode!=='form')return;pinned=true;goTo(e.latlng,Math.max(map.getZoom(),18),{duration:.5})});
+function setLoading(b){$('#place').classList.toggle('load',b)}
+async function reverse(){
+  ctl&&ctl.abort();ctl=new AbortController();{const c=pinLL();cur.lat=c.lat;cur.lng=c.lng}
+  try{
+    const r=await fetch(`${NOM}/reverse?format=jsonv2&lat=${cur.lat}&lon=${cur.lng}&zoom=18&addressdetails=1&namedetails=1&accept-language=th`,{signal:ctl.signal});
+    const j=await r.json(),a=j.address||{};
+    const poi=j.name||(j.namedetails&&j.namedetails.name)||'';
+    const road=[a.house_number,a.road].filter(Boolean).join(' ');
+    const rest=[a.village||a.hamlet||a.suburb||a.neighbourhood,a.city_district||a.county,a.city||a.state,a.postcode].filter(Boolean).join(' ');
+    const place=a.village||a.hamlet||a.town||a.suburb||a.neighbourhood||a.city_district||a.county||'';
+    const title=poi||road||place||'จุดที่เลือก';
+    cur.placeName=title==='จุดที่เลือก'?'':title;
+    cur.geoText=[poi,road,rest].filter(Boolean).join(' ');
+    {const l=$('#label');if(!l.dataset.touched)l.value=cur.placeName}
+    $('#pname').textContent=title;
+    $('#paddr').textContent=j.display_name||rest||'ไม่พบชื่อที่อยู่ ลองเลื่อนหมุดใหม่';
+    // ไม่เขียนทับข้อความที่ผู้ใช้พิมพ์/แก้เอง (มีลิงก์ให้กดใช้ที่อยู่จากหมุดแทนได้)
+    const ad=$('#addr');if(!ad.dataset.touched){ad.value=cur.geoText;$('#fa').classList.remove('err')}
+    updUseMap();
+    pin.classList.remove('bump');void pin.offsetWidth;pin.classList.add('bump');
+  }catch(e){if(e.name!=='AbortError'){$('#pname').textContent='โหลดชื่อที่อยู่ไม่ได้';$('#paddr').textContent='พิมพ์ที่อยู่เองในช่องด้านล่างได้'}}
+  setLoading(false);
+}
+function updUseMap(){$('#useMap').hidden=!($('#addr').dataset.touched&&cur.geoText&&$('#addr').value.trim()!==cur.geoText)}
+$('#useMap').onclick=()=>{const a=$('#addr');a.value=cur.geoText;delete a.dataset.touched;updUseMap()};
+$('#addr').addEventListener('input',e=>{const a=e.target;if(a.value.trim())a.dataset.touched='1';else delete a.dataset.touched;updUseMap()});
+
+/* ---------- auto pin (GPS): กดเองเท่านั้น ไม่ขอสิทธิ์ตอนเปิดหน้า ---------- */
+function locate(){
+  if(inApp&&isIOS){toast('เปิดผ่าน Safari เพื่อใช้ปักหมุดอัตโนมัติ หรือเลื่อนแผนที่ปักหมุดเอง',5000);return}
+  if(!navigator.geolocation){toast('อุปกรณ์นี้ไม่รองรับ GPS ปักหมุดเองบนแผนที่ได้');return}
+  const btn=$('#auto');if(btn.classList.contains('busy'))return;btn.classList.add('busy');let done=false,to;
+  const fail=m=>{if(done)return;done=true;clearTimeout(to);btn.classList.remove('busy');toast(m,4200)};
+  to=setTimeout(()=>fail('ค้นหาตำแหน่งนานเกินไป ลองใหม่ หรือปักหมุดเอง'),10000);
+  navigator.geolocation.getCurrentPosition(p=>{
+    if(done)return;done=true;clearTimeout(to);btn.classList.remove('busy');pinned=true;
+    const ll=[p.coords.latitude,p.coords.longitude];
+    me?me.setLatLng(ll):me=L.marker(ll,{interactive:false,icon:L.divIcon({className:'',html:'<div class="me"></div>',iconSize:[18,18]})}).addTo(map);
+    goTo(ll,18,{duration:.9});
+  },e=>fail(e&&e.code===1?'ไม่ได้รับสิทธิ์ตำแหน่ง เปิดในตั้งค่าเครื่อง หรือปักหมุดเอง':'อ่านตำแหน่ง GPS ไม่ได้ ลองใหม่ หรือปักหมุดเอง'),{enableHighAccuracy:true,timeout:9000,maximumAge:30000});
+}
+$('#auto').onclick=locate;
+
+/* ---------- search ---------- */
+const q=$('#q'),res=$('#res');let st;
+const PIN_SVG='<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.500A2.500 2.500 0 1 1 12 6.500a2.500 2.500 0 0 1 0 5z"/></svg>';
+q.addEventListener('input',()=>{$('#sbox').classList.toggle('has',!!q.value);clearTimeout(st);const v=q.value.trim();if(v.length<2){res.classList.remove('open');return}st=setTimeout(()=>search(v),380)});
+$('#qx').onclick=()=>{q.value='';$('#sbox').classList.remove('has');res.classList.remove('open');q.focus()};
+async function search(v){
+  try{
+    const b=map.getBounds();
+    const r=await fetch(`${NOM}/search?format=jsonv2&q=${encodeURIComponent(v)}&limit=6&addressdetails=1&accept-language=th&countrycodes=th&viewbox=${b.getWest()},${b.getNorth()},${b.getEast()},${b.getSouth()}`);
+    const l=await r.json();res.innerHTML=l.length?'':'<li class="empty">ไม่พบสถานที่ ลองพิมพ์ชื่ออื่น หรือเพิ่มชื่อเขต/จังหวัด</li>';
+    l.forEach(x=>{const li=document.createElement('li');li.tabIndex=0;const [n,...rest]=x.display_name.split(', ');
+      li.innerHTML=PIN_SVG+'<div><b></b><small></small></div>';li.querySelector('b').textContent=x.name||n;li.querySelector('small').textContent=rest.join(', ');
+      const pick=()=>{pinned=true;goTo([+x.lat,+x.lon],18,{duration:.8});q.value=x.name||n;res.classList.remove('open');q.blur()};
+      li.onclick=pick;li.onkeydown=e=>e.key==='Enter'&&pick();res.appendChild(li)});
+    res.classList.add('open');
+  }catch(e){res.innerHTML='<li class="empty">ค้นหาไม่ได้ ตรวจสอบอินเทอร์เน็ต</li>';res.classList.add('open')}
+}
+document.addEventListener('click',e=>{if(!e.target.closest('.top'))res.classList.remove('open')});
+
+/* ---------- account / addresses ---------- */
+const clean=a=>({name:a.name||'',phone:a.phone||PH,address:a.address||'',addrText:a.addrText||a.address||'',addrNote:a.addrNote||'',lat:a.lat==null?null:+(+a.lat).toFixed(6),lng:a.lng==null?null:+(+a.lng).toFixed(6),tag:a.tag||'บ้าน',label:a.label||a.tag||'บ้าน',placeName:a.placeName||''});
+const same=(a,b)=>a&&b&&a.lat!=null&&b.lat!=null&&Math.abs(a.lat-b.lat)<1e-5&&Math.abs(a.lng-b.lng)<1e-5;
+// รายการที่อยู่จากเอกสารลูกค้า: ใช้ addresses[] ถ้ามี และให้ที่อยู่หลัก (address/lat/lng) ที่หน้าอื่น/แอพแก้ไว้อยู่ลำดับแรกเสมอ
+function loadList(d){
+  let l=Array.isArray(d.addresses)?d.addresses.map(clean):[];
+  if(d.address&&d.lat!=null){
+    const p=clean({name:d.name,phone:d.phone,address:d.address,lat:d.lat,lng:d.lng,tag:'บ้าน',label:'บ้าน'});
+    const ex=l.find(a=>same(a,p));
+    l=[ex||p,...l.filter(a=>a!==ex)];
+  }
+  return l.slice(0,5);
+}
+function saveLocal(){
+  const a=list[0]||{};
+  localStorage.setItem('customerPhone',PH);
+  localStorage.setItem('customerData',JSON.stringify({...(ACC||{}),phone:PH,name:(ACC&&ACC.name)||'',address:a.address||'',lat:a.lat==null?null:a.lat,lng:a.lng==null?null:a.lng,registered:true}));
+  localStorage.setItem('addresses',JSON.stringify(list));
+  localStorage.setItem('defaultAddress','0');
+  try{const sa=ls('savedAccounts',[]),i=sa.findIndex(x=>x.phone===PH),en={phone:PH,name:(ACC&&ACC.name)||'',address:a.address||'',lat:a.lat==null?null:a.lat,lng:a.lng==null?null:a.lng};if(i>=0)sa[i]=en;else sa.push(en);localStorage.setItem('savedAccounts',JSON.stringify(sa))}catch(e){}
+}
+async function persist(){
+  list=list.slice(0,5);
+  const cl=await whenCloud(),p={addresses:list};
+  if(list[0]&&list[0].lat!=null){p.address=list[0].address;p.lat=list[0].lat;p.lng=list[0].lng}
+  await cl.patch(PH,p);saveLocal();
+}
+function finish(){sessionStorage.removeItem('newCustomer');location.replace(nextUrl())}
+
+let rlOpen=false,moreOpen=false,menuIdx=null;
+const CHEV='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+const PEN='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.100 2.100 0 0 1 3 3L7 19l-4 1 1-4 12.500-12.500z"/></svg>';
+const okIdx=()=>list.map((a,i)=>i).filter(i=>list[i].lat!=null);
+function renderRL(){
+  const box=$('#rl');box.innerHTML='';
+  const ix=okIdx();
+  if(!ix.length){box.innerHTML='<p class="cap">ยังไม่มีที่อยู่ที่ปักหมุดไว้ กด "เพิ่มหรือแก้ไขที่อยู่" ได้</p>';return}
+  const row=(a,main)=>{const r=document.createElement('div');r.className='rl';r.innerHTML=PIN_SVG+'<div><b></b><small></small></div>';
+    r.querySelector('b').textContent=a.label||a.tag;if(main){const e=document.createElement('em');e.textContent='หลัก';r.querySelector('b').appendChild(e)}
+    r.querySelector('small').textContent=a.address;return r};
+  box.appendChild(row(list[ix[0]],true));
+  if(ix.length>1){
+    const m=document.createElement('button');m.type='button';m.className='more'+(rlOpen?' open':'');m.innerHTML='<span>ที่อยู่อื่น ('+(ix.length-1)+')</span>'+CHEV;
+    m.onclick=()=>{rlOpen=!rlOpen;renderRL()};box.appendChild(m);
+    if(rlOpen)ix.slice(1).forEach(i=>box.appendChild(row(list[i],false)));
+  }
+}
+function markSel(){}
+function newAddr(){selIdx=null;$('#note').value='';const a=$('#addr');a.value='';delete a.dataset.touched;updUseMap();document.querySelector('[name=tag][value="อื่นๆ"]').checked=true;delete $('#label').dataset.touched;$('#label').value='';syncLabel()}
+function selectAddr(i){
+  const a=list[i];if(!a||a.lat==null)return;selIdx=i;pinned=true;menuIdx=null;
+  const r=document.querySelector('[name=tag][value="'+(a.tag||'อื่นๆ')+'"]');if(r)r.checked=true;
+  $('#label').value=a.label&&a.label!==a.tag?a.label:(a.placeName||'');$('#label').dataset.touched='1';syncLabel();
+  const ad=$('#addr');ad.value=a.addrText||a.address||'';ad.dataset.touched='1';$('#note').value=a.addrNote||'';updUseMap();
+  goTo([a.lat,a.lng],18,{duration:.7});renderSaved();
+}
+async function setPrimary(i){
+  if(!(i>0&&list[i]))return;const bak=list.slice();const [a]=list.splice(i,1);list.unshift(a);selIdx=selIdx===i?0:null;menuIdx=null;
+  try{await persist();renderSaved();toast('ตั้งเป็นที่อยู่หลักแล้ว')}catch(e){list=bak;renderSaved();toast('บันทึกไม่สำเร็จ: '+e.message,4000)}
+}
+async function removeAddr(i){
+  if(okIdx().length<=1){toast('ต้องเหลือที่อยู่อย่างน้อย 1 รายการ');return}
+  const bak=list.slice();list.splice(i,1);selIdx=null;menuIdx=null;
+  try{await persist();renderSaved();toast('ลบที่อยู่แล้ว')}catch(e){list=bak;renderSaved();toast('ลบไม่สำเร็จ: '+e.message,4000)}
+}
+function renderSaved(){
+  const box=$('#svBox');box.innerHTML='';
+  const ix=okIdx();
+  if(ix.length){
+    const i=ix[0],a=list[i],c=document.createElement('div');c.className='pc'+(selIdx===i?' sel':'');
+    c.innerHTML='<div class="t"><span class="k">ที่อยู่หลัก</span><strong></strong><span class="a"></span></div><button type="button" class="ed" aria-label="แก้ไขที่อยู่หลัก">'+PEN+'</button>';
+    c.querySelector('strong').textContent=a.label||a.tag;c.querySelector('.a').textContent=a.address;
+    c.onclick=()=>selectAddr(i);box.appendChild(c);
+  }
+  const oth=ix.slice(1);
+  if(oth.length){
+    const m=document.createElement('button');m.type='button';m.className='more'+(moreOpen?' open':'');m.innerHTML='<span>ที่อยู่อื่น ('+oth.length+')</span>'+CHEV;
+    m.onclick=()=>{moreOpen=!moreOpen;menuIdx=null;renderSaved()};box.appendChild(m);
+    if(moreOpen)oth.forEach(i=>{
+      const a=list[i],r=document.createElement('div');r.className='orow'+(selIdx===i?' sel':'');
+      r.innerHTML='<div class="t"><b></b><small></small></div><button type="button" class="dots" aria-label="ตัวเลือก">···</button>';
+      r.querySelector('b').textContent=a.label||a.tag||('ที่อยู่ '+(i+1));r.querySelector('small').textContent=a.address;
+      r.onclick=e=>{if(e.target.closest('.dots'))return;selectAddr(i)};
+      r.querySelector('.dots').onclick=()=>{menuIdx=menuIdx===i?null:i;renderSaved()};
+      box.appendChild(r);
+      if(menuIdx===i){
+        const mn=document.createElement('div');mn.className='mn';
+        mn.innerHTML='<button type="button" data-a="e">แก้ไข</button><button type="button" data-a="p">ตั้งเป็นหลัก</button><button type="button" class="dl" data-a="d">ลบ</button>';
+        mn.querySelector('[data-a=e]').onclick=()=>selectAddr(i);
+        mn.querySelector('[data-a=p]').onclick=()=>setPrimary(i);
+        const d=mn.querySelector('[data-a=d]');d.onclick=()=>{if(d.classList.contains('ask')){removeAddr(i);return}d.classList.add('ask');d.textContent='ยืนยันลบ';clearTimeout(d._t);d._t=setTimeout(()=>{d.classList.remove('ask');d.textContent='ลบ'},3000)};
+        box.appendChild(mn);
+      }
+    });
+  }
+  if(list.length<5){
+    const ad=document.createElement('button');ad.type='button';ad.className='addrow';ad.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>เพิ่มที่อยู่ใหม่';
+    ad.onclick=()=>{newAddr();renderSaved();fold(true);toast('เลื่อนแผนที่เพื่อปักหมุดที่อยู่ใหม่ ระบบจะตั้งชื่อตามสถานที่ให้')};box.appendChild(ad);
+  }
+  $('#editCap').textContent=selIdx!=null&&list[selIdx]?'กำลังแก้ไข: '+(list[selIdx].label||list[selIdx].tag):'ที่อยู่ใหม่ (ปักหมุดแล้วกดบันทึก)';
+}
+function syncLabel(){$('#fl').hidden=document.querySelector('[name=tag]:checked').value!=='อื่นๆ'}
+document.querySelectorAll('[name=tag]').forEach(r=>r.addEventListener('change',syncLabel));
+$('#label').addEventListener('input',e=>{e.target.dataset.touched='1'});
+
+/* ---------- step 1: phone ---------- */
+{const ph=localStorage.getItem('customerPhone');
+ if(ph&&phoneOk(ph)){$('#phone').value=ph;$('#forget').hidden=false}}
+$('#phone').addEventListener('input',e=>{e.target.value=normPhone(e.target.value);$('#fph').classList.remove('err');$('#forget').hidden=true});
+$('#forget').onclick=()=>{['customerPhone','customerData','addresses','defaultAddress'].forEach(k=>localStorage.removeItem(k));$('#phone').value='';$('#forget').hidden=true;$('#phone').focus()};
+function busy(btn,t){btn.disabled=true;btn.dataset.t=btn.textContent;btn.textContent=t;btn.classList.add('busy')}
+function idle(btn){btn.disabled=false;if(btn.dataset.t)btn.textContent=btn.dataset.t;btn.classList.remove('busy')}
+async function stepPhone(){
+  const phone=normPhone($('#phone').value);
+  if(phone==='KJNFY63ESTC_C'){location.href='./admin.html';return}
+  if(phone==='KJNFY63ESTC_CUI'){location.href='./developer.html';return}
+  const f=$('#fph');f.classList.remove('err');void f.offsetWidth;
+  if(!phoneOk(phone)){f.classList.add('err');$('#phone').focus();return}
+  const btn=$('#goPhone');busy(btn,'กำลังตรวจสอบ...');
+  try{
+    const cl=await whenCloud(),d=await cl.get(phone);
+    const prev=localStorage.getItem('customerPhone');
+    if(prev&&prev!==phone){['addresses','customerData','defaultAddress'].forEach(k=>localStorage.removeItem(k))}
+    PH=phone;pinned=false;
+    if(d&&d.registered){
+      ACC=d;list=loadList(d);
+      $('#wName').textContent='คุณ '+mask(d.name);$('#wPhone').textContent='เบอร์ '+phone;$('#av').textContent=Array.from(d.name||'?')[0];
+      renderRL();setMode('login');
+      const p=list.find(a=>a.lat!=null);if(p)setTimeout(()=>goTo([p.lat,p.lng],17,{duration:.8}),150);
+    }else{
+      // ยังไม่มีบัญชี: สมัครต่อ (ยังไม่เขียนอะไรลงฐานข้อมูลจนกว่าจะกดสมัคร)
+      ACC=null;list=[];selIdx=null;newAddr();$('#name').value=(d&&d.name)||'';setMode('register','register');
+    }
+  }catch(e){toast('เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง',3500)}
+  idle(btn);
+}
+$('#notMe').onclick=()=>{ACC=null;list=[];pinned=false;setMode('phone');$('#phone').focus()};
+$('#back').onclick=()=>{if(kind==='edit'){setMode('login');renderRL()}else{pinned=false;setMode('phone')}};
+$('#toEdit').onclick=()=>{selIdx=null;newAddr();if(list.length>=5)toast('มีที่อยู่ครบ 5 รายการแล้ว แตะรายการเพื่อแก้ไข หรือลบก่อนเพิ่มใหม่');setMode('edit','edit')};
+
+/* ---------- submit ---------- */
+function field(k,ok){const el=$('#'+k);el.classList.remove('err');void el.offsetWidth;el.classList.toggle('err',!ok)}
+function buildEntry(name){
+  const tag=document.querySelector('[name=tag]:checked').value;
+  const label=tag==='อื่นๆ'?($('#label').value.trim()||'อื่นๆ'):tag;
+  const addrText=$('#addr').value.trim(),note=$('#note').value.trim();
+  return clean({name,phone:PH,address:note?`${addrText} (${note})`:addrText,addrText,addrNote:note,lat:cur.lat,lng:cur.lng,tag,label,placeName:cur.placeName});
+}
+sheet.addEventListener('submit',async e=>{
+  e.preventDefault();
+  if(mode==='phone')return stepPhone();
+  if(mode==='login'){saveLocal();toast('ยินดีต้อนรับ '+((ACC&&ACC.name)||''));setTimeout(finish,500);return}
+  const reg=kind==='register',go=$('#go');
+  const name=reg?$('#name').value.trim():((ACC&&ACC.name)||''),addr=$('#addr').value.trim();
+  if(reg)field('fn',!!name);field('fa',!!addr);
+  if(!addr||(reg&&!name)){const bad=document.querySelector('.f.err input,.f.err textarea');bad&&bad.focus();return}
+  if(!pinned){toast('ปักหมุดตำแหน่งจัดส่งบนแผนที่ก่อน');fold(true);pin.classList.remove('bump');void pin.offsetWidth;pin.classList.add('bump');return}
+  busy(go,'กำลังบันทึก...');
+  try{
+    const cl=await whenCloud(),en=buildEntry(name);
+    if(reg){
+      await cl.register(PH,{name,address:en.address,lat:en.lat,lng:en.lng,addresses:[en]});
+      ACC={phone:PH,name,address:en.address,lat:en.lat,lng:en.lng,registered:true};list=[en];
+      saveLocal();toast('ยินดีต้อนรับ '+name);setTimeout(finish,600);return;
+    }
+    const dup=a=>a.tag===en.tag&&same(a,en);
+    const idx=selIdx!=null&&list[selIdx]?selIdx:list.findIndex(dup);
+    if(idx>=0)list[idx]=en;else{if(list.length>=5){toast('เก็บที่อยู่ได้สูงสุด 5 รายการ ลบรายการเก่าก่อนจึงจะเพิ่มได้');idle(go);return}list.push(en)}
+    await persist();
+    renderRL();selIdx=null;setMode('login');toast('บันทึกที่อยู่แล้ว');
+  }catch(err){
+    if(err&&err.message==='EXISTS'){toast('เบอร์นี้มีบัญชีอยู่แล้ว กำลังพาไปเข้าสู่ระบบ',3500);idle(go);setMode('phone');stepPhone();return}
+    toast('บันทึกไม่สำเร็จ: '+err.message,4200);
+  }
+  idle(go);
+});
+addEventListener('pageshow',()=>{['goPhone','go','goLogin'].forEach(i=>idle($('#'+i)))});
+setMode('phone');
+</script>
 </body>
 </html>

@@ -449,7 +449,10 @@ function syncCustomerData(){
     }));
     // เขียนกลับเข้า Firestore ด้วย ไม่ใช่แค่ localStorage เฉยๆ (ดูคอมเมนต์ที่ window.syncCustomerToFirestore ด้านบน)
     if(typeof window.syncCustomerToFirestore==='function'){
-      window.syncCustomerToFirestore(phone, {name:def.name||'', address:def.address||'', lat:def.lat||null, lng:def.lng||null});
+      // ส่งรายการที่อยู่ทั้งหมดขึ้นไปด้วย (ที่อยู่หลักอยู่ลำดับแรก) ให้หน้า login ใหม่/เครื่องอื่นเห็นครบ
+      var ordered=[def].concat(addresses.filter(function(x){return x!==def}));
+      var list5=JSON.parse(JSON.stringify(ordered.slice(0,5)));
+      window.syncCustomerToFirestore(phone, {name:def.name||'', address:def.address||'', lat:def.lat||null, lng:def.lng||null, addresses:list5});
     }
   }
 }
