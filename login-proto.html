@@ -48,6 +48,7 @@ button{font:inherit;color:inherit}
 .results b{display:block;font-weight:500}
 .results small{color:var(--sub);display:block;line-height:1.3}
 .results .empty{color:var(--sub);cursor:default}
+.mk{width:30px;height:38px}.mkin{width:30px;height:38px;transform-origin:50% 100%}.mkin svg{width:100%;height:100%;filter:drop-shadow(0 4px 4px rgba(0,0,0,.3))}.mkin path{fill:var(--pin)}
 .pin{position:absolute;z-index:900;left:50%;top:calc((100% - var(--shh,0px))/2);width:30px;height:38px;margin:-38px 0 0 -15px;pointer-events:none;transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
 .pin svg{width:100%;height:100%;filter:drop-shadow(0 4px 4px rgba(0,0,0,.3))}
 .pin path{fill:var(--pin)}
@@ -70,7 +71,7 @@ button{font:inherit;color:inherit}
 @keyframes pulse{70%{box-shadow:0 0 0 18px rgba(47,123,255,0)}100%{box-shadow:0 0 0 0 rgba(47,123,255,0)}}
 /* sheet: หัว + (สรุปตำแหน่ง) + เนื้อหาเลื่อนได้ + ปุ่มหลักติดล่างเสมอ */
 .sheet{position:absolute;left:0;right:0;bottom:var(--kb,0px);z-index:1001;background:var(--card);border-radius:24px 24px 0 0;box-shadow:0 -10px 30px var(--sh);display:flex;flex-direction:column;max-height:min(74%,calc(100% - var(--kb,0px) - 88px))}
-.grab{flex:none;display:block;width:100%;height:22px;border:0;background:none;cursor:pointer;padding:0}
+.grab{flex:none;display:block;width:100%;height:30px;touch-action:none;border:0;background:none;cursor:pointer;padding:0}
 .grab::before{content:"";display:block;width:42px;height:4px;border-radius:2px;background:var(--line);margin:10px auto 0}
 .head{flex:none;display:flex;align-items:center;justify-content:space-between;padding:2px 18px 8px;gap:10px}
 h1{font-size:18px;margin:0;font-weight:600}
@@ -92,7 +93,7 @@ h1{font-size:18px;margin:0;font-weight:600}
 .qv{position:fixed;inset:0;z-index:3000;background:rgba(8,16,36,.38);opacity:0;pointer-events:none;transition:opacity .25s}
 .qv.on{opacity:1;pointer-events:auto}
 .qb{position:fixed;left:10px;right:10px;bottom:calc(var(--kb2,0px) + 10px);z-index:3001;background:var(--card);border-radius:22px;box-shadow:0 10px 34px var(--sh);padding:10px 12px 12px;display:none;will-change:transform,border-radius}
-.qb.on{display:block}
+.qb.on{display:block}.qb.pre{opacity:0;pointer-events:none}
 .qb .qt{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
 .qb label{font-size:12.5px;color:var(--sub)}
 .qb .qn{border:0;background:var(--pin);color:#fff;font:inherit;font-size:13.5px;font-weight:600;border-radius:99px;padding:7px 16px;cursor:pointer}
@@ -207,8 +208,6 @@ h1{font-size:18px;margin:0;font-weight:600}
    </button>
    <ul class="results" id="res"></ul>
   </div></div>
-  <div class="pin" id="pin"><svg viewBox="0 0 44 56"><path d="M22 0C10 0 0 9.600 0 21.600 0 37 22 56 22 56s22-19 22-34.400C44 9.600 34 0 22 0z"/><circle cx="22" cy="21" r="8" fill="#fff"/></svg></div>
-  <div class="pin-shadow"></div>
   <button class="auto" id="auto" type="button" aria-label="ใช้ตำแหน่งปัจจุบัน"><span class="ac"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></span><span class="al">ตำแหน่งฉัน</span></button>
   <div class="ctrls">
    <button class="ib" id="style" type="button" aria-label="สลับสไตล์แผนที่"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/></svg><small>แผนที่</small></button>
@@ -222,12 +221,11 @@ h1{font-size:18px;margin:0;font-weight:600}
  <form class="sheet" id="sheet" novalidate>
   <button class="grab" id="grab" type="button" aria-label="ย่อหรือขยาย"></button>
   <div class="head"><h1 id="ttl">เข้าสู่ระบบ</h1>
-   <button class="fold" id="fold" type="button"><span id="foldT">ดูแผนที่</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
-  </div>
+   </div>
   <div class="tabs" id="tabs" hidden><button type="button" data-t="manage">ที่อยู่จัดส่ง</button><button type="button" data-t="account">บัญชีของฉัน</button></div>
   <div class="loc load" id="loc" hidden>
    <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.500A2.500 2.500 0 1 1 12 6.500a2.500 2.500 0 0 1 0 5z"/></svg></div>
-   <div><strong id="pname">ยังไม่ได้ปักหมุด</strong><span id="paddr">เลื่อนแผนที่ แตะบนแผนที่ ค้นหา หรือกด "ตำแหน่งฉัน"</span></div>
+   <div><strong id="pname">ยังไม่ได้ปักหมุด</strong><span id="paddr">แตะบนแผนที่ ค้นหา หรือกด "ตำแหน่งฉัน"</span></div>
   </div>
 
   <div class="sbody" id="sbody">
@@ -337,29 +335,31 @@ $('#theme').onclick=()=>setTheme(root.dataset.theme==='dark'?'light':'dark');
 $('#style').onclick=()=>{mstyle=mstyle==='detail'?'clean':'detail';applyStyle();toast(mstyle==='detail'?'แผนที่แบบละเอียด':'แผนที่แบบเรียบ')};
 $('#zi').onclick=()=>map&&map.zoomIn();$('#zo').onclick=()=>map&&map.zoomOut();
 $('#map').classList.toggle('dk',root.dataset.theme==='dark');
-function pinLL(){if(!map)return{lat:cur.lat,lng:cur.lng};const c=map.getContainer(),p=map.unproject([c.clientWidth/2,(c.clientHeight-shh())/2]);return{lat:p.lat,lng:p.lng}}
+function viewLL(){if(!map)return{lat:cur.lat,lng:cur.lng};const c=map.getContainer(),p=map.unproject([c.clientWidth/2,(c.clientHeight-shh())/2]);return{lat:p.lat,lng:p.lng}}
 function goTo(ll,z,dur){if(!map)return;dest={ll,z:z||map.getZoom()};map.flyTo({center:[ll.lng,ll.lat],zoom:z||map.getZoom(),offset:[0,-shh()/2],duration:(dur||.8)*1000,essential:true})}
 function layout(){
-  const H=sheet.offsetHeight,vis=mq.matches?0:H,d=vis-SH,fly=dest&&map&&map.isMoving()?dest:null,c0=fly?fly.ll:pinLL();
+  const H=sheet.offsetHeight,vis=mq.matches?0:H,d=vis-SH,fly=dest&&map&&map.isMoving()?dest:null,c0=fly?fly.ll:viewLL();
   SH=vis;root.style.setProperty('--shh',vis+'px');
-  if(!ready){const c=pinLL();cur.lat=c.lat;cur.lng=c.lng;ready=true;requestAnimationFrame(()=>root.classList.add('ready'));return}
+  if(!ready){ready=true;requestAnimationFrame(()=>root.classList.add('ready'));return}
   if(map&&Math.abs(d)>1&&!mq.matches&&!(map.isMoving()&&!dest)){syncing=true;map.easeTo({center:[c0.lng,c0.lat],zoom:fly?fly.z:map.getZoom(),offset:[0,-vis/2],duration:380,essential:true});map.once('moveend',()=>{syncing=false})}
 }
 {let raf;const go=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(layout)};new ResizeObserver(go).observe(sheet);addEventListener('resize',()=>{map&&map.resize();go()})}
-if(window.visualViewport){const vv=visualViewport;const kb=()=>{const k=mq.matches?0:Math.max(0,Math.round(innerHeight-vv.height-vv.offsetTop));root.style.setProperty('--kb2',k+'px');if(!window.__qiOn){root.style.setProperty('--kb',k+'px');window.scrollTo(0,0)}};vv.addEventListener('resize',kb);vv.addEventListener('scroll',kb)}
+if(window.visualViewport){const vv=visualViewport;const kb=()=>{const k=mq.matches?0:Math.max(0,Math.round(innerHeight-vv.height-vv.offsetTop));root.style.setProperty('--kb2',k+'px');if(!window.__qiOn){root.style.setProperty('--kb',k+'px');window.scrollTo(0,0)}dispatchEvent(new Event('ndkb'))};vv.addEventListener('resize',kb);vv.addEventListener('scroll',kb)}
 sheet.addEventListener('focusin',e=>{if(/INPUT|TEXTAREA/.test(e.target.tagName))setTimeout(()=>e.target.scrollIntoView&&e.target.scrollIntoView({block:'center',behavior:'smooth'}),320)});
 const pinOn=()=>M==='register'||M==='manage';
-const pin=$('#pin');
+const pin=document.createElement('div');pin.className='mkin';pin.innerHTML='<svg viewBox="0 0 44 56"><path d="M22 0C10 0 0 9.600 0 21.600 0 37 22 56 22 56s22-19 22-34.400C44 9.600 34 0 22 0z"/><circle cx="22" cy="21" r="8" fill="#fff"/></svg>';
+const mkEl=document.createElement('div');mkEl.className='mk';mkEl.appendChild(pin);
+const pm=map?new maplibregl.Marker({element:mkEl,anchor:'bottom'}):null;
+function syncMarker(){if(!pm)return;if(pinOn()&&pinned){pm.setLngLat([cur.lng,cur.lat]);if(!pm._map)pm.addTo(map)}else pm.remove()}
+function setPin(ll,o){cur.lat=ll.lat;cur.lng=ll.lng;pinned=true;syncMarker();pin.classList.remove('bump');void pin.offsetWidth;pin.classList.add('bump');clearTimeout(tmr);setLoad(true);tmr=setTimeout(reverse,200);if(o&&o.fly)goTo(ll,o.z,o.dur)}
 if(map){
- map.on('dragstart',()=>{if(pinOn())pinned=true});
- map.on('movestart',()=>pin.classList.add('lift'));
  ['mousedown','touchstart'].forEach(ev=>map.on(ev,()=>{if(syncing)map.stop()}));
- map.on('moveend',()=>{pin.classList.remove('lift');if(syncing)return;dest=null;if(!pinOn()||!pinned)return;const c=pinLL();cur.lat=c.lat;cur.lng=c.lng;clearTimeout(tmr);setLoad(true);tmr=setTimeout(reverse,350)});
- map.on('click',e=>{if(!pinOn())return;pinned=true;goTo({lat:e.lngLat.lat,lng:e.lngLat.lng},Math.max(map.getZoom(),17.5),.5)});
+ map.on('moveend',()=>{if(syncing)return;dest=null});
+ map.on('click',e=>{if(!pinOn())return;setPin({lat:e.lngLat.lat,lng:e.lngLat.lng})});
 }
 function setLoad(b){$('#loc').classList.toggle('load',b)}
 async function reverse(){
-  ctl&&ctl.abort();ctl=new AbortController();const c=pinLL();cur.lat=c.lat;cur.lng=c.lng;
+  ctl&&ctl.abort();ctl=new AbortController();
   try{
     const r=await fetch(`${NOM}/reverse?format=jsonv2&lat=${cur.lat}&lon=${cur.lng}&zoom=18&addressdetails=1&namedetails=1&accept-language=th`,{signal:ctl.signal});
     const j=await r.json(),a=j.address||{},poi=j.name||(j.namedetails&&j.namedetails.name)||'';
@@ -387,10 +387,10 @@ function locate(){
   const fail=m=>{if(done)return;done=true;clearTimeout(to);btn.classList.remove('busy');toast(m,4200)};
   to=setTimeout(()=>fail('ค้นหาตำแหน่งนานเกินไป ลองใหม่ หรือปักหมุดเอง'),10000);
   navigator.geolocation.getCurrentPosition(p=>{
-    if(done)return;done=true;clearTimeout(to);btn.classList.remove('busy');pinned=true;
+    if(done)return;done=true;clearTimeout(to);btn.classList.remove('busy');
     const ll=[p.coords.longitude,p.coords.latitude];
     if(me)me.setLngLat(ll);else{const el=document.createElement('div');el.className='me';me=new maplibregl.Marker({element:el}).setLngLat(ll).addTo(map)}
-    goTo({lat:ll[1],lng:ll[0]},18,.9);
+    setPin({lat:ll[1],lng:ll[0]},{fly:1,z:18,dur:.9});
   },e=>fail(e&&e.code===1?'ไม่ได้รับสิทธิ์ตำแหน่ง เปิดในตั้งค่าเครื่อง หรือปักหมุดเอง':'อ่านตำแหน่ง GPS ไม่ได้ ลองใหม่ หรือปักหมุดเอง'),{enableHighAccuracy:true,timeout:9000,maximumAge:30000});
 }
 $('#auto').onclick=locate;
@@ -406,7 +406,7 @@ async function search(v){
     const l=await r.json();res.innerHTML=l.length?'':'<li class="empty">ไม่พบสถานที่ ลองพิมพ์ชื่ออื่น หรือเพิ่มชื่อเขต/จังหวัด</li>';
     l.forEach(x=>{const li=document.createElement('li');li.tabIndex=0;const [n,...rest]=x.display_name.split(', ');
       li.innerHTML=PIN_SVG+'<div><b></b><small></small></div>';li.querySelector('b').textContent=x.name||n;li.querySelector('small').textContent=rest.join(', ');
-      const pick=()=>{pinned=true;goTo({lat:+x.lat,lng:+x.lon},18,.8);q.value=x.name||n;res.classList.remove('open');q.blur()};
+      const pick=()=>{setPin({lat:+x.lat,lng:+x.lon},{fly:1,z:18,dur:.8});q.value=x.name||n;res.classList.remove('open');q.blur()};
       li.onclick=pick;li.onkeydown=e=>e.key==='Enter'&&pick();res.appendChild(li)});
     res.classList.add('open');
   }catch(e){res.innerHTML='<li class="empty">ค้นหาไม่ได้ ตรวจสอบอินเทอร์เน็ต</li>';res.classList.add('open')}
@@ -414,12 +414,15 @@ async function search(v){
 document.addEventListener('click',e=>{if(!e.target.closest('.top'))res.classList.remove('open')});
 
 /* ---------- แผงเดียว: ปรับส่วนที่แสดงตามโหมด ---------- */
-function fold(min){sheet.classList.toggle('min',min);$('#foldT').textContent=min?'กลับมากรอก':'ดูแผนที่';layout()}
-$('#fold').onclick=$('#grab').onclick=()=>fold(!sheet.classList.contains('min'));
+function fold(min){sheet.classList.toggle('min',min);layout()}
+function bindSwipe(el){let y0=null;el.addEventListener('pointerdown',e=>{if(e.target.closest('button:not(.grab)'))return;y0=e.clientY;try{el.setPointerCapture(e.pointerId)}catch(_){}});
+  el.addEventListener('pointerup',e=>{if(y0==null)return;const dy=e.clientY-y0;y0=null;if(dy>22)fold(true);else if(dy<-22)fold(false);else if(el.classList.contains('grab'))fold(!sheet.classList.contains('min'))});
+  el.addEventListener('pointercancel',()=>{y0=null})}
+bindSwipe($('#grab'));bindSwipe(sheet.querySelector('.head'));
 $('#loc').onclick=()=>sheet.classList.contains('min')&&fold(false);
 const TT={phone:'เข้าสู่ระบบ / สมัครสมาชิก',welcome:'ยินดีต้อนรับกลับ',register:'สมัครสมาชิก',manage:'ที่อยู่จัดส่งของฉัน',account:'บัญชีของฉัน'};
 function setM(m){
-  M=m;app.dataset.m=m;sheet.classList.remove('min');$('#foldT').textContent='ดูแผนที่';
+  M=m;app.dataset.m=m;sheet.classList.remove('min');
   $('#ttl').textContent=TT[m];
   $('#acct').hidden=m==='manage'||m==='account';
   $('#acc').hidden=m!=='account';$('#tabs').hidden=!(m==='manage'||m==='account');
@@ -434,6 +437,7 @@ function setM(m){
   if(m==='welcome'){go.textContent='เข้าสู่ระบบ';s1.hidden=false;s1.textContent='จัดการที่อยู่ของฉัน'}
   if(reg){go.textContent='สมัครและเข้าสู่ระบบ';s1.hidden=false;s1.textContent='ย้อนกลับ'}
   if(m==='manage'){go.textContent='บันทึกที่อยู่';renderChips();loadForm(selIdx)}
+  syncMarker();
   if(m==='account'){go.textContent='บันทึกชื่อ';s1.hidden=false;s1.classList.add('bad');s1.textContent='ออกจากระบบ';renderAccount()}
   sheet.querySelector('.sbody').scrollTop=0;
   setTimeout(layout,0);
@@ -466,10 +470,10 @@ function loadForm(i){
   }else{
     document.querySelector('[name=tag][value="อื่นๆ"]').checked=true;$('#label').value='';delete $('#label').dataset.touched;
     ad.value='';delete ad.dataset.touched;$('#note').value='';cur.geoText='';cur.placeName='';pinned=false;
-    $('#pname').textContent='ยังไม่ได้ปักหมุด';$('#paddr').textContent='เลื่อนแผนที่ แตะบนแผนที่ ค้นหา หรือกด "ตำแหน่งฉัน"';setLoad(false);
+    $('#pname').textContent='ยังไม่ได้ปักหมุด';$('#paddr').textContent='แตะบนแผนที่ ค้นหา หรือกด "ตำแหน่งฉัน"';setLoad(false);
     $('#isPri').checked=list.length===0;$('#isPri').disabled=list.length===0;$('#del').hidden=true;
   }
-  syncLabel();updUseMap();
+  syncMarker();syncLabel();updUseMap();
 }
 function buildEntry(name,forceHome){
   const tag=forceHome?'บ้าน':document.querySelector('[name=tag]:checked').value;
@@ -479,7 +483,8 @@ function buildEntry(name,forceHome){
 }
 function persist(){const d=DB();d[PH]={...(d[PH]||{}),name:ACC.name,addresses:list};saveDB(d)}
 function fieldErr(id,ok){const el=$('#'+id);el.classList.remove('err');void el.offsetWidth;el.classList.toggle('err',!ok)}
-function needPin(){toast('ปักหมุดตำแหน่งบนแผนที่ก่อน (เลื่อนแผนที่ แตะ ค้นหา หรือกด ตำแหน่งฉัน)',3600);pin.classList.remove('bump');void pin.offsetWidth;pin.classList.add('bump')}
+function needFill(id){if(sheet.classList.contains('min'))fold(false);else $(id).focus()}
+function needPin(){toast('ปักหมุดก่อน: แตะบนแผนที่ ค้นหา หรือกด ตำแหน่งฉัน',3600);pin.classList.remove('bump');void pin.offsetWidth;pin.classList.add('bump')}
 
 /* ---------- บัญชีของฉัน ---------- */
 function renderAccount(){
@@ -526,8 +531,8 @@ function checkPhone(){
     ACC=null;list=[];selIdx=-1;pinned=false;
     $('#newCap').textContent='เบอร์ '+phone+' ยังไม่มีบัญชี กรอกข้อมูลเพื่อสมัคร ที่อยู่แรกจะเป็น "บ้าน" และเป็นที่อยู่หลัก';
     $('#name').value='';$('#note').value='';$('#addr').value='';delete $('#addr').dataset.touched;cur.geoText='';cur.placeName='';
-    $('#pname').textContent='ยังไม่ได้ปักหมุด';$('#paddr').textContent='เลื่อนแผนที่ แตะบนแผนที่ ค้นหา หรือกด "ตำแหน่งฉัน"';
-    setM('register');
+    $('#pname').textContent='ยังไม่ได้ปักหมุด';$('#paddr').textContent='แตะบนแผนที่ ค้นหา หรือกด "ตำแหน่งฉัน"';
+    setM('register');fold(true);
   }
 }
 $('#sec1').onclick=()=>{
@@ -549,14 +554,13 @@ sheet.addEventListener('submit',e=>{
   const addr=$('#addr').value.trim();
   if(M==='register'){
     const name=$('#name').value.trim();fieldErr('fn',!!name);fieldErr('fa',!!addr);
-    if(!name){$('#name').focus();return}
-    if(!addr){$('#addr').focus();return}
+    if(!name||!addr){needFill(!name?'#name':'#addr');return}
     if(!pinned){needPin();return}
     ACC={name};list=[buildEntry(name,true)];persist();localStorage.setItem(LGK,PH);
     toast('สมัครสำเร็จ — ของจริงจะพาไปหน้าร้านค้า ตอนนี้ลองจัดการที่อยู่ต่อได้',3600);selIdx=0;setM('manage');return;
   }
   // manage
-  fieldErr('fa',!!addr);if(!addr){$('#addr').focus();return}
+  fieldErr('fa',!!addr);if(!addr){needFill('#addr');return}
   if(!pinned){needPin();return}
   const en=buildEntry(ACC.name,false),wantPri=$('#isPri').checked;
   if(selIdx>=0)list[selIdx]=en;else{if(list.length>=5){toast('เก็บที่อยู่ได้สูงสุด 5 รายการ ลบรายการเก่าก่อน');return}list.push(en);selIdx=list.length-1}
@@ -575,7 +579,8 @@ $('#dReset').onclick=()=>{localStorage.removeItem(DBK);localStorage.removeItem(L
 
 
 // ช่องพิมพ์ลอยเหนือแป้นพิมพ์: แตะช่องไหนจะมีช่องเดี่ยวผุดขึ้นเหมือนหยดน้ำ พิมพ์เสร็จค่อยกลับไปที่ฟอร์ม
-(function(){const qv=$('#qv'),qb=$('#qb'),ql=$('#ql'),qn=$('#qn'),qi=$('#qi'),qa=$('#qa'),sb=sheet.querySelector('.sbody');let src=null,cur=null,closing=false;
+(function(){const qv=$('#qv'),qb=$('#qb'),ql=$('#ql'),qn=$('#qn'),qi=$('#qi'),qa=$('#qa'),sb=sheet.querySelector('.sbody');let src=null,cur=null,closing=false,rel,wk;const kbH=()=>parseFloat(getComputedStyle(root).getPropertyValue('--kb2'))||0;
+  function release(){window.__qiOn=false;root.style.setProperty('--kb',kbH()+'px')}
   const isF=e=>e&&/^(INPUT|TEXTAREA)$/.test(e.tagName)&&!/radio|checkbox|hidden/.test(e.type)&&sb.contains(e);
   const vis=()=>[...sb.querySelectorAll('input,textarea')].filter(x=>isF(x)&&x.offsetParent);
   const labelOf=el=>{const l=el.id&&sb.querySelector('label[for="'+el.id+'"]');return l?l.textContent:(el.placeholder||'')};
@@ -588,9 +593,13 @@ $('#dReset').onclick=()=>{localStorage.removeItem(DBK);localStorage.removeItem(L
   function open(el){src=el;const multi=el.tagName==='TEXTAREA';cur=multi?qa:qi;qi.style.display=multi?'none':'block';qa.style.display=multi?'block':'none';
     cur.value=el.value;cur.type=el.type&&el.type!=='textarea'?el.type:'text';cur.inputMode=el.inputMode||'';cur.maxLength=el.maxLength>0?el.maxLength:524288;cur.setAttribute('enterkeyhint',el.getAttribute('enterkeyhint')||'next');
     ql.textContent=labelOf(el);const last=vis().pop()===el;qn.textContent=last?'เสร็จ':'ถัดไป';
-    if(!window.__qiOn){sheet.style.setProperty('--qh',sheet.offsetHeight+'px');window.__qiOn=true;root.style.setProperty('--kb','0px')}sheet.classList.add('qi-on');qv.classList.add('on');const was=qb.classList.contains('on');qb.classList.add('on');cur.focus({preventScroll:true});if(!was)drop(el);}
+    if(!window.__qiOn){sheet.style.setProperty('--qh',sheet.offsetHeight+'px');window.__qiOn=true;root.style.setProperty('--kb','0px')}clearTimeout(rel);sheet.classList.add('qi-on');qv.classList.add('on');const was=qb.classList.contains('on');qb.classList.add('on');
+    if(!was&&kbH()<80){qb.classList.add('pre');clearTimeout(wk);wk=setTimeout(reveal,380)}
+    cur.focus({preventScroll:true});if(!was&&!qb.classList.contains('pre'))drop(el);}
+  function reveal(){clearTimeout(wk);if(qb.classList.contains('pre')){qb.classList.remove('pre');if(src)drop(src)}}
+  addEventListener('ndkb',()=>{if(qb.classList.contains('pre')&&kbH()>=80)setTimeout(reveal,30)});
   function sync(){if(!src)return;src.value=cur.value;src.dispatchEvent(new Event('input',{bubbles:true}))}
-  function close(next){if(!src||closing)return;closing=true;sync();const el=src;src=null;const list=vis();qv.classList.remove('on');qb.classList.remove('on');sheet.classList.remove('qi-on');cur&&cur.blur();if(!next){window.__qiOn=false;root.style.setProperty('--kb',getComputedStyle(root).getPropertyValue('--kb2')||'0px')}
+  function close(next){if(!src||closing)return;closing=true;sync();const el=src;src=null;const list=vis();qv.classList.remove('on');qb.classList.remove('on');sheet.classList.remove('qi-on');cur&&cur.blur();clearTimeout(wk);qb.classList.remove('pre');if(!next){clearTimeout(rel);rel=setTimeout(release,450)}
     setTimeout(()=>{closing=false;if(next){const i=list.indexOf(el);const n=list[i+1];if(n){n.scrollIntoView({block:'center'});open(n)}else{window.__qiOn=false}}else el.scrollIntoView({block:'center',behavior:'smooth'})},60)}
   const noF=e=>{if(isF(e.target)&&!closing)e.preventDefault()};
   sheet.addEventListener('pointerdown',noF,true);sheet.addEventListener('mousedown',noF,true);
