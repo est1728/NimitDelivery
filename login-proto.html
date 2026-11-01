@@ -56,8 +56,8 @@ button{font:inherit;color:inherit}
 @keyframes bump{30%{transform:translateY(-15px)}60%{transform:translateY(0)}80%{transform:translateY(-4px)}}
 .pin-shadow{position:absolute;z-index:899;left:50%;top:calc((100% - var(--shh,0px))/2);width:10px;height:4px;margin:-2px 0 0 -5px;border-radius:50%;background:rgba(0,0,0,.35);pointer-events:none}
 .ready .pin,.ready .pin-shadow{transition:transform .25s cubic-bezier(.3,1.6,.5,1),top .38s cubic-bezier(.22,.61,.36,1)}
-.app[data-m=phone] .pin,.app[data-m=phone] .pin-shadow,.app[data-m=welcome] .pin,.app[data-m=welcome] .pin-shadow{display:none}
-.app[data-m=phone] .search,.app[data-m=welcome] .search,.app[data-m=phone] .auto,.app[data-m=welcome] .auto,.app[data-m=phone] .ctrls,.app[data-m=welcome] .ctrls{display:none}
+.app:not([data-m=register]):not([data-m=manage]) .pin,.app:not([data-m=register]):not([data-m=manage]) .pin-shadow{display:none}
+.app:not([data-m=register]):not([data-m=manage]) .search,.app:not([data-m=register]):not([data-m=manage]) .auto,.app:not([data-m=register]):not([data-m=manage]) .ctrls{display:none}
 .auto{position:absolute;z-index:1000;left:12px;bottom:calc(var(--shh,0px) + var(--kb,0px) + 14px);display:flex;flex-direction:column;align-items:center;gap:4px;border:0;background:none;padding:0;cursor:pointer}
 .auto .ac{width:50px;height:50px;border-radius:50%;background:var(--pin);color:#fff;display:grid;place-items:center;box-shadow:0 8px 22px var(--sh)}
 .auto.busy svg{animation:spin 1s linear infinite}
@@ -131,6 +131,36 @@ h1{font-size:18px;margin:0;font-weight:600}
 .sw input:checked+i{background:var(--pin)}
 .sw input:checked+i::after{left:21px}
 .sw input:disabled+i{opacity:.55}
+.tabs{flex:none;display:flex;gap:6px;margin:0 18px 8px;background:var(--bg);border-radius:14px;padding:4px}
+.tabs button{flex:1;height:38px;border:0;border-radius:11px;background:none;font-size:14px;font-weight:500;color:var(--sub);cursor:pointer}
+.tabs button.on{background:var(--card);color:var(--pin);box-shadow:0 2px 8px var(--sh);font-weight:600}
+.rowacc{display:flex;align-items:center;gap:12px;padding:11px 12px;border:1.5px solid var(--line);border-radius:14px;margin-bottom:8px;cursor:pointer;background:var(--card);width:100%;text-align:left}
+.rowacc.on{border-color:var(--pin);background:var(--glow)}
+.rowacc .av{width:38px;height:38px;font-size:16px}
+.rowacc b{display:block;font-size:14.5px;font-weight:600}
+.rowacc small{display:block;color:var(--sub);font-size:12px}
+.rowacc em{margin-left:auto;font-style:normal;font-size:11px;color:#fff;background:var(--pin);border-radius:99px;padding:2px 9px}
+.rowacc.plus{border-style:dashed;color:var(--pin);font-weight:600;justify-content:center}
+.sumrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;border:1.5px solid var(--line);border-radius:14px;font-size:14px}
+.sumrow button{border:0;background:var(--glow);color:var(--pin);border-radius:99px;padding:7px 14px;font-weight:600;font-size:13px;cursor:pointer}
+/* ตัวอย่างหน้าร้านค้า: เลือกที่อยู่เด้งลงจากด้านบน */
+.adr-ov{position:fixed;inset:0;z-index:3500;background:rgba(7,27,61,.45);opacity:0;pointer-events:none;transition:opacity .25s}
+.adr-ov.show{opacity:1;pointer-events:auto}
+.adr{position:fixed;left:0;right:0;top:0;z-index:3501;background:var(--card);border-radius:0 0 22px 22px;box-shadow:0 14px 40px rgba(7,27,61,.3);padding:calc(14px + env(safe-area-inset-top,0px)) 16px 16px;max-height:82vh;overflow-y:auto;transform:translateY(-105%);transition:transform .32s cubic-bezier(.22,.61,.36,1)}
+.adr.show{transform:none}
+.adr-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px}
+.adr-h b{font-size:17px;font-weight:700}
+.adr-x{width:34px;height:34px;border:0;border-radius:50%;background:var(--bg);display:grid;place-items:center;cursor:pointer}
+.adr-sub{font-size:12.5px;color:var(--sub);margin-bottom:10px}
+.adr-it{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1.5px solid var(--line);border-radius:14px;margin-bottom:8px;cursor:pointer}
+.adr-it.on{border-color:var(--pin);background:var(--glow)}
+.adr-rd{flex:none;width:20px;height:20px;border-radius:50%;border:2px solid var(--sub);margin-top:2px;display:grid;place-items:center}
+.adr-it.on .adr-rd{border-color:var(--pin)}
+.adr-it.on .adr-rd::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--pin)}
+.adr-t b{display:block;font-size:14.5px;font-weight:600}
+.adr-t span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:12.5px;color:var(--sub);line-height:1.4;margin-top:2px}
+.adr-add{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:46px;border:1.5px dashed var(--pin);border-radius:14px;background:none;color:var(--pin);font-size:14.5px;font-weight:600;cursor:pointer;margin-top:4px}
+.adr-mg{display:block;margin:10px auto 0;border:0;background:none;color:var(--sub);font-size:13px;cursor:pointer;text-decoration:underline}
 .toast{position:fixed;z-index:4000;left:50%;top:calc(96px + env(safe-area-inset-top,0px));transform:translate(-50%,-30px);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:14px;font-size:13.5px;opacity:0;pointer-events:none;transition:.3s;max-width:90vw;text-align:center}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 @media (min-width:820px){
@@ -148,6 +178,7 @@ h1{font-size:18px;margin:0;font-weight:600}
  <div class="dbg"><b>ตัวทดสอบ</b>
   <button id="dLogout" type="button">เหมือนยังไม่ล็อกอิน</button>
   <button id="dLogin" type="button">เหมือนล็อกอินแล้ว (จัดการที่อยู่)</button>
+  <button id="dDrop" type="button">ตัวอย่างเลือกที่อยู่ (เด้งลง)</button>
   <button id="dReset" type="button">รีเซ็ตข้อมูลทดสอบ</button>
  </div>
  <div class="mapbox">
@@ -180,6 +211,7 @@ h1{font-size:18px;margin:0;font-weight:600}
   <div class="head"><h1 id="ttl">เข้าสู่ระบบ</h1>
    <button class="fold" id="fold" type="button"><span id="foldT">ดูแผนที่</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
   </div>
+  <div class="tabs" id="tabs" hidden><button type="button" data-t="manage">ที่อยู่จัดส่ง</button><button type="button" data-t="account">บัญชีของฉัน</button></div>
   <div class="loc load" id="loc" hidden>
    <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.500A2.500 2.500 0 1 1 12 6.500a2.500 2.500 0 0 1 0 5z"/></svg></div>
    <div><strong id="pname">ยังไม่ได้ปักหมุด</strong><span id="paddr">เลื่อนแผนที่ แตะบนแผนที่ ค้นหา หรือกด "ตำแหน่งฉัน"</span></div>
@@ -190,7 +222,7 @@ h1{font-size:18px;margin:0;font-weight:600}
    <div class="acct" id="acct">
     <div id="aPhone">
      <div class="f" id="fph" style="margin:0"><input id="phone" type="tel" maxlength="16" placeholder=" " autocomplete="tel" enterkeyhint="go"><label for="phone">เบอร์โทร (10 หลัก)</label><small>กรอกเบอร์โทร 10 หลัก ขึ้นต้นด้วย 0</small></div>
-     <p class="note">ลองเบอร์ 0811111111 (มีบัญชีทดสอบ 3 ที่อยู่) หรือเบอร์อื่นเพื่อลองสมัครใหม่</p>
+     <p class="note">ลองเบอร์ 0811111111 (3 ที่อยู่) หรือ 0822222222 (1 ที่อยู่) หรือเบอร์อื่นเพื่อลองสมัครใหม่</p>
     </div>
     <div id="aWelcome" hidden>
      <div class="welcome"><div class="av" id="av">?</div><div><strong id="wName"></strong><span id="wPhone"></span></div></div>
@@ -199,6 +231,16 @@ h1{font-size:18px;margin:0;font-weight:600}
      <p class="cap" style="margin:0 0 8px" id="newCap"></p>
      <div class="f" id="fn" style="margin:0"><input id="name" placeholder=" " autocomplete="name"><label for="name">ชื่อ-นามสกุล</label><small>กรอกชื่อของคุณ</small></div>
     </div>
+   </div>
+   <!-- บัญชีของฉัน (แก้ไขข้อมูล / สลับบัญชี / ออกจากระบบ) -->
+   <div id="acc" hidden>
+    <div class="acct"><div class="welcome"><div class="av" id="av2">?</div><div><strong id="aName"></strong><span id="acPhone"></span></div></div></div>
+    <div class="f" id="fnm"><input id="nm2" placeholder=" " autocomplete="name"><label for="nm2">ชื่อ-นามสกุล</label><small>กรอกชื่อของคุณ</small></div>
+    <p class="hint" style="margin-top:-4px">เบอร์โทรใช้เป็นรหัสบัญชี เปลี่ยนไม่ได้ในตอนนี้ (จะเปิดให้เปลี่ยนเมื่อมียืนยัน OTP)</p>
+    <p class="cap">ที่อยู่จัดส่ง</p>
+    <div class="sumrow"><span id="sumTxt"></span><button type="button" id="sumBtn">จัดการที่อยู่</button></div>
+    <p class="cap">บัญชีในเครื่องนี้ (แตะเพื่อสลับ)</p>
+    <div id="accs"></div>
    </div>
    <!-- ที่อยู่ -->
    <div id="addrs" hidden>
@@ -225,6 +267,8 @@ h1{font-size:18px;margin:0;font-weight:600}
   </div>
  </form>
 </div>
+<div class="adr-ov" id="adrOv"></div>
+<div class="adr" id="adr" role="dialog" aria-label="เลือกที่อยู่จัดส่ง"></div>
 <div class="toast" id="toast" role="status"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
@@ -243,7 +287,8 @@ function seed(){return{'0811111111':{name:'สมชาย ใจดี',address
  {tag:'บ้าน',label:'บ้าน',address:'88/1 หมู่ 5 ต.ป่าซาง อ.แม่จัน จ.เชียงราย',addrText:'88/1 หมู่ 5 ต.ป่าซาง อ.แม่จัน จ.เชียงราย',addrNote:'',lat:20.1493,lng:99.8541,placeName:'ป่าซาง'},
  {tag:'ที่ทำงาน',label:'ที่ทำงาน',address:'ออฟฟิศ ถ.พหลโยธิน เมืองเชียงราย ชั้น 3 ห้อง 302',addrText:'ออฟฟิศ ถ.พหลโยธิน เมืองเชียงราย',addrNote:'ชั้น 3 ห้อง 302',lat:19.9105,lng:99.8406,placeName:'ถ.พหลโยธิน'},
  {tag:'อื่นๆ',label:'บ้านแม่',address:'บ้านแม่ ต.ริมกก อ.เมือง จ.เชียงราย ใกล้วัด',addrText:'บ้านแม่ ต.ริมกก อ.เมือง จ.เชียงราย',addrNote:'ใกล้วัด',lat:19.9341,lng:99.8697,placeName:'ริมกก'}]}}}
-function DB(){try{return JSON.parse(localStorage.getItem(DBK))||seed()}catch(e){return seed()}}
+function seed2(){const d=seed();d['0822222222']={name:'มาลี รักไทย',addresses:[{tag:'บ้าน',label:'บ้าน',address:'12 ซ.รื่นรมย์ ต.เวียง อ.เมือง จ.เชียงราย',addrText:'12 ซ.รื่นรมย์ ต.เวียง อ.เมือง จ.เชียงราย',addrNote:'',lat:19.9072,lng:99.8325,placeName:'ซ.รื่นรมย์'}]};return d}
+function DB(){try{return JSON.parse(localStorage.getItem(DBK))||seed2()}catch(e){return seed2()}}
 function saveDB(d){localStorage.setItem(DBK,JSON.stringify(d))}
 const getAcc=p=>DB()[p]||null;
 
@@ -359,21 +404,24 @@ document.addEventListener('click',e=>{if(!e.target.closest('.top'))res.classList
 function fold(min){sheet.classList.toggle('min',min);$('#foldT').textContent=min?'กลับมากรอก':'ดูแผนที่';layout()}
 $('#fold').onclick=$('#grab').onclick=()=>fold(!sheet.classList.contains('min'));
 $('#loc').onclick=()=>sheet.classList.contains('min')&&fold(false);
-const TT={phone:'เข้าสู่ระบบ / สมัครสมาชิก',welcome:'ยินดีต้อนรับกลับ',register:'สมัครสมาชิก',manage:'ที่อยู่จัดส่งของฉัน'};
+const TT={phone:'เข้าสู่ระบบ / สมัครสมาชิก',welcome:'ยินดีต้อนรับกลับ',register:'สมัครสมาชิก',manage:'ที่อยู่จัดส่งของฉัน',account:'บัญชีของฉัน'};
 function setM(m){
   M=m;app.dataset.m=m;sheet.classList.remove('min');$('#foldT').textContent='ดูแผนที่';
   $('#ttl').textContent=TT[m];
-  $('#acct').hidden=m==='manage';
+  $('#acct').hidden=m==='manage'||m==='account';
+  $('#acc').hidden=m!=='account';$('#tabs').hidden=!(m==='manage'||m==='account');
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===m));
   $('#aPhone').hidden=m!=='phone';$('#aWelcome').hidden=m!=='welcome';$('#aNew').hidden=m!=='register';
   $('#addrs').hidden=!(m==='register'||m==='manage');
   $('#loc').hidden=!(m==='register'||m==='manage');
   const reg=m==='register';
   $('#chipWrap').hidden=reg;$('#tagWrap').hidden=reg;$('#priRow').hidden=reg;
-  const go=$('#go'),s1=$('#sec1');s1.hidden=true;$('#del').hidden=true;
+  const go=$('#go'),s1=$('#sec1');s1.hidden=true;s1.classList.remove('bad');$('#del').hidden=true;
   if(m==='phone'){go.textContent='ต่อไป'}
   if(m==='welcome'){go.textContent='เข้าสู่ระบบ';s1.hidden=false;s1.textContent='จัดการที่อยู่ของฉัน'}
   if(reg){go.textContent='สมัครและเข้าสู่ระบบ';s1.hidden=false;s1.textContent='ย้อนกลับ'}
   if(m==='manage'){go.textContent='บันทึกที่อยู่';renderChips();loadForm(selIdx)}
+  if(m==='account'){go.textContent='บันทึกชื่อ';s1.hidden=false;s1.classList.add('bad');s1.textContent='ออกจากระบบ';renderAccount()}
   sheet.querySelector('.sbody').scrollTop=0;
   setTimeout(layout,0);
 }
@@ -420,6 +468,38 @@ function persist(){const d=DB();d[PH]={...(d[PH]||{}),name:ACC.name,addresses:li
 function fieldErr(id,ok){const el=$('#'+id);el.classList.remove('err');void el.offsetWidth;el.classList.toggle('err',!ok)}
 function needPin(){toast('ปักหมุดตำแหน่งบนแผนที่ก่อน (เลื่อนแผนที่ แตะ ค้นหา หรือกด ตำแหน่งฉัน)',3600);pin.classList.remove('bump');void pin.offsetWidth;pin.classList.add('bump')}
 
+/* ---------- บัญชีของฉัน ---------- */
+function renderAccount(){
+  $('#aName').textContent=ACC.name;$('#acPhone').textContent='เบอร์ '+PH;$('#av2').textContent=Array.from(ACC.name||'?')[0];
+  $('#nm2').value=ACC.name;$('#fnm').classList.remove('err');
+  $('#sumTxt').textContent='มี '+list.length+' ที่อยู่ · หลัก: '+((list[0]&&list[0].label)||'-');
+  const box=$('#accs');box.innerHTML='';const all=DB();
+  Object.keys(all).forEach(ph=>{const b=document.createElement('button');b.type='button';b.className='rowacc'+(ph===PH?' on':'');
+    b.innerHTML='<div class="av"></div><div><b></b><small></small></div>'+(ph===PH?'<em>ใช้อยู่</em>':'');
+    b.querySelector('.av').textContent=Array.from(all[ph].name||'?')[0];b.querySelector('b').textContent=all[ph].name;b.querySelector('small').textContent=ph;
+    b.onclick=()=>{if(ph===PH)return;PH=ph;ACC={name:all[ph].name};list=(all[ph].addresses||[]).map(x=>({...x}));selIdx=0;localStorage.setItem(LGK,PH);renderAccount();toast('สลับเป็นบัญชี '+all[ph].name)};
+    box.appendChild(b)});
+  const plus=document.createElement('button');plus.type='button';plus.className='rowacc plus';plus.textContent='+ เข้าสู่ระบบด้วยเบอร์อื่น';plus.onclick=()=>{localStorage.removeItem(LGK);enterPhone()};box.appendChild(plus);
+}
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{if(b.dataset.t==='manage'){selIdx=list.length?0:-1}setM(b.dataset.t)});
+$('#sumBtn').onclick=()=>{selIdx=list.length?0:-1;setM('manage')};
+/* ---------- ตัวอย่างหน้าร้านค้า: เลือกที่อยู่เด้งลงจากด้านบน ---------- */
+function openDrop(){
+  if(!ACC){toast('ต้องล็อกอินก่อน (กด "เหมือนล็อกอินแล้ว")');return}
+  const rows=list.map((a,i)=>`<div class="adr-it${i===0?' on':''}" data-i="${i}"><div class="adr-rd"></div><div class="adr-t"><b>${esc(a.label||a.tag)}${i===0?' · ใช้อยู่':''}</b><span>${esc(a.address)}</span></div></div>`).join('');
+  $id('adr').innerHTML=`<div class="adr-h"><b>ที่อยู่จัดส่ง</b><button class="adr-x" type="button" id="adrX" aria-label="ปิด"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+   <div class="adr-sub">${esc(ACC.name)} · ${PH}</div>${rows}
+   ${list.length<5?'<button class="adr-add" type="button" id="adrAdd">+ เพิ่มที่อยู่ใหม่</button>':''}
+   <button class="adr-mg" type="button" id="adrMg">แก้ไขหรือลบที่อยู่</button>`;
+  $id('adrOv').classList.add('show');$id('adr').classList.add('show');
+  $id('adrX').onclick=closeDrop;
+  $id('adr').querySelectorAll('.adr-it').forEach(it=>it.onclick=()=>{const i=+it.dataset.i;if(i>0){const [x]=list.splice(i,1);list.unshift(x);persist()}closeDrop();toast('เปลี่ยนที่อยู่จัดส่งแล้ว (ของจริงจะรีโหลดหน้าร้านค้า)');if(M==='manage'){selIdx=0;setM('manage')}if(M==='account')renderAccount()});
+  const ad=$id('adrAdd');if(ad)ad.onclick=()=>{closeDrop();selIdx=-1;setM('manage')};
+  $id('adrMg').onclick=()=>{closeDrop();selIdx=list.length?0:-1;setM('manage')};
+}
+function closeDrop(){$id('adrOv').classList.remove('show');$id('adr').classList.remove('show')}
+const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function $id(i){return document.getElementById(i)}
 /* ---------- actions ---------- */
 function enterPhone(){PH='';ACC=null;list=[];selIdx=-1;pinned=false;$('#phone').value='';setM('phone')}
 function checkPhone(){
@@ -440,6 +520,7 @@ function checkPhone(){
 $('#sec1').onclick=()=>{
   if(M==='welcome'){selIdx=list.length?0:-1;setM('manage');return}
   if(M==='register'){enterPhone()}
+  if(M==='account'){localStorage.removeItem(LGK);enterPhone();toast('ออกจากระบบแล้ว')}
 };
 $('#del').onclick=()=>{
   const d=$('#del');
@@ -450,6 +531,7 @@ $('#del').onclick=()=>{
 sheet.addEventListener('submit',e=>{
   e.preventDefault();
   if(M==='phone')return checkPhone();
+  if(M==='account'){const nm=$('#nm2').value.trim();fieldErr('fnm',!!nm);if(!nm){$('#nm2').focus();return}ACC.name=nm;persist();renderAccount();toast('บันทึกชื่อแล้ว');return}
   if(M==='welcome'){localStorage.setItem(LGK,PH);toast('ยินดีต้อนรับ — ของจริงจะพาไปหน้าร้านค้าตรงนี้',3200);selIdx=list.length?0:-1;setM('manage');return}
   const addr=$('#addr').value.trim();
   if(M==='register'){
@@ -472,6 +554,7 @@ $('#phone').addEventListener('input',e=>{e.target.value=normPhone(e.target.value
 /* debug bar */
 $('#dLogout').onclick=()=>{localStorage.removeItem(LGK);enterPhone()};
 $('#dLogin').onclick=()=>{PH='0811111111';const a=getAcc(PH);ACC={name:a.name};list=(a.addresses||[]).map(x=>({...x}));selIdx=0;setM('manage')};
+$('#dDrop').onclick=openDrop;
 $('#dReset').onclick=()=>{localStorage.removeItem(DBK);localStorage.removeItem(LGK);enterPhone();toast('รีเซ็ตข้อมูลทดสอบแล้ว')};
 /* start: ถ้าเคย "ล็อกอิน" ในตัวทดสอบ เข้าหน้าจัดการที่อยู่ทันที (ไม่มีหน้ากรอกเบอร์วาบ) */
 {const lp=localStorage.getItem(LGK),a=lp&&getAcc(lp);
