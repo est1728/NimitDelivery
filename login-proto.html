@@ -86,6 +86,11 @@ h1{font-size:18px;margin:0;font-weight:600}
 @keyframes sh{to{background-position:-200% 0}}
 .sbody{flex:1 1 auto;min-height:0;overflow-y:auto;padding:2px 18px 6px;-webkit-overflow-scrolling:touch}
 .sheet.min .sbody{display:none}
+.sheet.typing{max-height:calc(100% - var(--kb,0px) - 10px)}
+.sheet.typing .grab,.sheet.typing .head,.sheet.typing .loc,.sheet.typing #sec1{display:none}
+.sheet.typing .sbody{padding-top:12px}
+.sheet.typing .foot{padding:8px 18px 8px}
+.sheet.typing .go{height:46px}
 .foot{flex:none;padding:10px 18px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--card)}
 .go{width:100%;height:52px;border:0;border-radius:15px;background:linear-gradient(135deg,var(--pin),var(--pin2));color:#fff;font-size:16.5px;font-weight:600;cursor:pointer;box-shadow:0 8px 20px var(--glow)}
 .go:active{transform:scale(.985)}
@@ -559,6 +564,14 @@ $('#dReset').onclick=()=>{localStorage.removeItem(DBK);localStorage.removeItem(L
 /* start: ถ้าเคย "ล็อกอิน" ในตัวทดสอบ เข้าหน้าจัดการที่อยู่ทันที (ไม่มีหน้ากรอกเบอร์วาบ) */
 {const lp=localStorage.getItem(LGK),a=lp&&getAcc(lp);
  if(a){PH=lp;ACC={name:a.name};list=(a.addresses||[]).map(x=>({...x}));selIdx=0;setM('manage')}else setM('phone')}
+
+// พิมพ์ช่องไหน ซ่อนส่วนหัว/การ์ดสถานที่ แล้วดันช่องนั้นขึ้นบนสุดของพื้นที่เลื่อน
+(function(){const sh=document.getElementById('sheet'),sb=sh.querySelector('.sbody');let t;
+  const isF=e=>e&&/^(INPUT|TEXTAREA)$/.test(e.tagName)&&e.type!=='radio'&&e.type!=='checkbox';
+  const lift=el=>{const r=el.closest('.f')||el;const go=()=>{const top=r.getBoundingClientRect().top-sb.getBoundingClientRect().top;sb.scrollTo({top:sb.scrollTop+top-8,behavior:'smooth'})};setTimeout(go,60);setTimeout(go,350)};
+  sh.addEventListener('focusin',e=>{if(!isF(e.target))return;clearTimeout(t);sh.classList.add('typing');lift(e.target)});
+  sh.addEventListener('focusout',()=>{clearTimeout(t);t=setTimeout(()=>{if(!isF(document.activeElement))sh.classList.remove('typing')},150)});
+})();
 </script>
 </body>
 </html>
