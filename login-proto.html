@@ -88,10 +88,10 @@ h1{font-size:18px;margin:0;font-weight:600}
 .sheet.min .sbody{display:none}
 
 /* ช่องพิมพ์ลอยเหนือแป้นพิมพ์ (หยดน้ำ) */
-.sheet.qi-on{bottom:0!important;transition:none}
+.sheet.qi-on{bottom:0!important;max-height:var(--qh)!important;transition:none;animation:none}
 .qv{position:fixed;inset:0;z-index:3000;background:rgba(8,16,36,.38);opacity:0;pointer-events:none;transition:opacity .25s}
 .qv.on{opacity:1;pointer-events:auto}
-.qb{position:fixed;left:10px;right:10px;bottom:calc(var(--kb,0px) + 10px);z-index:3001;background:var(--card);border-radius:22px;box-shadow:0 10px 34px var(--sh);padding:10px 12px 12px;display:none;will-change:transform,border-radius}
+.qb{position:fixed;left:10px;right:10px;bottom:calc(var(--kb2,0px) + 10px);z-index:3001;background:var(--card);border-radius:22px;box-shadow:0 10px 34px var(--sh);padding:10px 12px 12px;display:none;will-change:transform,border-radius}
 .qb.on{display:block}
 .qb .qt{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
 .qb label{font-size:12.5px;color:var(--sub)}
@@ -346,7 +346,7 @@ function layout(){
   if(map&&Math.abs(d)>1&&!mq.matches&&!(map.isMoving()&&!dest)){syncing=true;map.easeTo({center:[c0.lng,c0.lat],zoom:fly?fly.z:map.getZoom(),offset:[0,-vis/2],duration:380,essential:true});map.once('moveend',()=>{syncing=false})}
 }
 {let raf;const go=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(layout)};new ResizeObserver(go).observe(sheet);addEventListener('resize',()=>{map&&map.resize();go()})}
-if(window.visualViewport){const vv=visualViewport;const kb=()=>{const k=mq.matches?0:Math.max(0,Math.round(innerHeight-vv.height-vv.offsetTop));root.style.setProperty('--kb',k+'px');window.scrollTo(0,0)};vv.addEventListener('resize',kb);vv.addEventListener('scroll',kb)}
+if(window.visualViewport){const vv=visualViewport;const kb=()=>{const k=mq.matches?0:Math.max(0,Math.round(innerHeight-vv.height-vv.offsetTop));root.style.setProperty('--kb2',k+'px');if(!window.__qiOn){root.style.setProperty('--kb',k+'px');window.scrollTo(0,0)}};vv.addEventListener('resize',kb);vv.addEventListener('scroll',kb)}
 sheet.addEventListener('focusin',e=>{if(/INPUT|TEXTAREA/.test(e.target.tagName))setTimeout(()=>e.target.scrollIntoView&&e.target.scrollIntoView({block:'center',behavior:'smooth'}),320)});
 const pinOn=()=>M==='register'||M==='manage';
 const pin=$('#pin');
@@ -588,10 +588,13 @@ $('#dReset').onclick=()=>{localStorage.removeItem(DBK);localStorage.removeItem(L
   function open(el){src=el;const multi=el.tagName==='TEXTAREA';cur=multi?qa:qi;qi.style.display=multi?'none':'block';qa.style.display=multi?'block':'none';
     cur.value=el.value;cur.type=el.type&&el.type!=='textarea'?el.type:'text';cur.inputMode=el.inputMode||'';cur.maxLength=el.maxLength>0?el.maxLength:524288;cur.setAttribute('enterkeyhint',el.getAttribute('enterkeyhint')||'next');
     ql.textContent=labelOf(el);const last=vis().pop()===el;qn.textContent=last?'เสร็จ':'ถัดไป';
-    sheet.classList.add('qi-on');qv.classList.add('on');const was=qb.classList.contains('on');qb.classList.add('on');cur.focus({preventScroll:true});if(!was)drop(el);}
+    if(!window.__qiOn){sheet.style.setProperty('--qh',sheet.offsetHeight+'px');window.__qiOn=true;root.style.setProperty('--kb','0px')}sheet.classList.add('qi-on');qv.classList.add('on');const was=qb.classList.contains('on');qb.classList.add('on');cur.focus({preventScroll:true});if(!was)drop(el);}
   function sync(){if(!src)return;src.value=cur.value;src.dispatchEvent(new Event('input',{bubbles:true}))}
-  function close(next){if(!src||closing)return;closing=true;sync();const el=src;src=null;const list=vis();qv.classList.remove('on');qb.classList.remove('on');sheet.classList.remove('qi-on');cur&&cur.blur();
-    setTimeout(()=>{closing=false;if(next){const i=list.indexOf(el);const n=list[i+1];if(n){n.scrollIntoView({block:'center'});open(n)}}else el.scrollIntoView({block:'center',behavior:'smooth'})},60)}
+  function close(next){if(!src||closing)return;closing=true;sync();const el=src;src=null;const list=vis();qv.classList.remove('on');qb.classList.remove('on');sheet.classList.remove('qi-on');cur&&cur.blur();if(!next){window.__qiOn=false;root.style.setProperty('--kb',getComputedStyle(root).getPropertyValue('--kb2')||'0px')}
+    setTimeout(()=>{closing=false;if(next){const i=list.indexOf(el);const n=list[i+1];if(n){n.scrollIntoView({block:'center'});open(n)}else{window.__qiOn=false}}else el.scrollIntoView({block:'center',behavior:'smooth'})},60)}
+  const noF=e=>{if(isF(e.target)&&!closing)e.preventDefault()};
+  sheet.addEventListener('pointerdown',noF,true);sheet.addEventListener('mousedown',noF,true);
+  sheet.addEventListener('click',e=>{if(isF(e.target)&&!closing){e.preventDefault();open(e.target)}},true);
   sheet.addEventListener('focusin',e=>{if(!isF(e.target)||closing)return;if(src&&e.target===src)return;open(e.target)});
   [qi,qa].forEach(x=>{x.addEventListener('input',sync);x.addEventListener('keydown',e=>{if(e.key==='Enter'&&x===qi){e.preventDefault();close(qn.textContent==='ถัดไป')}})});
   qn.onclick=()=>close(qn.textContent==='ถัดไป');qv.onclick=()=>close(false);
