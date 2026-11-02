@@ -423,12 +423,12 @@ document.addEventListener('click',e=>{if(!e.target.closest('.top'))res.classList
 /* ---------- แผงเดียว: ปรับส่วนที่แสดงตามโหมด ---------- */
 function fold(min){sheet.classList.toggle('min',min);layout()}
 function bindSwipe(el){
-  const sb=sheet.querySelector('.sbody');let y0=null,h0=0,full=0,wasMin=false,moved=false,t0=0,last=0,vy=0,nh=0,raf=0,anim=0;
+  const sb=sheet.querySelector('.sbody');let y0=null,h0=0,full=0,wasMin=false,moved=false,t0=0,last=0,vy=0,lt=0,nh=0,raf=0,anim=0;
   const fl=[$('#auto'),document.querySelector('.ctrls')].filter(Boolean);
   const setH=v=>{nh=v;sb.style.height=v+'px';const t='translate3d(0,'+(h0-v)+'px,0)';fl.forEach(x=>x.style.transform=t)};
   el.addEventListener('pointerdown',e=>{
     if(y0!=null||e.target.closest('button:not(.grab)')||sheet.classList.contains('qi-on'))return;
-    cancelAnimationFrame(anim);y0=e.clientY;last=y0;t0=Date.now();vy=0;moved=false;wasMin=sheet.classList.contains('min');
+    cancelAnimationFrame(anim);y0=e.clientY;last=y0;lt=e.timeStamp;t0=Date.now();vy=0;moved=false;wasMin=sheet.classList.contains('min');
     try{el.setPointerCapture(e.pointerId)}catch(_){}
     sb.style.transition='none';root.classList.add('sdrag');window.__drag=true;fl.forEach(x=>x.style.willChange='transform');
     if(wasMin){sheet.classList.add('dragging');sb.style.flex='none';sb.style.height='0px';
@@ -438,22 +438,26 @@ function bindSwipe(el){
   });
   el.addEventListener('pointermove',e=>{
     if(y0==null)return;const dy=e.clientY-y0;if(Math.abs(dy)>6){moved=true;window.__drag=true}
-    if(!moved)return;vy=(e.clientY-last);last=e.clientY;
+    if(!moved)return;{const dt=e.timeStamp-lt;if(dt>0)vy=vy*.5+((e.clientY-last)/dt*1000)*.5;last=e.clientY;lt=e.timeStamp}
     nh=Math.max(0,Math.min(full,h0-dy));if(!raf)raf=requestAnimationFrame(()=>{raf=0;setH(nh)});
   });
   const end=cancel=>{
     if(y0==null)return;const dy=last-y0;y0=null;
     if(raf){cancelAnimationFrame(raf);raf=0;setH(nh)}
     const h=nh;let open;
+    if(performance.now()-lt>90)vy=0;            // นิ้วหยุดก่อนปล่อย = ไม่มีแรงส่ง
     if(!moved)open=wasMin;                      // แตะเฉยๆ = สลับ
-    else if(Math.abs(vy)>4)open=vy<0;           // ปาดเร็ว ตามทิศทาง
+    else if(Math.abs(vy)>350)open=vy<0;         // ปาด (px/วินาที) ตามทิศทาง
     else open=h>full*0.5;
-    const from=h,to=open?full:0,t1=performance.now(),dur=Math.max(120,Math.min(260,Math.abs(to-from)*1.1+90));
-    const step=now=>{const k=Math.min(1,(now-t1)/dur),e=1-Math.pow(1-k,3);setH(from+(to-from)*e);
-      if(k<1){anim=requestAnimationFrame(step);return}
-      sheet.classList.toggle('min',!open);sheet.classList.remove('dragging');sb.style.transition=sb.style.height=sb.style.flex='';
-      window.__drag=false;layout();fl.forEach(x=>{x.style.transform='';x.style.willChange=''});
+    // สปริงหน่วงพอดี เริ่มจากความเร็วนิ้ว: ต่อเนื่องกับการปาด ไม่ค่อยๆ คืบตอนท้าย
+    const to=open?full:0,w=32;let x=h,v=moved?-vy:0,tp=performance.now();
+    const fin=()=>{setH(to);sheet.classList.toggle('min',!open);sheet.classList.remove('dragging');sb.style.transition=sb.style.height=sb.style.flex='';
+      window.__drag=false;layout();fl.forEach(q=>{q.style.transform='';q.style.willChange=''});
       requestAnimationFrame(()=>root.classList.remove('sdrag'))};
+    const step=now=>{let dt=Math.min(.032,Math.max(.001,(now-tp)/1000));tp=now;
+      const a=-w*w*(x-to)-2*w*v;v+=a*dt;x+=v*dt;
+      if((Math.abs(x-to)<2&&Math.abs(v)<90)||(open&&x>=to)||(!open&&x<=to)){fin();return}
+      setH(Math.max(0,Math.min(full,x)));anim=requestAnimationFrame(step)};
     anim=requestAnimationFrame(step);
   };
   el.addEventListener('pointerup',()=>end());el.addEventListener('pointercancel',()=>end(true));
