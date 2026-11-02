@@ -87,6 +87,9 @@ h1{font-size:18px;margin:0;font-weight:600}
 @keyframes sh{to{background-position:-200% 0}}
 .sbody{flex:1 1 auto;min-height:0;overflow-y:auto;padding:2px 18px 6px;-webkit-overflow-scrolling:touch}
 .sheet.min .sbody{display:none}
+.sheet.dragging .sbody{display:block!important;overflow:hidden}
+.sheet.dragging{transition:none}
+.head{touch-action:none;padding-top:6px;padding-bottom:12px}
 
 /* ช่องพิมพ์ลอยเหนือแป้นพิมพ์ (หยดน้ำ) */
 .sheet.qi-on{bottom:0!important;max-height:var(--qh)!important;transition:none;animation:none}
@@ -337,11 +340,19 @@ $('#zi').onclick=()=>map&&map.zoomIn();$('#zo').onclick=()=>map&&map.zoomOut();
 $('#map').classList.toggle('dk',root.dataset.theme==='dark');
 function viewLL(){if(!map)return{lat:cur.lat,lng:cur.lng};const c=map.getContainer(),p=map.unproject([c.clientWidth/2,(c.clientHeight-shh())/2]);return{lat:p.lat,lng:p.lng}}
 function goTo(ll,z,dur){if(!map)return;dest={ll,z:z||map.getZoom()};map.flyTo({center:[ll.lng,ll.lat],zoom:z||map.getZoom(),offset:[0,-shh()/2],duration:(dur||.8)*1000,essential:true})}
+function revealPin(){
+  if(!map||!(pinOn()&&pinned))return;
+  const c=map.getContainer(),p=map.project([cur.lng,cur.lat]);
+  if(p.y<=c.clientHeight-SH-10&&p.y>=76&&p.x>=16&&p.x<=c.clientWidth-16)return;
+  syncing=true;map.easeTo({center:[cur.lng,cur.lat],offset:[0,-SH/2],duration:380,essential:true});map.once('moveend',()=>{syncing=false})
+}
 function layout(){
-  const H=sheet.offsetHeight,vis=mq.matches?0:H,d=vis-SH,fly=dest&&map&&map.isMoving()?dest:null,c0=fly?fly.ll:viewLL();
+  // แผนที่ไม่ขยับตามความสูงแผงอีกแล้ว (หมุดอยู่ที่พิกัดเดิมเสมอ) ขยับเฉพาะตอนหมุดถูกแผงบัง
+  const H=sheet.offsetHeight,vis=mq.matches?0:H,d=vis-SH;
   SH=vis;root.style.setProperty('--shh',vis+'px');
   if(!ready){ready=true;requestAnimationFrame(()=>root.classList.add('ready'));return}
-  if(map&&Math.abs(d)>1&&!mq.matches&&!(map.isMoving()&&!dest)){syncing=true;map.easeTo({center:[c0.lng,c0.lat],zoom:fly?fly.z:map.getZoom(),offset:[0,-vis/2],duration:380,essential:true});map.once('moveend',()=>{syncing=false})}
+  if(window.__drag||!map||mq.matches||Math.abs(d)<=1)return;
+  revealPin();
 }
 {let raf;const go=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(layout)};new ResizeObserver(go).observe(sheet);addEventListener('resize',()=>{map&&map.resize();go()})}
 if(window.visualViewport){const vv=visualViewport;const kb=()=>{const k=mq.matches?0:Math.max(0,Math.round(innerHeight-vv.height-vv.offsetTop));root.style.setProperty('--kb2',k+'px');if(!window.__qiOn){root.style.setProperty('--kb',k+'px');window.scrollTo(0,0)}dispatchEvent(new Event('ndkb'))};vv.addEventListener('resize',kb);vv.addEventListener('scroll',kb)}
@@ -355,7 +366,8 @@ function setPin(ll,o){cur.lat=ll.lat;cur.lng=ll.lng;pinned=true;syncMarker();pin
 if(map){
  ['mousedown','touchstart'].forEach(ev=>map.on(ev,()=>{if(syncing)map.stop()}));
  map.on('moveend',()=>{if(syncing)return;dest=null});
- map.on('click',e=>{if(!pinOn())return;setPin({lat:e.lngLat.lat,lng:e.lngLat.lng})});
+ let lastClk=0;
+ map.on('click',e=>{if(!pinOn())return;const t=Date.now();if(t-lastClk<420){lastClk=t;return}lastClk=t;setPin({lat:e.lngLat.lat,lng:e.lngLat.lng})});
 }
 function setLoad(b){$('#loc').classList.toggle('load',b)}
 async function reverse(){
@@ -415,9 +427,34 @@ document.addEventListener('click',e=>{if(!e.target.closest('.top'))res.classList
 
 /* ---------- แผงเดียว: ปรับส่วนที่แสดงตามโหมด ---------- */
 function fold(min){sheet.classList.toggle('min',min);layout()}
-function bindSwipe(el){let y0=null;el.addEventListener('pointerdown',e=>{if(e.target.closest('button:not(.grab)'))return;y0=e.clientY;try{el.setPointerCapture(e.pointerId)}catch(_){}});
-  el.addEventListener('pointerup',e=>{if(y0==null)return;const dy=e.clientY-y0;y0=null;if(dy>22)fold(true);else if(dy<-22)fold(false);else if(el.classList.contains('grab'))fold(!sheet.classList.contains('min'))});
-  el.addEventListener('pointercancel',()=>{y0=null})}
+function bindSwipe(el){
+  const sb=sheet.querySelector('.sbody');let y0=null,h0=0,full=0,wasMin=false,moved=false,t0=0,last=0,vy=0;
+  el.addEventListener('pointerdown',e=>{
+    if(y0!=null||e.target.closest('button:not(.grab)')||sheet.classList.contains('qi-on'))return;
+    y0=e.clientY;last=y0;t0=Date.now();vy=0;moved=false;wasMin=sheet.classList.contains('min');
+    try{el.setPointerCapture(e.pointerId)}catch(_){}
+    sb.style.transition='none';
+    if(wasMin){sheet.classList.add('dragging');sb.style.flex='none';sb.style.height='0px';
+      const maxS=parseFloat(getComputedStyle(sheet).maxHeight)||sheet.offsetHeight,fixed=sheet.offsetHeight;
+      sb.style.height='auto';const nat=sb.scrollHeight;sb.style.height='0px';full=Math.max(60,Math.min(nat,maxS-fixed));h0=0}
+    else{sheet.classList.add('dragging');h0=sb.offsetHeight;full=h0;sb.style.flex='none';sb.style.height=h0+'px'}
+  });
+  el.addEventListener('pointermove',e=>{
+    if(y0==null)return;const dy=e.clientY-y0;if(Math.abs(dy)>6){moved=true;window.__drag=true}
+    if(!moved)return;vy=(e.clientY-last);last=e.clientY;
+    sb.style.height=Math.max(0,Math.min(full,h0-dy))+'px';
+  });
+  const end=cancel=>{
+    if(y0==null)return;const dy=last-y0;y0=null;
+    const h=parseFloat(sb.style.height)||0;let open;
+    if(!moved)open=wasMin;                      // แตะเฉยๆ = สลับ
+    else if(Math.abs(vy)>4)open=vy<0;           // ปาดเร็ว ตามทิศทาง
+    else open=h>full*0.5;
+    sb.style.transition='height .24s cubic-bezier(.22,.61,.36,1)';sb.style.height=(open?full:0)+'px';
+    setTimeout(()=>{sheet.classList.toggle('min',!open);sheet.classList.remove('dragging');sb.style.transition=sb.style.height=sb.style.flex='';window.__drag=false;layout()},260);
+  };
+  el.addEventListener('pointerup',()=>end());el.addEventListener('pointercancel',()=>end(true));
+}
 bindSwipe($('#grab'));bindSwipe(sheet.querySelector('.head'));
 $('#loc').onclick=()=>sheet.classList.contains('min')&&fold(false);
 const TT={phone:'เข้าสู่ระบบ / สมัครสมาชิก',welcome:'ยินดีต้อนรับกลับ',register:'สมัครสมาชิก',manage:'ที่อยู่จัดส่งของฉัน',account:'บัญชีของฉัน'};
@@ -580,7 +617,8 @@ $('#dReset').onclick=()=>{localStorage.removeItem(DBK);localStorage.removeItem(L
 
 // ช่องพิมพ์ลอยเหนือแป้นพิมพ์: แตะช่องไหนจะมีช่องเดี่ยวผุดขึ้นเหมือนหยดน้ำ พิมพ์เสร็จค่อยกลับไปที่ฟอร์ม
 (function(){const qv=$('#qv'),qb=$('#qb'),ql=$('#ql'),qn=$('#qn'),qi=$('#qi'),qa=$('#qa'),sb=sheet.querySelector('.sbody');let src=null,cur=null,closing=false,rel,wk;const kbH=()=>parseFloat(getComputedStyle(root).getPropertyValue('--kb2'))||0;
-  function release(){window.__qiOn=false;root.style.setProperty('--kb',kbH()+'px')}
+  function release(){window.__qiOn=false;root.style.setProperty('--kb',kbH()+'px');window.scrollTo(0,0)}
+  function keepIn(el){const r=el.closest('.f')||el,a=r.getBoundingClientRect(),b=sb.getBoundingClientRect();if(a.top<b.top||a.bottom>b.bottom)sb.scrollTo({top:sb.scrollTop+a.top-b.top-12,behavior:'smooth'})}
   const isF=e=>e&&/^(INPUT|TEXTAREA)$/.test(e.tagName)&&!/radio|checkbox|hidden/.test(e.type)&&sb.contains(e);
   const vis=()=>[...sb.querySelectorAll('input,textarea')].filter(x=>isF(x)&&x.offsetParent);
   const labelOf=el=>{const l=el.id&&sb.querySelector('label[for="'+el.id+'"]');return l?l.textContent:(el.placeholder||'')};
@@ -600,7 +638,7 @@ $('#dReset').onclick=()=>{localStorage.removeItem(DBK);localStorage.removeItem(L
   addEventListener('ndkb',()=>{if(qb.classList.contains('pre')&&kbH()>=80)setTimeout(reveal,30)});
   function sync(){if(!src)return;src.value=cur.value;src.dispatchEvent(new Event('input',{bubbles:true}))}
   function close(next){if(!src||closing)return;closing=true;sync();const el=src;src=null;const list=vis();qv.classList.remove('on');qb.classList.remove('on');sheet.classList.remove('qi-on');cur&&cur.blur();clearTimeout(wk);qb.classList.remove('pre');if(!next){clearTimeout(rel);rel=setTimeout(release,450)}
-    setTimeout(()=>{closing=false;if(next){const i=list.indexOf(el);const n=list[i+1];if(n){n.scrollIntoView({block:'center'});open(n)}else{window.__qiOn=false}}else el.scrollIntoView({block:'center',behavior:'smooth'})},60)}
+    setTimeout(()=>{closing=false;if(next){const i=list.indexOf(el);const n=list[i+1];if(n){keepIn(n);open(n)}else{window.__qiOn=false}}else keepIn(el)},60)}
   const noF=e=>{if(isF(e.target)&&!closing)e.preventDefault()};
   sheet.addEventListener('pointerdown',noF,true);sheet.addEventListener('mousedown',noF,true);
   sheet.addEventListener('click',e=>{if(isF(e.target)&&!closing){e.preventDefault();open(e.target)}},true);
