@@ -70,7 +70,9 @@ button{font:inherit;color:inherit}
 .me{width:18px;height:18px;border-radius:50%;background:#2f7bff;border:3px solid #fff;box-shadow:0 0 0 0 rgba(47,123,255,.5);animation:pulse 2s infinite}
 @keyframes pulse{70%{box-shadow:0 0 0 18px rgba(47,123,255,0)}100%{box-shadow:0 0 0 0 rgba(47,123,255,0)}}
 /* sheet: หัว + (สรุปตำแหน่ง) + เนื้อหาเลื่อนได้ + ปุ่มหลักติดล่างเสมอ */
-.sheet{position:absolute;left:0;right:0;bottom:var(--kb,0px);z-index:1001;background:var(--card);border-radius:24px 24px 0 0;box-shadow:0 -10px 30px var(--sh);display:flex;flex-direction:column;max-height:min(74%,calc(100% - var(--kb,0px) - 88px))}
+.sheet{position:absolute;left:0;right:0;bottom:var(--kb,0px);z-index:1001;display:flex;flex-direction:column;max-height:min(74%,calc(100% - var(--kb,0px) - 88px));pointer-events:none}
+/* แผงเลื่อนด้วย transform อย่างเดียว (ไม่เปลี่ยนความสูง) → ไม่ต้องคำนวณเลย์เอาต์/วาดใหม่ทุกเฟรม ปุ่มหลักอยู่นอกแผงจึงไม่เลื่อนตาม */
+.panel{pointer-events:auto;display:flex;flex-direction:column;flex:1 1 auto;min-height:0;position:relative;z-index:1;background:var(--card);border-radius:24px 24px 0 0;box-shadow:0 -10px 30px var(--sh);transform:translate3d(0,0,0);will-change:transform}
 .grab{flex:none;display:block;width:100%;height:30px;touch-action:none;border:0;background:none;cursor:pointer;padding:0}
 .grab::before{content:"";display:block;width:42px;height:4px;border-radius:2px;background:var(--line);margin:10px auto 0}
 .head{flex:none;display:flex;align-items:center;justify-content:space-between;padding:2px 18px 8px;gap:10px}
@@ -86,10 +88,8 @@ h1{font-size:18px;margin:0;font-weight:600}
 .loc.load strong{width:55%}.loc.load span{width:90%;margin-top:6px}
 @keyframes sh{to{background-position:-200% 0}}
 .sbody{flex:1 1 auto;min-height:0;overflow-y:auto;padding:2px 18px 6px;-webkit-overflow-scrolling:touch}
-.sheet.min .sbody{display:none}
-.sheet.dragging .sbody{display:block!important;overflow:hidden;contain:layout paint}
+.sheet.min .sbody{visibility:hidden}
 .sdrag .auto,.sdrag .ctrls{transition:none!important}
-.sheet.dragging{will-change:height}
 .sheet.dragging{transition:none}
 .head{touch-action:none;padding-top:6px;padding-bottom:12px}
 
@@ -103,7 +103,7 @@ h1{font-size:18px;margin:0;font-weight:600}
 .qb label{font-size:12.5px;color:var(--sub)}
 .qb .qn{border:0;background:var(--pin);color:#fff;font:inherit;font-size:13.5px;font-weight:600;border-radius:99px;padding:7px 16px;cursor:pointer}
 .qb input,.qb textarea{display:block;width:100%;box-sizing:border-box;border:1.5px solid var(--pin);box-shadow:0 0 0 4px var(--glow);border-radius:14px;background:var(--card);color:var(--ink);font:inherit;font-size:17px;padding:11px 13px;outline:0;resize:none}
-.foot{flex:none;padding:10px 18px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--card)}
+.foot{pointer-events:auto;position:relative;z-index:2;flex:none;padding:10px 18px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--card)}
 .go{width:100%;height:52px;border:0;border-radius:15px;background:linear-gradient(135deg,var(--pin),var(--pin2));color:#fff;font-size:16.5px;font-weight:600;cursor:pointer;box-shadow:0 8px 20px var(--glow)}
 .go:active{transform:scale(.985)}
 .go[disabled]{opacity:.7}
@@ -185,7 +185,9 @@ h1{font-size:18px;margin:0;font-weight:600}
  .mapbox{position:relative;inset:auto;flex:1}
  .sheet{position:relative;left:auto;right:auto;bottom:auto!important;width:430px;max-height:none;height:100dvh;border-radius:0;margin:0}
  .grab,.fold{display:none}
- .sheet.min .sbody{display:block}
+ .panel{transform:none!important;border-radius:0;box-shadow:none}
+ .sheet.min .sbody{visibility:visible}
+ .sheet{pointer-events:auto}
  .top{right:auto;width:min(480px,calc(100% - 24px))}
 }
 </style>
@@ -224,6 +226,7 @@ h1{font-size:18px;margin:0;font-weight:600}
 <div class="qv" id="qv"></div>
 <div class="qb" id="qb" role="dialog" aria-modal="true"><div class="qt"><label id="ql"></label><button class="qn" id="qn" type="button">เสร็จ</button></div><input id="qi" autocomplete="off"><textarea id="qa" rows="2"></textarea></div>
  <form class="sheet" id="sheet" novalidate>
+  <div class="panel" id="panel">
   <button class="grab" id="grab" type="button" aria-label="ย่อหรือขยาย"></button>
   <div class="head"><h1 id="ttl">เข้าสู่ระบบ</h1>
    </div>
@@ -276,6 +279,7 @@ h1{font-size:18px;margin:0;font-weight:600}
     <label class="sw" id="priRow"><input type="checkbox" id="isPri"><i></i><span>ตั้งเป็นที่อยู่หลัก (ใช้ส่งของเป็นค่าเริ่มต้น)</span></label>
    </div>
   </div>
+  </div>
   <div class="foot">
    <button class="go" id="go" type="submit">ต่อไป</button>
    <button class="lnk" id="sec1" type="button" hidden></button>
@@ -309,6 +313,7 @@ function saveDB(d){localStorage.setItem(DBK,JSON.stringify(d))}
 const getAcc=p=>DB()[p]||null;
 
 /* ---------- state ---------- */
+let TY=0,TYb=0;
 let M='phone', PH='', ACC=null, list=[], selIdx=-1, pinned=false, cur={lat:19.9105,lng:99.8406,placeName:'',geoText:''}, mstyle='detail';
 let map=null,ready=false,syncing=false,SH=0,dest=null,tmr,ctl,me,serr=0;
 const mq=matchMedia('(min-width:820px)'), shh=()=>mq.matches?0:SH;
@@ -344,9 +349,11 @@ function viewLL(){if(!map)return{lat:cur.lat,lng:cur.lng};const c=map.getContain
 function goTo(ll,z,dur){if(!map)return;dest={ll,z:z||map.getZoom()};map.flyTo({center:[ll.lng,ll.lat],zoom:z||map.getZoom(),offset:[0,-shh()/2],duration:(dur||.8)*1000,essential:true})}
 function layout(){
   // แผนที่ล็อกอยู่ข้างหลัง ไม่ขยับตามแผงเลย (แผงเป็นแค่ชั้นที่ลอยทับ) แผนที่ขยับเฉพาะตอนผู้ใช้ลาก/ปัก/ค้นหา
-  const H=sheet.offsetHeight,vis=mq.matches?0:H,d=vis-SH;
+  if(sheet.classList.contains('min')&&!window.__drag&&!mq.matches){const t=sbody.offsetHeight;if(Math.abs(t-TY)>.5)applyTy(t)}
+  const H=sheet.offsetHeight-(mq.matches?0:TY),vis=mq.matches?0:H,d=vis-SH;
   if(window.__drag)return;   // ระหว่างลาก ปุ่มลอยขยับด้วย transform เอง ไม่ต้องคำนวณสไตล์ทั้งหน้าทุกเฟรม
-  SH=vis;root.style.setProperty('--shh',vis+'px');
+  SH=vis;TYb=TY;root.style.setProperty('--shh',vis+'px');
+  if(!window.__drag)for(const x of flt)x.style.transform='';
   if(!ready){ready=true;requestAnimationFrame(()=>root.classList.add('ready'));return}
 }
 {let raf;const go=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(layout)};new ResizeObserver(go).observe(sheet);addEventListener('resize',()=>{map&&map.resize();go()})}
@@ -421,52 +428,57 @@ async function search(v){
 document.addEventListener('click',e=>{if(!e.target.closest('.top'))res.classList.remove('open')});
 
 /* ---------- แผงเดียว: ปรับส่วนที่แสดงตามโหมด ---------- */
-function fold(min){sheet.classList.toggle('min',min);layout()}
+const panel=$('#panel'),sbody=sheet.querySelector('.sbody'),flt=[$('#auto'),document.querySelector('.ctrls')].filter(Boolean);
+let anim=0;
+function applyTy(v){TY=v;panel.style.transform='translate3d(0,'+v+'px,0)';const d='translate3d(0,'+(v-TYb)+'px,0)';for(const x of flt)x.style.transform=d}
+/* พับ/ขยายแผงด้วยสปริง (เริ่มจากความเร็วนิ้ว v0 px/วินาที) ทุกเฟรมแตะแค่ transform ของแผงกับปุ่มลอย */
+function springTo(to,v0,done){
+  cancelAnimationFrame(anim);window.__drag=true;root.classList.add('sdrag');for(const q of flt)q.style.willChange='transform';
+  const start=TY,w=32;let x=start,v=v0||0,tp=performance.now();
+  const fin=()=>{applyTy(to);done&&done();window.__drag=false;layout();for(const q of flt){q.style.transform='';q.style.willChange=''}requestAnimationFrame(()=>root.classList.remove('sdrag'))};
+  if(Math.abs(to-start)<1){fin();return}
+  const step=now=>{const dt=Math.min(.032,Math.max(.001,(now-tp)/1000));tp=now;
+    v+=(-w*w*(x-to)-2*w*v)*dt;x+=v*dt;
+    if((Math.abs(x-to)<2&&Math.abs(v)<90)||(to>start?x>=to:x<=to)){fin();return}
+    applyTy(Math.max(0,x));anim=requestAnimationFrame(step)};
+  anim=requestAnimationFrame(step)}
+function fold(min,instant){
+  if(mq.matches)return;
+  if(!min)sheet.classList.remove('min');
+  const to=min?sbody.offsetHeight:0,end=()=>{if(min)sheet.classList.add('min')};
+  if(instant||!ready){cancelAnimationFrame(anim);end();applyTy(to);layout();return}
+  springTo(to,0,end)}
 function bindSwipe(el){
-  const sb=sheet.querySelector('.sbody');let y0=null,h0=0,full=0,wasMin=false,moved=false,t0=0,last=0,vy=0,lt=0,nh=0,raf=0,anim=0;
-  const fl=[$('#auto'),document.querySelector('.ctrls')].filter(Boolean);
-  const setH=v=>{nh=v;sb.style.height=v+'px';const t='translate3d(0,'+(h0-v)+'px,0)';fl.forEach(x=>x.style.transform=t)};
+  let y0=null,t0=0,ty0=0,full=0,wasMin=false,moved=false,last=0,lt=0,vy=0,raf=0,want=0;
   el.addEventListener('pointerdown',e=>{
-    if(y0!=null||e.target.closest('button:not(.grab)')||sheet.classList.contains('qi-on'))return;
-    cancelAnimationFrame(anim);y0=e.clientY;last=y0;lt=e.timeStamp;t0=Date.now();vy=0;moved=false;wasMin=sheet.classList.contains('min');
+    if(y0!=null||e.target.closest('button:not(.grab)')||sheet.classList.contains('qi-on')||mq.matches)return;
+    cancelAnimationFrame(anim);y0=e.clientY;last=y0;lt=e.timeStamp;vy=0;moved=false;
+    wasMin=sheet.classList.contains('min');full=wasMin?TY:(sbody.offsetHeight||TY);ty0=TY;
+    sheet.classList.remove('min');           // ให้เนื้อหามองเห็นระหว่างเลื่อน
+    window.__drag=true;root.classList.add('sdrag');for(const q of flt)q.style.willChange='transform';
     try{el.setPointerCapture(e.pointerId)}catch(_){}
-    sb.style.transition='none';root.classList.add('sdrag');window.__drag=true;fl.forEach(x=>x.style.willChange='transform');
-    if(wasMin){sheet.classList.add('dragging');sb.style.flex='none';sb.style.height='0px';
-      const maxS=parseFloat(getComputedStyle(sheet).maxHeight)||sheet.offsetHeight,fixed=sheet.offsetHeight;
-      sb.style.height='auto';const nat=sb.scrollHeight;sb.style.height='0px';full=Math.max(60,Math.min(nat,maxS-fixed));h0=0}
-    else{sheet.classList.add('dragging');h0=sb.offsetHeight;full=h0;sb.style.flex='none';sb.style.height=h0+'px'}
   });
   el.addEventListener('pointermove',e=>{
-    if(y0==null)return;const dy=e.clientY-y0;if(Math.abs(dy)>6){moved=true;window.__drag=true}
-    if(!moved)return;{const dt=e.timeStamp-lt;if(dt>0)vy=vy*.5+((e.clientY-last)/dt*1000)*.5;last=e.clientY;lt=e.timeStamp}
-    nh=Math.max(0,Math.min(full,h0-dy));if(!raf)raf=requestAnimationFrame(()=>{raf=0;setH(nh)});
+    if(y0==null)return;const dy=e.clientY-y0;if(!moved&&Math.abs(dy)>6)moved=true;if(!moved)return;
+    const dt=e.timeStamp-lt;if(dt>0)vy=vy*.5+((e.clientY-last)/dt*1000)*.5;last=e.clientY;lt=e.timeStamp;
+    want=Math.max(0,Math.min(full,ty0+dy));if(!raf)raf=requestAnimationFrame(()=>{raf=0;applyTy(want)});
   });
-  const end=cancel=>{
-    if(y0==null)return;const dy=last-y0;y0=null;
-    if(raf){cancelAnimationFrame(raf);raf=0;setH(nh)}
-    const h=nh;let open;
-    if(performance.now()-lt>90)vy=0;            // นิ้วหยุดก่อนปล่อย = ไม่มีแรงส่ง
-    if(!moved)open=wasMin;                      // แตะเฉยๆ = สลับ
-    else if(Math.abs(vy)>350)open=vy<0;         // ปาด (px/วินาที) ตามทิศทาง
-    else open=h>full*0.5;
-    // สปริงหน่วงพอดี เริ่มจากความเร็วนิ้ว: ต่อเนื่องกับการปาด ไม่ค่อยๆ คืบตอนท้าย
-    const to=open?full:0,w=32;let x=h,v=moved?-vy:0,tp=performance.now();
-    const fin=()=>{setH(to);sheet.classList.toggle('min',!open);sheet.classList.remove('dragging');sb.style.transition=sb.style.height=sb.style.flex='';
-      window.__drag=false;layout();fl.forEach(q=>{q.style.transform='';q.style.willChange=''});
-      requestAnimationFrame(()=>root.classList.remove('sdrag'))};
-    const step=now=>{let dt=Math.min(.032,Math.max(.001,(now-tp)/1000));tp=now;
-      const a=-w*w*(x-to)-2*w*v;v+=a*dt;x+=v*dt;
-      if((Math.abs(x-to)<2&&Math.abs(v)<90)||(open&&x>=to)||(!open&&x<=to)){fin();return}
-      setH(Math.max(0,Math.min(full,x)));anim=requestAnimationFrame(step)};
-    anim=requestAnimationFrame(step);
+  const end=()=>{
+    if(y0==null)return;y0=null;if(raf){cancelAnimationFrame(raf);raf=0;applyTy(want)}
+    if(performance.now()-lt>90)vy=0;
+    let min;
+    if(!moved)min=!wasMin;                          // แตะเฉยๆ = สลับ
+    else if(Math.abs(vy)>350)min=vy>0;              // ปาด (px/วินาที) ตามทิศทาง
+    else min=TY>full*0.5;
+    springTo(min?full:0,moved?vy:0,()=>{if(min)sheet.classList.add('min')});
   };
-  el.addEventListener('pointerup',()=>end());el.addEventListener('pointercancel',()=>end(true));
+  el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
 }
 bindSwipe($('#grab'));bindSwipe(sheet.querySelector('.head'));
 $('#loc').onclick=()=>sheet.classList.contains('min')&&fold(false);
 const TT={phone:'เข้าสู่ระบบ / สมัครสมาชิก',welcome:'ยินดีต้อนรับกลับ',register:'สมัครสมาชิก',manage:'ที่อยู่จัดส่งของฉัน',account:'บัญชีของฉัน'};
 function setM(m){
-  M=m;app.dataset.m=m;sheet.classList.remove('min');
+  M=m;app.dataset.m=m;sheet.classList.remove('min');cancelAnimationFrame(anim);if(TY){applyTy(0);}
   $('#ttl').textContent=TT[m];
   $('#acct').hidden=m==='manage'||m==='account';
   $('#acc').hidden=m!=='account';$('#tabs').hidden=!(m==='manage'||m==='account');
@@ -576,7 +588,7 @@ function checkPhone(){
     $('#newCap').textContent='เบอร์ '+phone+' ยังไม่มีบัญชี กรอกข้อมูลเพื่อสมัคร ที่อยู่แรกจะเป็น "บ้าน" และเป็นที่อยู่หลัก';
     $('#name').value='';$('#note').value='';$('#addr').value='';delete $('#addr').dataset.touched;cur.geoText='';cur.placeName='';
     $('#pname').textContent='ยังไม่ได้ปักหมุด';$('#paddr').textContent='แตะบนแผนที่ ค้นหา หรือกด "ตำแหน่งฉัน"';
-    setM('register');fold(true);
+    setM('register');fold(true,true);
   }
 }
 $('#sec1').onclick=()=>{
