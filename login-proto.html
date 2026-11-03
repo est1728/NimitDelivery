@@ -363,7 +363,7 @@ if(map){
   map.on('style.load',()=>{thLabels();boostBuildings()});
   map.on('error',e=>{if(e&&e.error&&/style|Failed to fetch|NetworkError|403|404/i.test(String(e.error.message||e.error))&&++serr===3)toast('โหลดแผนที่ไม่ได้ ตรวจสอบอินเทอร์เน็ต',6000)});
 }
-function applyStyle(){if(!map)return;$('#map').classList.toggle('dk',root.dataset.theme==='dark'&&mstyle!=='sat');map.setStyle(styleUrl())}
+function applyStyle(){if(!map)return;$('#map').classList.toggle('dk',root.dataset.theme==='dark'&&mstyle!=='sat');map.setStyle(styleUrl(),{diff:false})}
 function setTheme(t){root.dataset.theme=t;try{localStorage.setItem('nd_theme',t)}catch(e){}applyStyle()}
 $('#theme').onclick=()=>setTheme(root.dataset.theme==='dark'?'light':'dark');
 /* ป๊อปอัปเลือกชนิดแผนที่: เด้งออกมาจากปุ่ม */
@@ -372,7 +372,7 @@ function setStp(open){stp.classList.toggle('on',open);$('#style').setAttribute('
 $('#style').onclick=e=>{e.stopPropagation();setStp(!stp.classList.contains('on'))};
 stp.querySelectorAll('button').forEach(b=>b.onclick=e=>{e.stopPropagation();const m=b.dataset.s;stp.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));setStp(false);if(m===mstyle)return;mstyle=m;try{localStorage.setItem('nd_mapstyle',m)}catch(_){}applyStyle()});
 document.addEventListener('pointerdown',e=>{if(stp.classList.contains('on')&&!e.target.closest('#stp,#style'))setStp(false)},true);
-try{const m=localStorage.getItem('nd_mapstyle');if(m&&STY[m]&&m!==mstyle){mstyle=m;stp.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.s===m));if(map)map.setStyle(styleUrl());$('#map').classList.toggle('dk',root.dataset.theme==='dark'&&m!=='sat')}}catch(_){}
+try{const m=localStorage.getItem('nd_mapstyle');if(m&&STY[m]&&m!==mstyle){mstyle=m;stp.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.s===m));if(map)map.setStyle(styleUrl(),{diff:false});$('#map').classList.toggle('dk',root.dataset.theme==='dark'&&m!=='sat')}}catch(_){}
 $('#zi').onclick=()=>map&&map.zoomIn();$('#zo').onclick=()=>map&&map.zoomOut();
 $('#map').classList.toggle('dk',root.dataset.theme==='dark');
 function viewLL(){if(!map)return{lat:cur.lat,lng:cur.lng};const c=map.getContainer(),p=map.unproject([c.clientWidth/2,(c.clientHeight-shh())/2]);return{lat:p.lat,lng:p.lng}}
