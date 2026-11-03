@@ -66,13 +66,21 @@ button{font:inherit;color:inherit}
 .auto .al{font-size:11.5px;font-weight:500;color:var(--ink);background:var(--card);padding:1px 9px;border-radius:99px;box-shadow:0 2px 8px var(--sh)}
 .ctrls{position:absolute;z-index:1000;right:12px;bottom:calc(var(--shh,0px) + var(--kb,0px) + 14px);display:flex;flex-direction:column;gap:8px}
 .ctrls .ib{width:46px;height:46px;border-radius:12px}
+.stp{position:absolute;right:calc(100% + 8px);top:0;display:flex;gap:6px;padding:8px;background:var(--card);border-radius:16px;box-shadow:0 8px 26px var(--sh);transform-origin:100% 0;transform:scale(.3);opacity:0;pointer-events:none;transition:transform .28s cubic-bezier(.3,1.5,.5,1),opacity .15s}
+.stp.on{transform:none;opacity:1;pointer-events:auto}
+.stp button{border:2px solid transparent;background:none;border-radius:12px;padding:4px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;font-size:11.5px;color:var(--sub)}
+.stp button.on{border-color:var(--pin);color:var(--pin);font-weight:600}
+.th{display:block;width:52px;height:52px;border-radius:9px}
+.th.d{background:linear-gradient(135deg,#efe7d8 0 45%,#fff 45% 52%,#e8dfcc 52%),#efe7d8}
+.th.c{background:linear-gradient(135deg,#eef0f3 0 45%,#fff 45% 52%,#e4e7ec 52%)}
+.th.s{background:radial-gradient(circle at 30% 30%,#5f7a45,transparent 55%),radial-gradient(circle at 75% 70%,#3d5a73,transparent 50%),#44503a}
 .ready .auto,.ready .ctrls{transition:bottom .38s cubic-bezier(.22,.61,.36,1)}
 .me{width:18px;height:18px;border-radius:50%;background:#2f7bff;border:3px solid #fff;box-shadow:0 0 0 0 rgba(47,123,255,.5);animation:pulse 2s infinite}
 @keyframes pulse{70%{box-shadow:0 0 0 18px rgba(47,123,255,0)}100%{box-shadow:0 0 0 0 rgba(47,123,255,0)}}
 /* sheet: หัว + (สรุปตำแหน่ง) + เนื้อหาเลื่อนได้ + ปุ่มหลักติดล่างเสมอ */
 .sheet{position:absolute;left:0;right:0;bottom:var(--kb,0px);z-index:1001;display:flex;flex-direction:column;max-height:min(74%,calc(100% - var(--kb,0px) - 88px));pointer-events:none}
 /* แผงเลื่อนด้วย transform อย่างเดียว (ไม่เปลี่ยนความสูง) → ไม่ต้องคำนวณเลย์เอาต์/วาดใหม่ทุกเฟรม ปุ่มหลักอยู่นอกแผงจึงไม่เลื่อนตาม */
-.panel{pointer-events:auto;display:flex;flex-direction:column;flex:1 1 auto;min-height:0;position:relative;z-index:1;background:var(--card);border-radius:24px 24px 0 0;box-shadow:0 -10px 30px var(--sh);transform:translate3d(0,0,0);will-change:transform}
+.panel{pointer-events:auto;display:flex;flex-direction:column;flex:1 1 auto;min-height:0;position:relative;z-index:1;background:var(--card);border-radius:24px 24px 0 0;box-shadow:0 -6px 18px var(--sh);transform:translate3d(0,0,0);will-change:transform}
 .grab{flex:none;display:block;width:100%;height:30px;touch-action:none;border:0;background:none;cursor:pointer;padding:0}
 .grab::before{content:"";display:block;width:42px;height:4px;border-radius:2px;background:var(--line);margin:10px auto 0}
 .head{flex:none;display:flex;align-items:center;justify-content:space-between;padding:2px 18px 8px;gap:10px}
@@ -90,6 +98,8 @@ h1{font-size:18px;margin:0;font-weight:600}
 .sbody{flex:1 1 auto;min-height:0;overflow-y:auto;padding:2px 18px 6px;-webkit-overflow-scrolling:touch}
 .sheet.min .sbody{visibility:hidden}
 .sdrag .auto,.sdrag .ctrls{transition:none!important}
+.sanim .auto,.sanim .ctrls{transition:transform var(--sd,.3s) var(--se,ease)!important}
+.sanim .panel{transition:transform var(--sd,.3s) var(--se,ease)}
 .sheet.dragging{transition:none}
 .head{touch-action:none;padding-top:6px;padding-bottom:12px}
 
@@ -218,6 +228,7 @@ h1{font-size:18px;margin:0;font-weight:600}
   <button class="auto" id="auto" type="button" aria-label="ใช้ตำแหน่งปัจจุบัน"><span class="ac"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></span><span class="al">ตำแหน่งฉัน</span></button>
   <div class="ctrls">
    <button class="ib" id="style" type="button" aria-label="สลับสไตล์แผนที่"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/></svg><small>แผนที่</small></button>
+   <div class="stp" id="stp" role="menu"><button type="button" data-s="detail" class="on"><i class="th d"></i><span>ละเอียด</span></button><button type="button" data-s="clean"><i class="th c"></i><span>เรียบ</span></button><button type="button" data-s="sat"><i class="th s"></i><span>ดาวเทียม</span></button></div>
    <button class="ib" id="zi" type="button" aria-label="ซูมเข้า"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
    <button class="ib" id="zo" type="button" aria-label="ซูมออก"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
   </div>
@@ -319,15 +330,28 @@ let map=null,ready=false,syncing=false,SH=0,dest=null,tmr,ctl,me,serr=0;
 const mq=matchMedia('(min-width:820px)'), shh=()=>mq.matches?0:SH;
 
 /* ---------- map ---------- */
-const STY={detail:'https://tiles.openfreemap.org/styles/liberty',clean:'https://tiles.openfreemap.org/styles/positron'};
-const styleUrl=()=>root.dataset.theme==='dark'?STY.clean:STY[mstyle];
+const STY={detail:'https://tiles.openfreemap.org/styles/liberty',clean:'https://tiles.openfreemap.org/styles/positron',sat:'https://tiles.openfreemap.org/styles/liberty'};
+const SAT_TILES='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+const styleUrl=()=>mstyle==='sat'?STY.sat:(root.dataset.theme==='dark'?STY.clean:STY[mstyle]);
 try{
-  map=new maplibregl.Map({container:'map',style:styleUrl(),center:[cur.lng,cur.lat],zoom:15,maxZoom:19.5,attributionControl:false,dragRotate:false,pitchWithRotate:false,touchPitch:false,fadeDuration:100});
+  map=new maplibregl.Map({container:'map',style:styleUrl(),center:[cur.lng,cur.lat],zoom:15,maxZoom:19.5,pixelRatio:Math.min(window.devicePixelRatio||1,2),attributionControl:false,dragRotate:false,pitchWithRotate:false,touchPitch:false,fadeDuration:100});
   map.addControl(new maplibregl.AttributionControl({compact:true}),'bottom-right');
   map.touchZoomRotate.disableRotation();
 }catch(e){toast('แผนที่ไม่รองรับบนอุปกรณ์นี้',6000)}
 function thLabels(){try{map.getStyle().layers.forEach(l=>{if(l.type!=='symbol'||!l.layout||!l.layout['text-field'])return;if(/housenumber|shield|ref/i.test(l.id))return;if(!JSON.stringify(l.layout['text-field']).includes('name'))return;map.setLayoutProperty(l.id,'text-field',['coalesce',['get','name:th'],['get','name:latin'],['get','name']])})}catch(e){}}
-function boostBuildings(){try{
+function satLayers(){try{
+  const st=map.getStyle();
+  if(!map.getSource('nd-sat'))map.addSource('nd-sat',{type:'raster',tiles:[SAT_TILES],tileSize:256,maxzoom:19,attribution:'Imagery © Esri, Maxar, Earthstar Geographics'});
+  const fs=(st.layers.find(l=>l.type==='symbol')||{}).id;
+  if(!map.getLayer('nd-sat'))map.addLayer({id:'nd-sat',type:'raster',source:'nd-sat',paint:{'raster-fade-duration':150}},st.layers.find(l=>l.type!=='background'&&l.type!=='raster'&&l.id!=='nd-sat')?st.layers.find(l=>l.type!=='background'&&l.type!=='raster').id:undefined);
+  st.layers.forEach(l=>{
+    if(l.id==='nd-sat')return;
+    if(/^(background|fill|fill-extrusion|hillshade)$/.test(l.type))try{map.setLayoutProperty(l.id,'visibility','none')}catch(e){}
+    else if(l.type==='line'){try{map.setPaintProperty(l.id,'line-opacity',/road|street|highway|motorway|trunk|primary|secondary|tertiary|minor|path|bridge|tunnel/i.test(l.id)?0.55:0)}catch(e){}}
+    else if(l.type==='symbol'&&l.layout&&l.layout['text-field']){try{map.setPaintProperty(l.id,'text-color','#ffffff');map.setPaintProperty(l.id,'text-halo-color','rgba(0,0,0,.75)');map.setPaintProperty(l.id,'text-halo-width',1.6)}catch(e){}}
+  });
+}catch(e){}}
+function boostBuildings(){if(mstyle==='sat'){satLayers();return}try{
   const st=map.getStyle(),src=Object.keys(st.sources).find(k=>st.sources[k].type==='vector');if(!src)return;
   st.layers.forEach(l=>{if(l.type==='fill-extrusion')try{map.setLayoutProperty(l.id,'visibility','none')}catch(e){}});
   const fs=(st.layers.find(l=>l.type==='symbol')||{}).id;
@@ -339,10 +363,16 @@ if(map){
   map.on('style.load',()=>{thLabels();boostBuildings()});
   map.on('error',e=>{if(e&&e.error&&/style|Failed to fetch|NetworkError|403|404/i.test(String(e.error.message||e.error))&&++serr===3)toast('โหลดแผนที่ไม่ได้ ตรวจสอบอินเทอร์เน็ต',6000)});
 }
-function applyStyle(){if(!map)return;$('#map').classList.toggle('dk',root.dataset.theme==='dark');map.setStyle(styleUrl())}
+function applyStyle(){if(!map)return;$('#map').classList.toggle('dk',root.dataset.theme==='dark'&&mstyle!=='sat');map.setStyle(styleUrl())}
 function setTheme(t){root.dataset.theme=t;try{localStorage.setItem('nd_theme',t)}catch(e){}applyStyle()}
 $('#theme').onclick=()=>setTheme(root.dataset.theme==='dark'?'light':'dark');
-$('#style').onclick=()=>{mstyle=mstyle==='detail'?'clean':'detail';applyStyle();toast(mstyle==='detail'?'แผนที่แบบละเอียด':'แผนที่แบบเรียบ')};
+/* ป๊อปอัปเลือกชนิดแผนที่: เด้งออกมาจากปุ่ม */
+const stp=$('#stp');
+function setStp(open){stp.classList.toggle('on',open);$('#style').setAttribute('aria-expanded',open)}
+$('#style').onclick=e=>{e.stopPropagation();setStp(!stp.classList.contains('on'))};
+stp.querySelectorAll('button').forEach(b=>b.onclick=e=>{e.stopPropagation();const m=b.dataset.s;stp.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));setStp(false);if(m===mstyle)return;mstyle=m;try{localStorage.setItem('nd_mapstyle',m)}catch(_){}applyStyle()});
+document.addEventListener('pointerdown',e=>{if(stp.classList.contains('on')&&!e.target.closest('#stp,#style'))setStp(false)},true);
+try{const m=localStorage.getItem('nd_mapstyle');if(m&&STY[m]&&m!==mstyle){mstyle=m;stp.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.s===m));if(map)map.setStyle(styleUrl());$('#map').classList.toggle('dk',root.dataset.theme==='dark'&&m!=='sat')}}catch(_){}
 $('#zi').onclick=()=>map&&map.zoomIn();$('#zo').onclick=()=>map&&map.zoomOut();
 $('#map').classList.toggle('dk',root.dataset.theme==='dark');
 function viewLL(){if(!map)return{lat:cur.lat,lng:cur.lng};const c=map.getContainer(),p=map.unproject([c.clientWidth/2,(c.clientHeight-shh())/2]);return{lat:p.lat,lng:p.lng}}
@@ -431,28 +461,33 @@ document.addEventListener('click',e=>{if(!e.target.closest('.top'))res.classList
 const panel=$('#panel'),sbody=sheet.querySelector('.sbody'),flt=[$('#auto'),document.querySelector('.ctrls')].filter(Boolean);
 let anim=0;
 function applyTy(v){TY=v;panel.style.transform='translate3d(0,'+v+'px,0)';const d='translate3d(0,'+(v-TYb)+'px,0)';for(const x of flt)x.style.transform=d}
-/* พับ/ขยายแผงด้วยสปริง (เริ่มจากความเร็วนิ้ว v0 px/วินาที) ทุกเฟรมแตะแค่ transform ของแผงกับปุ่มลอย */
+/* ปล่อยนิ้ว: ใช้ CSS transition บน transform (วิ่งบนคอมโพสิตเตอร์ ไม่สะดุดแม้เธรดหลักยุ่ง) แผงกับปุ่มลอยใช้เวลา/เส้นโค้งเดียวกัน */
+const ease='cubic-bezier(.22,.8,.24,1)';
+function curTy(){try{return new DOMMatrixReadOnly(getComputedStyle(panel).transform).m42}catch(e){return TY}}
+function freeze(){   // หยุดอนิเมชันค้างไว้ที่ตำแหน่งที่เห็นตอนนี้
+  if(!root.classList.contains('sanim'))return;const v=curTy();clearTimeout(anim);root.classList.remove('sanim');panel.style.transition='none';applyTy(v);void panel.offsetWidth;panel.style.transition=''}
 function springTo(to,v0,done){
-  cancelAnimationFrame(anim);window.__drag=true;root.classList.add('sdrag');for(const q of flt)q.style.willChange='transform';
-  const start=TY,w=32;let x=start,v=v0||0,tp=performance.now();
-  const fin=()=>{applyTy(to);done&&done();window.__drag=false;layout();for(const q of flt){q.style.transform='';q.style.willChange=''}requestAnimationFrame(()=>root.classList.remove('sdrag'))};
-  if(Math.abs(to-start)<1){fin();return}
-  const step=now=>{const dt=Math.min(.032,Math.max(.001,(now-tp)/1000));tp=now;
-    v+=(-w*w*(x-to)-2*w*v)*dt;x+=v*dt;
-    if((Math.abs(x-to)<2&&Math.abs(v)<90)||(to>start?x>=to:x<=to)){fin();return}
-    applyTy(Math.max(0,x));anim=requestAnimationFrame(step)};
-  anim=requestAnimationFrame(step)}
+  freeze();const start=TY,dist=Math.abs(to-start);
+  window.__drag=true;for(const q of flt)q.style.willChange='transform';
+  const fin=()=>{panel.removeEventListener('transitionend',onEnd);clearTimeout(anim);root.classList.add('sdrag');root.classList.remove('sanim');applyTy(to);done&&done();window.__drag=false;layout();for(const q of flt){q.style.transform='';q.style.willChange=''}requestAnimationFrame(()=>requestAnimationFrame(()=>root.classList.remove('sdrag')))};
+  const onEnd=e=>{if(e.target===panel&&e.propertyName==='transform')fin()};
+  if(dist<1){fin();return}
+  const sec=Math.max(.2,Math.min(.42,dist/Math.max(Math.abs(v0||0),700)*.9+.14));
+  root.style.setProperty('--sd',sec+'s');root.style.setProperty('--se',ease);
+  root.classList.remove('sdrag');root.classList.add('sanim');
+  panel.addEventListener('transitionend',onEnd);anim=setTimeout(fin,sec*1000+90);
+  requestAnimationFrame(()=>applyTy(to))}
 function fold(min,instant){
   if(mq.matches)return;
   if(!min)sheet.classList.remove('min');
   const to=min?sbody.offsetHeight:0,end=()=>{if(min)sheet.classList.add('min')};
-  if(instant||!ready){cancelAnimationFrame(anim);end();applyTy(to);layout();return}
+  if(instant||!ready){freeze();end();applyTy(to);layout();return}
   springTo(to,0,end)}
 function bindSwipe(el){
   let y0=null,t0=0,ty0=0,full=0,wasMin=false,moved=false,last=0,lt=0,vy=0,raf=0,want=0;
   el.addEventListener('pointerdown',e=>{
     if(y0!=null||e.target.closest('button:not(.grab)')||sheet.classList.contains('qi-on')||mq.matches)return;
-    cancelAnimationFrame(anim);y0=e.clientY;last=y0;lt=e.timeStamp;vy=0;moved=false;
+    freeze();y0=e.clientY;last=y0;lt=e.timeStamp;vy=0;moved=false;
     wasMin=sheet.classList.contains('min');full=wasMin?TY:(sbody.offsetHeight||TY);ty0=TY;
     sheet.classList.remove('min');           // ให้เนื้อหามองเห็นระหว่างเลื่อน
     window.__drag=true;root.classList.add('sdrag');for(const q of flt)q.style.willChange='transform';
@@ -478,7 +513,7 @@ bindSwipe($('#grab'));bindSwipe(sheet.querySelector('.head'));
 $('#loc').onclick=()=>sheet.classList.contains('min')&&fold(false);
 const TT={phone:'เข้าสู่ระบบ / สมัครสมาชิก',welcome:'ยินดีต้อนรับกลับ',register:'สมัครสมาชิก',manage:'ที่อยู่จัดส่งของฉัน',account:'บัญชีของฉัน'};
 function setM(m){
-  M=m;app.dataset.m=m;sheet.classList.remove('min');cancelAnimationFrame(anim);if(TY){applyTy(0);}
+  M=m;app.dataset.m=m;sheet.classList.remove('min');freeze();if(TY){applyTy(0);}
   $('#ttl').textContent=TT[m];
   $('#acct').hidden=m==='manage'||m==='account';
   $('#acc').hidden=m!=='account';$('#tabs').hidden=!(m==='manage'||m==='account');
