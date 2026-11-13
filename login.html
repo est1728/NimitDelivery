@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="th" data-theme="light">
 <head>
+<script>if(!/[?&]mode=address(&|$)/.test(location.search))location.replace("signin.html"+location.search+location.hash)</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0c4aa6">
@@ -320,12 +321,12 @@ function whenCloud(){return new Promise((ok,no)=>{let n=0;const t=setInterval(()
 function nextUrl(){
   const cand=[QS.get('next'),sessionStorage.getItem('loginReturnUrl'),sessionStorage.getItem('addrBack')];
   sessionStorage.removeItem('loginReturnUrl');sessionStorage.removeItem('addrBack');
-  for(const u of cand){if(!u)continue;try{const x=new URL(u,location.href);if(x.origin===location.origin&&!/(login|address)(-proto)?\.html$/i.test(x.pathname))return x.pathname.replace(/^\//,'')+x.search+x.hash}catch(e){}}
+  for(const u of cand){if(!u)continue;try{const x=new URL(u,location.href);if(x.origin===location.origin&&!/(login|signin|address)(-proto)?\.html$/i.test(x.pathname))return x.pathname.replace(/^\//,'')+x.search+x.hash}catch(e){}}
   return 'shops.html';
 }
 
 /* ---------- ข้อมูลลูกค้า: Firestore customers/{phone} (ผ่าน ndCloud) + สำเนาในเครื่อง ---------- */
-const clean=a=>({name:a.name||'',phone:a.phone||PH,address:a.address||'',addrText:a.addrText||a.address||'',addrNote:a.addrNote||'',lat:a.lat==null?null:+(+a.lat).toFixed(6),lng:a.lng==null?null:+(+a.lng).toFixed(6),tag:a.tag||'บ้าน',label:a.label||a.tag||'บ้าน',placeName:a.placeName||''});
+const clean=a=>({name:a.name||'',phone:a.phone||PH,address:a.address||'',addrText:a.addrText||a.address||'',addrNote:a.addrNote||'',lat:a.lat==null?null:+(+a.lat).toFixed(6),lng:a.lng==null?null:+(+a.lng).toFixed(6),tag:a.tag||'บ้าน',label:a.label||a.tag||'บ้าน',placeName:a.placeName||'',...(a.auto?{auto:true}:{})});
 const same=(a,b)=>a&&b&&a.lat!=null&&b.lat!=null&&Math.abs(a.lat-b.lat)<1e-5&&Math.abs(a.lng-b.lng)<1e-5;
 // รายการที่อยู่จากเอกสารลูกค้า: ใช้ addresses[] ถ้ามี และให้ที่อยู่หลัก (address/lat/lng) ที่หน้าอื่น/แอพแก้ไว้อยู่ลำดับแรกเสมอ
 function loadList(d){
