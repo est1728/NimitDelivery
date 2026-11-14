@@ -369,7 +369,15 @@ window.onerror = function(msg, url, line, col, error){
       <button type="button" class="hbBtn" id="hbAddTxt">+ เพิ่มข้อความ</button>
     </div>
     <div id="hbList" class="hbList"></div>
+    <div class="hint" style="margin:8px 0 0">ภาพที่ลบพื้นหลังแล้ว (PNG / WebP โปร่งใส) ใส่เป็นเลเยอร์ได้เลย ความโปร่งใสจะถูกเก็บไว้ (อย่าบันทึกเป็น JPG เพราะจะเป็นพื้นขาว)</div>
     <div id="hbCtl" class="hbCtl"></div>
+    <div style="font-size:12px;font-weight:700;color:var(--s);margin:14px 0 6px">สีพื้นหลัง (เติมส่วนที่ภาพไม่คลุม)</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+      <button type="button" class="sw" id="hbFill1" aria-label="สีพื้นหลัง"></button>
+      <label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="hbFillOn"> ใช้สี</label>
+      <label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="hbFillG"> ไล่สี</label>
+      <button type="button" class="sw" id="hbFill2" aria-label="สีปลายทาง" style="display:none"></button>
+    </div>
     <div style="font-size:12px;font-weight:700;color:var(--s);margin:14px 0 6px">เมื่อกดที่พื้นหลัง (ทั้งหมด ยกเว้นรูปที่ตั้งลิงก์ของตัวเอง)</div>
     <select class="inp" id="hbgType" onchange="hbgUi()" style="font-family:inherit;margin-bottom:8px">
       <option value="none">ไม่ทำอะไร</option><option value="page">ไปหน้าในแอพ</option><option value="url">ไปลิงก์ที่กรอกเอง</option>
@@ -379,6 +387,10 @@ window.onerror = function(msg, url, line, col, error){
     <div class="hint" id="hbgNote" style="margin-bottom:10px"></div>
     <button class="savbtn" onclick="saveHomeBg()">บันทึกพื้นหลัง</button>
     <input type="file" id="hbf" accept="image/*" hidden>
+    <div class="hsh" id="hbCP"><div class="hshi"><h4>เลือกสี</h4>
+      <div class="cpw"><canvas id="cpW" width="220" height="220" style="width:220px;height:220px"></canvas><canvas id="cpV" width="34" height="220"></canvas></div>
+      <div class="cpr"><span class="pv" id="cpPv"></span><input class="inp" id="cpHex" type="text" maxlength="7" placeholder="#RRGGBB"><button type="button" class="hbBtn pri" id="cpOk" style="flex:none;padding:0 18px">เสร็จ</button></div></div></div>
+    <div class="hsh" id="hbFS"><div class="hshi"><h4>เลือกฟอนต์</h4><div id="hbFL"></div></div></div>
   </div>
   <div class="card">
     <div class="stitle">🔔 VAPID Key (สำหรับแจ้งเตือน)</div>
@@ -1039,7 +1051,7 @@ const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 
 function hRender(){
   const arr=HL.map(l=>l.t==='txt'?{...l,text:l.text||' '}:l);
-  NimitHomeBg.render(hLy,{on:true,layers:arr},{edit:true});
+  NimitHomeBg.render(hLy,{on:true,bg:HBG.bg,bg2:HBG.bg2,layers:arr},{edit:true});
   $hb('hbEmpty').style.display=HL.length?'none':'grid';
   hOutline();
 }
@@ -1057,31 +1069,39 @@ function hList(){
       <button data-a="up" ${i===HL.length-1?'disabled':''} aria-label="ขึ้นหน้า">${IC.up}</button><button data-a="dn" ${i===0?'disabled':''} aria-label="ถอยหลัง">${IC.dn}</button>
       <button data-a="eye" aria-label="แสดง/ซ่อน">${l.vis===false?IC.eyeX:IC.eye}</button><button data-a="del" aria-label="ลบ">${IC.del}</button></div>`}).join('');
 }
+const FSAMPLE='ส่งไว ถึงบ้าน Nimit';
+const rng=(lb,k,mn,mx,st,v,u)=>`<div class="r"><span>${lb}</span><input type="range" data-k="${k}" data-u="${u||'%'}" min="${mn}" max="${mx}" step="${st}" value="${v}"><b>${(+v).toFixed(st<1?1:0)}${u||'%'}</b></div>`;
+const cb=(k,v,lb)=>`<div class="r"><span>${lb}</span><button type="button" class="sw" data-ck="${k}" style="background:${v}" aria-label="${lb}"></button></div>`;
 function hCtl(){
   const box=$hb('hbCtl'),l=HL[HSEL];
   if(!l){box.innerHTML='';return}
-  const isT=l.t==='txt',sk=isT?'size':'w',mn=isT?2:5,mx=isT?30:300;
-  let h=`<div class="r"><span>ขนาด</span><input type="range" data-k="${sk}" min="${mn}" max="${mx}" step="0.5" value="${Math.min(mx,l[sk])}"><b>${Math.round(l[sk])}%</b></div>
-  <div class="r"><span>หมุน</span><input type="range" data-k="rot" min="-180" max="180" step="1" value="${l.rot}"><b>${Math.round(l.rot)}°</b></div>
-  <div class="r"><span>โปร่งแสง</span><input type="range" data-k="op" min="0" max="100" step="1" value="${l.op}"><b>${Math.round(l.op)}%</b></div>`;
+  const isT=l.t==='txt',sk=isT?'size':'w';
+  let h=rng('ขนาด',sk,isT?2:5,isT?30:300,.5,Math.min(isT?30:300,l[sk]))+rng('หมุน','rot',-180,180,1,l.rot,'°')+rng('โปร่งแสง','op',0,100,1,l.op);
   if(isT){
     h+=`<div class="r"><span>ข้อความ</span><input class="inp" id="hbTx" type="text" maxlength="80" value="${esc(l.text)}" style="flex:1;min-width:0"></div>
-    <div class="r"><span>สี</span><input type="color" id="hbCol" value="${/^#[0-9a-f]{6}$/i.test(l.color)?l.color:'#ffffff'}" style="width:48px;height:36px;border:0;padding:0;background:none"><label style="display:flex;gap:6px;align-items:center;margin-left:8px"><input type="checkbox" id="hbBold" ${l.weight>=700?'checked':''}> ตัวหนา</label></div>`;
+    <div class="r"><span>ฟอนต์</span><button type="button" class="mini" id="hbFont" style="flex:1;font-family:'${l.font}',sans-serif;font-size:16px;text-align:left">${esc(l.font)}</button></div>
+    <div class="r"><span>สีตัวอักษร</span><button type="button" class="sw" data-ck="color" style="background:${l.color}" aria-label="สีตัวอักษร"></button><label style="display:flex;gap:6px;align-items:center;margin-left:8px"><input type="checkbox" id="hbBold" ${l.weight>=700?'checked':''}> ตัวหนา</label></div>
+    <div class="h">ขอบตัวอักษร</div>${rng('ความหนา','sw',0,3,.05,l.sw,'')}${cb('sc',l.sc,'สีขอบ')}
+    <div class="h">มิติ (ตัวนูน)</div>${rng('ความลึก','dp',0,4,.1,l.dp,'')}${cb('dc',l.dc,'สีด้านข้าง')}
+    <div class="h">เงานุ่ม</div>${rng('เงา','sh',0,100,1,l.sh)}`;
   }else{
     h+=`<div style="display:flex;gap:8px;margin:8px 0"><button type="button" class="mini" id="hbFit">เต็มกรอบ</button><button type="button" class="mini" id="hbCtr">กึ่งกลาง</button></div>
-    <div style="font-size:12px;font-weight:700;color:var(--s);margin:6px 0">ลิงก์ของรูปนี้ (ถ้าไม่ตั้งจะใช้ลิงก์รวมด้านล่าง)</div>
+    <div class="h">ขอบรูป (สติกเกอร์)</div>${rng('ความหนา','sw',0,2,.05,l.sw,'')}${cb('sc',l.sc,'สีขอบ')}
+    <div class="h">เงา</div>${rng('เงา','sh',0,100,1,l.sh)}
+    <div class="h">ลิงก์ของรูปนี้ (ถ้าไม่ตั้งจะใช้ลิงก์รวมด้านล่าง)</div>
     <select class="inp" id="hbLt" style="font-family:inherit;margin-bottom:6px"><option value="none">ใช้ลิงก์รวม</option><option value="page">ไปหน้าในแอพ</option><option value="url">ไปลิงก์ที่กรอกเอง</option></select>
     <select class="inp" id="hbLp" style="font-family:inherit;margin-bottom:6px;display:none">${HBG_PAGES.map(([v,t])=>`<option value="${v}">${t} (${v})</option>`).join('')}</select>
     <input class="inp" id="hbLu" type="text" inputmode="url" placeholder="https://... หรือชื่อหน้า" style="display:none">`;
   }
   box.innerHTML=h;
   box.querySelectorAll('input[type=range]').forEach(r=>r.oninput=()=>{
-    const k=r.dataset.k;l[k]=parseFloat(r.value);r.nextElementSibling.textContent=Math.round(l[k])+(k==='rot'?'°':'%');hRender();
+    const k=r.dataset.k,v=parseFloat(r.value);l[k]=v;r.nextElementSibling.textContent=v.toFixed(+r.step<1?1:0)+r.dataset.u;hRender();
   });
+  box.querySelectorAll('[data-ck]').forEach(bn=>bn.onclick=()=>pickColor(l[bn.dataset.ck],v=>{l[bn.dataset.ck]=v;bn.style.background=v;hRender()}));
   if(isT){
     $hb('hbTx').oninput=e=>{l.text=e.target.value;hRender();hList()};
-    $hb('hbCol').oninput=e=>{l.color=e.target.value;hRender()};
     $hb('hbBold').onchange=e=>{l.weight=e.target.checked?800:500;hRender()};
+    $hb('hbFont').onclick=()=>pickFont(l.font,f=>{l.font=f;hRender();hCtl()});
   }else{
     $hb('hbFit').onclick=()=>{l.x=50;l.y=50;l.rot=0;l.w=Math.max(100,50*(l.ar||2));hRender();hCtl()};
     $hb('hbCtr').onclick=()=>{l.x=50;l.y=50;hRender()};
@@ -1091,6 +1111,48 @@ function hCtl(){
     lt.onchange=()=>{l.linkType=lt.value;ui()};lp.onchange=()=>{l.page=lp.value};lu.oninput=()=>{l.linkUrl=lu.value.trim()};
   }
 }
+
+/* colour picker: hue/saturation wheel + brightness bar on the right */
+function hsv2hex(h,s,v){const f=n=>{const k=(n+h/60)%6;return v-v*s*Math.max(0,Math.min(k,4-k,1))};return '#'+[f(5),f(3),f(1)].map(x=>Math.round(x*255).toString(16).padStart(2,'0')).join('')}
+function hex2hsv(x){const r=parseInt(x.slice(1,3),16)/255,g=parseInt(x.slice(3,5),16)/255,b=parseInt(x.slice(5,7),16)/255,m=Math.max(r,g,b),d=m-Math.min(r,g,b);let h=0;if(d){h=m===r?((g-b)/d)%6:m===g?(b-r)/d+2:(r-g)/d+4;h*=60;if(h<0)h+=360}return{h,s:m?d/m:0,v:m}}
+const CP={h:0,s:0,v:1,cb:null},cpW=$hb('cpW'),cpV=$hb('cpV'),cpx=cpW.getContext('2d'),cvx=cpV.getContext('2d');
+function cpDraw(){
+  const S=220,R=S/2,im=cpx.createImageData(S,S);
+  for(let y=0;y<S;y++)for(let x=0;x<S;x++){
+    const dx=x-R+.5,dy=y-R+.5,r=Math.hypot(dx,dy),i=(y*S+x)*4;
+    if(r>R){im.data[i+3]=0;continue}
+    let h=Math.atan2(dy,dx)*180/Math.PI;if(h<0)h+=360;
+    const c=hsv2hex(h,Math.min(1,r/(R-1)),CP.v);
+    im.data[i]=parseInt(c.slice(1,3),16);im.data[i+1]=parseInt(c.slice(3,5),16);im.data[i+2]=parseInt(c.slice(5,7),16);im.data[i+3]=255;
+  }
+  cpx.putImageData(im,0,0);
+  const a=CP.h*Math.PI/180,px=R+Math.cos(a)*CP.s*(R-1),py=R+Math.sin(a)*CP.s*(R-1);
+  cpx.lineWidth=3;cpx.strokeStyle='#fff';cpx.beginPath();cpx.arc(px,py,9,0,7);cpx.stroke();cpx.lineWidth=1.5;cpx.strokeStyle='#0b1f4d';cpx.beginPath();cpx.arc(px,py,10.5,0,7);cpx.stroke();
+  const g=cvx.createLinearGradient(0,0,0,220);g.addColorStop(0,hsv2hex(CP.h,CP.s,1));g.addColorStop(1,'#000');
+  cvx.clearRect(0,0,34,220);cvx.fillStyle=g;cvx.fillRect(0,0,34,220);
+  const vy=(1-CP.v)*214+3;cvx.lineWidth=3;cvx.strokeStyle='#fff';cvx.strokeRect(1.5,vy-4,31,8);cvx.lineWidth=1;cvx.strokeStyle='#0b1f4d';cvx.strokeRect(.5,vy-5,33,10);
+}
+function cpEmit(fromHex){
+  const c=hsv2hex(CP.h,CP.s,CP.v);$hb('cpPv').style.background=c;if(!fromHex)$hb('cpHex').value=c;
+  cpDraw();if(CP.cb)CP.cb(c);
+}
+function cpWheel(e){const r=cpW.getBoundingClientRect(),dx=e.clientX-r.left-r.width/2,dy=e.clientY-r.top-r.height/2;let h=Math.atan2(dy,dx)*180/Math.PI;if(h<0)h+=360;CP.h=h;CP.s=Math.min(1,Math.hypot(dx,dy)/(r.width/2-1));cpEmit()}
+function cpBar(e){const r=cpV.getBoundingClientRect();CP.v=Math.min(1,Math.max(0,1-(e.clientY-r.top)/r.height));cpEmit()}
+[[cpW,cpWheel],[cpV,cpBar]].forEach(([c,f])=>{let on=false;c.addEventListener('pointerdown',e=>{on=true;c.setPointerCapture(e.pointerId);f(e)});c.addEventListener('pointermove',e=>{if(on)f(e)});c.addEventListener('pointerup',()=>on=false);c.addEventListener('pointercancel',()=>on=false)});
+$hb('cpHex').oninput=e=>{let v=e.target.value.trim();if(v[0]!=='#')v='#'+v;if(/^#[0-9a-fA-F]{6}$/.test(v)){const o=hex2hsv(v);CP.h=o.h;CP.s=o.s;CP.v=o.v;cpEmit(true)}};
+$hb('cpOk').onclick=()=>{$hb('hbCP').classList.remove('on');CP.cb=null};
+$hb('hbCP').addEventListener('click',e=>{if(e.target.id==='hbCP')$hb('cpOk').click()});
+function pickColor(cur,cb){const o=hex2hsv(/^#[0-9a-fA-F]{6}$/.test(cur)?cur:'#ffffff');CP.h=o.h;CP.s=o.s;CP.v=o.v;CP.cb=null;$hb('hbCP').classList.add('on');$hb('cpHex').value=hsv2hex(o.h,o.s,o.v);$hb('cpPv').style.background=$hb('cpHex').value;cpDraw();CP.cb=cb}
+
+/* font picker */
+function pickFont(cur,cb){
+  const names=Object.keys(NimitHomeBg.FONTS);NimitHomeBg.loadFonts(names);
+  $hb('hbFL').innerHTML=names.map(n=>`<button type="button" class="fnt ${n===cur?'on':''}" data-f="${esc(n)}" style="font-family:'${esc(n)}',sans-serif">${FSAMPLE}<small>${esc(n)}</small></button>`).join('');
+  $hb('hbFS').classList.add('on');
+  $hb('hbFL').onclick=e=>{const b=e.target.closest('.fnt');if(!b)return;$hb('hbFS').classList.remove('on');cb(b.dataset.f)};
+}
+$hb('hbFS').addEventListener('click',e=>{if(e.target.id==='hbFS')$hb('hbFS').classList.remove('on')});
+
 function hSelect(i){HSEL=i;hList();hCtl();hOutline()}
 function hAll(){hRender();hList();hCtl()}
 
@@ -1145,7 +1207,7 @@ window.addEventListener('resize',hOutline);
 /* add layers */
 $hb('hbAddTxt').onclick=()=>{
   if(HL.length>=20){toast('เพิ่มได้สูงสุด 20 เลเยอร์','er');return}
-  HL.push({t:'txt',text:'ข้อความ',color:'#ffffff',size:9,weight:800,x:50,y:42,rot:0,op:100,vis:true});
+  HL.push({t:'txt',text:'ข้อความ',color:'#ffffff',size:9,weight:800,font:'Prompt',sw:0,sc:'#0b2f86',dp:0,dc:'#0b2f86',sh:40,x:50,y:42,rot:0,op:100,vis:true});
   HSEL=HL.length-1;hAll();
 };
 $hb('hbAddImg').onclick=()=>{if(HL.length>=20){toast('เพิ่มได้สูงสุด 20 เลเยอร์','er');return}$hb('hbf').value='';$hb('hbf').click()};
@@ -1165,7 +1227,7 @@ $hb('hbf').onchange=async e=>{
     const r=await fetch('https://api.cloudinary.com/v1_1/ltthcvpf/image/upload',{method:'POST',body:fd});
     if(!r.ok)throw new Error('อัปโหลดไม่สำเร็จ (HTTP '+r.status+')');
     const url=(await r.json()).secure_url,ar=W/H,first=!HL.some(l=>l.t==='img');
-    HL.push({t:'img',url,ar:Math.round(ar*1000)/1000,x:50,y:50,w:first?Math.max(100,50*ar):Math.min(45,Math.max(20,50*ar)),rot:0,op:100,vis:true,linkType:'none',linkUrl:'',page:''});
+    HL.push({t:'img',url,ar:Math.round(ar*1000)/1000,x:50,y:50,w:first?Math.max(100,50*ar):Math.min(45,Math.max(20,50*ar)),sw:0,sc:'#ffffff',sh:0,rot:0,op:100,vis:true,linkType:'none',linkUrl:'',page:''});
     HSEL=HL.length-1;hAll();toast('เพิ่มรูปแล้ว กด "บันทึกพื้นหลัง" เพื่อใช้จริง','ok');
   }catch(err){toast(err.message||'อัปโหลดไม่สำเร็จ','er')}
   btn.disabled=false;btn.textContent='+ เพิ่มรูป';
@@ -1178,7 +1240,15 @@ function hbgFill(){
   $hb('hbgPage').innerHTML=HBG_PAGES.map(([v,t])=>`<option value="${v}" ${HBG.page===v?'selected':''}>${t} (${v})</option>`).join('');
   $hb('hbgUrl').value=HBG.linkUrl||'';
   hbgUi();
+  const fo=!!HBG.bg;$hb('hbFillOn').checked=fo;$hb('hbFillG').checked=!!HBG.bg2;
+  $hb('hbFill1').style.background=HBG.bg||'#1f6bf0';$hb('hbFill2').style.background=HBG.bg2||'#0b2f86';fillUi();
 }
+function fillUi(){const on=$hb('hbFillOn').checked;$hb('hbFill1').style.opacity=on?1:.35;$hb('hbFillG').disabled=!on;$hb('hbFill2').style.display=on&&$hb('hbFillG').checked?'block':'none'}
+function fillApply(){const on=$hb('hbFillOn').checked;HBG.bg=on?rgb2hex($hb('hbFill1').style.background):'';HBG.bg2=on&&$hb('hbFillG').checked?rgb2hex($hb('hbFill2').style.background):'';fillUi();hRender()}
+function rgb2hex(c){const m=c.match(/\d+/g);return m?'#'+m.slice(0,3).map(x=>(+x).toString(16).padStart(2,'0')).join(''):'#1f6bf0'}
+$hb('hbFillOn').onchange=fillApply;$hb('hbFillG').onchange=fillApply;
+$hb('hbFill1').onclick=()=>pickColor(rgb2hex($hb('hbFill1').style.background),v=>{$hb('hbFill1').style.background=v;$hb('hbFillOn').checked=true;fillApply()});
+$hb('hbFill2').onclick=()=>pickColor(rgb2hex($hb('hbFill2').style.background),v=>{$hb('hbFill2').style.background=v;fillApply()});
 window.hbgUi=function(){
   const t=$hb('hbgType').value;
   $hb('hbgPage').style.display=t==='page'?'block':'none';
@@ -1191,10 +1261,10 @@ window.saveHomeBg=async function(){
   if(!hLinkOk(type,url)){toast('ลิงก์ต้องขึ้นต้นด้วย https:// หรือเป็นชื่อหน้า เช่น coupon.html','er');return}
   for(const l of HL)if(l.t==='img'&&!hLinkOk(l.linkType,l.linkUrl)){toast('ลิงก์ของรูปบางรูปไม่ถูกต้อง','er');return}
   const layers=HL.filter(l=>l.t==='img'||(l.text&&l.text.trim())).map(l=>l.t==='img'
-    ?{t:'img',url:l.url,ar:l.ar,x:l.x,y:l.y,w:l.w,rot:l.rot,op:l.op,vis:l.vis!==false,linkType:l.linkType||'none',linkUrl:l.linkType==='url'?l.linkUrl:'',page:l.linkType==='page'?l.page:''}
-    :{t:'txt',text:l.text.trim(),color:l.color,size:l.size,weight:l.weight,x:l.x,y:l.y,rot:l.rot,op:l.op,vis:l.vis!==false});
+    ?{t:'img',url:l.url,ar:l.ar,x:l.x,y:l.y,w:l.w,sw:l.sw,sc:l.sc,sh:l.sh,rot:l.rot,op:l.op,vis:l.vis!==false,linkType:l.linkType||'none',linkUrl:l.linkType==='url'?l.linkUrl:'',page:l.linkType==='page'?l.page:''}
+    :{t:'txt',text:l.text.trim(),color:l.color,size:l.size,weight:l.weight,font:l.font,sw:l.sw,sc:l.sc,dp:l.dp,dc:l.dc,sh:l.sh,x:l.x,y:l.y,rot:l.rot,op:l.op,vis:l.vis!==false});
   const firstImg=layers.find(l=>l.t==='img');
-  const o={on:$hb('hbgOn').checked,layers,imgUrl:firstImg?firstImg.url:'',linkType:type,linkUrl:type==='url'?url:'',page:type==='page'?page:''};
+  const fo=$hb('hbFillOn').checked,o={on:$hb('hbgOn').checked,bg:fo?HBG.bg||'#1f6bf0':'',bg2:fo&&$hb('hbFillG').checked?HBG.bg2||'#0b2f86':'',layers,imgUrl:firstImg?firstImg.url:'',linkType:type,linkUrl:type==='url'?url:'',page:type==='page'?page:''};
   try{await setDoc(doc(db,'settings','homeBg'),{...o,updatedAt:serverTimestamp()});HBG={...HBG,...o};toast('บันทึกพื้นหลังแล้ว','ok')}
   catch(e){toast('บันทึกไม่สำเร็จ: '+e.message,'er')}
 };
@@ -1337,7 +1407,7 @@ window.sendTestNotif = async function(){
 .hbLy{position:absolute;inset:0;overflow:hidden;container-type:inline-size}
 .hbl{position:absolute;max-width:none;white-space:nowrap;line-height:1.1;pointer-events:none;user-select:none}
 .hbSel{position:absolute;border:2px solid #1f6bf0;border-radius:4px;pointer-events:none;display:none;box-shadow:0 0 0 1px rgba(255,255,255,.8)}
-.hbP{position:absolute;left:0;right:0;bottom:0;height:13%;pointer-events:none;background:rgba(245,247,252,.55);border-radius:22px 22px 0 0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#64748b}
+.hbP{position:absolute;left:0;right:0;bottom:0;height:13%;pointer-events:none;background:rgba(245,247,252,.55);border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#64748b}
 .hbEmpty{position:absolute;inset:0;display:grid;place-items:center;color:#94a3b8;font-size:13px;text-align:center;padding:16px}
 .hbBtn{flex:1;height:44px;border:2px solid var(--p);border-radius:12px;background:#fff;color:var(--p);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
 .hbBtn.pri{background:var(--p);color:#fff}
@@ -1356,6 +1426,21 @@ window.sendTestNotif = async function(){
 .hbCtl .r span:first-child{width:62px;flex:none}
 .hbCtl .r input[type=range]{flex:1;accent-color:#1f6bf0}
 .hbCtl .r b{width:40px;text-align:right;font-weight:600;flex:none}
+.sw{width:36px;height:36px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1.5px #94a3b8;cursor:pointer;padding:0;flex:none}
+.hbCtl .h{font-size:12px;font-weight:700;color:var(--s);margin:14px 0 2px;padding-top:10px;border-top:1px solid #e2e8f0}
+.hsh{position:fixed;inset:0;z-index:9500;background:rgba(7,27,61,.5);display:none;align-items:flex-end;justify-content:center}
+.hsh.on{display:flex}
+.hshi{width:100%;max-width:480px;background:#fff;border-radius:20px 20px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));max-height:80vh;overflow:auto}
+.hshi h4{margin:0 0 12px;font-size:15px}
+.cpw{display:flex;gap:14px;align-items:stretch;justify-content:center;touch-action:none}
+.cpw canvas{touch-action:none;border-radius:50%}
+#cpV{border-radius:12px;width:34px;height:220px}
+.cpr{display:flex;align-items:center;gap:10px;margin-top:12px}
+.cpr .pv{width:44px;height:44px;border-radius:50%;box-shadow:0 0 0 1.5px #94a3b8;flex:none}
+.cpr input{flex:1;min-width:0}
+.fnt{display:block;width:100%;text-align:left;border:2px solid #e2e8f0;border-radius:12px;background:#fff;padding:10px 12px;margin-bottom:8px;cursor:pointer;font-size:20px}
+.fnt small{display:block;font-family:system-ui,sans-serif;font-size:11px;color:#94a3b8}
+.fnt.on{border-color:#1f6bf0;background:#f0f6ff}
 .hbCtl .mini{height:40px;padding:0 12px;border:2px solid #cbd5e1;border-radius:10px;background:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:#334155}
 </style>
 </body>

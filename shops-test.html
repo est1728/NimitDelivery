@@ -622,7 +622,7 @@ html[data-sp~="cbg"] .cbox-ic{background:var(--amber-500,#FF7A18);}
 .hbl{position:absolute;max-width:none;user-select:none;-webkit-user-select:none;white-space:nowrap;line-height:1.1;pointer-events:none;}
 .hbl[data-go]{pointer-events:auto;}
 .tb.has-link{cursor:pointer;}
-.panel{position:relative;z-index:1;margin-top:-26px;background:var(--bg);border-radius:26px 26px 0 0;padding-top:14px;box-shadow:0 -10px 16px -10px rgba(7,27,61,.14);}
+.panel{position:relative;z-index:1;margin-top:-14px;background:var(--bg);border-radius:14px 14px 0 0;padding-top:14px;box-shadow:0 -10px 16px -10px rgba(7,27,61,.14);}
 .sticky-bar{display:none!important;}
 .pin{position:sticky;top:0;z-index:5;background:var(--bg);padding:2px 16px 10px;display:flex;align-items:center;gap:10px;border-radius:26px 26px 0 0;}
 .hero-chip{position:absolute;left:16px;top:17px;z-index:2;margin-top:0;max-width:calc(100% - 84px);background:rgba(7,27,61,.38);border:1px solid rgba(255,255,255,.28);padding:5px 11px 5px 9px;}
@@ -841,7 +841,7 @@ const db = getFirestore(fbApp);
 function homeBgApply(c){
   const tb=document.querySelector('.tb'),box=document.getElementById('tbLayers');
   if(!tb||!box||!window.NimitHomeBg)return;
-  const n=NimitHomeBg.norm(c),ok=n.on&&n.layers.length>0;
+  const n=NimitHomeBg.norm(c),ok=n.on&&(n.layers.length>0||!!n.bg);
   tb.classList.toggle('has-bg',ok);
   const sig=ok?JSON.stringify(n):'';
   if(box.__sig!==sig){box.__sig=sig;NimitHomeBg.render(box,ok?n:{layers:[]});}
