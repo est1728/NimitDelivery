@@ -58,9 +58,6 @@ a{color:inherit;}
 @keyframes enterUp{to{opacity:1;transform:translateY(0) scale(1);}}
 
 /* ===== pull to refresh ===== */
-.ptr{display:flex;align-items:center;justify-content:center;height:0;overflow:hidden;transition:height .2s ease;color:var(--blue-700);}
-.ptr.show{height:52px;}
-.ptr-spin{width:22px;height:22px;border:2.5px solid var(--blue-100);border-top-color:var(--blue-700);border-radius:50%;animation:spin .7s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
 /* ===== sticky compact bar ===== */
@@ -627,10 +624,9 @@ html[data-sp~="cbg"] .cbox-ic{background:var(--amber-500,#FF7A18);}
 .panel{position:relative;z-index:1;margin-top:-26px;background:var(--bg);border-radius:26px 26px 0 0;padding-top:14px;box-shadow:0 -10px 16px -10px rgba(7,27,61,.14);}
 .sticky-bar{display:none!important;}
 .pin{position:sticky;top:0;z-index:5;background:var(--bg);padding:2px 16px 10px;display:flex;align-items:center;gap:10px;border-radius:26px 26px 0 0;}
-.pin-a{padding:0 16px 10px;}
-.pin-a .login-chip{margin-top:0;background:var(--blue-50);border:1px solid var(--line);}
-.pin-a .login-chip span{color:var(--blue-800);}
-.pin-a .login-chip svg{fill:var(--blue-600);}
+.hero-chip{position:absolute;left:16px;top:17px;z-index:2;margin-top:0;max-width:calc(100% - 84px);background:rgba(7,27,61,.38);border:1px solid rgba(255,255,255,.28);padding:5px 11px 5px 9px;}
+.hero-chip span{color:#fff;}
+.hero-chip svg{fill:#fff;}
 .sb-open{position:absolute;top:14px;right:16px;z-index:2;background:rgba(7,27,61,.38);border:1px solid rgba(255,255,255,.28);}
 .pin .icon-btn.bell{width:46px;height:46px;border-radius:16px;flex:none;background:var(--white);border:1px solid var(--line);box-shadow:0 3px 10px rgba(14,59,140,.07);}
 .pin .icon-btn.bell svg{fill:var(--blue-700);}
@@ -662,7 +658,6 @@ html[data-theme="halloween"] .pin .srch{margin-right:0;}
 <body>
 <div class="app" id="appRoot">
 
-  <div class="ptr" id="ptr"><div class="ptr-spin"></div></div>
 
   <!-- STICKY COMPACT BAR -->
   <div class="sticky-bar" id="stickyBar">
@@ -678,6 +673,10 @@ html[data-theme="halloween"] .pin .srch{margin-right:0;}
   <div class="tb">
     <div class="tb-deco" data-theme-deco="header" style="display:none"></div>
     <div class="tb-bg" id="tbBg" role="presentation"></div>
+    <div class="login-chip hero-chip press" onclick="handleLoginChip()">
+        <svg class="lc-pin" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><span id="loginChipText">เข้าสู่ระบบ</span>
+        <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+      </div>
     <button class="icon-btn sb-open press" aria-label="เมนู" onclick="openSidebar()"><svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></button>
     <img class="tb-mas" data-m="wave" alt="" onerror="this.style.display='none'">
   </div>
@@ -715,13 +714,7 @@ html[data-theme="halloween"] .pin .srch{margin-right:0;}
 
   <!-- PANEL: rounded sheet over the header background -->
   <div class="panel" id="panel">
-  <div class="pin-a">
-      <div class="login-chip press" onclick="handleLoginChip()">
-        <svg class="lc-pin" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><span id="loginChipText">เข้าสู่ระบบ</span>
-        <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
-      </div>
-  </div>
-  <div class="pin" id="pin">
+    <div class="pin" id="pin">
       <div class="srch">
         <svg class="srch-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
         <input id="srchBox" placeholder="ค้นหาร้านหรือเมนู..." readonly onclick="location.href='search.html'">
@@ -865,12 +858,16 @@ function homeBgTarget(c){
   try{homeBgApply(JSON.parse(localStorage.getItem('homeBg')||'null'))}catch(e){}
   const bg=document.getElementById('tbBg');
   if(bg)bg.addEventListener('click',()=>{const u=window.__homeBgUrl;if(u)location.href=u});
+  await refreshHomeBg();
+})();
+async function refreshHomeBg(){
   try{
     const sn=await getDoc(doc(db,'settings','homeBg')),c=sn.exists()?sn.data():null;
     try{localStorage.setItem('homeBg',JSON.stringify(c))}catch(e){}
     homeBgApply(c);
   }catch(e){}
-})();
+}
+window.refreshHomeBg=refreshHomeBg;
 
 const $ = id => document.getElementById(id);
 
@@ -965,34 +962,6 @@ window.addEventListener('scroll',()=>{
     if(window.innerHeight+y>=document.documentElement.scrollHeight-4)bn.classList.remove('hide');
   }
   window.addEventListener('scroll',()=>{if(!tick){tick=true;requestAnimationFrame(upd)}},{passive:true});
-})();
-
-/* ===================== PULL TO REFRESH ===================== */
-(function(){
-  let startY=0, pulling=false, dist=0;
-  document.addEventListener('touchstart',e=>{
-    if(window.scrollY<=0){ startY=e.touches[0].clientY; pulling=true; }
-  },{passive:true});
-  document.addEventListener('touchmove',e=>{
-    if(!pulling) return;
-    dist=e.touches[0].clientY-startY;
-    if(dist>0 && window.scrollY<=0){
-      document.getElementById('ptr').classList.toggle('show', dist>50);
-    }
-  },{passive:true});
-  document.addEventListener('touchend',()=>{
-    if(pulling && dist>50){
-      toast('กำลังอัปเดตร้านค้า...');
-      setTimeout(()=>{
-        document.getElementById('ptr').classList.remove('show');
-        liveRefresh(true);
-        toast('อัปเดตร้านค้าล่าสุดแล้ว');
-      },700);
-    } else {
-      document.getElementById('ptr').classList.remove('show');
-    }
-    pulling=false; dist=0;
-  });
 })();
 
 /* ===================== SIDEBAR ===================== */
@@ -2506,7 +2475,7 @@ async function liveRefresh(force){
     if(window._openSig!==undefined && os!==window._openSig && !busy){ renderPop(); renderShops(); }
     window._openSig=os;
   }catch(e){}
-  renderActiveOrder(); renderCouponPromo(); loadServiceCfg(); loadBanner(); loadNotifBadge();
+  renderActiveOrder(); renderCouponPromo(); loadServiceCfg(); loadBanner(); loadNotifBadge(); refreshHomeBg();
 }
 NimitLive.watch(liveRefresh,{every:25000});
 window.addEventListener('themechange',()=>{ try{ window._slotKey='';renderActiveOrder(); renderShops&&renderShops(); }catch(e){} });
