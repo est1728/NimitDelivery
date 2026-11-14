@@ -615,12 +615,13 @@ html[data-sp~="cbg"] .cbox-ic{background:var(--amber-500,#FF7A18);}
 
 /* ===== home background + rounded panel (test) ===== */
 .tb{border-radius:0;padding:0;min-height:150px;position:sticky;top:0;z-index:0;}
-.tb-bg{position:absolute;inset:0;z-index:0;background:center/cover no-repeat;opacity:0;transition:opacity .35s;}
+.tb-layers{position:absolute;inset:0;z-index:0;overflow:hidden;container-type:inline-size;opacity:0;transition:opacity .35s;pointer-events:none;}
 .tb.has-bg{aspect-ratio:2/1;}
-.tb.has-bg .tb-bg{opacity:1;}
+.tb.has-bg .tb-layers{opacity:1;}
 .tb.has-bg::after{display:none;}
-.tb.has-link .tb-bg{cursor:pointer;}
-.tb:not(.has-link) .tb-bg{pointer-events:none;}
+.hbl{position:absolute;max-width:none;user-select:none;-webkit-user-select:none;white-space:nowrap;line-height:1.1;pointer-events:none;}
+.hbl[data-go]{pointer-events:auto;}
+.tb.has-link{cursor:pointer;}
 .panel{position:relative;z-index:1;margin-top:-26px;background:var(--bg);border-radius:26px 26px 0 0;padding-top:14px;box-shadow:0 -10px 16px -10px rgba(7,27,61,.14);}
 .sticky-bar{display:none!important;}
 .pin{position:sticky;top:0;z-index:5;background:var(--bg);padding:2px 16px 10px;display:flex;align-items:center;gap:10px;border-radius:26px 26px 0 0;}
@@ -652,8 +653,9 @@ html[data-theme="halloween"] .pin .srch{margin-right:0;}
 .bnav-fab svg{width:19px;height:19px;}
 .app{padding-bottom:78px;}
 .bottom-nav.hide{transform:translateX(-50%) translateY(calc(100% + 40px));}
-@media (prefers-reduced-motion:reduce){.bottom-nav,.tb-bg{transition:none}}
+@media (prefers-reduced-motion:reduce){.bottom-nav,.tb-layers{transition:none}}
 </style>
+<script src="homebg.js"></script>
 </head>
 <body>
 <div class="app" id="appRoot">
@@ -672,7 +674,7 @@ html[data-theme="halloween"] .pin .srch{margin-right:0;}
   <!-- TOP BAR -->
   <div class="tb">
     <div class="tb-deco" data-theme-deco="header" style="display:none"></div>
-    <div class="tb-bg" id="tbBg" role="presentation"></div>
+    <div class="tb-layers" id="tbLayers" role="presentation"></div>
     <div class="login-chip hero-chip press" onclick="handleLoginChip()">
         <svg class="lc-pin" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><span id="loginChipText">เข้าสู่ระบบ</span>
         <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
@@ -837,27 +839,25 @@ const db = getFirestore(fbApp);
 
 /* ===================== HOME BACKGROUND (settings/homeBg: on, imgUrl, linkType none|url|page, linkUrl, page) ===================== */
 function homeBgApply(c){
-  const tb=document.querySelector('.tb'),bg=document.getElementById('tbBg');
-  if(!tb||!bg)return;
-  const ok=c&&c.on!==false&&typeof c.imgUrl==='string'&&/^(https:\/\/|data:image\/)/.test(c.imgUrl);
-  tb.classList.toggle('has-bg',!!ok);
-  bg.style.backgroundImage=ok?'url("'+c.imgUrl.replace(/"/g,'%22')+'")':'';
-  const u=ok?homeBgTarget(c):'';
+  const tb=document.querySelector('.tb'),box=document.getElementById('tbLayers');
+  if(!tb||!box||!window.NimitHomeBg)return;
+  const n=NimitHomeBg.norm(c),ok=n.on&&n.layers.length>0;
+  tb.classList.toggle('has-bg',ok);
+  const sig=ok?JSON.stringify(n):'';
+  if(box.__sig!==sig){box.__sig=sig;NimitHomeBg.render(box,ok?n:{layers:[]});}
+  const u=ok?NimitHomeBg.target(n):'';
   tb.classList.toggle('has-link',!!u);
   window.__homeBgUrl=u;
 }
-function homeBgTarget(c){
-  let u='';
-  if(c.linkType==='url')u=String(c.linkUrl||'').trim();
-  else if(c.linkType==='page')u=String(c.page||'').trim();
-  if(/^https?:\/\//i.test(u))return u;
-  if(/^[A-Za-z0-9_\-]+\.html([?#][A-Za-z0-9_\-.=&%#]*)?$/.test(u))return u;
-  return '';
-}
 (async function initHomeBg(){
   try{homeBgApply(JSON.parse(localStorage.getItem('homeBg')||'null'))}catch(e){}
-  const bg=document.getElementById('tbBg');
-  if(bg)bg.addEventListener('click',()=>{const u=window.__homeBgUrl;if(u)location.href=u});
+  const tb=document.querySelector('.tb');
+  if(tb)tb.addEventListener('click',e=>{
+    if(e.target.closest('.hero-chip,.sb-open'))return;
+    const g=e.target.closest('[data-go]');
+    const u=g?g.dataset.go:window.__homeBgUrl;
+    if(u)location.href=u;
+  });
   await refreshHomeBg();
 })();
 async function refreshHomeBg(){
