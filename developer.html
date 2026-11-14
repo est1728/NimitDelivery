@@ -360,9 +360,9 @@ window.onerror = function(msg, url, line, col, error){
   </div>
   <div class="card">
     <div class="stitle">พื้นหลังหน้าแรก (ลูกค้า)</div>
-    <div class="hint" style="margin-bottom:12px">ภาพพื้นหลังด้านบนของหน้าแรก (ใต้โลโก้และปุ่มต่างๆ) ครอปเป็นสัดส่วน 3:2 ได้ และตั้งให้กดแล้วไปลิงก์หรือหน้าที่ต้องการ ถ้าไม่ตั้งภาพจะใช้พื้นหลังสีน้ำเงินเดิม</div>
+    <div class="hint" style="margin-bottom:12px">ภาพพื้นหลังด้านบนของหน้าแรก (ใต้โลโก้และปุ่มต่างๆ) ครอปเป็นสัดส่วน 2:1 ได้ และตั้งให้กดแล้วไปลิงก์หรือหน้าที่ต้องการ ถ้าไม่ตั้งภาพจะใช้พื้นหลังสีน้ำเงินเดิม</div>
     <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;margin-bottom:10px"><input type="checkbox" id="hbgOn" checked> เปิดใช้พื้นหลัง</label>
-    <div id="hbgPrev" style="width:100%;aspect-ratio:3/2;border-radius:14px;background:#eef0f4 center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:13px;margin-bottom:10px;overflow:hidden">ยังไม่ได้ตั้งภาพ</div>
+    <div id="hbgPrev" style="width:100%;aspect-ratio:2/1;border-radius:14px;background:#eef0f4 center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:13px;margin-bottom:10px;overflow:hidden">ยังไม่ได้ตั้งภาพ</div>
     <div style="display:flex;gap:8px;margin-bottom:12px">
       <button type="button" onclick="hbgPick()" style="flex:1;height:44px;border:2px solid var(--p);border-radius:12px;background:#fff;color:var(--p);font-size:14px;font-weight:700;cursor:pointer">เลือกภาพและครอป</button>
       <button type="button" id="hbgDel" onclick="hbgRemove()" style="height:44px;padding:0 14px;border:2px solid #fecaca;border-radius:12px;background:#fff;color:var(--r);font-size:14px;font-weight:700;cursor:pointer;display:none">ลบภาพ</button>
@@ -1053,7 +1053,7 @@ window.saveHomeBg=async function(){
 };
 (async function(){try{const sn=await getDoc(doc(db,'settings','homeBg'));if(sn.exists())HBG={...HBG,...sn.data()}}catch(e){}hbgRender()})();
 
-/* crop: pan + zoom inside a fixed 3:2 frame, uploads exactly what the frame shows (Cloudinary, same preset as menu images) */
+/* crop: pan + zoom inside a fixed 2:1 frame, uploads exactly what the frame shows (Cloudinary, same preset as menu images) */
 const HC={bmp:null,w:0,h:0,s:1,min:1,x:0,y:0,sw:0,sh:0},hbc=document.getElementById('hbc'),hbs=document.getElementById('hbs'),hcv=document.getElementById('hbcv'),hctx=hcv.getContext('2d'),hz=document.getElementById('hbz'),hptr=new Map();
 function hSize(){const r=hbs.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);HC.sw=r.width;HC.sh=r.height;hcv.width=Math.round(r.width*d);hcv.height=Math.round(r.height*d)}
 function hClamp(){HC.x=Math.min(0,Math.max(HC.sw-HC.w*HC.s,HC.x));HC.y=Math.min(0,Math.max(HC.sh-HC.h*HC.s,HC.y))}
@@ -1088,7 +1088,7 @@ const hEnd=e=>hptr.delete(e.pointerId);hbs.addEventListener('pointerup',hEnd);hb
 document.getElementById('hbOk').onclick=async()=>{
   if(!HC.bmp)return;const btn=document.getElementById('hbOk');btn.disabled=true;btn.textContent='กำลังอัปโหลด...';
   try{
-    const o=document.createElement('canvas');o.width=1200;o.height=800;const c=o.getContext('2d'),k=1200/HC.sw;c.imageSmoothingQuality='high';c.fillStyle='#fff';c.fillRect(0,0,1200,800);
+    const o=document.createElement('canvas');o.width=1200;o.height=600;const c=o.getContext('2d'),k=1200/HC.sw;c.imageSmoothingQuality='high';c.fillStyle='#fff';c.fillRect(0,0,1200,600);
     c.drawImage(HC.bmp,HC.x*k,HC.y*k,HC.w*HC.s*k,HC.h*HC.s*k);
     const blob=await new Promise(ok=>o.toBlob(ok,'image/jpeg',.86));
     const fd=new FormData();fd.append('file',blob);fd.append('upload_preset','nimit_menu');
@@ -1233,11 +1233,10 @@ window.sendTestNotif = async function(){
 .hbci{width:100%;max-width:480px;height:100%;display:flex;flex-direction:column;padding:12px 16px calc(16px + env(safe-area-inset-bottom,0px));color:#fff}
 .hbch{display:flex;align-items:center;justify-content:space-between;height:44px;font-size:17px;font-weight:700}
 .hbch button{width:40px;height:40px;border:0;background:none;color:#fff;font-size:22px;cursor:pointer}
-.hbs{position:relative;width:100%;aspect-ratio:3/2;border-radius:16px;overflow:hidden;background:#16254d;touch-action:none;margin-top:10px;user-select:none;-webkit-user-select:none}
+.hbs{position:relative;width:100%;aspect-ratio:2/1;border-radius:16px;overflow:hidden;background:#16254d;touch-action:none;margin-top:10px;user-select:none;-webkit-user-select:none}
 .hbs canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .hbg{position:absolute;inset:0;pointer-events:none;border-radius:16px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.85)}
-.hbt{position:absolute;left:0;right:0;top:0;height:32%;pointer-events:none;background:linear-gradient(180deg,rgba(7,27,61,.6),rgba(7,27,61,0));padding:8px 10px;font-size:11.5px;color:rgba(255,255,255,.9)}
-.hbp{position:absolute;left:0;right:0;bottom:0;height:10%;pointer-events:none;background:rgba(245,247,252,.5);border-radius:22px 22px 0 0;display:flex;align-items:center;justify-content:center;font-size:10.5px;color:#0b2c63}
+.hbp{position:absolute;left:0;right:0;bottom:0;height:13%;pointer-events:none;background:rgba(245,247,252,.5);border-radius:22px 22px 0 0;display:flex;align-items:center;justify-content:center;font-size:10.5px;color:#0b2c63}
 .hbe{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:#9fb3e0;font-size:14px;padding:20px}
 .hbn{text-align:center;font-size:12.5px;color:#9fb3e0;margin:12px 0 8px}
 .hbz{display:flex;align-items:center;gap:10px;margin:4px 0 14px;font-size:12px;color:#9fb3e0}
@@ -1251,7 +1250,7 @@ window.sendTestNotif = async function(){
   <div class="hbci">
     <div class="hbch"><span>ครอปภาพพื้นหลัง</span><button type="button" id="hbcX" aria-label="ปิด">&#10005;</button></div>
     <div class="hbs" id="hbs"><canvas id="hbcv"></canvas>
-      <div class="hbt" id="hbt">ส่วนนี้จะมีโลโก้ ที่อยู่ และปุ่มทับอยู่</div><div class="hbp" id="hbp">แผงหน้าแรกทับตรงนี้</div>
+      <div class="hbp" id="hbp">แผงหน้าแรกทับตรงนี้</div>
       <div class="hbg"></div><div class="hbe" id="hbe">เลือกภาพจากเครื่อง</div></div>
     <div class="hbn">ลากเพื่อเลื่อนภาพ บีบนิ้วหรือเลื่อนแถบเพื่อซูม</div>
     <div class="hbz"><span>เล็ก</span><input type="range" id="hbz" min="0" max="100" value="0" disabled><span>ใหญ่</span></div>
