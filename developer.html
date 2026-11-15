@@ -363,6 +363,7 @@ window.onerror = function(msg, url, line, col, error){
     <div class="stitle">พื้นหลังหน้าแรก (ลูกค้า)</div>
     <div class="hint" style="margin-bottom:12px">ซ้อนได้หลายเลเยอร์ (รูป / ข้อความ) ลากเพื่อย้าย บีบนิ้วหรือเลื่อนล้อเมาส์เพื่อซูม แถบสีจางด้านล่างคือส่วนที่แผงหน้าแรกจะทับ</div>
     <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;margin-bottom:10px"><input type="checkbox" id="hbgOn" checked> เปิดใช้พื้นหลัง</label>
+    <div class="hbTabs" id="hbTabs"></div>
     <div class="hbS" id="hbS"><div class="hbLy" id="hbLy"></div><div class="hbEmpty" id="hbEmpty">ยังไม่มีเลเยอร์ กด "เพิ่มรูป" หรือ "เพิ่มข้อความ"</div><div class="hbSel" id="hbSel"></div><div class="hbP">แผงหน้าแรกทับตรงนี้</div></div>
     <div style="display:flex;gap:8px;margin:10px 0">
       <button type="button" class="hbBtn pri" id="hbAddImg">+ เพิ่มรูป</button>
@@ -383,13 +384,14 @@ window.onerror = function(msg, url, line, col, error){
     <div id="hoList" class="hbList"></div>
     <div class="r2" style="display:flex;align-items:center;gap:10px;margin:10px 0 4px;font-size:13px">เลื่อนสไลด์อัตโนมัติทุก
       <select class="inp" id="hoSecs" style="width:auto;font-family:inherit"><option>3</option><option>4</option><option selected>5</option><option>6</option><option>8</option><option>10</option></select> วินาที</div>
-    <div style="font-size:12px;font-weight:700;color:var(--s);margin:14px 0 6px">เมื่อกดที่พื้นหลัง (ทั้งหมด ยกเว้นรูปที่ตั้งลิงก์ของตัวเอง)</div>
+    <div style="font-size:12px;font-weight:700;color:var(--s);margin:14px 0 6px">ลิงก์ของพื้นหลังนี้ (กดที่พื้นหลังสไลด์นี้ ไม่ตั้งก็ไม่เกิดอะไร)</div>
     <select class="inp" id="hbgType" onchange="hbgUi()" style="font-family:inherit;margin-bottom:8px">
       <option value="none">ไม่ทำอะไร</option><option value="page">ไปหน้าในแอพ</option><option value="url">ไปลิงก์ที่กรอกเอง</option>
     </select>
     <select class="inp" id="hbgPage" style="font-family:inherit;margin-bottom:8px;display:none"></select>
     <input class="inp" id="hbgUrl" type="text" inputmode="url" placeholder="https://... หรือชื่อหน้า เช่น coupon.html" style="margin-bottom:8px;display:none">
     <div class="hint" id="hbgNote" style="margin-bottom:10px"></div>
+    <button type="button" class="hbBtn" id="hbDelSl" style="width:100%;flex:none;margin-bottom:10px;border-color:#fecaca;color:#dc2626;display:none">ลบพื้นหลังนี้</button>
     <button class="savbtn" onclick="saveHomeBg()">บันทึกพื้นหลัง</button>
     <input type="file" id="hbf" accept="image/*" hidden>
     <div class="hsh" id="hbCP"><div class="hshi"><h4>เลือกสี</h4>
@@ -1047,7 +1049,8 @@ window.saveTheme=async function(){
 // ============ พื้นหลังหน้าแรก แบบเลเยอร์ (settings/homeBg: on, layers[], linkType none|url|page, linkUrl, page, imgUrl=รูปแรก) ============
 const HBG_PAGES=[['coupon.html','คูปอง'],['reorder.html','ประวัติการสั่งซื้อ'],['cart.html','ตะกร้า'],['search.html','ค้นหา'],['notifications.html','แจ้งเตือน'],['loyalty.html','สะสมแต้ม'],['wallet.html','กระเป๋าเงิน'],['chat.html','แชท']];
 let HBG={on:true,linkType:'none',linkUrl:'',page:'coupon.html'};
-let HL=[],HSEL=-1;           // HL[0] = หลังสุด, ท้ายอาร์เรย์ = หน้าสุด
+let HL=[],HSEL=-1;
+let SL=[{id:'bg',bg:'',bg2:'',layers:HL,linkType:'none',linkUrl:'',page:'coupon.html'}],SI=0;const curS=()=>SL[SI]||SL[0];           // HL[0] = หลังสุด, ท้ายอาร์เรย์ = หน้าสุด
 window.__hb={get HL(){return HL},get HSEL(){return HSEL}};
 const hS=document.getElementById('hbS'),hLy=document.getElementById('hbLy'),hSel=document.getElementById('hbSel');
 const $hb=id=>document.getElementById(id);
@@ -1056,7 +1059,7 @@ const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 
 function hRender(){
   const arr=HL.map(l=>l.t==='txt'?{...l,text:l.text||' '}:l);
-  NimitHomeBg.render(hLy,{on:true,bg:HBG.bg,bg2:HBG.bg2,layers:arr},{edit:true});
+  NimitHomeBg.render(hLy,{on:true,bg:curS().bg,bg2:curS().bg2,layers:arr},{edit:true});
   $hb('hbEmpty').style.display=HL.length?'none':'grid';
   hOutline();
 }
@@ -1242,9 +1245,9 @@ $hb('hbf').onchange=async e=>{
 let HADS=[],HORD=['bg'],HHIDE=new Set();
 function hoRender(){
   $hb('hoList').innerHTML=HORD.map((id,i)=>{
-    const a=id==='bg'?null:HADS.find(x=>x.id===id);
-    const th=id==='bg'?'<div class="th">BG</div>':`<div class="th" style="background-image:url('${esc((a&&a.imgUrl)||'')}')"></div>`;
-    const nm=id==='bg'?'พื้นหลังแอพ (เลเยอร์ด้านบน)':esc((a&&(a.shopName||a.caption))||'โฆษณา')+((a&&a.shopName&&a.caption)?' · '+esc(a.caption):'');
+    const sl=SL.find(x=>x.id===id),si=SL.indexOf(sl),a=sl?null:HADS.find(x=>x.id===id),fi=sl&&sl.layers.find(l=>l.t==='img');
+    const th=sl?(fi?`<div class="th" style="background-image:url('${esc(fi.url)}')"></div>`:'<div class="th">BG</div>'):`<div class="th" style="background-image:url('${esc((a&&a.imgUrl)||'')}')"></div>`;
+    const nm=sl?'พื้นหลัง '+(si+1)+(sl.linkType&&sl.linkType!=='none'?' · มีลิงก์':''):esc((a&&(a.shopName||a.caption))||'โฆษณา')+((a&&a.shopName&&a.caption)?' · '+esc(a.caption):'');
     const off=HHIDE.has(id);
     return `<div class="hbRow ${off?'off':''}" data-id="${esc(id)}"><div class="th" style="width:auto;padding:0 8px;background:none">${i+1}</div>${th}<div class="nm">${nm}</div>
       <button data-a="up" ${i===0?'disabled':''} aria-label="ขึ้น">${IC.up}</button><button data-a="dn" ${i===HORD.length-1?'disabled':''} aria-label="ลง">${IC.dn}</button><button data-a="eye" aria-label="แสดง/ซ่อน">${off?IC.eyeX:IC.eye}</button></div>`}).join('');
@@ -1258,8 +1261,8 @@ $hb('hoList').addEventListener('click',e=>{
 });
 async function hoLoad(){
   try{const sn=await getDocs(collection(db,'ads'));HADS=[];sn.forEach(d=>HADS.push({id:d.id,...d.data()}))}catch(e){}
-  const ids=['bg',...HADS.map(a=>a.id)],ord=(Array.isArray(HBG.order)?HBG.order:[]).filter(x=>ids.includes(x));
-  HORD=[...(ord.includes('bg')?[]:['bg']),...ord,...ids.filter(x=>x!=='bg'&&!ord.includes(x))];
+  const sid=SL.map(x=>x.id),ids=[...sid,...HADS.map(a=>a.id)],ord=(Array.isArray(HBG.order)?HBG.order:[]).filter(x=>ids.includes(x));
+  HORD=[...sid.filter(x=>!ord.includes(x)),...ord,...HADS.map(a=>a.id).filter(x=>!ord.includes(x))];
   HHIDE=new Set(Array.isArray(HBG.hide)?HBG.hide:[]);
   $hb('hoSecs').value=String(HBG.secs||5);if(!$hb('hoSecs').value)$hb('hoSecs').value='5';
   hoRender();
@@ -1268,15 +1271,16 @@ async function hoLoad(){
 /* global link + load + save */
 function hbgFill(){
   $hb('hbgOn').checked=HBG.on!==false;
-  $hb('hbgType').value=HBG.linkType||'none';
-  $hb('hbgPage').innerHTML=HBG_PAGES.map(([v,t])=>`<option value="${v}" ${HBG.page===v?'selected':''}>${t} (${v})</option>`).join('');
-  $hb('hbgUrl').value=HBG.linkUrl||'';
+  const S=curS();
+  $hb('hbgType').value=S.linkType||'none';
+  $hb('hbgPage').innerHTML=HBG_PAGES.map(([v,t])=>`<option value="${v}" ${S.page===v?'selected':''}>${t} (${v})</option>`).join('');
+  $hb('hbgUrl').value=S.linkUrl||'';
   hbgUi();
-  const fo=!!HBG.bg;$hb('hbFillOn').checked=fo;$hb('hbFillG').checked=!!HBG.bg2;
-  $hb('hbFill1').style.background=HBG.bg||'#1f6bf0';$hb('hbFill2').style.background=HBG.bg2||'#0b2f86';fillUi();
+  const fo=!!S.bg;$hb('hbFillOn').checked=fo;$hb('hbFillG').checked=!!S.bg2;
+  $hb('hbFill1').style.background=S.bg||'#1f6bf0';$hb('hbFill2').style.background=S.bg2||'#0b2f86';fillUi();
 }
 function fillUi(){const on=$hb('hbFillOn').checked;$hb('hbFill1').style.opacity=on?1:.35;$hb('hbFillG').disabled=!on;$hb('hbFill2').style.display=on&&$hb('hbFillG').checked?'block':'none'}
-function fillApply(){const on=$hb('hbFillOn').checked;HBG.bg=on?rgb2hex($hb('hbFill1').style.background):'';HBG.bg2=on&&$hb('hbFillG').checked?rgb2hex($hb('hbFill2').style.background):'';fillUi();hRender()}
+function fillApply(){const on=$hb('hbFillOn').checked;curS().bg=on?rgb2hex($hb('hbFill1').style.background):'';curS().bg2=on&&$hb('hbFillG').checked?rgb2hex($hb('hbFill2').style.background):'';fillUi();hRender()}
 function rgb2hex(c){const m=c.match(/\d+/g);return m?'#'+m.slice(0,3).map(x=>(+x).toString(16).padStart(2,'0')).join(''):'#1f6bf0'}
 $hb('hbFillOn').onchange=fillApply;$hb('hbFillG').onchange=fillApply;
 $hb('hbFill1').onclick=()=>pickColor(rgb2hex($hb('hbFill1').style.background),v=>{$hb('hbFill1').style.background=v;$hb('hbFillOn').checked=true;fillApply()});
@@ -1288,22 +1292,46 @@ window.hbgUi=function(){
   $hb('hbgNote').textContent=t==='none'?'กดที่พื้นหลังแล้วไม่เกิดอะไร':t==='page'?'กดที่พื้นหลังแล้วไปหน้านี้ในแอพ':'ใส่ https://... หรือชื่อหน้า เช่น coupon.html';
 };
 const hLinkOk=(t,u)=>t!=='url'||/^https?:\/\//i.test(u)||/^[A-Za-z0-9_\-]+\.html([?#][A-Za-z0-9_\-.=&%#]*)?$/.test(u);
-window.saveHomeBg=async function(){
-  const type=$hb('hbgType').value,url=$hb('hbgUrl').value.trim(),page=$hb('hbgPage').value;
-  if(!hLinkOk(type,url)){toast('ลิงก์ต้องขึ้นต้นด้วย https:// หรือเป็นชื่อหน้า เช่น coupon.html','er');return}
-  for(const l of HL)if(l.t==='img'&&!hLinkOk(l.linkType,l.linkUrl)){toast('ลิงก์ของรูปบางรูปไม่ถูกต้อง','er');return}
-  const layers=HL.filter(l=>l.t==='img'||(l.text&&l.text.trim())).map(l=>l.t==='img'
+function slideSync(){const S=curS();S.linkType=$hb('hbgType').value;S.linkUrl=$hb('hbgUrl').value.trim();S.page=$hb('hbgPage').value}
+function packLayers(arr){return arr.filter(l=>l.t==='img'||(l.text&&l.text.trim())).map(l=>l.t==='img'
     ?{t:'img',url:l.url,ar:l.ar,x:l.x,y:l.y,w:l.w,sw:l.sw,sc:l.sc,sh:l.sh,rot:l.rot,op:l.op,vis:l.vis!==false,linkType:l.linkType||'none',linkUrl:l.linkType==='url'?l.linkUrl:'',page:l.linkType==='page'?l.page:''}
-    :{t:'txt',text:l.text.trim(),color:l.color,size:l.size,weight:l.weight,font:l.font,sw:l.sw,sc:l.sc,dp:l.dp,dc:l.dc,sh:l.sh,x:l.x,y:l.y,rot:l.rot,op:l.op,vis:l.vis!==false});
-  const firstImg=layers.find(l=>l.t==='img');
-  const fo=$hb('hbFillOn').checked,o={order:HORD.slice(),hide:[...HHIDE],secs:+$hb('hoSecs').value||5,on:$hb('hbgOn').checked,bg:fo?HBG.bg||'#1f6bf0':'',bg2:fo&&$hb('hbFillG').checked?HBG.bg2||'#0b2f86':'',layers,imgUrl:firstImg?firstImg.url:'',linkType:type,linkUrl:type==='url'?url:'',page:type==='page'?page:''};
+    :{t:'txt',text:l.text.trim(),color:l.color,size:l.size,weight:l.weight,font:l.font,sw:l.sw,sc:l.sc,dp:l.dp,dc:l.dc,sh:l.sh,x:l.x,y:l.y,rot:l.rot,op:l.op,vis:l.vis!==false})}
+function hTabs(){
+  $hb('hbTabs').innerHTML=SL.map((s,i)=>`<button type="button" class="hbTab ${i===SI?'on':''}" data-i="${i}">พื้นหลัง ${i+1}</button>`).join('')+(SL.length<8?'<button type="button" class="hbTab add" data-i="+">+ เพิ่มพื้นหลัง</button>':'');
+  $hb('hbDelSl').style.display=SI>0?'block':'none';
+}
+function slideGo(i,ns){if(!ns)slideSync();SI=i;HL=curS().layers;HSEL=HL.length?HL.length-1:-1;hbgFill();hAll();hTabs()}
+$hb('hbTabs').addEventListener('click',e=>{
+  const b=e.target.closest('.hbTab');if(!b)return;
+  if(b.dataset.i==='+'){
+    slideSync();const id='b'+Date.now().toString(36);
+    SL.push({id,bg:'',bg2:'',layers:[],linkType:'none',linkUrl:'',page:'coupon.html'});HORD.push(id);hoRender();slideGo(SL.length-1);return;
+  }
+  slideGo(+b.dataset.i);
+});
+$hb('hbDelSl').onclick=()=>{
+  if(SI<1||!confirm('ลบพื้นหลังนี้ทั้งหมด?'))return;
+  const id=curS().id;SL.splice(SI,1);HORD=HORD.filter(x=>x!==id);HHIDE.delete(id);hoRender();slideGo(SI-1,true);
+};
+['hbgType','hbgPage','hbgUrl'].forEach(i=>{$hb(i).addEventListener('change',()=>{slideSync();hoRender()});});
+window.saveHomeBg=async function(){
+  slideSync();
+  for(const S of SL){
+    if(!hLinkOk(S.linkType,S.linkUrl)){toast('ลิงก์ต้องขึ้นต้นด้วย https:// หรือเป็นชื่อหน้า เช่น coupon.html','er');return}
+    for(const l of S.layers)if(l.t==='img'&&!hLinkOk(l.linkType,l.linkUrl)){toast('ลิงก์ของรูปบางรูปไม่ถูกต้อง','er');return}
+  }
+  const pk=S=>({bg:S.bg||'',bg2:S.bg&&S.bg2?S.bg2:'',layers:packLayers(S.layers),linkType:S.linkType||'none',linkUrl:S.linkType==='url'?S.linkUrl:'',page:S.linkType==='page'?S.page:''});
+  const first=pk(SL[0]),firstImg=first.layers.find(l=>l.t==='img');
+  const o={order:HORD.slice(),hide:[...HHIDE],secs:+$hb('hoSecs').value||5,on:$hb('hbgOn').checked,...first,imgUrl:firstImg?firstImg.url:'',extra:SL.slice(1).map(S=>({id:S.id,...pk(S)}))};
   try{await setDoc(doc(db,'settings','homeBg'),{...o,updatedAt:serverTimestamp()});HBG={...HBG,...o};toast('บันทึกพื้นหลังแล้ว','ok')}
   catch(e){toast('บันทึกไม่สำเร็จ: '+e.message,'er')}
 };
 (async function(){
   try{const sn=await getDoc(doc(db,'settings','homeBg'));if(sn.exists())HBG={...HBG,...sn.data()}}catch(e){}
-  const n=NimitHomeBg.norm(HBG);HL=n.layers.map(l=>({...l}));HSEL=HL.length?HL.length-1:-1;
-  hbgFill();hAll();await hoLoad();
+  const mk=(id,c)=>{const n=NimitHomeBg.norm({on:true,bg:c.bg,bg2:c.bg2,layers:c.layers,imgUrl:c.imgUrl});return{id,bg:n.bg||'',bg2:n.bg2||'',layers:n.layers.map(l=>({...l})),linkType:c.linkType||'none',linkUrl:c.linkUrl||'',page:c.page||'coupon.html'}};
+  SL=[mk('bg',HBG),...(Array.isArray(HBG.extra)?HBG.extra:[]).filter(e=>e&&typeof e.id==='string').map(e=>mk(e.id,e))];
+  SI=0;HL=SL[0].layers;HSEL=HL.length?HL.length-1:-1;
+  hbgFill();hAll();hTabs();await hoLoad();
 })();
 
 // ============ แปลงรูปเก่า (base64) เป็นระบบใหม่ (Storage + ลิงก์) ============
@@ -1437,6 +1465,10 @@ window.sendTestNotif = async function(){
 #thTimes .inp{min-width:0;width:0;padding:0 6px;font-size:12px}
 .hbS{position:relative;width:100%;aspect-ratio:1.7/1;border-radius:14px;overflow:hidden;background:#e4e8f1;touch-action:none;user-select:none;-webkit-user-select:none;container-type:inline-size;cursor:grab}
 .hbLy{position:absolute;inset:0;overflow:hidden;container-type:inline-size}
+.hbTabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.hbTab{height:36px;padding:0 14px;border:2px solid #cbd5e1;border-radius:18px;background:#fff;font-size:13px;font-weight:700;color:#475569;cursor:pointer;font-family:inherit}
+.hbTab.on{border-color:#1f6bf0;background:#1f6bf0;color:#fff}
+.hbTab.add{border-style:dashed;color:#1f6bf0}
 .hbl{position:absolute;max-width:none;white-space:nowrap;line-height:1.1;pointer-events:none;user-select:none}
 .hbSel{position:absolute;border:2px solid #1f6bf0;border-radius:4px;pointer-events:none;display:none;box-shadow:0 0 0 1px rgba(255,255,255,.8)}
 .hbP{position:absolute;left:0;right:0;bottom:0;height:13%;pointer-events:none;background:rgba(245,247,252,.55);border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#64748b}
