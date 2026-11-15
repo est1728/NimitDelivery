@@ -378,6 +378,11 @@ window.onerror = function(msg, url, line, col, error){
       <label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="hbFillG"> ไล่สี</label>
       <button type="button" class="sw" id="hbFill2" aria-label="สีปลายทาง" style="display:none"></button>
     </div>
+    <div style="font-size:12px;font-weight:700;color:var(--s);margin:18px 0 6px">ลำดับสไลด์หัวหน้าแรก (พื้นหลังแอพ + โฆษณาร้าน)</div>
+    <div class="hint" style="margin-bottom:8px">โฆษณาร้านดึงมาจากรายการโฆษณาในหน้าแอดมิน (รูป + ชื่อร้าน) ปรับลำดับด้วยปุ่มขึ้น/ลง ซ่อนบางอันได้ ค่าเริ่มต้นพื้นหลังแอพอยู่แรกเสมอ</div>
+    <div id="hoList" class="hbList"></div>
+    <div class="r2" style="display:flex;align-items:center;gap:10px;margin:10px 0 4px;font-size:13px">เลื่อนสไลด์อัตโนมัติทุก
+      <select class="inp" id="hoSecs" style="width:auto;font-family:inherit"><option>3</option><option>4</option><option selected>5</option><option>6</option><option>8</option><option>10</option></select> วินาที</div>
     <div style="font-size:12px;font-weight:700;color:var(--s);margin:14px 0 6px">เมื่อกดที่พื้นหลัง (ทั้งหมด ยกเว้นรูปที่ตั้งลิงก์ของตัวเอง)</div>
     <select class="inp" id="hbgType" onchange="hbgUi()" style="font-family:inherit;margin-bottom:8px">
       <option value="none">ไม่ทำอะไร</option><option value="page">ไปหน้าในแอพ</option><option value="url">ไปลิงก์ที่กรอกเอง</option>
@@ -1103,7 +1108,7 @@ function hCtl(){
     $hb('hbBold').onchange=e=>{l.weight=e.target.checked?800:500;hRender()};
     $hb('hbFont').onclick=()=>pickFont(l.font,f=>{l.font=f;hRender();hCtl()});
   }else{
-    $hb('hbFit').onclick=()=>{l.x=50;l.y=50;l.rot=0;l.w=Math.max(100,50*(l.ar||2));hRender();hCtl()};
+    $hb('hbFit').onclick=()=>{l.x=50;l.y=50;l.rot=0;l.w=Math.max(100,100*(l.ar||2)/NimitHomeBg.AR);hRender();hCtl()};
     $hb('hbCtr').onclick=()=>{l.x=50;l.y=50;hRender()};
     const lt=$hb('hbLt'),lp=$hb('hbLp'),lu=$hb('hbLu');
     lt.value=l.linkType||'none';lp.value=l.page||HBG_PAGES[0][0];lu.value=l.linkUrl||'';
@@ -1227,11 +1232,38 @@ $hb('hbf').onchange=async e=>{
     const r=await fetch('https://api.cloudinary.com/v1_1/ltthcvpf/image/upload',{method:'POST',body:fd});
     if(!r.ok)throw new Error('อัปโหลดไม่สำเร็จ (HTTP '+r.status+')');
     const url=(await r.json()).secure_url,ar=W/H,first=!HL.some(l=>l.t==='img');
-    HL.push({t:'img',url,ar:Math.round(ar*1000)/1000,x:50,y:50,w:first?Math.max(100,50*ar):Math.min(45,Math.max(20,50*ar)),sw:0,sc:'#ffffff',sh:0,rot:0,op:100,vis:true,linkType:'none',linkUrl:'',page:''});
+    HL.push({t:'img',url,ar:Math.round(ar*1000)/1000,x:50,y:50,w:first?Math.max(100,100*ar/NimitHomeBg.AR):Math.min(45,Math.max(20,50*ar)),sw:0,sc:'#ffffff',sh:0,rot:0,op:100,vis:true,linkType:'none',linkUrl:'',page:''});
     HSEL=HL.length-1;hAll();toast('เพิ่มรูปแล้ว กด "บันทึกพื้นหลัง" เพื่อใช้จริง','ok');
   }catch(err){toast(err.message||'อัปโหลดไม่สำเร็จ','er')}
   btn.disabled=false;btn.textContent='+ เพิ่มรูป';
 };
+
+/* slide order: 'bg' = app background, others = ads/{id} */
+let HADS=[],HORD=['bg'],HHIDE=new Set();
+function hoRender(){
+  $hb('hoList').innerHTML=HORD.map((id,i)=>{
+    const a=id==='bg'?null:HADS.find(x=>x.id===id);
+    const th=id==='bg'?'<div class="th">BG</div>':`<div class="th" style="background-image:url('${esc((a&&a.imgUrl)||'')}')"></div>`;
+    const nm=id==='bg'?'พื้นหลังแอพ (เลเยอร์ด้านบน)':esc((a&&(a.shopName||a.caption))||'โฆษณา')+((a&&a.shopName&&a.caption)?' · '+esc(a.caption):'');
+    const off=HHIDE.has(id);
+    return `<div class="hbRow ${off?'off':''}" data-id="${esc(id)}"><div class="th" style="width:auto;padding:0 8px;background:none">${i+1}</div>${th}<div class="nm">${nm}</div>
+      <button data-a="up" ${i===0?'disabled':''} aria-label="ขึ้น">${IC.up}</button><button data-a="dn" ${i===HORD.length-1?'disabled':''} aria-label="ลง">${IC.dn}</button><button data-a="eye" aria-label="แสดง/ซ่อน">${off?IC.eyeX:IC.eye}</button></div>`}).join('');
+}
+$hb('hoList').addEventListener('click',e=>{
+  const row=e.target.closest('.hbRow'),b=e.target.closest('button');if(!row||!b)return;
+  const id=row.dataset.id,i=HORD.indexOf(id),a=b.dataset.a;
+  if(a==='eye'){HHIDE.has(id)?HHIDE.delete(id):HHIDE.add(id)}
+  else{const j=a==='up'?i-1:i+1;if(j<0||j>=HORD.length)return;[HORD[i],HORD[j]]=[HORD[j],HORD[i]]}
+  hoRender();
+});
+async function hoLoad(){
+  try{const sn=await getDocs(collection(db,'ads'));HADS=[];sn.forEach(d=>HADS.push({id:d.id,...d.data()}))}catch(e){}
+  const ids=['bg',...HADS.map(a=>a.id)],ord=(Array.isArray(HBG.order)?HBG.order:[]).filter(x=>ids.includes(x));
+  HORD=[...(ord.includes('bg')?[]:['bg']),...ord,...ids.filter(x=>x!=='bg'&&!ord.includes(x))];
+  HHIDE=new Set(Array.isArray(HBG.hide)?HBG.hide:[]);
+  $hb('hoSecs').value=String(HBG.secs||5);if(!$hb('hoSecs').value)$hb('hoSecs').value='5';
+  hoRender();
+}
 
 /* global link + load + save */
 function hbgFill(){
@@ -1264,14 +1296,14 @@ window.saveHomeBg=async function(){
     ?{t:'img',url:l.url,ar:l.ar,x:l.x,y:l.y,w:l.w,sw:l.sw,sc:l.sc,sh:l.sh,rot:l.rot,op:l.op,vis:l.vis!==false,linkType:l.linkType||'none',linkUrl:l.linkType==='url'?l.linkUrl:'',page:l.linkType==='page'?l.page:''}
     :{t:'txt',text:l.text.trim(),color:l.color,size:l.size,weight:l.weight,font:l.font,sw:l.sw,sc:l.sc,dp:l.dp,dc:l.dc,sh:l.sh,x:l.x,y:l.y,rot:l.rot,op:l.op,vis:l.vis!==false});
   const firstImg=layers.find(l=>l.t==='img');
-  const fo=$hb('hbFillOn').checked,o={on:$hb('hbgOn').checked,bg:fo?HBG.bg||'#1f6bf0':'',bg2:fo&&$hb('hbFillG').checked?HBG.bg2||'#0b2f86':'',layers,imgUrl:firstImg?firstImg.url:'',linkType:type,linkUrl:type==='url'?url:'',page:type==='page'?page:''};
+  const fo=$hb('hbFillOn').checked,o={order:HORD.slice(),hide:[...HHIDE],secs:+$hb('hoSecs').value||5,on:$hb('hbgOn').checked,bg:fo?HBG.bg||'#1f6bf0':'',bg2:fo&&$hb('hbFillG').checked?HBG.bg2||'#0b2f86':'',layers,imgUrl:firstImg?firstImg.url:'',linkType:type,linkUrl:type==='url'?url:'',page:type==='page'?page:''};
   try{await setDoc(doc(db,'settings','homeBg'),{...o,updatedAt:serverTimestamp()});HBG={...HBG,...o};toast('บันทึกพื้นหลังแล้ว','ok')}
   catch(e){toast('บันทึกไม่สำเร็จ: '+e.message,'er')}
 };
 (async function(){
   try{const sn=await getDoc(doc(db,'settings','homeBg'));if(sn.exists())HBG={...HBG,...sn.data()}}catch(e){}
   const n=NimitHomeBg.norm(HBG);HL=n.layers.map(l=>({...l}));HSEL=HL.length?HL.length-1:-1;
-  hbgFill();hAll();
+  hbgFill();hAll();await hoLoad();
 })();
 
 // ============ แปลงรูปเก่า (base64) เป็นระบบใหม่ (Storage + ลิงก์) ============
@@ -1403,7 +1435,7 @@ window.sendTestNotif = async function(){
 
 <style>
 #thTimes .inp{min-width:0;width:0;padding:0 6px;font-size:12px}
-.hbS{position:relative;width:100%;aspect-ratio:2/1;border-radius:14px;overflow:hidden;background:#e4e8f1;touch-action:none;user-select:none;-webkit-user-select:none;container-type:inline-size;cursor:grab}
+.hbS{position:relative;width:100%;aspect-ratio:2.2/1;border-radius:14px;overflow:hidden;background:#e4e8f1;touch-action:none;user-select:none;-webkit-user-select:none;container-type:inline-size;cursor:grab}
 .hbLy{position:absolute;inset:0;overflow:hidden;container-type:inline-size}
 .hbl{position:absolute;max-width:none;white-space:nowrap;line-height:1.1;pointer-events:none;user-select:none}
 .hbSel{position:absolute;border:2px solid #1f6bf0;border-radius:4px;pointer-events:none;display:none;box-shadow:0 0 0 1px rgba(255,255,255,.8)}

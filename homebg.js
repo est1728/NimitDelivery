@@ -4,6 +4,7 @@
    layer text : {t:'txt',text,color,size,weight,x,y,rot,op,vis}
    x,y = centre in % of the 2:1 frame; w = width in % of frame; size = % of frame width. */
 (function(w){
+  const AR=2.2; // hero frame width:height
   const num=(v,d,a,b)=>{v=Number(v);if(!isFinite(v))v=d;return Math.min(b,Math.max(a,v))};
   const FONTS={'Prompt':[500,800],'Kanit':[500,800],'Sarabun':[500,800],'Mitr':[500,700],'Pridi':[500,700],'Chonburi':null,'Itim':null,'Bai Jamjuree':[500,700],'Sriracha':null,'K2D':[500,800],'Mali':[500,700],'Krub':[500,700],'Taviraj':[500,800],'Pattaya':null,'Athiti':[500,700],'Trirong':[500,800],'IBM Plex Sans Thai':[500,700]};
   const col=(v,d)=>/^#[0-9a-fA-F]{6}$/.test(v||'')?v:d;
@@ -89,5 +90,5 @@
     n.layers.forEach((l,i)=>box.appendChild(el(l,i,o&&o.edit)));
     return n;
   }
-  w.NimitHomeBg={norm,render,target,opt,okUrl,FONTS,loadFonts};
+  w.NimitHomeBg={norm,render,target,opt,okUrl,FONTS,loadFonts,AR};
 })(window);

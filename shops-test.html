@@ -615,27 +615,48 @@ html[data-sp~="cbg"] .cbox-ic{background:var(--amber-500,#FF7A18);}
 
 /* ===== home background + rounded panel (test) ===== */
 .tb{border-radius:0;padding:0;min-height:150px;position:sticky;top:0;z-index:0;}
-.tb-layers{position:absolute;inset:0;z-index:0;overflow:hidden;container-type:inline-size;opacity:0;transition:opacity .35s;pointer-events:none;}
-.tb.has-bg{aspect-ratio:2/1;}
-.tb.has-bg .tb-layers{opacity:1;}
-.tb.has-bg::after{display:none;}
+.tb-layers{position:absolute;inset:0;overflow:hidden;container-type:inline-size;pointer-events:none;}
+.tb.has-hero{aspect-ratio:2.2/1;}
+.tb.has-hero::after{display:none;}
 .hbl{position:absolute;max-width:none;user-select:none;-webkit-user-select:none;white-space:nowrap;line-height:1.1;pointer-events:none;}
 .hbl[data-go]{pointer-events:auto;}
 .tb.has-link{cursor:pointer;}
-.panel{position:relative;z-index:1;margin-top:-14px;background:var(--bg);border-radius:14px 14px 0 0;padding-top:14px;box-shadow:0 -10px 16px -10px rgba(7,27,61,.14);}
+.panel{position:relative;z-index:1;margin-top:0;background:var(--bg);border-radius:0;padding-top:12px;--p:0;}
+.panel::before,.panel::after{content:'';position:absolute;left:0;right:0;top:-16px;height:17px;pointer-events:none;background:var(--bg);transform-origin:50% 100%;transform:scaleY(calc(1 - var(--p)));-webkit-mask-repeat:repeat-x;mask-repeat:repeat-x;-webkit-mask-size:200px 17px;mask-size:200px 17px;}
+.panel::before{opacity:.55;top:-19px;-webkit-mask-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMTciIHByZXNlcnZlQXNwZWN0UmF0aW89Im5vbmUiPjxwYXRoIGQ9Ik0wIDEyQzMwIDUgNzAgNSAxMDAgMTFTMTcwIDE3IDIwMCAxMlYxN0gwWiIvPjwvc3ZnPg==);mask-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMTciIHByZXNlcnZlQXNwZWN0UmF0aW89Im5vbmUiPjxwYXRoIGQ9Ik0wIDEyQzMwIDUgNzAgNSAxMDAgMTFTMTcwIDE3IDIwMCAxMlYxN0gwWiIvPjwvc3ZnPg==);animation:waveB 19s linear infinite reverse;}
+.panel::after{-webkit-mask-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMTciIHByZXNlcnZlQXNwZWN0UmF0aW89Im5vbmUiPjxwYXRoIGQ9Ik0wIDlDMjUgMSA3NSAxIDEwMCA5UzE3NSAxNyAyMDAgOVYxN0gwWiIvPjwvc3ZnPg==);mask-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMTciIHByZXNlcnZlQXNwZWN0UmF0aW89Im5vbmUiPjxwYXRoIGQ9Ik0wIDlDMjUgMSA3NSAxIDEwMCA5UzE3NSAxNyAyMDAgOVYxN0gwWiIvPjwvc3ZnPg==);animation:waveF 13s linear infinite;}
+@keyframes waveF{to{-webkit-mask-position-x:200px;mask-position-x:200px}}
+@keyframes waveB{to{-webkit-mask-position-x:200px;mask-position-x:200px}}
+.tb{--p:0;transform-origin:50% 100%;transform:perspective(800px) rotateX(calc(var(--p)*22deg)) scale(calc(1 - var(--p)*.05));will-change:transform;}
+.tb-shade{position:absolute;inset:0;z-index:3;background:#071b3d;opacity:calc(var(--p)*.55);pointer-events:none;}
+.tb::before{content:'';position:absolute;left:0;right:0;top:0;height:84px;background:linear-gradient(rgba(7,27,61,.34),rgba(7,27,61,0));z-index:2;pointer-events:none;}
+.hero-sl{position:absolute;inset:0;z-index:0;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;}
+.hero-sl::-webkit-scrollbar{display:none;}
+.hs{flex:0 0 100%;position:relative;scroll-snap-align:start;scroll-snap-stop:always;overflow:hidden;}
+.hs-ad{cursor:pointer;background:#0b2f86;}
+.hs-ad img,.hs-ad video{width:100%;height:100%;object-fit:cover;display:block;}
+.hs-ad::after{content:'';position:absolute;left:0;right:0;bottom:0;height:62%;background:linear-gradient(transparent,rgba(7,27,61,.72));pointer-events:none;}
+.hs-cap{position:absolute;left:16px;right:16px;bottom:30px;z-index:1;color:#fff;font-family:'Prompt',sans-serif;}
+.hs-shop{display:inline-flex;align-items:center;gap:6px;max-width:100%;background:rgba(255,255,255,.18);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.38);padding:5px 12px 5px 8px;border-radius:999px;font-weight:600;font-size:13.5px;}
+.hs-shop svg{width:15px;height:15px;fill:#fff;flex:none;}
+.hs-shop span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hs-txt{display:block;margin-top:5px;font-family:'IBM Plex Sans Thai',sans-serif;font-size:12px;font-weight:400;text-shadow:0 1px 4px rgba(7,27,61,.5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hero-dots{position:absolute;left:0;right:0;bottom:22px;z-index:4;display:flex;justify-content:center;gap:5px;pointer-events:none;}
+.hero-dots i{width:5px;height:5px;border-radius:3px;background:rgba(255,255,255,.55);transition:all .3s;pointer-events:auto;cursor:pointer;}
+.hero-dots i.on{background:#fff;width:16px;}
 .sticky-bar{display:none!important;}
-.pin{position:sticky;top:0;z-index:5;background:var(--bg);padding:2px 16px 10px;display:flex;align-items:center;gap:10px;border-radius:26px 26px 0 0;}
-.hero-chip{position:absolute;left:16px;top:17px;z-index:2;margin-top:0;max-width:calc(100% - 84px);background:rgba(7,27,61,.38);border:1px solid rgba(255,255,255,.28);padding:5px 11px 5px 9px;}
+.pin{position:sticky;top:0;z-index:5;background:var(--bg);padding:2px 16px 10px;display:flex;align-items:center;gap:10px;}
+.hero-chip{position:absolute;left:16px;top:17px;z-index:4;margin-top:0;max-width:calc(100% - 84px);background:rgba(7,27,61,.38);border:1px solid rgba(255,255,255,.28);padding:5px 11px 5px 9px;}
 .hero-chip span{color:#fff;}
 .hero-chip svg{fill:#fff;}
-.sb-open{position:absolute;top:14px;right:16px;z-index:2;background:rgba(7,27,61,.38);border:1px solid rgba(255,255,255,.28);}
+.sb-open{position:absolute;top:14px;right:16px;z-index:4;background:rgba(7,27,61,.38);border:1px solid rgba(255,255,255,.28);}
 .pin .icon-btn.bell{width:46px;height:46px;border-radius:16px;flex:none;background:var(--white);border:1px solid var(--line);box-shadow:0 3px 10px rgba(14,59,140,.07);}
 .pin .icon-btn.bell svg{fill:var(--blue-700);}
 .pin .icon-btn.bell svg{width:21px;height:21px;}
 .pin .notif-bdg{border-color:var(--white);}
 .pin .srch{flex:1;min-width:0;margin:0;}
 
-.panel.stuck,.panel.stuck .pin{border-radius:0;}
+.panel.stuck .pin{border-radius:0;}
 .panel.stuck .pin{box-shadow:0 6px 14px -10px rgba(7,27,61,.25);}
 .panel.stuck{box-shadow:none;}
 .login-chip{max-width:calc(100vw - 150px);}
@@ -643,8 +664,6 @@ html[data-sp~="cbg"] .cbox-ic{background:var(--amber-500,#FF7A18);}
 .login-chip .lc-pin{width:12px;height:12px;flex:none;}
 .panel .srch input{border:1px solid var(--line);border-radius:16px;height:46px;box-shadow:0 3px 10px rgba(14,59,140,.07);}
 html[data-theme="halloween"] .pin .srch{margin-right:0;}
-.ads{background:transparent;margin-top:14px;}
-.ads-outer{width:auto;margin:0 16px;border-radius:20px;overflow:hidden;box-shadow:0 6px 16px rgba(14,59,140,.14);}
 .bottom-nav{transition:transform .3s cubic-bezier(.3,.9,.3,1);will-change:transform;padding-bottom:env(safe-area-inset-bottom,0px);}
 .bnav-item{padding:6px 0 5px;gap:2px;}
 .bnav-item svg{width:20px;height:20px;}
@@ -653,7 +672,32 @@ html[data-theme="halloween"] .pin .srch{margin-right:0;}
 .bnav-fab svg{width:19px;height:19px;}
 .app{padding-bottom:78px;}
 .bottom-nav.hide{transform:translateX(-50%) translateY(calc(100% + 40px));}
-@media (prefers-reduced-motion:reduce){.bottom-nav,.tb-layers{transition:none}}
+#shopsHd{scroll-margin-top:72px;}
+#popSec{margin:20px 16px 0;}
+.pop-box{background:linear-gradient(160deg,var(--t1),#fff 70%);border:1px solid var(--t3);border-radius:26px;padding:14px 0 10px;box-shadow:0 6px 20px rgba(46,111,224,.12);}
+.pop-hd{display:flex;align-items:center;justify-content:space-between;padding:0 14px 12px;}
+.pop-tt{display:flex;align-items:center;gap:9px;}
+.pop-ic{width:34px;height:34px;border-radius:11px;background:var(--blue-600);display:grid;place-items:center;}
+.pop-ic svg{width:19px;height:19px;fill:#fff;}
+.pop-tt b{font-family:'Prompt';font-size:18px;font-weight:700;color:var(--blue-900);}
+.pop-all{font-size:12.5px;font-weight:600;color:var(--blue-600);cursor:pointer;}
+.pop-row{padding:0 14px 6px;gap:10px;}
+.pop-card{width:122px;background:#fff;border:0;border-radius:20px;overflow:hidden;box-shadow:0 4px 14px rgba(14,59,140,.10);}
+.pop-img{height:92px;border-radius:0;overflow:hidden;position:relative;}
+.pop-fav{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(255,255,255,.88);display:grid;place-items:center;padding:0;cursor:pointer;z-index:2;}
+.pop-fav svg{width:15px;height:15px;fill:none;stroke:var(--ink-700);stroke-width:2.2;}
+.pop-fav.on svg{fill:var(--red-500);stroke:var(--red-500);}
+.pop-body{position:relative;margin-top:-12px;background:#fff;border-radius:14px 14px 0 0;padding:9px 9px 10px;}
+.pop-bdg{position:absolute;right:7px;top:-11px;background:var(--blue-500);color:#fff;font-size:10px;font-weight:700;padding:2px 9px;border-radius:10px;}
+.pop-meta{display:flex;align-items:center;gap:3px;margin:0 0 4px;}
+.pop-name{font-family:'Prompt';font-size:12.5px;font-weight:600;}
+.pop-cat{font-size:10.5px;color:var(--ink-500);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pop-row{scroll-snap-type:x proximity;scroll-padding:0 14px;}
+.pop-card{width:calc((100% - 20px)/3);flex:none;min-width:96px;scroll-snap-align:start;}
+.pop-img{height:auto;aspect-ratio:1/.68;}
+.pop-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pop-meta{white-space:nowrap;font-size:10.5px;}
+@media (prefers-reduced-motion:reduce){.bottom-nav{transition:none}.panel::before,.panel::after{animation:none}.tb{transform:none}.tb-shade{display:none}}
 </style>
 <script src="homebg.js"></script>
 </head>
@@ -674,7 +718,9 @@ html[data-theme="halloween"] .pin .srch{margin-right:0;}
   <!-- TOP BAR -->
   <div class="tb">
     <div class="tb-deco" data-theme-deco="header" style="display:none"></div>
-    <div class="tb-layers" id="tbLayers" role="presentation"></div>
+    <div class="hero-sl" id="heroSl"></div>
+    <div class="tb-shade"></div>
+    <div class="hero-dots" id="heroDots"></div>
     <div class="login-chip hero-chip press" onclick="handleLoginChip()">
         <svg class="lc-pin" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><span id="loginChipText">เข้าสู่ระบบ</span>
         <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
@@ -730,12 +776,6 @@ html[data-theme="halloween"] .pin .srch{margin-right:0;}
   <!-- STATUS SLOT: ออเดอร์กำลังส่ง / ให้คะแนน (โผล่เฉพาะตอนมี) -->
   <div class="slot" id="stSlot"></div>
 
-  <!-- ADS -->
-  <div class="ads" id="adsEl">
-    <div class="ads-outer" id="adsOuter"><div class="ads-track" id="adsTrack"></div></div>
-    <div class="ads-dots" id="adsDots"></div>
-  </div>
-
   <!-- SERVICE BUTTONS (เปิด/ปิดได้จากหน้าผู้พัฒนา: settings/homeButtons) -->
   <div class="svc" id="svcEl" style="display:none"></div>
 
@@ -771,8 +811,10 @@ html[data-theme="halloween"] .pin .srch{margin-right:0;}
 
   <!-- POPULAR -->
   <div class="sec" id="popSec">
-    <div class="sec-hd"><div class="sec-t">ร้านแนะนำ</div></div>
-    <div class="pop-row" id="popRow"></div>
+    <div class="pop-box">
+      <div class="pop-hd"><div class="pop-tt"><i class="pop-ic"><svg viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></i><b>ร้านแนะนำ</b></div><a class="pop-all" onclick="document.getElementById('shopsHd').scrollIntoView({behavior:'smooth',block:'start'})">ดูทั้งหมด ›</a></div>
+      <div class="pop-row" id="popRow"></div>
+    </div>
   </div>
 
   <!-- APP BANNER (ตั้งค่าที่แอดมิน: settings/appBanner) -->
@@ -838,28 +880,8 @@ const fbApp = initializeApp({
 const db = getFirestore(fbApp);
 
 /* ===================== HOME BACKGROUND (settings/homeBg: on, imgUrl, linkType none|url|page, linkUrl, page) ===================== */
-function homeBgApply(c){
-  const tb=document.querySelector('.tb'),box=document.getElementById('tbLayers');
-  if(!tb||!box||!window.NimitHomeBg)return;
-  const n=NimitHomeBg.norm(c),ok=n.on&&(n.layers.length>0||!!n.bg);
-  tb.classList.toggle('has-bg',ok);
-  const sig=ok?JSON.stringify(n):'';
-  if(box.__sig!==sig){box.__sig=sig;NimitHomeBg.render(box,ok?n:{layers:[]});}
-  const u=ok?NimitHomeBg.target(n):'';
-  tb.classList.toggle('has-link',!!u);
-  window.__homeBgUrl=u;
-}
-(async function initHomeBg(){
-  try{homeBgApply(JSON.parse(localStorage.getItem('homeBg')||'null'))}catch(e){}
-  const tb=document.querySelector('.tb');
-  if(tb)tb.addEventListener('click',e=>{
-    if(e.target.closest('.hero-chip,.sb-open'))return;
-    const g=e.target.closest('[data-go]');
-    const u=g?g.dataset.go:window.__homeBgUrl;
-    if(u)location.href=u;
-  });
-  await refreshHomeBg();
-})();
+var HB=null;
+function homeBgApply(c){HB=c;if(window.buildHero)buildHero();}
 async function refreshHomeBg(){
   try{
     const sn=await getDoc(doc(db,'settings','homeBg')),c=sn.exists()?sn.data():null;
@@ -934,17 +956,22 @@ window.addEventListener('scroll',()=>{
 });
 /* the panel slides up over the background and snaps: past halfway -> covers it, otherwise -> back down to show it */
 (function(){
-  const tb=document.querySelector('.tb');let t=0,touching=false;
-  const D=()=>tb.offsetHeight-26;
+  const tb=document.querySelector('.tb'),pn=document.getElementById('panel');let t=0,touching=false,tk=false;
+  const D=()=>Math.max(1,pn.offsetTop);
   function snap(){
     if(touching)return;const d=D(),y=window.scrollY;if(y<=2||y>=d-2)return;
     const max=document.documentElement.scrollHeight-window.innerHeight,target=y>d*.5?d:0;if(target>max)return;
     const rm=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
     window.scrollTo({top:target,behavior:rm?'auto':'smooth'});
   }
-  const pn=document.getElementById('panel');
-  const stuck=()=>pn.classList.toggle('stuck',pn.getBoundingClientRect().top<=0.5);
-  window.addEventListener('scroll',stuck,{passive:true});stuck();
+  /* --p 0..1 = how far the panel has climbed; drives the fold-back of the header and the flattening of the wave edge */
+  function upd(){
+    tk=false;const p=Math.min(1,Math.max(0,window.scrollY/D())).toFixed(3);
+    tb.style.setProperty('--p',p);pn.style.setProperty('--p',p);
+    pn.classList.toggle('stuck',pn.getBoundingClientRect().top<=0.5);
+  }
+  const onS=()=>{if(!tk){tk=true;requestAnimationFrame(upd)}};
+  window.addEventListener('scroll',onS,{passive:true});window.addEventListener('resize',onS);upd();
   const arm=()=>{clearTimeout(t);t=setTimeout(snap,140)};
   window.addEventListener('scroll',arm,{passive:true});
   window.addEventListener('touchstart',()=>{touching=true;clearTimeout(t)},{passive:true});
@@ -1137,44 +1164,77 @@ function navBounce(btn){
   setTimeout(()=>btn.classList.remove('bounced'),450);
 }
 
-/* ===================== ADS ===================== */
-let curAd=0,adTimer=null;
+/* ===================== HERO: พื้นหลังแอพ + โฆษณาร้าน (เลื่อนแนวนอน ลำดับตั้งได้ที่ developer: settings/homeBg.order/hide/secs) ===================== */
+let curAd=0,adTimer=null,heroSig='',heroN=0,heroHold=0;
+const HS_SHOP='<svg viewBox="0 0 24 24"><path d="M4 4h16l1 5a3 3 0 0 1-5.5 1.6 3 3 0 0 1-5 0A3 3 0 0 1 3 9l1-5zm1 8.4V20h5v-5h4v5h5v-7.6a4.9 4.9 0 0 1-1 .1 4.9 4.9 0 0 1-3.5-1.4 4.9 4.9 0 0 1-3.5 1.4 4.9 4.9 0 0 1-3.5-1.4A4.9 4.9 0 0 1 6 12.5a4.9 4.9 0 0 1-1-.1z"/></svg>';
+function heroSlides(){
+  const n=NimitHomeBg.norm(HB),cfg=HB||{},hide=new Set(Array.isArray(cfg.hide)?cfg.hide:[]);
+  const ids=['bg',...ADS.map(a=>a.id)],ord=(Array.isArray(cfg.order)?cfg.order:[]).filter(x=>ids.includes(x));
+  const all=[...(ord.includes('bg')?[]:['bg']),...ord,...ids.filter(x=>x!=='bg'&&!ord.includes(x))];
+  const out=[];
+  all.forEach(id=>{
+    if(hide.has(id))return;
+    if(id==='bg'){if(n.on&&(n.layers.length||n.bg))out.push({k:'bg',n});return}
+    const a=ADS.find(x=>x.id===id);
+    if(a&&((a.type==='video'&&a.videoUrl)||a.imgUrl))out.push({k:'ad',a});
+  });
+  return {slides:out,n,secs:Math.min(15,Math.max(3,+cfg.secs||5))};
+}
+function buildHero(){
+  const tb=document.querySelector('.tb'),sl=$('heroSl');if(!tb||!sl||!window.NimitHomeBg)return;
+  const {slides,n,secs}=heroSlides();
+  const sig=JSON.stringify([slides.map(x=>x.k==='bg'?n:[x.a.id,x.a.imgUrl,x.a.videoUrl,x.a.shopName,x.a.caption]),secs]);
+  window.__homeBgUrl=slides.some(x=>x.k==='bg')?NimitHomeBg.target(n):'';
+  tb.classList.toggle('has-hero',slides.length>0);
+  tb.classList.toggle('has-link',!!window.__homeBgUrl);
+  if(sig===heroSig)return;heroSig=sig;heroN=slides.length;curAd=0;sl.scrollLeft=0;
+  sl.innerHTML=slides.map((x,i)=>{
+    if(x.k==='bg')return '<div class="hs hs-bg"><div class="tb-layers"></div></div>';
+    const a=x.a,isVid=a.type==='video'&&a.videoUrl;
+    const media=isVid?`<video src="${esc(a.videoUrl)}" autoplay muted loop playsinline></video>`:`<img src="${esc(NimitHomeBg.opt(a.imgUrl,900))}" alt="">`;
+    const nm=a.shopName||'',tx=a.caption||'';
+    const cap=(nm||tx)?`<div class="hs-cap">${nm?`<span class="hs-shop">${HS_SHOP}<span>${esc(nm)}</span></span>`:''}${tx?`<span class="hs-txt">${esc(tx)}</span>`:''}</div>`:'';
+    return `<div class="hs hs-ad" data-id="${esc(a.id)}">${media}${cap}</div>`;
+  }).join('');
+  slides.forEach((x,i)=>{if(x.k==='bg')NimitHomeBg.render(sl.children[i].firstChild,x.n)});
+  $('heroDots').innerHTML=slides.length>1?slides.map((_,i)=>`<i class="${i===0?'on':''}" onclick="event.stopPropagation();goAd(${i})"></i>`).join(''):'';
+  clearInterval(adTimer);adTimer=null;
+  if(slides.length>1)adTimer=setInterval(()=>{if(document.hidden||Date.now()<heroHold||window.scrollY>24)return;goAd((curAd+1)%heroN)},secs*1000);
+}
+function goAd(i){
+  const sl=$('heroSl');if(!sl)return;curAd=i;heroHold=Date.now()+8000;
+  sl.scrollTo({left:i*sl.clientWidth,behavior:'smooth'});
+  document.querySelectorAll('#heroDots i').forEach((d,j)=>d.classList.toggle('on',j===i));
+}
+(function(){
+  const sl=$('heroSl'),tb=document.querySelector('.tb');
+  let tk=false;
+  sl.addEventListener('scroll',()=>{if(tk)return;tk=true;requestAnimationFrame(()=>{tk=false;const k=Math.round(sl.scrollLeft/Math.max(1,sl.clientWidth));if(k!==curAd){curAd=k;document.querySelectorAll('#heroDots i').forEach((d,j)=>d.classList.toggle('on',j===k))}})},{passive:true});
+  sl.addEventListener('touchstart',()=>{heroHold=Date.now()+10000},{passive:true});
+  tb.addEventListener('click',e=>{
+    if(e.target.closest('.hero-chip,.sb-open,.hero-dots'))return;
+    const ad=e.target.closest('.hs-ad');
+    if(ad){const a=ADS.find(x=>x.id===ad.dataset.id);if(a)window.openAd(a.shopId||'',a.shopName||'',a.linkUrl||'');return}
+    const g=e.target.closest('[data-go]'),u=g?g.dataset.go:window.__homeBgUrl;
+    if(u)location.href=u;
+  });
+})();
+try{ADS=JSON.parse(localStorage.getItem('homeAds')||'[]')||[]}catch(e){ADS=[]}
+try{homeBgApply(JSON.parse(localStorage.getItem('homeBg')||'null'))}catch(e){}
+refreshHomeBg();
 async function loadAds(){
   try{
-    const snap=await getDocs(collection(db,'ads'));
-    ADS=[]; snap.forEach(d=>ADS.push({id:d.id,...d.data()}));
-  }catch(e){ ADS=[]; }
-  if(!ADS.length){ $('adsEl').style.display='none'; return; }
-  $('adsEl').style.display='block';
-  const track=document.getElementById('adsTrack');
-  track.innerHTML=ADS.map(a=>{
-    const isVid=a.type==='video'&&a.videoUrl;
-    const media=isVid
-      ? `<video src="${esc(a.videoUrl)}" class="ad-ph" style="object-fit:cover" autoplay muted loop playsinline></video>`
-      : (a.imgUrl?`<img src="${esc(a.imgUrl)}" class="ad-ph" style="object-fit:cover">`:`<div class="ad-ph" style="background:var(--blue-50)"></div>`);
-    const cap=a.caption?`<div class="ad-cap">${esc(a.caption)}</div>`:'';
-    return `<div class="ad-slide" onclick="window.openAd('${a.shopId||''}','${(a.shopName||'').replace(/'/g,"\\'")}','${(a.linkUrl||'').replace(/'/g,"\\'")}')">${media}${cap}</div>`;
-  }).join('');
-  document.getElementById('adsDots').innerHTML=ADS.map((_,i)=>`<div class="d${i===0?' on':''}" onclick="event.stopPropagation();goAd(${i})"></div>`).join('');
-  startAds();
+    const snap=await getDocs(collection(db,'ads')),l=[];
+    snap.forEach(d=>l.push({id:d.id,...d.data()}));ADS=l;
+    try{localStorage.setItem('homeAds',JSON.stringify(l.map(a=>({id:a.id,type:a.type,imgUrl:a.imgUrl,videoUrl:a.videoUrl,shopId:a.shopId,shopName:a.shopName,caption:a.caption,linkUrl:a.linkUrl}))))}catch(e){}
+  }catch(e){return}
+  buildHero();
 }
 // โฆษณาผูกกับร้าน (shopId) หรือลิงก์เว็บนอก (linkUrl) — ตั้งค่าได้จาก admin.html
 window.openAd=function(shopId,shopName,linkUrl){
   if(linkUrl){ window.open(linkUrl,'_blank'); return; }
   if(shopId) pick(shopId,shopName);
 };
-function goAd(i){
-  curAd=i;
-  const ow=document.getElementById('adsOuter').clientWidth;
-  const track=document.getElementById('adsTrack');
-  track.style.transition='transform .45s var(--bounce)';
-  track.style.transform=`translateX(${-(i*ow)}px)`;
-  document.querySelectorAll('.ads-dots .d').forEach((d,j)=>d.classList.toggle('on',j===i));
-}
-function startAds(){
-  if(adTimer) clearInterval(adTimer);
-  if(ADS.length>1) adTimer=setInterval(()=>goAd((curAd+1)%ADS.length),4500);
-}
 
 /* ===================== STATUS SLOT (ออเดอร์กำลังส่ง / ให้คะแนน) ===================== */
 // สถานะเดียวกับ track.html จริง (pending→accepted→picking→arrived→delivering→done)
@@ -1569,9 +1629,11 @@ function renderPop(){
     const pic=s.bannerUrl||s.avatarUrl;
     const img=pic?`<img src="${esc(pic)}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover">`
       :`<div class="pop-ph"><svg viewBox="0 0 24 24"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/></svg></div>`;
+    const bl=BADGE_LABEL[shopBadge(s)]||'แนะนำ';
+    const dist=s._dist!=null?(s._dist<1?Math.round(s._dist*1000)+' ม.':s._dist.toFixed(1)+' กม.'):esc(s.deliveryTime||'20-30')+' นาที';
     return `<div class="pop-card press" onclick="pick('${s.id}','${(s.name||'').replace(/'/g,"\\'")}')">
-      <div class="pop-img" style="position:relative">${img}</div>
-      <div class="pop-body"><div class="pop-name">${esc(s.name)}</div><div class="pop-meta"><svg class="pop-st" viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg> ${(parseFloat(s.rating)||0).toFixed(1)} · ${esc(s.deliveryTime||'20-30')} นาที${s._dist!=null?' · '+(s._dist<1?Math.round(s._dist*1000)+'m':s._dist.toFixed(2)+'km'):''}</div></div>
+      <div class="pop-img">${img}<button class="pop-fav ${favSet.has(s.id)?'on':''}" aria-label="ร้านโปรด" onclick="event.stopPropagation();toggleFav(this,'${s.id}')"><svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg></button></div>
+      <div class="pop-body"><span class="pop-bdg">${bl}</span><div class="pop-meta"><svg class="pop-st" viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg> ${(parseFloat(s.rating)||0).toFixed(1)} · ${dist}</div><div class="pop-name">${esc(s.name)}</div><div class="pop-cat">${esc(s.desc||'')}</div></div>
     </div>`;
   }).join('');
   applyStagger('#popRow','.pop-card');
@@ -2475,7 +2537,7 @@ async function liveRefresh(force){
     if(window._openSig!==undefined && os!==window._openSig && !busy){ renderPop(); renderShops(); }
     window._openSig=os;
   }catch(e){}
-  renderActiveOrder(); renderCouponPromo(); loadServiceCfg(); loadBanner(); loadNotifBadge(); refreshHomeBg();
+  renderActiveOrder(); renderCouponPromo(); loadServiceCfg(); loadBanner(); loadNotifBadge(); refreshHomeBg(); loadAds();
 }
 NimitLive.watch(liveRefresh,{every:25000});
 window.addEventListener('themechange',()=>{ try{ window._slotKey='';renderActiveOrder(); renderShops&&renderShops(); }catch(e){} });
