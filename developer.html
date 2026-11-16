@@ -363,8 +363,13 @@ window.onerror = function(msg, url, line, col, error){
     <div class="stitle">พื้นหลังหน้าแรก (ลูกค้า)</div>
     <div class="hint" style="margin-bottom:12px">ซ้อนได้หลายเลเยอร์ (รูป / ข้อความ) ลากเพื่อย้าย บีบนิ้วหรือเลื่อนล้อเมาส์เพื่อซูม แถบสีจางด้านล่างคือส่วนที่แผงหน้าแรกจะทับ</div>
     <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;margin-bottom:10px"><input type="checkbox" id="hbgOn" checked> เปิดใช้พื้นหลัง</label>
+    <div class="hbCtl" style="margin:0 0 10px">
+      <div class="r"><span style="width:86px">ความสูงพื้นที่</span><input type="range" id="hbHH" min="35" max="100" step="1" value="59"><b id="hbHHv" style="width:62px">59%</b></div>
+      <div class="r"><span style="width:86px">ดันแผงทับภาพ</span><input type="range" id="hbLift" min="0" max="80" step="1" value="0"><b id="hbLiftv" style="width:62px">0px</b></div>
+      <div class="hint">ความสูงเป็น % ของความกว้างจอ พื้นหลังแอพกับรูปโฆษณาใช้กรอบขนาดเดียวกัน ครอปจะเปลี่ยนตามตอนปรับ</div>
+    </div>
     <div class="hbTabs" id="hbTabs"></div>
-    <div class="hbS" id="hbS"><div class="hbLy" id="hbLy"></div><div class="hbEmpty" id="hbEmpty">ยังไม่มีเลเยอร์ กด "เพิ่มรูป" หรือ "เพิ่มข้อความ"</div><div class="hbSel" id="hbSel"></div><div class="hbP">แผงหน้าแรกทับตรงนี้</div></div>
+    <div class="hbS" id="hbS"><div class="hbLy" id="hbLy"></div><div class="hbEmpty" id="hbEmpty">ยังไม่มีเลเยอร์ กด "เพิ่มรูป" หรือ "เพิ่มข้อความ"</div><div class="hbSel" id="hbSel"></div><div class="hbP" id="hbP">แผงหน้าแรกทับตรงนี้</div></div>
     <div style="display:flex;gap:8px;margin:10px 0">
       <button type="button" class="hbBtn pri" id="hbAddImg">+ เพิ่มรูป</button>
       <button type="button" class="hbBtn" id="hbAddTxt">+ เพิ่มข้อความ</button>
@@ -398,6 +403,14 @@ window.onerror = function(msg, url, line, col, error){
       <div class="cpw"><canvas id="cpW" width="220" height="220" style="width:220px;height:220px"></canvas><canvas id="cpV" width="34" height="220"></canvas></div>
       <div class="cpr"><span class="pv" id="cpPv"></span><input class="inp" id="cpHex" type="text" maxlength="7" placeholder="#RRGGBB"><button type="button" class="hbBtn pri" id="cpOk" style="flex:none;padding:0 18px">เสร็จ</button></div></div></div>
     <div class="hsh" id="hbFS"><div class="hshi"><h4>เลือกฟอนต์</h4><div id="hbFL"></div></div></div>
+  </div>
+  <div class="card">
+    <div class="stitle">จัดหน้าแรก (ลูกค้า)</div>
+    <div class="hint" style="margin-bottom:10px">เรียงลำดับ ซ่อน/แสดง และปรับระยะห่าง/ขนาดของแต่ละส่วนในหน้าแรก (ช่องค้นหาอยู่บนสุดเสมอ) กดแถวเพื่อปรับระยะและขนาด</div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;margin-bottom:10px"><input type="checkbox" id="adCap"> แสดงชื่อร้านและข้อความบนรูปโฆษณา</label>
+    <div id="uiList" class="hbList"></div>
+    <div id="uiCtl" class="hbCtl"></div>
+    <button class="savbtn" style="margin-top:12px" onclick="saveHomeBg()">บันทึกพื้นหลังและการจัดหน้า</button>
   </div>
   <div class="card">
     <div class="stitle">🔔 VAPID Key (สำหรับแจ้งเตือน)</div>
@@ -1050,7 +1063,10 @@ window.saveTheme=async function(){
 const HBG_PAGES=[['coupon.html','คูปอง'],['reorder.html','ประวัติการสั่งซื้อ'],['cart.html','ตะกร้า'],['search.html','ค้นหา'],['notifications.html','แจ้งเตือน'],['loyalty.html','สะสมแต้ม'],['wallet.html','กระเป๋าเงิน'],['chat.html','แชท']];
 let HBG={on:true,linkType:'none',linkUrl:'',page:'coupon.html'};
 let HL=[],HSEL=-1;
-let SL=[{id:'bg',bg:'',bg2:'',layers:HL,linkType:'none',linkUrl:'',page:'coupon.html'}],SI=0;const curS=()=>SL[SI]||SL[0];           // HL[0] = หลังสุด, ท้ายอาร์เรย์ = หน้าสุด
+let SL=[{id:'bg',bg:'',bg2:'',layers:HL,linkType:'none',linkUrl:'',page:'coupon.html'}],SI=0;const curS=()=>SL[SI]||SL[0];
+let HEROH=59,LIFT=0,UIS={order:[],hide:new Set(),mt:{},zoom:{}},UISEL='';
+const heroAR=()=>100/HEROH;
+const UI_ITEMS=[['slot','สถานะออเดอร์ / ให้คะแนน'],['svc','ปุ่มบริการ (สั่งอาหาร / เรียกรถ / ฝากซื้อ)'],['rw','แต้มและรางวัล'],['cat','หมวดหมู่สินค้า'],['coupon','คูปอง'],['flash','ดีลลับ (Flash Sale)'],['pop','ร้านแนะนำ'],['bnr','แบนเนอร์แอพ'],['flt','ตัวกรองร้าน'],['shops','ร้านทั้งหมด']];           // HL[0] = หลังสุด, ท้ายอาร์เรย์ = หน้าสุด
 window.__hb={get HL(){return HL},get HSEL(){return HSEL}};
 const hS=document.getElementById('hbS'),hLy=document.getElementById('hbLy'),hSel=document.getElementById('hbSel');
 const $hb=id=>document.getElementById(id);
@@ -1059,10 +1075,11 @@ const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 
 function hRender(){
   const arr=HL.map(l=>l.t==='txt'?{...l,text:l.text||' '}:l);
-  NimitHomeBg.render(hLy,{on:true,bg:curS().bg,bg2:curS().bg2,layers:arr},{edit:true});
+  NimitHomeBg.render(hLy,{on:true,heroH:HEROH,bg:curS().bg,bg2:curS().bg2,layers:arr},{edit:true});
   $hb('hbEmpty').style.display=HL.length?'none':'grid';
   hOutline();
 }
+function hStage(){hS.style.aspectRatio=String(heroAR());const ph=390/heroAR();$hb('hbP').style.height=Math.min(60,(36+LIFT)/ph*100)+'%';hRender()}
 function hEl(i){return hLy.querySelector('.hbl[data-i="'+i+'"]')}
 function hOutline(){
   const e=HSEL>=0&&HL[HSEL]&&HL[HSEL].vis!==false?hEl(HSEL):null;
@@ -1084,7 +1101,7 @@ function hCtl(){
   const box=$hb('hbCtl'),l=HL[HSEL];
   if(!l){box.innerHTML='';return}
   const isT=l.t==='txt',sk=isT?'size':'w';
-  let h=rng('ขนาด',sk,isT?2:5,isT?30:300,.5,Math.min(isT?30:300,l[sk]))+rng('หมุน','rot',-180,180,1,l.rot,'°')+rng('โปร่งแสง','op',0,100,1,l.op);
+  let h=rng('ขนาด',sk,isT?2:5,isT?30:300,.5,Math.min(isT?30:300,isT?l[sk]:effW(l)))+rng('หมุน','rot',-180,180,1,l.rot,'°')+rng('โปร่งแสง','op',0,100,1,l.op);
   if(isT){
     h+=`<div class="r"><span>ข้อความ</span><input class="inp" id="hbTx" type="text" maxlength="80" value="${esc(l.text)}" style="flex:1;min-width:0"></div>
     <div class="r"><span>ฟอนต์</span><button type="button" class="mini" id="hbFont" style="flex:1;font-family:'${l.font}',sans-serif;font-size:16px;text-align:left">${esc(l.font)}</button></div>
@@ -1103,7 +1120,7 @@ function hCtl(){
   }
   box.innerHTML=h;
   box.querySelectorAll('input[type=range]').forEach(r=>r.oninput=()=>{
-    const k=r.dataset.k,v=parseFloat(r.value);l[k]=v;r.nextElementSibling.textContent=v.toFixed(+r.step<1?1:0)+r.dataset.u;hRender();
+    const k=r.dataset.k,v=parseFloat(r.value);if(k==='w')uncover(l);l[k]=v;r.nextElementSibling.textContent=v.toFixed(+r.step<1?1:0)+r.dataset.u;hRender();
   });
   box.querySelectorAll('[data-ck]').forEach(bn=>bn.onclick=()=>pickColor(l[bn.dataset.ck],v=>{l[bn.dataset.ck]=v;bn.style.background=v;hRender()}));
   if(isT){
@@ -1111,7 +1128,7 @@ function hCtl(){
     $hb('hbBold').onchange=e=>{l.weight=e.target.checked?800:500;hRender()};
     $hb('hbFont').onclick=()=>pickFont(l.font,f=>{l.font=f;hRender();hCtl()});
   }else{
-    $hb('hbFit').onclick=()=>{l.x=50;l.y=50;l.rot=0;l.w=Math.max(100,100*(l.ar||2)/NimitHomeBg.AR);hRender();hCtl()};
+    $hb('hbFit').onclick=()=>{l.x=50;l.y=50;l.rot=0;l.cover=true;l.w=Math.max(100,100*(l.ar||2)/heroAR());hRender();hCtl()};
     $hb('hbCtr').onclick=()=>{l.x=50;l.y=50;hRender()};
     const lt=$hb('hbLt'),lp=$hb('hbLp'),lu=$hb('hbLu');
     lt.value=l.linkType||'none';lp.value=l.page||HBG_PAGES[0][0];lu.value=l.linkUrl||'';
@@ -1174,6 +1191,8 @@ $hb('hbList').addEventListener('click',e=>{
   [HL[i],HL[j]]=[HL[j],HL[i]];HSEL=j;hAll();
 });
 
+const effW=l=>l.cover?Math.max(100,100*(l.ar||2)/heroAR()):l.w;
+function uncover(l){if(l&&l.cover){l.w=effW(l);l.cover=false}}
 /* drag / pinch / wheel on the stage */
 const hP=new Map();let hDrag=null,hPinch=null;
 function hHit(px,py){
@@ -1186,7 +1205,7 @@ function hHit(px,py){
 hS.addEventListener('pointerdown',e=>{
   hS.setPointerCapture(e.pointerId);hP.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(hP.size===1){const i=hHit(e.clientX,e.clientY);if(i>=0&&i!==HSEL)hSelect(i);hDrag=i>=0?{i}:null;}
-  if(hP.size===2&&HSEL>=0){const [a,b]=[...hP.values()];const l=HL[HSEL];hPinch={d:Math.hypot(a.x-b.x,a.y-b.y),v:l.t==='txt'?l.size:l.w};hDrag=null}
+  if(hP.size===2&&HSEL>=0){const [a,b]=[...hP.values()];const l=HL[HSEL];uncover(l);hPinch={d:Math.hypot(a.x-b.x,a.y-b.y),v:l.t==='txt'?l.size:l.w};hDrag=null}
 });
 hS.addEventListener('pointermove',e=>{
   const p=hP.get(e.pointerId);if(!p)return;
@@ -1206,7 +1225,7 @@ const hUp=e=>{hP.delete(e.pointerId);if(hP.size<2)hPinch=null;if(!hP.size){hDrag
 hS.addEventListener('pointerup',hUp);hS.addEventListener('pointercancel',hUp);
 hS.addEventListener('wheel',e=>{
   const l=HL[HSEL];if(!l)return;e.preventDefault();
-  const k=Math.exp(-e.deltaY*.0015);
+  const k=Math.exp(-e.deltaY*.0015);uncover(l);
   if(l.t==='txt')l.size=Math.min(30,Math.max(2,l.size*k));else l.w=Math.min(300,Math.max(5,l.w*k));
   hRender();clearTimeout(hS._t);hS._t=setTimeout(hCtl,150);
 },{passive:false});
@@ -1235,7 +1254,7 @@ $hb('hbf').onchange=async e=>{
     const r=await fetch('https://api.cloudinary.com/v1_1/ltthcvpf/image/upload',{method:'POST',body:fd});
     if(!r.ok)throw new Error('อัปโหลดไม่สำเร็จ (HTTP '+r.status+')');
     const url=(await r.json()).secure_url,ar=W/H,first=!HL.some(l=>l.t==='img');
-    HL.push({t:'img',url,ar:Math.round(ar*1000)/1000,x:50,y:50,w:first?Math.max(100,100*ar/NimitHomeBg.AR):Math.min(45,Math.max(20,50*ar)),sw:0,sc:'#ffffff',sh:0,rot:0,op:100,vis:true,linkType:'none',linkUrl:'',page:''});
+    HL.push({t:'img',url,ar:Math.round(ar*1000)/1000,x:50,y:50,cover:first,w:first?Math.max(100,100*ar/heroAR()):Math.min(45,Math.max(20,50*ar)),sw:0,sc:'#ffffff',sh:0,rot:0,op:100,vis:true,linkType:'none',linkUrl:'',page:''});
     HSEL=HL.length-1;hAll();toast('เพิ่มรูปแล้ว กด "บันทึกพื้นหลัง" เพื่อใช้จริง','ok');
   }catch(err){toast(err.message||'อัปโหลดไม่สำเร็จ','er')}
   btn.disabled=false;btn.textContent='+ เพิ่มรูป';
@@ -1292,9 +1311,31 @@ window.hbgUi=function(){
   $hb('hbgNote').textContent=t==='none'?'กดที่พื้นหลังแล้วไม่เกิดอะไร':t==='page'?'กดที่พื้นหลังแล้วไปหน้านี้ในแอพ':'ใส่ https://... หรือชื่อหน้า เช่น coupon.html';
 };
 const hLinkOk=(t,u)=>t!=='url'||/^https?:\/\//i.test(u)||/^[A-Za-z0-9_\-]+\.html([?#][A-Za-z0-9_\-.=&%#]*)?$/.test(u);
+
+/* hero height / lift sliders */
+$hb('hbHH').oninput=e=>{HEROH=+e.target.value;$hb('hbHHv').textContent=HEROH+'% (~'+Math.round(390*HEROH/100)+'px)';hStage()};
+$hb('hbLift').oninput=e=>{LIFT=+e.target.value;$hb('hbLiftv').textContent=LIFT+'px';hStage()};
+/* home sections: order / show / spacing / zoom */
+let UIORD=UI_ITEMS.map(x=>x[0]);
+function uiRender(){
+  $hb('uiList').innerHTML=UIORD.map((id,i)=>{const off=UIS.hide.has(id),nm=UI_ITEMS.find(x=>x[0]===id)[1];
+    return `<div class="hbRow ${id===UISEL?'on':''} ${off?'off':''}" data-id="${id}"><div class="th" style="width:auto;padding:0 8px;background:none">${i+1}</div><div class="nm">${nm}</div>
+    <button data-a="up" ${i===0?'disabled':''} aria-label="ขึ้น">${IC.up}</button><button data-a="dn" ${i===UIORD.length-1?'disabled':''} aria-label="ลง">${IC.dn}</button><button data-a="eye" aria-label="แสดง/ซ่อน">${off?IC.eyeX:IC.eye}</button></div>`}).join('');
+  const id=UISEL;
+  $hb('uiCtl').innerHTML=id?`<div class="r"><span style="width:86px">ระยะด้านบน</span><input type="range" id="uiMt" min="-30" max="80" step="2" value="${UIS.mt[id]||0}"><b id="uiMtv" style="width:52px">${UIS.mt[id]||0}px</b></div>
+    <div class="r"><span style="width:86px">ขนาด</span><input type="range" id="uiZm" min="70" max="130" step="2" value="${Math.round((UIS.zoom[id]||1)*100)}"><b id="uiZmv" style="width:52px">${Math.round((UIS.zoom[id]||1)*100)}%</b></div>`:'';
+  if(id){$hb('uiMt').oninput=e=>{UIS.mt[id]=+e.target.value;$hb('uiMtv').textContent=e.target.value+'px'};$hb('uiZm').oninput=e=>{UIS.zoom[id]=+e.target.value/100;$hb('uiZmv').textContent=e.target.value+'%'}}
+}
+$hb('uiList').addEventListener('click',e=>{
+  const row=e.target.closest('.hbRow');if(!row)return;const id=row.dataset.id,b=e.target.closest('button'),a=b&&b.dataset.a,i=UIORD.indexOf(id);
+  if(!a){UISEL=UISEL===id?'':id}
+  else if(a==='eye'){UIS.hide.has(id)?UIS.hide.delete(id):UIS.hide.add(id)}
+  else{const j=a==='up'?i-1:i+1;if(j<0||j>=UIORD.length)return;[UIORD[i],UIORD[j]]=[UIORD[j],UIORD[i]]}
+  uiRender();
+});
 function slideSync(){const S=curS();S.linkType=$hb('hbgType').value;S.linkUrl=$hb('hbgUrl').value.trim();S.page=$hb('hbgPage').value}
 function packLayers(arr){return arr.filter(l=>l.t==='img'||(l.text&&l.text.trim())).map(l=>l.t==='img'
-    ?{t:'img',url:l.url,ar:l.ar,x:l.x,y:l.y,w:l.w,sw:l.sw,sc:l.sc,sh:l.sh,rot:l.rot,op:l.op,vis:l.vis!==false,linkType:l.linkType||'none',linkUrl:l.linkType==='url'?l.linkUrl:'',page:l.linkType==='page'?l.page:''}
+    ?{t:'img',url:l.url,cover:!!l.cover,ar:l.ar,x:l.x,y:l.y,w:l.w,sw:l.sw,sc:l.sc,sh:l.sh,rot:l.rot,op:l.op,vis:l.vis!==false,linkType:l.linkType||'none',linkUrl:l.linkType==='url'?l.linkUrl:'',page:l.linkType==='page'?l.page:''}
     :{t:'txt',text:l.text.trim(),color:l.color,size:l.size,weight:l.weight,font:l.font,sw:l.sw,sc:l.sc,dp:l.dp,dc:l.dc,sh:l.sh,x:l.x,y:l.y,rot:l.rot,op:l.op,vis:l.vis!==false})}
 function hTabs(){
   $hb('hbTabs').innerHTML=SL.map((s,i)=>`<button type="button" class="hbTab ${i===SI?'on':''}" data-i="${i}">พื้นหลัง ${i+1}</button>`).join('')+(SL.length<8?'<button type="button" class="hbTab add" data-i="+">+ เพิ่มพื้นหลัง</button>':'');
@@ -1322,7 +1363,8 @@ window.saveHomeBg=async function(){
   }
   const pk=S=>({bg:S.bg||'',bg2:S.bg&&S.bg2?S.bg2:'',layers:packLayers(S.layers),linkType:S.linkType||'none',linkUrl:S.linkType==='url'?S.linkUrl:'',page:S.linkType==='page'?S.page:''});
   const first=pk(SL[0]),firstImg=first.layers.find(l=>l.t==='img');
-  const o={order:HORD.slice(),hide:[...HHIDE],secs:+$hb('hoSecs').value||5,on:$hb('hbgOn').checked,...first,imgUrl:firstImg?firstImg.url:'',extra:SL.slice(1).map(S=>({id:S.id,...pk(S)}))};
+  const ui={order:UIORD.slice(),hide:[...UIS.hide],mt:UIS.mt,zoom:UIS.zoom};
+  const o={heroH:HEROH,lift:LIFT,adCap:$hb('adCap').checked,ui,order:HORD.slice(),hide:[...HHIDE],secs:+$hb('hoSecs').value||5,on:$hb('hbgOn').checked,...first,imgUrl:firstImg?firstImg.url:'',extra:SL.slice(1).map(S=>({id:S.id,...pk(S)}))};
   try{await setDoc(doc(db,'settings','homeBg'),{...o,updatedAt:serverTimestamp()});HBG={...HBG,...o};toast('บันทึกพื้นหลังแล้ว','ok')}
   catch(e){toast('บันทึกไม่สำเร็จ: '+e.message,'er')}
 };
@@ -1331,7 +1373,11 @@ window.saveHomeBg=async function(){
   const mk=(id,c)=>{const n=NimitHomeBg.norm({on:true,bg:c.bg,bg2:c.bg2,layers:c.layers,imgUrl:c.imgUrl});return{id,bg:n.bg||'',bg2:n.bg2||'',layers:n.layers.map(l=>({...l})),linkType:c.linkType||'none',linkUrl:c.linkUrl||'',page:c.page||'coupon.html'}};
   SL=[mk('bg',HBG),...(Array.isArray(HBG.extra)?HBG.extra:[]).filter(e=>e&&typeof e.id==='string').map(e=>mk(e.id,e))];
   SI=0;HL=SL[0].layers;HSEL=HL.length?HL.length-1:-1;
-  hbgFill();hAll();hTabs();await hoLoad();
+  HEROH=Math.min(100,Math.max(35,+HBG.heroH||59));LIFT=Math.min(80,Math.max(0,+HBG.lift||0));
+  $hb('hbHH').value=HEROH;$hb('hbHHv').textContent=HEROH+'% (~'+Math.round(390*HEROH/100)+'px)';$hb('hbLift').value=LIFT;$hb('hbLiftv').textContent=LIFT+'px';$hb('adCap').checked=!!HBG.adCap;
+  const u=HBG.ui||{};UIS={order:[],hide:new Set(Array.isArray(u.hide)?u.hide:[]),mt:{...(u.mt||{})},zoom:{...(u.zoom||{})}};
+  const dids=UI_ITEMS.map(x=>x[0]),uo=(Array.isArray(u.order)?u.order:[]).filter(x=>dids.includes(x));UIORD=[...uo,...dids.filter(x=>!uo.includes(x))];
+  hbgFill();hStage();hAll();hTabs();uiRender();await hoLoad();
 })();
 
 // ============ แปลงรูปเก่า (base64) เป็นระบบใหม่ (Storage + ลิงก์) ============

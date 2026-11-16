@@ -636,7 +636,10 @@ html[data-sp~="cbg"] .cbox-ic{background:var(--amber-500,#FF7A18);}
 .hs-shop span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .hs-txt{display:block;margin-top:5px;font-family:'IBM Plex Sans Thai',sans-serif;font-size:12px;font-weight:400;text-shadow:0 1px 4px rgba(7,27,61,.5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .tb{--u:calc(min(100vw,480px)/941);}
-.hero-dots{position:absolute;left:0;right:0;bottom:calc(46*var(--u) - 1px);z-index:4;display:flex;justify-content:center;gap:5px;pointer-events:none;}
+.ui-off{display:none!important;}
+.panel.ui-flex{display:flex;flex-direction:column;}
+.panel.ui-flex>.pin{order:-1;}
+.hero-dots{position:absolute;left:0;right:0;bottom:calc(46*var(--u) - 1px + var(--lift,0px));z-index:4;display:flex;justify-content:center;gap:5px;pointer-events:none;}
 .hero-dots i{width:5px;height:5px;border-radius:3px;background:rgba(255,255,255,.55);transition:all .3s;pointer-events:auto;cursor:pointer;}
 .hero-dots i.on{background:#fff;width:16px;}
 .sticky-bar{display:none!important;}
@@ -794,7 +797,7 @@ html[data-theme="halloween"] .pin .srch{margin-right:0;}
   </div>
 
   <!-- CATEGORY BUTTONS -->
-  <div class="sec">
+  <div class="sec" id="catSec">
     <div class="sec-hd"><div class="sec-t">หมวดหมู่สินค้า</div></div>
     <div class="cat-row" id="catRow"></div>
   </div>
@@ -826,12 +829,12 @@ html[data-theme="halloween"] .pin .srch{margin-right:0;}
   <div class="bnrw" id="bnrEl" style="display:none"><div class="bnrt" id="bnrTrack"></div><div class="bnrd" id="bnrDots"></div></div>
 
   <!-- FILTER CHIPS -->
-  <div class="sec" style="margin-top:16px;">
+  <div class="sec" id="fltSec" style="margin-top:16px;">
     <div class="filter-row" id="filterRow"></div>
   </div>
 
   <!-- SHOPS -->
-  <div class="sec">
+  <div class="sec" id="shopSec">
     <div class="sec-hd"><div class="sec-t" id="shopsHd">ร้านทั้งหมด</div></div>
     <div id="shopsEl"></div>
   </div>
@@ -1174,7 +1177,7 @@ let curAd=0,adTimer=null,heroSig='',heroN=0,heroHold=0;
 const HS_SHOP='<svg viewBox="0 0 24 24"><path d="M4 4h16l1 5a3 3 0 0 1-5.5 1.6 3 3 0 0 1-5 0A3 3 0 0 1 3 9l1-5zm1 8.4V20h5v-5h4v5h5v-7.6a4.9 4.9 0 0 1-1 .1 4.9 4.9 0 0 1-3.5-1.4 4.9 4.9 0 0 1-3.5 1.4 4.9 4.9 0 0 1-3.5-1.4A4.9 4.9 0 0 1 6 12.5a4.9 4.9 0 0 1-1-.1z"/></svg>';
 function heroSlides(){
   const cfg=HB||{},hide=new Set(Array.isArray(cfg.hide)?cfg.hide:[]);
-  const bgs=[{id:'bg',c:cfg},...(Array.isArray(cfg.extra)?cfg.extra:[]).filter(e=>e&&typeof e.id==='string').map(e=>({id:e.id,c:{...e,on:cfg.on}}))];
+  const bgs=[{id:'bg',c:cfg},...(Array.isArray(cfg.extra)?cfg.extra:[]).filter(e=>e&&typeof e.id==='string').map(e=>({id:e.id,c:{...e,on:cfg.on,heroH:cfg.heroH}}))];
   const ids=[...bgs.map(x=>x.id),...ADS.map(a=>a.id)],ord=(Array.isArray(cfg.order)?cfg.order:[]).filter(x=>ids.includes(x));
   const all=[...bgs.map(x=>x.id).filter(x=>!ord.includes(x)),...ord,...ADS.map(a=>a.id).filter(x=>!ord.includes(x))];
   const out=[];
@@ -1185,12 +1188,31 @@ function heroSlides(){
     const a=ADS.find(x=>x.id===id);
     if(a&&((a.type==='video'&&a.videoUrl)||a.imgUrl))out.push({k:'ad',a});
   });
-  return {slides:out,secs:Math.min(15,Math.max(3,+cfg.secs||5))};
+  return {slides:out,secs:Math.min(15,Math.max(3,+cfg.secs||5)),cap:!!cfg.adCap};
+}
+const UI_REG=[['slot','stSlot'],['svc','svcEl'],['rw','rwEl'],['cat','catSec'],['coupon','couponPromoEl'],['flash','flashSec'],['pop','popSec'],['bnr','bnrEl'],['flt','fltSec'],['shops','shopSec']];
+function applyLayout(){
+  const c=HB||{},ui=c.ui||{},pn=$('panel'),tb=document.querySelector('.tb');if(!pn||!tb)return;
+  const lift=Math.min(80,Math.max(0,+c.lift||0));
+  pn.style.marginTop=lift?(-lift)+'px':'';tb.style.setProperty('--lift',lift+'px');
+  const def=UI_REG.map(x=>x[0]),ord=(Array.isArray(ui.order)?ui.order:[]).filter(x=>def.includes(x)),all=[...ord,...def.filter(x=>!ord.includes(x))];
+  const custom=all.join()!==def.join(),hide=new Set(Array.isArray(ui.hide)?ui.hide:[]),mt=ui.mt||{},zm=ui.zoom||{};
+  pn.classList.toggle('ui-flex',custom);
+  UI_REG.forEach(([id,eid])=>{
+    const el=$(eid);if(!el)return;
+    el.style.order=custom?String(all.indexOf(id)+1):'';
+    el.classList.toggle('ui-off',hide.has(id));
+    if(el.dataset.m0===undefined)el.dataset.m0=String(parseFloat(getComputedStyle(el).marginTop)||0);
+    const m=+mt[id]||0;el.style.marginTop=m?(+el.dataset.m0+m)+'px':'';
+    const z=+zm[id]||1;el.style.zoom=z!==1?String(z):'';
+  });
 }
 function buildHero(){
+  applyLayout();
   const tb=document.querySelector('.tb'),sl=$('heroSl');if(!tb||!sl||!window.NimitHomeBg)return;
-  const {slides,secs}=heroSlides();
-  const sig=JSON.stringify([slides.map(x=>x.k==='bg'?[x.id,x.n]:[x.a.id,x.a.imgUrl,x.a.videoUrl,x.a.shopName,x.a.caption]),secs]);
+  const {slides,secs,cap:showCap}=heroSlides();
+  tb.style.aspectRatio=slides.length?String(100/Math.min(100,Math.max(35,+(HB&&HB.heroH)||59))):'';
+  const sig=JSON.stringify([slides.map(x=>x.k==='bg'?[x.id,x.n]:[x.a.id,x.a.imgUrl,x.a.videoUrl,x.a.shopName,x.a.caption]),secs,showCap]);
   const f=slides.find(x=>x.k==='bg');window.__homeBgUrl=f?NimitHomeBg.target(f.n):'';
   tb.classList.toggle('has-hero',slides.length>0);
   tb.classList.toggle('has-link',!!window.__homeBgUrl);
@@ -1200,7 +1222,7 @@ function buildHero(){
     const a=x.a,isVid=a.type==='video'&&a.videoUrl;
     const media=isVid?`<video src="${esc(a.videoUrl)}" autoplay muted loop playsinline></video>`:`<img src="${esc(NimitHomeBg.opt(a.imgUrl,900))}" alt="">`;
     const nm=a.shopName||'',tx=a.caption||'';
-    const cap=(nm||tx)?`<div class="hs-cap">${nm?`<span class="hs-shop">${HS_SHOP}<span>${esc(nm)}</span></span>`:''}${tx?`<span class="hs-txt">${esc(tx)}</span>`:''}</div>`:'';
+    const cap=(showCap&&(nm||tx))?`<div class="hs-cap">${nm?`<span class="hs-shop">${HS_SHOP}<span>${esc(nm)}</span></span>`:''}${tx?`<span class="hs-txt">${esc(tx)}</span>`:''}</div>`:'';
     return `<div class="hs hs-ad" data-id="${esc(a.id)}">${media}${cap}</div>`;
   }).join('');
   slides.forEach((x,i)=>{if(x.k==='bg')NimitHomeBg.render(sl.children[i].firstChild,x.n)});
