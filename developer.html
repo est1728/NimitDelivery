@@ -1064,7 +1064,7 @@ const HBG_PAGES=[['coupon.html','คูปอง'],['reorder.html','ประว
 let HBG={on:true,linkType:'none',linkUrl:'',page:'coupon.html'};
 let HL=[],HSEL=-1;
 let SL=[{id:'bg',bg:'',bg2:'',layers:HL,linkType:'none',linkUrl:'',page:'coupon.html'}],SI=0;const curS=()=>SL[SI]||SL[0];
-let HEROH=59,LIFT=0,UIS={order:[],hide:new Set(),mt:{},zoom:{}},UISEL='';
+let HEROH=59,LIFT=0,UIS={order:[],hide:new Set(),mt:{},zoom:{},pop:{}},UISEL='';
 const heroAR=()=>100/HEROH;
 const UI_ITEMS=[['slot','สถานะออเดอร์ / ให้คะแนน'],['svc','ปุ่มบริการ (สั่งอาหาร / เรียกรถ / ฝากซื้อ)'],['rw','แต้มและรางวัล'],['cat','หมวดหมู่สินค้า'],['coupon','คูปอง'],['flash','ดีลลับ (Flash Sale)'],['pop','ร้านแนะนำ'],['bnr','แบนเนอร์แอพ'],['flt','ตัวกรองร้าน'],['shops','ร้านทั้งหมด']];           // HL[0] = หลังสุด, ท้ายอาร์เรย์ = หน้าสุด
 window.__hb={get HL(){return HL},get HSEL(){return HSEL}};
@@ -1324,6 +1324,10 @@ function uiRender(){
   const id=UISEL;
   $hb('uiCtl').innerHTML=id?`<div class="r"><span style="width:86px">ระยะด้านบน</span><input type="range" id="uiMt" min="-30" max="80" step="2" value="${UIS.mt[id]||0}"><b id="uiMtv" style="width:52px">${UIS.mt[id]||0}px</b></div>
     <div class="r"><span style="width:86px">ขนาด</span><input type="range" id="uiZm" min="70" max="130" step="2" value="${Math.round((UIS.zoom[id]||1)*100)}"><b id="uiZmv" style="width:52px">${Math.round((UIS.zoom[id]||1)*100)}%</b></div>`:'';
+  if(id==='pop'){const P=UIS.pop,D={n:3,h:55,r:7,g:7,px:8,fs:100},F=[['n','การ์ดต่อแถว',2,4,1,''],['h','ความสูงรูป',30,90,1,'%'],['r','ความมนมุม',0,20,1,'px'],['g','ช่องว่างการ์ด',0,16,1,'px'],['px','ขอบซ้ายขวา',0,20,1,'px'],['fs','ขนาดตัวอักษร',80,130,2,'%']];
+    $hb('uiCtl').insertAdjacentHTML('beforeend',F.map(([k,nm,lo,hi,st,u])=>`<div class="r"><span style="width:86px">${nm}</span><input type="range" data-pk="${k}" min="${lo}" max="${hi}" step="${st}" value="${P[k]??D[k]}"><b style="width:52px">${P[k]??D[k]}${u}</b></div>`).join('')+`<button type="button" class="hbBtn" id="popRst" style="width:100%;flex:none;margin-top:8px">คืนค่าการ์ดร้านแนะนำ</button>`);
+    $hb('uiCtl').querySelectorAll('[data-pk]').forEach(inp=>{const u=F.find(f=>f[0]===inp.dataset.pk)[5];inp.oninput=e=>{P[inp.dataset.pk]=+e.target.value;inp.nextElementSibling.textContent=e.target.value+u}});
+    $hb('popRst').onclick=()=>{UIS.pop={};uiRender()}}
   if(id){$hb('uiMt').oninput=e=>{UIS.mt[id]=+e.target.value;$hb('uiMtv').textContent=e.target.value+'px'};$hb('uiZm').oninput=e=>{UIS.zoom[id]=+e.target.value/100;$hb('uiZmv').textContent=e.target.value+'%'}}
 }
 $hb('uiList').addEventListener('click',e=>{
@@ -1363,7 +1367,7 @@ window.saveHomeBg=async function(){
   }
   const pk=S=>({bg:S.bg||'',bg2:S.bg&&S.bg2?S.bg2:'',layers:packLayers(S.layers),linkType:S.linkType||'none',linkUrl:S.linkType==='url'?S.linkUrl:'',page:S.linkType==='page'?S.page:''});
   const first=pk(SL[0]),firstImg=first.layers.find(l=>l.t==='img');
-  const ui={order:UIORD.slice(),hide:[...UIS.hide],mt:UIS.mt,zoom:UIS.zoom};
+  const ui={order:UIORD.slice(),hide:[...UIS.hide],mt:UIS.mt,zoom:UIS.zoom,pop:UIS.pop};
   const o={heroH:HEROH,lift:LIFT,adCap:$hb('adCap').checked,ui,order:HORD.slice(),hide:[...HHIDE],secs:+$hb('hoSecs').value||5,on:$hb('hbgOn').checked,...first,imgUrl:firstImg?firstImg.url:'',extra:SL.slice(1).map(S=>({id:S.id,...pk(S)}))};
   try{await setDoc(doc(db,'settings','homeBg'),{...o,updatedAt:serverTimestamp()});HBG={...HBG,...o};toast('บันทึกพื้นหลังแล้ว','ok')}
   catch(e){toast('บันทึกไม่สำเร็จ: '+e.message,'er')}
@@ -1375,7 +1379,7 @@ window.saveHomeBg=async function(){
   SI=0;HL=SL[0].layers;HSEL=HL.length?HL.length-1:-1;
   HEROH=Math.min(100,Math.max(35,+HBG.heroH||59));LIFT=Math.min(80,Math.max(0,+HBG.lift||0));
   $hb('hbHH').value=HEROH;$hb('hbHHv').textContent=HEROH+'% (~'+Math.round(390*HEROH/100)+'px)';$hb('hbLift').value=LIFT;$hb('hbLiftv').textContent=LIFT+'px';$hb('adCap').checked=!!HBG.adCap;
-  const u=HBG.ui||{};UIS={order:[],hide:new Set(Array.isArray(u.hide)?u.hide:[]),mt:{...(u.mt||{})},zoom:{...(u.zoom||{})}};
+  const u=HBG.ui||{};UIS={order:[],hide:new Set(Array.isArray(u.hide)?u.hide:[]),mt:{...(u.mt||{})},zoom:{...(u.zoom||{})},pop:{...(u.pop||{})}};
   const dids=UI_ITEMS.map(x=>x[0]),uo=(Array.isArray(u.order)?u.order:[]).filter(x=>dids.includes(x));UIORD=[...uo,...dids.filter(x=>!uo.includes(x))];
   hbgFill();hStage();hAll();hTabs();uiRender();await hoLoad();
 })();

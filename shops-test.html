@@ -716,15 +716,15 @@ html[data-theme="halloween"] .pin .srch{margin-right:0;}
 .pop-bdg{right:6px;font-size:8.5px;padding:2px 7px;}
 .pop-box{border-radius:10px;}
 .pop-box::after{border-radius:0 0 8px 8px;}
-.pop-card{border-radius:7px;}
-.pop-body{border-radius:8px 8px 0 0;}
-.pop-card{width:calc((100% - 7px)/2.65);min-width:112px;}
-.pop-img{aspect-ratio:1/.46;}
-.pop-body{margin-top:-10px;padding:6px 9px 7px;}
-.pop-name{font-size:11.5px;}
-.pop-meta{font-size:10px;}
-.pop-cat{font-size:9.5px;}
-.pop-bdg{top:-11px;font-size:9px;padding:2px 8px;}
+.pop-card{border-radius:var(--prad,7px);}
+.pop-body{border-radius:calc(var(--prad,7px) + 1px) calc(var(--prad,7px) + 1px) 0 0;}
+.pop-row{padding:0 var(--ppad,8px) 8px;gap:var(--pgap,7px);scroll-padding:0 var(--ppad,8px);}
+.pop-card{width:calc((100% - 2*var(--ppad,8px) - (var(--pn,3) - 1)*var(--pgap,7px))/var(--pn,3));min-width:0;}
+.pop-img{aspect-ratio:1/var(--pir,.55);}
+.pop-body{margin-top:-10px;padding:5px 8px 6px;}
+.pop-name{font-size:calc(11px*var(--pfs,1));}
+.pop-meta{font-size:calc(10px*var(--pfs,1));}
+.pop-cat{font-size:calc(9px*var(--pfs,1));}
 
 .pop-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .pop-meta{white-space:nowrap;font-size:10.5px;}
@@ -1231,6 +1231,11 @@ function applyLayout(){
   const def=UI_REG.map(x=>x[0]),ord=(Array.isArray(ui.order)?ui.order:[]).filter(x=>def.includes(x)),all=[...ord,...def.filter(x=>!ord.includes(x))];
   const custom=all.join()!==def.join(),hide=new Set(Array.isArray(ui.hide)?ui.hide:[]),mt=ui.mt||{},zm=ui.zoom||{};
   pn.classList.toggle('ui-flex',custom);
+  const pp=ui.pop||{},ps=$('popSec');
+  if(ps){const nn=Math.min(4,Math.max(2,+pp.n||3)),cl=(v,lo,hi,d)=>Math.min(hi,Math.max(lo,isFinite(+v)&&v!==undefined&&v!==''?+v:d));
+    ps.style.setProperty('--pn',String(nn));ps.style.setProperty('--pir',String(cl(pp.h,30,90,55)/100));
+    ps.style.setProperty('--prad',cl(pp.r,0,20,7)+'px');ps.style.setProperty('--pgap',cl(pp.g,0,16,7)+'px');
+    ps.style.setProperty('--ppad',cl(pp.px,0,20,8)+'px');ps.style.setProperty('--pfs',String(cl(pp.fs,80,130,100)/100));}
   UI_REG.forEach(([id,eid])=>{
     const el=$(eid);if(!el)return;
     el.style.order=custom?String(all.indexOf(id)+1):'';
