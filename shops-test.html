@@ -672,7 +672,8 @@ html[data-theme="halloween"] .pin .srch{margin-right:0;}
 .bottom-nav.hide{transform:translateX(-50%) translateY(calc(100% + 40px));}
 #shopsHd{scroll-margin-top:72px;}
 #popSec{margin:20px 16px 0;}
-.pop-box{background:linear-gradient(160deg,var(--t1),#fff 70%);border:1px solid var(--t3);border-radius:26px;padding:14px 0 10px;box-shadow:0 6px 20px rgba(46,111,224,.12);}
+.pop-box{position:relative;background:#fff;border:1.5px solid #dce8fc;border-radius:26px;padding:14px 0 12px;box-shadow:0 8px 22px rgba(46,111,224,.10);}
+.pop-box::after{content:'';position:absolute;left:12px;right:12px;bottom:-7px;height:14px;border:1.5px solid #e6eefc;border-top:0;border-radius:0 0 22px 22px;z-index:-1;}
 .pop-hd{display:flex;align-items:center;justify-content:space-between;padding:0 14px 12px;}
 .pop-tt{display:flex;align-items:center;gap:9px;}
 .pop-ic{width:34px;height:34px;border-radius:11px;background:var(--blue-600);display:grid;place-items:center;}
@@ -680,19 +681,19 @@ html[data-theme="halloween"] .pin .srch{margin-right:0;}
 .pop-tt b{font-family:'Prompt';font-size:18px;font-weight:700;color:var(--blue-900);}
 .pop-all{font-size:12.5px;font-weight:600;color:var(--blue-600);cursor:pointer;}
 .pop-row{padding:0 14px 6px;gap:10px;}
-.pop-card{width:122px;background:#fff;border:0;border-radius:20px;overflow:hidden;box-shadow:0 4px 14px rgba(14,59,140,.10);}
+.pop-card{width:122px;background:#fff;border:0;border-radius:18px;overflow:hidden;box-shadow:0 5px 16px rgba(14,59,140,.12);display:flex;flex-direction:column;}
 .pop-img{height:92px;border-radius:0;overflow:hidden;position:relative;}
 .pop-fav{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(255,255,255,.88);display:grid;place-items:center;padding:0;cursor:pointer;z-index:2;}
 .pop-fav svg{width:15px;height:15px;fill:none;stroke:var(--ink-700);stroke-width:2.2;}
 .pop-fav.on svg{fill:var(--red-500);stroke:var(--red-500);}
-.pop-body{position:relative;margin-top:-12px;background:#fff;border-radius:14px 14px 0 0;padding:9px 9px 10px;}
-.pop-bdg{position:absolute;right:7px;top:-11px;background:var(--blue-500);color:#fff;font-size:10px;font-weight:700;padding:2px 9px;border-radius:10px;}
-.pop-meta{display:flex;align-items:center;gap:3px;margin:0 0 4px;}
+.pop-body{position:relative;margin-top:-16px;background:#fff;border-radius:18px 18px 0 0;padding:8px 9px 9px;flex:1;}
+.pop-bdg{position:absolute;right:7px;top:-12px;max-width:80%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:linear-gradient(180deg,#5b94ff,#2f6fe4);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:12px;box-shadow:0 2px 6px rgba(46,111,224,.3);}
+.pop-meta{display:flex;align-items:center;gap:3px;margin:0 0 2px;}
 .pop-name{font-family:'Prompt';font-size:12.5px;font-weight:600;}
 .pop-cat{font-size:10.5px;color:var(--ink-500);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .pop-row{scroll-snap-type:x proximity;scroll-padding:0 14px;}
 .pop-card{width:calc((100% - 20px)/3);flex:none;min-width:96px;scroll-snap-align:start;}
-.pop-img{height:auto;aspect-ratio:1/.68;}
+.pop-img{height:auto;aspect-ratio:1/.54;}
 .pop-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .pop-meta{white-space:nowrap;font-size:10.5px;}
 .panel{--u:calc(min(100vw,480px)/941);margin-top:0;padding-top:calc(8*var(--u));border-radius:0;box-shadow:none;
@@ -1658,11 +1659,11 @@ function renderPop(){
     const pic=s.bannerUrl||s.avatarUrl;
     const img=pic?`<img src="${esc(pic)}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover">`
       :`<div class="pop-ph"><svg viewBox="0 0 24 24"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/></svg></div>`;
-    const bl=BADGE_LABEL[shopBadge(s)]||'แนะนำ';
+    const bl=({pop:'ยอดนิยม',top:'ร้านดัง',new:'ร้านใหม่',fast:'ส่งไว',promo:'โปรโมชัน'})[shopBadge(s)]||'แนะนำ';
     const dist=s._dist!=null?(s._dist<1?Math.round(s._dist*1000)+' ม.':s._dist.toFixed(1)+' กม.'):esc(s.deliveryTime||'20-30')+' นาที';
     return `<div class="pop-card press" onclick="pick('${s.id}','${(s.name||'').replace(/'/g,"\\'")}')">
       <div class="pop-img">${img}<button class="pop-fav ${favSet.has(s.id)?'on':''}" aria-label="ร้านโปรด" onclick="event.stopPropagation();toggleFav(this,'${s.id}')"><svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg></button></div>
-      <div class="pop-body"><span class="pop-bdg">${bl}</span><div class="pop-meta"><svg class="pop-st" viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg> ${(parseFloat(s.rating)||0).toFixed(1)} · ${dist}</div><div class="pop-name">${esc(s.name)}</div><div class="pop-cat">${esc(s.desc||'')}</div></div>
+      <div class="pop-body"><span class="pop-bdg">${bl}</span><div class="pop-meta"><svg class="pop-st" viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg> ${(parseFloat(s.rating)||0).toFixed(1)} · ${dist}</div><div class="pop-name">${esc(s.name)}</div><div class="pop-cat">${esc(s.desc||'')||'&nbsp;'}</div></div>
     </div>`;
   }).join('');
   applyStagger('#popRow','.pop-card');
