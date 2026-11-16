@@ -208,6 +208,18 @@ body{background:var(--g);min-height:100vh;}
 </style>
 <script src="theme.js" data-noapply></script>
 <script src="homebg.js"></script>
+<style>
+.pv{width:370px;margin:0 auto;transform-origin:0 0}.pvw{overflow:hidden;margin-top:10px;border-radius:12px;background:#eef3fd;padding:10px 0}
+.pv .box{position:relative;background:#fff;border:1.5px solid #dce8fc;border-radius:10px;padding:9px 0 6px;box-shadow:0 8px 22px rgba(46,111,224,.10);margin:0 10px}
+.pv .hd{display:flex;align-items:center;justify-content:space-between;padding:0 10px 6px}.pv .tt{display:flex;align-items:center;gap:7px;font-weight:700;font-size:15px;color:#0e3b8c}
+.pv .ic{width:22px;height:22px;border-radius:7px;background:#2563eb}.pv .al{font-size:11px;font-weight:600;color:#2563eb}
+.pv .row{display:flex;overflow:hidden;padding:0 var(--ppad) 8px;gap:var(--pgap)}
+.pv .cd{flex:none;width:calc((100% - 2*var(--ppad) - (var(--pn) - 1)*var(--pgap))/var(--pn));background:#fff;border-radius:var(--prad);overflow:hidden;box-shadow:0 5px 16px rgba(14,59,140,.12);display:flex;flex-direction:column}
+.pv .im{aspect-ratio:1/var(--pir);position:relative}.pv .fv{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.88)}
+.pv .bd{position:relative;margin-top:-10px;background:#fff;border-radius:calc(var(--prad) + 1px) calc(var(--prad) + 1px) 0 0;padding:5px 8px 6px;flex:1;line-height:1.25}
+.pv .bg{position:absolute;right:6px;top:-11px;background:linear-gradient(180deg,#5b94ff,#2f6fe4);color:#fff;font-size:8.5px;font-weight:700;padding:2px 7px;border-radius:12px}
+.pv .mt{font-size:calc(10px*var(--pfs));color:#64748b;white-space:nowrap}.pv .nm2{font-size:calc(11px*var(--pfs));font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#0f172a}.pv .ct{font-size:calc(9px*var(--pfs));color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+</style>
 </head>
 <body>
 <script>
@@ -1327,7 +1339,13 @@ function uiRender(){
   if(id==='pop'){const P=UIS.pop,D={n:3,h:55,r:7,g:7,px:8,fs:100},F=[['n','การ์ดต่อแถว',2,4,1,''],['h','ความสูงรูป',30,90,1,'%'],['r','ความมนมุม',0,20,1,'px'],['g','ช่องว่างการ์ด',0,16,1,'px'],['px','ขอบซ้ายขวา',0,20,1,'px'],['fs','ขนาดตัวอักษร',80,130,2,'%']];
     $hb('uiCtl').insertAdjacentHTML('beforeend',F.map(([k,nm,lo,hi,st,u])=>`<div class="r"><span style="width:86px">${nm}</span><input type="range" data-pk="${k}" min="${lo}" max="${hi}" step="${st}" value="${P[k]??D[k]}"><b style="width:52px">${P[k]??D[k]}${u}</b></div>`).join('')+`<button type="button" class="hbBtn" id="popRst" style="width:100%;flex:none;margin-top:8px">คืนค่าการ์ดร้านแนะนำ</button>`);
     $hb('uiCtl').querySelectorAll('[data-pk]').forEach(inp=>{const u=F.find(f=>f[0]===inp.dataset.pk)[5];inp.oninput=e=>{P[inp.dataset.pk]=+e.target.value;inp.nextElementSibling.textContent=e.target.value+u}});
-    $hb('popRst').onclick=()=>{UIS.pop={};uiRender()}}
+    $hb('uiCtl').insertAdjacentHTML('beforeend','<div class="pvw"><div class="pv" id="popPv"></div></div>');
+    const pv=()=>{const e=$hb('popPv'),w=e.parentNode.clientWidth,k=Math.min(1,(w-0)/370),g=(v,lo,hi,d)=>Math.min(hi,Math.max(lo,v==null?d:+v)),Q=UIS.pop;
+      e.style.cssText=`--pn:${g(Q.n,2,4,3)};--pir:${g(Q.h,30,90,55)/100};--prad:${g(Q.r,0,20,7)}px;--pgap:${g(Q.g,0,16,7)}px;--ppad:${g(Q.px,0,20,8)}px;--pfs:${g(Q.fs,80,130,100)/100};zoom:${k}`;
+      const cols=['#f4a3b4','#8fcf9c','#e0ae66','#9ec1ef'],c=i=>`<div class="cd"><div class="im" style="background:${cols[i]}"><span class="fv"></span></div><div class="bd"><span class="bg">ยอดนิยม</span><div class="mt">★ 4.8 · 546 ม.</div><div class="nm2">ร้านตัวอย่าง ${i+1}</div><div class="ct">อาหารตามสั่ง</div></div></div>`;
+      e.innerHTML=`<div class="box"><div class="hd"><span class="tt"><i class="ic"></i>ร้านแนะนำ</span><span class="al">ดูทั้งหมด ›</span></div><div class="row">${[0,1,2,3].map(c).join('')}</div></div>`};
+    $hb('uiCtl').querySelectorAll('[data-pk]').forEach(inp=>inp.addEventListener('input',pv));pv();
+    $hb('popRst').onclick=()=>{UIS.pop={};UIS.mt.pop=0;UIS.zoom.pop=1;uiRender()}}
   if(id){$hb('uiMt').oninput=e=>{UIS.mt[id]=+e.target.value;$hb('uiMtv').textContent=e.target.value+'px'};$hb('uiZm').oninput=e=>{UIS.zoom[id]=+e.target.value/100;$hb('uiZmv').textContent=e.target.value+'%'}}
 }
 $hb('uiList').addEventListener('click',e=>{
