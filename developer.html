@@ -410,7 +410,9 @@ window.onerror = function(msg, url, line, col, error){
     <input class="inp" id="hbgUrl" type="text" inputmode="url" placeholder="https://... หรือชื่อหน้า เช่น coupon.html" style="margin-bottom:8px;display:none">
     <div class="hint" id="hbgNote" style="margin-bottom:10px"></div>
     <button type="button" class="hbBtn" id="hbDelSl" style="width:100%;flex:none;margin-bottom:10px;border-color:#fecaca;color:#dc2626;display:none">ลบพื้นหลังนี้</button>
-    <button type="button" class="hbBtn" id="hbRstH" style="width:100%;flex:none;margin-bottom:10px">คืนค่าเริ่มต้น ความสูงพื้นที่และดันแผง</button>
+    <div class="r"><span style="width:86px">เงาด้านบน</span><input type="range" id="hbShT" min="0" max="100" step="2" value="100"><b id="hbShTv" style="width:62px">100%</b></div>
+    <div class="r"><span style="width:86px">เงารูปโฆษณา</span><input type="range" id="hbShB" min="0" max="100" step="2" value="100"><b id="hbShBv" style="width:62px">100%</b></div>
+    <button type="button" class="hbBtn" id="hbRstH" style="width:100%;flex:none;margin-bottom:10px">คืนค่าเริ่มต้น ความสูง ดันแผง และเงา</button>
     <button class="savbtn" onclick="saveHomeBg('bg')">บันทึกพื้นหลัง</button>
     <input type="file" id="hbf" accept="image/*" hidden>
     <div class="hsh" id="hbCP"><div class="hshi"><h4>เลือกสี</h4>
@@ -1079,7 +1081,7 @@ const HBG_PAGES=[['coupon.html','คูปอง'],['reorder.html','ประว
 let HBG={on:true,linkType:'none',linkUrl:'',page:'coupon.html'};
 let HL=[],HSEL=-1;
 let SL=[{id:'bg',bg:'',bg2:'',layers:HL,linkType:'none',linkUrl:'',page:'coupon.html'}],SI=0;const curS=()=>SL[SI]||SL[0];
-let HEROH=59,LIFT=0,UIS={order:[],hide:new Set(),mt:{},zoom:{},pop:{}},UISEL='';
+let HEROH=59,LIFT=0,SHT=100,SHB=100,UIS={order:[],hide:new Set(),mt:{},zoom:{},pop:{}},UISEL='';
 const heroAR=()=>100/HEROH;
 const UI_ITEMS=[['slot','สถานะออเดอร์ / ให้คะแนน'],['svc','ปุ่มบริการ (สั่งอาหาร / เรียกรถ / ฝากซื้อ)'],['rw','แต้มและรางวัล'],['cat','หมวดหมู่สินค้า'],['coupon','คูปอง'],['flash','ดีลลับ (Flash Sale)'],['pop','ร้านแนะนำ'],['bnr','แบนเนอร์แอพ'],['flt','ตัวกรองร้าน'],['shops','ร้านทั้งหมด']];           // HL[0] = หลังสุด, ท้ายอาร์เรย์ = หน้าสุด
 window.__hb={get HL(){return HL},get HSEL(){return HSEL}};
@@ -1384,7 +1386,8 @@ $hb('hbDelSl').onclick=()=>{
 const LKI='<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',UKI='<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/></svg>';
 window.hbLock=function(i,on){const c=document.querySelectorAll('[data-lkcard]')[i];if(!c)return;c.classList.toggle('lockd',on);const b=c.querySelector('[data-lk]');b.innerHTML=on?LKI+'ปลดล็อกเพื่อแก้ไข':UKI+'ล็อก';b.style.background=on?'':'#ecfdf5';b.style.borderColor=on?'':'#6ee7b7';b.style.color=on?'':'#047857'};
 document.querySelectorAll('[data-lkcard]').forEach((c,i)=>{c.querySelector('[data-lk]').onclick=()=>hbLock(i,!c.classList.contains('lockd'));hbLock(i,true)});
-$hb('hbRstH').onclick=()=>{HEROH=59;LIFT=0;$hb('hbHH').value=59;$hb('hbLift').value=0;$hb('hbHHv').textContent='59% (~'+Math.round(390*.59)+'px)';$hb('hbLiftv').textContent='0px';hStage()};
+$hb('hbShT').oninput=e=>{SHT=+e.target.value;$hb('hbShTv').textContent=SHT+'%'};$hb('hbShB').oninput=e=>{SHB=+e.target.value;$hb('hbShBv').textContent=SHB+'%'};
+$hb('hbRstH').onclick=()=>{SHT=100;SHB=100;$hb('hbShT').value=100;$hb('hbShB').value=100;$hb('hbShTv').textContent='100%';$hb('hbShBv').textContent='100%';HEROH=59;LIFT=0;$hb('hbHH').value=59;$hb('hbLift').value=0;$hb('hbHHv').textContent='59% (~'+Math.round(390*.59)+'px)';$hb('hbLiftv').textContent='0px';hStage()};
 $hb('uiRstAll').onclick=()=>{UIORD=UI_ITEMS.map(x=>x[0]);UIS.hide=new Set();UIS.mt={};UIS.zoom={};UIS.pop={};$hb('adCap').checked=false;uiRender()};
 window.saveHomeBg=async function(part){
   part=part==='ui'?'ui':'bg';
@@ -1397,7 +1400,7 @@ window.saveHomeBg=async function(part){
   let o;
   if(part==='ui'){o={adCap:$hb('adCap').checked,ui:{order:UIORD.slice(),hide:[...UIS.hide],mt:UIS.mt,zoom:UIS.zoom,pop:UIS.pop}}}
   else{const first=pk(SL[0]),firstImg=first.layers.find(l=>l.t==='img');
-    o={heroH:HEROH,lift:LIFT,order:HORD.slice(),hide:[...HHIDE],secs:+$hb('hoSecs').value||5,on:$hb('hbgOn').checked,...first,imgUrl:firstImg?firstImg.url:'',extra:SL.slice(1).map(S=>({id:S.id,...pk(S)}))}}
+    o={heroH:HEROH,lift:LIFT,shT:SHT,shB:SHB,order:HORD.slice(),hide:[...HHIDE],secs:+$hb('hoSecs').value||5,on:$hb('hbgOn').checked,...first,imgUrl:firstImg?firstImg.url:'',extra:SL.slice(1).map(S=>({id:S.id,...pk(S)}))}}
   try{await setDoc(doc(db,'settings','homeBg'),{...o,updatedAt:serverTimestamp()},{mergeFields:[...Object.keys(o),'updatedAt']});HBG={...HBG,...o};toast(part==='ui'?'บันทึกการจัดหน้าแล้ว':'บันทึกพื้นหลังแล้ว','ok');hbLock(part==='ui'?1:0,true)}
   catch(e){toast('บันทึกไม่สำเร็จ: '+e.message,'er')}
 };
@@ -1407,7 +1410,7 @@ window.saveHomeBg=async function(part){
   SL=[mk('bg',HBG),...(Array.isArray(HBG.extra)?HBG.extra:[]).filter(e=>e&&typeof e.id==='string').map(e=>mk(e.id,e))];
   SI=0;HL=SL[0].layers;HSEL=HL.length?HL.length-1:-1;
   HEROH=Math.min(100,Math.max(35,+HBG.heroH||59));LIFT=Math.min(80,Math.max(0,+HBG.lift||0));
-  $hb('hbHH').value=HEROH;$hb('hbHHv').textContent=HEROH+'% (~'+Math.round(390*HEROH/100)+'px)';$hb('hbLift').value=LIFT;$hb('hbLiftv').textContent=LIFT+'px';$hb('adCap').checked=!!HBG.adCap;
+  $hb('hbHH').value=HEROH;$hb('hbHHv').textContent=HEROH+'% (~'+Math.round(390*HEROH/100)+'px)';SHT=HBG.shT==null?100:+HBG.shT;SHB=HBG.shB==null?100:+HBG.shB;$hb('hbShT').value=SHT;$hb('hbShB').value=SHB;$hb('hbShTv').textContent=SHT+'%';$hb('hbShBv').textContent=SHB+'%';$hb('hbLift').value=LIFT;$hb('hbLiftv').textContent=LIFT+'px';$hb('adCap').checked=!!HBG.adCap;
   const u=HBG.ui||{};UIS={order:[],hide:new Set(Array.isArray(u.hide)?u.hide:[]),mt:{...(u.mt||{})},zoom:{...(u.zoom||{})},pop:{...(u.pop||{})}};
   const dids=UI_ITEMS.map(x=>x[0]),uo=(Array.isArray(u.order)?u.order:[]).filter(x=>dids.includes(x));UIORD=[...uo,...dids.filter(x=>!uo.includes(x))];
   hbgFill();hStage();hAll();hTabs();uiRender();await hoLoad();

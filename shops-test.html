@@ -622,14 +622,14 @@ html[data-sp~="cbg"] .cbox-ic{background:var(--amber-500,#FF7A18);}
 .hbl[data-go]{pointer-events:auto;}
 .tb.has-link{cursor:pointer;}
 .panel{position:relative;z-index:1;--p:0;}
-.tb::before{content:'';position:absolute;left:0;right:0;top:0;height:84px;background:linear-gradient(rgba(7,27,61,.34),rgba(7,27,61,0));z-index:2;pointer-events:none;}
+.tb::before{content:'';position:absolute;left:0;right:0;top:0;height:84px;background:linear-gradient(rgba(7,27,61,calc(.34*var(--shT,1))),rgba(7,27,61,0));z-index:2;pointer-events:none;}
 .hero-sl{position:absolute;inset:0;z-index:0;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;}
 .hero-sl::-webkit-scrollbar{display:none;}
 .hs{flex:0 0 100%;position:relative;scroll-snap-align:start;scroll-snap-stop:always;overflow:hidden;}
 .hs-ad{cursor:pointer;background:#0b2f86;}
 .hs-bg[data-url]:not([data-url=""]){cursor:pointer;}
 .hs-ad img,.hs-ad video{width:100%;height:100%;object-fit:cover;display:block;}
-.hs-ad::after{content:'';position:absolute;left:0;right:0;bottom:0;height:62%;background:linear-gradient(transparent,rgba(7,27,61,.72));pointer-events:none;}
+.hs-ad::after{content:'';position:absolute;left:0;right:0;bottom:0;height:62%;background:linear-gradient(transparent,rgba(7,27,61,calc(.72*var(--shB,1))));pointer-events:none;}
 .hs-cap{position:absolute;left:16px;right:16px;bottom:calc(86*var(--u) + 14px);z-index:1;color:#fff;font-family:'Prompt',sans-serif;}
 .hs-shop{display:inline-flex;align-items:center;gap:6px;max-width:100%;background:rgba(255,255,255,.18);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.38);padding:5px 12px 5px 8px;border-radius:999px;font-weight:600;font-size:13.5px;}
 .hs-shop svg{width:15px;height:15px;fill:#fff;flex:none;}
@@ -1231,6 +1231,7 @@ function applyLayout(){
   const c=HB||{},ui=c.ui||{},pn=$('panel'),tb=document.querySelector('.tb');if(!pn||!tb)return;
   const lift=Math.min(80,Math.max(0,+c.lift||0));
   pn.style.marginTop=lift?(-lift)+'px':'';tb.style.setProperty('--lift',lift+'px');
+  const sh=(v,d)=>Math.min(100,Math.max(0,isFinite(+v)&&v!==''&&v!=null?+v:d))/100;tb.style.setProperty('--shT',String(sh(c.shT,100)));tb.style.setProperty('--shB',String(sh(c.shB,100)));
   const def=UI_REG.map(x=>x[0]),ord=(Array.isArray(ui.order)?ui.order:[]).filter(x=>def.includes(x)),all=[...ord,...def.filter(x=>!ord.includes(x))];
   const custom=all.join()!==def.join(),hide=new Set(Array.isArray(ui.hide)?ui.hide:[]),mt=ui.mt||{},zm=ui.zoom||{};
   pn.classList.toggle('ui-flex',custom);
@@ -1260,8 +1261,9 @@ function buildHero(){
   const f=slides.find(x=>x.k==='bg');window.__homeBgUrl=f?NimitHomeBg.target(f.n):'';
   tb.classList.toggle('has-hero',slides.length>0);
   tb.classList.toggle('has-link',!!window.__homeBgUrl);
-  if(sig===heroSig)return;heroSig=sig;heroN=slides.length;curAd=0;sl.scrollLeft=0;
-  sl.innerHTML=slides.map((x,i)=>{
+  if(sig===heroSig)return;heroSig=sig;heroN=slides.length;curAd=0;
+  const items=heroN>1?[slides[heroN-1],...slides,slides[0]]:slides;
+  sl.innerHTML=items.map((x,i)=>{
     if(x.k==='bg')return `<div class="hs hs-bg" data-url="${esc(NimitHomeBg.target(x.n))}"><div class="tb-layers"></div></div>`;
     const a=x.a,isVid=a.type==='video'&&a.videoUrl;
     const media=isVid?`<video src="${esc(a.videoUrl)}" autoplay muted loop playsinline></video>`:`<img src="${esc(NimitHomeBg.opt(a.imgUrl,900))}" alt="">`;
@@ -1269,21 +1271,28 @@ function buildHero(){
     const cap=(showCap&&(nm||tx))?`<div class="hs-cap">${nm?`<span class="hs-shop">${HS_SHOP}<span>${esc(nm)}</span></span>`:''}${tx?`<span class="hs-txt">${esc(tx)}</span>`:''}</div>`:'';
     return `<div class="hs hs-ad" data-id="${esc(a.id)}">${media}${cap}</div>`;
   }).join('');
-  slides.forEach((x,i)=>{if(x.k==='bg')NimitHomeBg.render(sl.children[i].firstChild,x.n)});
+  items.forEach((x,i)=>{if(x.k==='bg')NimitHomeBg.render(sl.children[i].firstChild,x.n)});
+  sl.style.scrollSnapType='none';sl.scrollLeft=heroN>1?sl.clientWidth:0;requestAnimationFrame(()=>{sl.style.scrollSnapType=''});
   $('heroDots').innerHTML=slides.length>1?slides.map((_,i)=>`<i class="${i===0?'on':''}" onclick="event.stopPropagation();goAd(${i})"></i>`).join(''):'';
   clearInterval(adTimer);adTimer=null;
-  if(slides.length>1)adTimer=setInterval(()=>{if(document.hidden||Date.now()<heroHold||window.scrollY>24)return;goAd((curAd+1)%heroN)},secs*1000);
+  if(slides.length>1)adTimer=setInterval(()=>{if(document.hidden||Date.now()<heroHold||window.scrollY>24)return;goAd(curAd+1)},secs*1000);
 }
 function goAd(i){
   const sl=$('heroSl');if(!sl)return;curAd=i;heroHold=Date.now()+8000;
-  sl.scrollTo({left:i*sl.clientWidth,behavior:'smooth'});
-  document.querySelectorAll('#heroDots i').forEach((d,j)=>d.classList.toggle('on',j===i));
+  const n=Math.max(1,heroN);curAd=((i%n)+n)%n;
+  sl.scrollTo({left:(n>1?i+1:i)*sl.clientWidth,behavior:'smooth'});
+  document.querySelectorAll('#heroDots i').forEach((d,j)=>d.classList.toggle('on',j===curAd));
 }
 (function(){
   const sl=$('heroSl'),tb=document.querySelector('.tb');
-  let tk=false;
-  sl.addEventListener('scroll',()=>{if(tk)return;tk=true;requestAnimationFrame(()=>{tk=false;const k=Math.round(sl.scrollLeft/Math.max(1,sl.clientWidth));if(k!==curAd){curAd=k;document.querySelectorAll('#heroDots i').forEach((d,j)=>d.classList.toggle('on',j===k))}})},{passive:true});
-  sl.addEventListener('touchstart',()=>{heroHold=Date.now()+10000},{passive:true});
+  let tk=false,touching=false,jt=0;
+  const jump=p=>{sl.style.scrollSnapType='none';sl.scrollLeft=p*sl.clientWidth;requestAnimationFrame(()=>{sl.style.scrollSnapType=''})};
+  const fixLoop=()=>{if(heroN<2||touching)return;const w=Math.max(1,sl.clientWidth),p=Math.round(sl.scrollLeft/w);if(Math.abs(sl.scrollLeft-p*w)>2)return;if(p===0)jump(heroN);else if(p===heroN+1)jump(1)};
+  window.addEventListener('resize',()=>{if(heroN>1)jump(curAd+1)});
+  sl.addEventListener('scroll',()=>{if(tk)return;tk=true;requestAnimationFrame(()=>{tk=false;const pp=Math.round(sl.scrollLeft/Math.max(1,sl.clientWidth)),k=heroN>1?(((pp-1)%heroN)+heroN)%heroN:0;if(k!==curAd){curAd=k;document.querySelectorAll('#heroDots i').forEach((d,j)=>d.classList.toggle('on',j===k))}})
+    clearTimeout(jt);jt=setTimeout(fixLoop,90)},{passive:true});
+  sl.addEventListener('touchstart',()=>{heroHold=Date.now()+10000;touching=true},{passive:true});
+  sl.addEventListener('touchend',()=>{touching=false;clearTimeout(jt);jt=setTimeout(fixLoop,120)},{passive:true});sl.addEventListener('touchcancel',()=>{touching=false},{passive:true});
   tb.addEventListener('click',e=>{
     if(e.target.closest('.hero-chip,.sb-open,.hero-dots'))return;
     const ad=e.target.closest('.hs-ad');
