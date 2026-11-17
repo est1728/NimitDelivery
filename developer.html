@@ -214,10 +214,10 @@ body{background:var(--g);min-height:100vh;}
 .pv .hd{display:flex;align-items:center;justify-content:space-between;padding:0 10px 6px}.pv .tt{display:flex;align-items:center;gap:7px;font-weight:700;font-size:15px;color:#0e3b8c}
 .pv .ic{width:22px;height:22px;border-radius:7px;background:#2563eb}.pv .al{font-size:11px;font-weight:600;color:#2563eb}
 .pv .row{display:flex;overflow:hidden;padding:0 var(--ppad) 8px;gap:var(--pgap)}
-.pv .cd{flex:none;width:calc((100% - 2*var(--ppad) - (var(--pn) - 1)*var(--pgap))/var(--pn));background:#fff;border-radius:var(--prad);overflow:hidden;box-shadow:0 5px 16px rgba(14,59,140,.12);display:flex;flex-direction:column}
-.pv .im{aspect-ratio:1/var(--pir);position:relative}.pv .fv{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.88)}
+.pv .cd{flex:none;width:var(--pcw,calc((100% - 2*var(--ppad) - (var(--pn) - 1)*var(--pgap))/var(--pn)));background:#fff;border-radius:var(--prad);overflow:hidden;box-shadow:0 5px 16px rgba(14,59,140,.12);display:flex;flex-direction:column}
+.pv .im{aspect-ratio:1/var(--pir);position:relative}.pv .fv{position:absolute;top:calc(6px + var(--phy));right:calc(6px - var(--phx));width:var(--phs);height:var(--phs);border-radius:50%;background:rgba(255,255,255,.88)}
 .pv .bd{position:relative;margin-top:-10px;background:#fff;border-radius:calc(var(--prad) + 1px) calc(var(--prad) + 1px) 0 0;padding:5px 8px 6px;flex:1;line-height:1.25}
-.pv .bg{position:absolute;right:6px;top:-11px;background:linear-gradient(180deg,#5b94ff,#2f6fe4);color:#fff;font-size:8.5px;font-weight:700;padding:2px 7px;border-radius:12px}
+.pv .bg{position:absolute;right:calc(6px - var(--pbx));top:calc(-11px + var(--pby));background:linear-gradient(180deg,#5b94ff,#2f6fe4);color:#fff;font-size:calc(8.5px*var(--pbs));font-weight:700;padding:calc(2px*var(--pbs)) calc(7px*var(--pbs));border-radius:12px}
 .pv .mt{font-size:calc(10px*var(--pfs));color:#64748b;white-space:nowrap}.pv .nm2{font-size:calc(11px*var(--pfs));font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#0f172a}.pv .ct{font-size:calc(9px*var(--pfs));color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </style>
 </head>
@@ -1336,17 +1336,17 @@ function uiRender(){
   const id=UISEL;
   $hb('uiCtl').innerHTML=id?`<div class="r"><span style="width:86px">ระยะด้านบน</span><input type="range" id="uiMt" min="-30" max="80" step="2" value="${UIS.mt[id]||0}"><b id="uiMtv" style="width:52px">${UIS.mt[id]||0}px</b></div>
     <div class="r"><span style="width:86px">ขนาด</span><input type="range" id="uiZm" min="70" max="130" step="2" value="${Math.round((UIS.zoom[id]||1)*100)}"><b id="uiZmv" style="width:52px">${Math.round((UIS.zoom[id]||1)*100)}%</b></div>`:'';
-  if(id==='pop'){const P=UIS.pop,D={n:3,h:55,r:7,g:7,px:8,fs:100},F=[['n','การ์ดต่อแถว',2,4,1,''],['h','ความสูงรูป',30,90,1,'%'],['r','ความมนมุม',0,20,1,'px'],['g','ช่องว่างการ์ด',0,16,1,'px'],['px','ขอบซ้ายขวา',0,20,1,'px'],['fs','ขนาดตัวอักษร',80,130,2,'%']];
+  if(id==='pop'){const P=UIS.pop,D={n:3,w:0,h:55,r:7,g:7,px:8,fs:100,hs:26,hx:0,hy:0,bs:100,bx:0,by:0},F=[['n','การ์ดต่อแถว',2,4,1,''],['w','ความกว้างการ์ด (0=ออโต้)',0,260,2,'px'],['h','ความสูงรูป',30,90,1,'%'],['r','ความมนมุม',0,20,1,'px'],['g','ช่องว่างการ์ด',0,16,1,'px'],['px','ขอบซ้ายขวา',0,20,1,'px'],['fs','ขนาดตัวอักษร',80,130,2,'%'],['hs','ปุ่มหัวใจ ขนาด',16,44,1,'px'],['hx','ปุ่มหัวใจ แกน X',-30,30,1,'px'],['hy','ปุ่มหัวใจ แกน Y',-30,30,1,'px'],['bs','ป้าย(ส่งไว) ขนาด',60,180,2,'%'],['bx','ป้าย(ส่งไว) แกน X',-30,30,1,'px'],['by','ป้าย(ส่งไว) แกน Y',-30,30,1,'px']];
     $hb('uiCtl').insertAdjacentHTML('beforeend',F.map(([k,nm,lo,hi,st,u])=>`<div class="r"><span style="width:86px">${nm}</span><input type="range" data-pk="${k}" min="${lo}" max="${hi}" step="${st}" value="${P[k]??D[k]}"><b style="width:52px">${P[k]??D[k]}${u}</b></div>`).join('')+`<button type="button" class="hbBtn" id="popRst" style="width:100%;flex:none;margin-top:8px">คืนค่าการ์ดร้านแนะนำ</button>`);
     $hb('uiCtl').querySelectorAll('[data-pk]').forEach(inp=>{const u=F.find(f=>f[0]===inp.dataset.pk)[5];inp.oninput=e=>{P[inp.dataset.pk]=+e.target.value;inp.nextElementSibling.textContent=e.target.value+u}});
-    $hb('uiCtl').insertAdjacentHTML('beforeend','<div class="pvw"><div class="pv" id="popPv"></div></div>');
-    const pv=()=>{const e=$hb('popPv'),w=e.parentNode.clientWidth,k=Math.min(1,(w-0)/370),g=(v,lo,hi,d)=>Math.min(hi,Math.max(lo,v==null?d:+v)),Q=UIS.pop;
-      e.style.cssText=`--pn:${g(Q.n,2,4,3)};--pir:${g(Q.h,30,90,55)/100};--prad:${g(Q.r,0,20,7)}px;--pgap:${g(Q.g,0,16,7)}px;--ppad:${g(Q.px,0,20,8)}px;--pfs:${g(Q.fs,80,130,100)/100};zoom:${k}`;
+    $hb('uiCtl').insertAdjacentHTML('afterbegin','<div class="pvw" style="position:sticky;top:112px;z-index:5;box-shadow:0 6px 14px rgba(15,23,42,.12);margin:0 0 10px"><div class="pv" id="popPv"></div></div>');
+    const pv=()=>{const e=$hb('popPv'),w=e.parentNode.clientWidth,k=Math.min(1,(w-0)/370)*(+UIS.zoom.pop||1),g=(v,lo,hi,d)=>Math.min(hi,Math.max(lo,v==null?d:+v)),Q=UIS.pop;
+      e.style.cssText=`--pn:${g(Q.n,2,4,3)};--pir:${g(Q.h,30,90,55)/100};--prad:${g(Q.r,0,20,7)}px;--pgap:${g(Q.g,0,16,7)}px;--ppad:${g(Q.px,0,20,8)}px;--pfs:${g(Q.fs,80,130,100)/100};--phs:${g(Q.hs,16,44,26)}px;--phx:${g(Q.hx,-30,30,0)}px;--phy:${g(Q.hy,-30,30,0)}px;--pbs:${g(Q.bs,60,180,100)/100};--pbx:${g(Q.bx,-30,30,0)}px;--pby:${g(Q.by,-30,30,0)}px;${+Q.w>=60?'--pcw:'+g(Q.w,60,260,120)+'px;':''}zoom:${k}`;
       const cols=['#f4a3b4','#8fcf9c','#e0ae66','#9ec1ef'],c=i=>`<div class="cd"><div class="im" style="background:${cols[i]}"><span class="fv"></span></div><div class="bd"><span class="bg">ยอดนิยม</span><div class="mt">★ 4.8 · 546 ม.</div><div class="nm2">ร้านตัวอย่าง ${i+1}</div><div class="ct">อาหารตามสั่ง</div></div></div>`;
       e.innerHTML=`<div class="box"><div class="hd"><span class="tt"><i class="ic"></i>ร้านแนะนำ</span><span class="al">ดูทั้งหมด ›</span></div><div class="row">${[0,1,2,3].map(c).join('')}</div></div>`};
-    $hb('uiCtl').querySelectorAll('[data-pk]').forEach(inp=>inp.addEventListener('input',pv));pv();
+    $hb('uiCtl').querySelectorAll('[data-pk]').forEach(inp=>inp.addEventListener('input',pv));window.popPv=pv;pv();
     $hb('popRst').onclick=()=>{UIS.pop={};UIS.mt.pop=0;UIS.zoom.pop=1;uiRender()}}
-  if(id){$hb('uiMt').oninput=e=>{UIS.mt[id]=+e.target.value;$hb('uiMtv').textContent=e.target.value+'px'};$hb('uiZm').oninput=e=>{UIS.zoom[id]=+e.target.value/100;$hb('uiZmv').textContent=e.target.value+'%'}}
+  if(id){$hb('uiMt').oninput=e=>{UIS.mt[id]=+e.target.value;$hb('uiMtv').textContent=e.target.value+'px'};$hb('uiZm').oninput=e=>{UIS.zoom[id]=+e.target.value/100;$hb('uiZmv').textContent=e.target.value+'%';if(id==='pop'&&window.popPv)window.popPv()}}
 }
 $hb('uiList').addEventListener('click',e=>{
   const row=e.target.closest('.hbRow');if(!row)return;const id=row.dataset.id,b=e.target.closest('button'),a=b&&b.dataset.a,i=UIORD.indexOf(id);

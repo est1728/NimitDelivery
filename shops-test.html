@@ -719,7 +719,10 @@ html[data-theme="halloween"] .pin .srch{margin-right:0;}
 .pop-card{border-radius:var(--prad,7px);}
 .pop-body{border-radius:calc(var(--prad,7px) + 1px) calc(var(--prad,7px) + 1px) 0 0;}
 .pop-row{padding:0 var(--ppad,8px) 8px;gap:var(--pgap,7px);scroll-padding:0 var(--ppad,8px);}
-.pop-card{width:calc((100% - 2*var(--ppad,8px) - (var(--pn,3) - 1)*var(--pgap,7px))/var(--pn,3));min-width:0;}
+.pop-card{width:var(--pcw,calc((100% - 2*var(--ppad,8px) - (var(--pn,3) - 1)*var(--pgap,7px))/var(--pn,3)));min-width:0;}
+.pop-fav{width:var(--phs,26px);height:var(--phs,26px);top:calc(6px + var(--phy,0px));right:calc(6px - var(--phx,0px));}
+.pop-fav svg{width:calc(var(--phs,26px)*.58);height:calc(var(--phs,26px)*.58);}
+.pop-bdg{right:calc(6px - var(--pbx,0px));top:calc(-11px + var(--pby,0px));font-size:calc(8.5px*var(--pbs,1));padding:calc(2px*var(--pbs,1)) calc(7px*var(--pbs,1));}
 .pop-img{aspect-ratio:1/var(--pir,.55);}
 .pop-body{margin-top:-10px;padding:5px 8px 6px;}
 .pop-name{font-size:calc(11px*var(--pfs,1));}
@@ -1235,7 +1238,10 @@ function applyLayout(){
   if(ps){const nn=Math.min(4,Math.max(2,+pp.n||3)),cl=(v,lo,hi,d)=>Math.min(hi,Math.max(lo,isFinite(+v)&&v!==undefined&&v!==''?+v:d));
     ps.style.setProperty('--pn',String(nn));ps.style.setProperty('--pir',String(cl(pp.h,30,90,55)/100));
     ps.style.setProperty('--prad',cl(pp.r,0,20,7)+'px');ps.style.setProperty('--pgap',cl(pp.g,0,16,7)+'px');
-    ps.style.setProperty('--ppad',cl(pp.px,0,20,8)+'px');ps.style.setProperty('--pfs',String(cl(pp.fs,80,130,100)/100));}
+    ps.style.setProperty('--ppad',cl(pp.px,0,20,8)+'px');
+    if(+pp.w>=60)ps.style.setProperty('--pcw',cl(pp.w,60,260,120)+'px');else ps.style.removeProperty('--pcw');
+    ps.style.setProperty('--phs',cl(pp.hs,16,44,26)+'px');ps.style.setProperty('--phx',cl(pp.hx,-30,30,0)+'px');ps.style.setProperty('--phy',cl(pp.hy,-30,30,0)+'px');
+    ps.style.setProperty('--pbs',String(cl(pp.bs,60,180,100)/100));ps.style.setProperty('--pbx',cl(pp.bx,-30,30,0)+'px');ps.style.setProperty('--pby',cl(pp.by,-30,30,0)+'px');ps.style.setProperty('--pfs',String(cl(pp.fs,80,130,100)/100));}
   UI_REG.forEach(([id,eid])=>{
     const el=$(eid);if(!el)return;
     el.style.order=custom?String(all.indexOf(id)+1):'';
