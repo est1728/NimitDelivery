@@ -209,6 +209,7 @@ body{background:var(--g);min-height:100vh;}
 <script src="theme.js" data-noapply></script>
 <script src="homebg.js"></script>
 <style>
+.card.lockd>*:not(.stitle):not(.hsh){pointer-events:none;opacity:.5}.card.lockd .lkb{background:#fff7ed;border-color:#fdba74;color:#c2410c}.lkb svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .pv{width:370px;margin:0 auto;transform-origin:0 0}.pvw{overflow:hidden;margin-top:10px;border-radius:12px;background:#eef3fd;padding:10px 0}
 .pv .box{position:relative;background:#fff;border:1.5px solid #dce8fc;border-radius:10px;padding:9px 0 6px;box-shadow:0 8px 22px rgba(46,111,224,.10);margin:0 10px}
 .pv .hd{display:flex;align-items:center;justify-content:space-between;padding:0 10px 6px}.pv .tt{display:flex;align-items:center;gap:7px;font-weight:700;font-size:15px;color:#0e3b8c}
@@ -371,8 +372,8 @@ window.onerror = function(msg, url, line, col, error){
     <div class="hint" id="thNow" style="margin-bottom:10px"></div>
     <button class="savbtn" onclick="saveTheme()">บันทึกธีม</button>
   </div>
-  <div class="card">
-    <div class="stitle">พื้นหลังหน้าแรก (ลูกค้า)</div>
+  <div class="card lockd" data-lkcard>
+    <div class="stitle" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>พื้นหลังหน้าแรก (ลูกค้า)</span><button type="button" class="hbBtn lkb" data-lk style="flex:none;height:32px;padding:0 12px;font-size:12px;text-transform:none;letter-spacing:0;gap:5px"></button></div>
     <div class="hint" style="margin-bottom:12px">ซ้อนได้หลายเลเยอร์ (รูป / ข้อความ) ลากเพื่อย้าย บีบนิ้วหรือเลื่อนล้อเมาส์เพื่อซูม แถบสีจางด้านล่างคือส่วนที่แผงหน้าแรกจะทับ</div>
     <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;margin-bottom:10px"><input type="checkbox" id="hbgOn" checked> เปิดใช้พื้นหลัง</label>
     <div class="hbCtl" style="margin:0 0 10px">
@@ -409,20 +410,22 @@ window.onerror = function(msg, url, line, col, error){
     <input class="inp" id="hbgUrl" type="text" inputmode="url" placeholder="https://... หรือชื่อหน้า เช่น coupon.html" style="margin-bottom:8px;display:none">
     <div class="hint" id="hbgNote" style="margin-bottom:10px"></div>
     <button type="button" class="hbBtn" id="hbDelSl" style="width:100%;flex:none;margin-bottom:10px;border-color:#fecaca;color:#dc2626;display:none">ลบพื้นหลังนี้</button>
-    <button class="savbtn" onclick="saveHomeBg()">บันทึกพื้นหลัง</button>
+    <button type="button" class="hbBtn" id="hbRstH" style="width:100%;flex:none;margin-bottom:10px">คืนค่าเริ่มต้น ความสูงพื้นที่และดันแผง</button>
+    <button class="savbtn" onclick="saveHomeBg('bg')">บันทึกพื้นหลัง</button>
     <input type="file" id="hbf" accept="image/*" hidden>
     <div class="hsh" id="hbCP"><div class="hshi"><h4>เลือกสี</h4>
       <div class="cpw"><canvas id="cpW" width="220" height="220" style="width:220px;height:220px"></canvas><canvas id="cpV" width="34" height="220"></canvas></div>
       <div class="cpr"><span class="pv" id="cpPv"></span><input class="inp" id="cpHex" type="text" maxlength="7" placeholder="#RRGGBB"><button type="button" class="hbBtn pri" id="cpOk" style="flex:none;padding:0 18px">เสร็จ</button></div></div></div>
     <div class="hsh" id="hbFS"><div class="hshi"><h4>เลือกฟอนต์</h4><div id="hbFL"></div></div></div>
   </div>
-  <div class="card">
-    <div class="stitle">จัดหน้าแรก (ลูกค้า)</div>
+  <div class="card lockd" data-lkcard>
+    <div class="stitle" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>จัดหน้าแรก (ลูกค้า)</span><button type="button" class="hbBtn lkb" data-lk style="flex:none;height:32px;padding:0 12px;font-size:12px;text-transform:none;letter-spacing:0;gap:5px"></button></div>
     <div class="hint" style="margin-bottom:10px">เรียงลำดับ ซ่อน/แสดง และปรับระยะห่าง/ขนาดของแต่ละส่วนในหน้าแรก (ช่องค้นหาอยู่บนสุดเสมอ) กดแถวเพื่อปรับระยะและขนาด</div>
     <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;margin-bottom:10px"><input type="checkbox" id="adCap"> แสดงชื่อร้านและข้อความบนรูปโฆษณา</label>
     <div id="uiList" class="hbList"></div>
     <div id="uiCtl" class="hbCtl"></div>
-    <button class="savbtn" style="margin-top:12px" onclick="saveHomeBg()">บันทึกพื้นหลังและการจัดหน้า</button>
+    <button type="button" class="hbBtn" id="uiRstAll" style="width:100%;flex:none;margin-top:12px">คืนค่าเริ่มต้น การจัดหน้าทั้งหมด</button>
+    <button class="savbtn" style="margin-top:8px" onclick="saveHomeBg('ui')">บันทึกการจัดหน้า</button>
   </div>
   <div class="card">
     <div class="stitle">🔔 VAPID Key (สำหรับแจ้งเตือน)</div>
@@ -1346,6 +1349,7 @@ function uiRender(){
       e.innerHTML=`<div class="box"><div class="hd"><span class="tt"><i class="ic"></i>ร้านแนะนำ</span><span class="al">ดูทั้งหมด ›</span></div><div class="row">${[0,1,2,3].map(c).join('')}</div></div>`};
     $hb('uiCtl').querySelectorAll('[data-pk]').forEach(inp=>inp.addEventListener('input',pv));window.popPv=pv;pv();
     $hb('popRst').onclick=()=>{UIS.pop={};UIS.mt.pop=0;UIS.zoom.pop=1;uiRender()}}
+  if(id&&id!=='pop'){$hb('uiCtl').insertAdjacentHTML('beforeend','<button type="button" class="hbBtn" id="uiRst1" style="width:100%;flex:none;margin-top:8px">คืนค่าเริ่มต้นส่วนนี้</button>');$hb('uiRst1').onclick=()=>{delete UIS.mt[id];delete UIS.zoom[id];uiRender()}}
   if(id){$hb('uiMt').oninput=e=>{UIS.mt[id]=+e.target.value;$hb('uiMtv').textContent=e.target.value+'px'};$hb('uiZm').oninput=e=>{UIS.zoom[id]=+e.target.value/100;$hb('uiZmv').textContent=e.target.value+'%';if(id==='pop'&&window.popPv)window.popPv()}}
 }
 $hb('uiList').addEventListener('click',e=>{
@@ -1377,17 +1381,24 @@ $hb('hbDelSl').onclick=()=>{
   const id=curS().id;SL.splice(SI,1);HORD=HORD.filter(x=>x!==id);HHIDE.delete(id);hoRender();slideGo(SI-1,true);
 };
 ['hbgType','hbgPage','hbgUrl'].forEach(i=>{$hb(i).addEventListener('change',()=>{slideSync();hoRender()});});
-window.saveHomeBg=async function(){
-  slideSync();
+const LKI='<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',UKI='<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/></svg>';
+window.hbLock=function(i,on){const c=document.querySelectorAll('[data-lkcard]')[i];if(!c)return;c.classList.toggle('lockd',on);const b=c.querySelector('[data-lk]');b.innerHTML=on?LKI+'ปลดล็อกเพื่อแก้ไข':UKI+'ล็อก';b.style.background=on?'':'#ecfdf5';b.style.borderColor=on?'':'#6ee7b7';b.style.color=on?'':'#047857'};
+document.querySelectorAll('[data-lkcard]').forEach((c,i)=>{c.querySelector('[data-lk]').onclick=()=>hbLock(i,!c.classList.contains('lockd'));hbLock(i,true)});
+$hb('hbRstH').onclick=()=>{HEROH=59;LIFT=0;$hb('hbHH').value=59;$hb('hbLift').value=0;$hb('hbHHv').textContent='59% (~'+Math.round(390*.59)+'px)';$hb('hbLiftv').textContent='0px';hStage()};
+$hb('uiRstAll').onclick=()=>{UIORD=UI_ITEMS.map(x=>x[0]);UIS.hide=new Set();UIS.mt={};UIS.zoom={};UIS.pop={};$hb('adCap').checked=false;uiRender()};
+window.saveHomeBg=async function(part){
+  part=part==='ui'?'ui':'bg';
+  if(part==='bg'){slideSync();
   for(const S of SL){
     if(!hLinkOk(S.linkType,S.linkUrl)){toast('ลิงก์ต้องขึ้นต้นด้วย https:// หรือเป็นชื่อหน้า เช่น coupon.html','er');return}
     for(const l of S.layers)if(l.t==='img'&&!hLinkOk(l.linkType,l.linkUrl)){toast('ลิงก์ของรูปบางรูปไม่ถูกต้อง','er');return}
-  }
+  }}
   const pk=S=>({bg:S.bg||'',bg2:S.bg&&S.bg2?S.bg2:'',layers:packLayers(S.layers),linkType:S.linkType||'none',linkUrl:S.linkType==='url'?S.linkUrl:'',page:S.linkType==='page'?S.page:''});
-  const first=pk(SL[0]),firstImg=first.layers.find(l=>l.t==='img');
-  const ui={order:UIORD.slice(),hide:[...UIS.hide],mt:UIS.mt,zoom:UIS.zoom,pop:UIS.pop};
-  const o={heroH:HEROH,lift:LIFT,adCap:$hb('adCap').checked,ui,order:HORD.slice(),hide:[...HHIDE],secs:+$hb('hoSecs').value||5,on:$hb('hbgOn').checked,...first,imgUrl:firstImg?firstImg.url:'',extra:SL.slice(1).map(S=>({id:S.id,...pk(S)}))};
-  try{await setDoc(doc(db,'settings','homeBg'),{...o,updatedAt:serverTimestamp()});HBG={...HBG,...o};toast('บันทึกพื้นหลังแล้ว','ok')}
+  let o;
+  if(part==='ui'){o={adCap:$hb('adCap').checked,ui:{order:UIORD.slice(),hide:[...UIS.hide],mt:UIS.mt,zoom:UIS.zoom,pop:UIS.pop}}}
+  else{const first=pk(SL[0]),firstImg=first.layers.find(l=>l.t==='img');
+    o={heroH:HEROH,lift:LIFT,order:HORD.slice(),hide:[...HHIDE],secs:+$hb('hoSecs').value||5,on:$hb('hbgOn').checked,...first,imgUrl:firstImg?firstImg.url:'',extra:SL.slice(1).map(S=>({id:S.id,...pk(S)}))}}
+  try{await setDoc(doc(db,'settings','homeBg'),{...o,updatedAt:serverTimestamp()},{mergeFields:[...Object.keys(o),'updatedAt']});HBG={...HBG,...o};toast(part==='ui'?'บันทึกการจัดหน้าแล้ว':'บันทึกพื้นหลังแล้ว','ok');hbLock(part==='ui'?1:0,true)}
   catch(e){toast('บันทึกไม่สำเร็จ: '+e.message,'er')}
 };
 (async function(){
