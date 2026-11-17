@@ -1287,7 +1287,9 @@ function goAd(i){
   const sl=$('heroSl'),tb=document.querySelector('.tb');
   let tk=false,touching=false,jt=0;
   const jump=p=>{sl.scrollTo({left:p*sl.clientWidth,behavior:'instant'})};
-  const fixLoop=()=>{if(heroN<2||touching)return;const w=Math.max(1,sl.clientWidth),p=Math.round(sl.scrollLeft/w);if(Math.abs(sl.scrollLeft-p*w)>2)return;if(p===0)jump(heroN);else if(p===heroN+1)jump(1)};
+  let lastL=-1;
+  const fixLoop=()=>{if(heroN<2||touching)return;const w=Math.max(1,sl.clientWidth),l=sl.scrollLeft;if(l>(heroN+.5)*w)sl.scrollTo({left:l-heroN*w,behavior:'instant'});else if(l<.5*w)sl.scrollTo({left:l+heroN*w,behavior:'instant'})};
+  setInterval(()=>{const l=sl.scrollLeft;if(l===lastL)fixLoop();lastL=l},120);
   window.addEventListener('resize',()=>{if(heroN>1)jump(curAd+1)});
   sl.addEventListener('scroll',()=>{if(tk)return;tk=true;requestAnimationFrame(()=>{tk=false;const pp=Math.round(sl.scrollLeft/Math.max(1,sl.clientWidth)),k=heroN>1?(((pp-1)%heroN)+heroN)%heroN:0;if(k!==curAd){curAd=k;document.querySelectorAll('#heroDots i').forEach((d,j)=>d.classList.toggle('on',j===k))}})
     clearTimeout(jt);jt=setTimeout(fixLoop,90)},{passive:true});
