@@ -1272,7 +1272,7 @@ function buildHero(){
     return `<div class="hs hs-ad" data-id="${esc(a.id)}">${media}${cap}</div>`;
   }).join('');
   items.forEach((x,i)=>{if(x.k==='bg')NimitHomeBg.render(sl.children[i].firstChild,x.n)});
-  sl.style.scrollSnapType='none';sl.scrollLeft=heroN>1?sl.clientWidth:0;requestAnimationFrame(()=>{sl.style.scrollSnapType=''});
+  sl.scrollTo({left:heroN>1?sl.clientWidth:0,behavior:'instant'});
   $('heroDots').innerHTML=slides.length>1?slides.map((_,i)=>`<i class="${i===0?'on':''}" onclick="event.stopPropagation();goAd(${i})"></i>`).join(''):'';
   clearInterval(adTimer);adTimer=null;
   if(slides.length>1)adTimer=setInterval(()=>{if(document.hidden||Date.now()<heroHold||window.scrollY>24)return;goAd(curAd+1)},secs*1000);
@@ -1286,7 +1286,7 @@ function goAd(i){
 (function(){
   const sl=$('heroSl'),tb=document.querySelector('.tb');
   let tk=false,touching=false,jt=0;
-  const jump=p=>{sl.style.scrollSnapType='none';sl.scrollLeft=p*sl.clientWidth;requestAnimationFrame(()=>{sl.style.scrollSnapType=''})};
+  const jump=p=>{sl.scrollTo({left:p*sl.clientWidth,behavior:'instant'})};
   const fixLoop=()=>{if(heroN<2||touching)return;const w=Math.max(1,sl.clientWidth),p=Math.round(sl.scrollLeft/w);if(Math.abs(sl.scrollLeft-p*w)>2)return;if(p===0)jump(heroN);else if(p===heroN+1)jump(1)};
   window.addEventListener('resize',()=>{if(heroN>1)jump(curAd+1)});
   sl.addEventListener('scroll',()=>{if(tk)return;tk=true;requestAnimationFrame(()=>{tk=false;const pp=Math.round(sl.scrollLeft/Math.max(1,sl.clientWidth)),k=heroN>1?(((pp-1)%heroN)+heroN)%heroN:0;if(k!==curAd){curAd=k;document.querySelectorAll('#heroDots i').forEach((d,j)=>d.classList.toggle('on',j===k))}})
