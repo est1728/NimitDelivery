@@ -644,10 +644,10 @@ html[data-sp~="cbg"] .cbox-ic{background:var(--amber-500,#FF7A18);}
 .hero-dots i.on{background:#fff;width:16px;}
 .sticky-bar{display:none!important;}
 .pin{position:sticky;top:0;z-index:5;background:var(--bg);padding:2px 16px 10px;display:flex;align-items:center;gap:10px;}
-.hero-chip{position:absolute;left:16px;top:17px;z-index:4;margin-top:0;max-width:calc(100% - 84px);background:rgba(7,27,61,.38);border:1px solid rgba(255,255,255,.28);padding:5px 11px 5px 9px;}
+.hero-chip{position:absolute;left:16px;top:17px;z-index:4;margin-top:0;max-width:calc(100% - 84px);background:rgba(7,27,61,var(--pgO,.55));border:1px solid rgba(255,255,255,.4);padding:5px 11px 5px 9px;translate:var(--pgX,0px) var(--pgY,0px);scale:var(--pgS,1);transform-origin:left top;}
 .hero-chip span{color:#fff;}
 .hero-chip svg{fill:#fff;}
-.sb-open{position:absolute;top:14px;right:16px;z-index:4;background:rgba(7,27,61,.38);border:1px solid rgba(255,255,255,.28);}
+.sb-open{position:absolute;top:14px;right:16px;z-index:4;background:rgba(7,27,61,var(--mnO,.55));border:1px solid rgba(255,255,255,.4);translate:var(--mnX,0px) var(--mnY,0px);scale:var(--mnS,1);transform-origin:right top;}
 .pin .icon-btn.bell{width:46px;height:46px;border-radius:16px;flex:none;background:var(--white);border:1px solid var(--line);box-shadow:0 3px 10px rgba(14,59,140,.07);}
 .pin .icon-btn.bell svg{fill:var(--blue-700);}
 .pin .icon-btn.bell svg{width:21px;height:21px;}
@@ -1232,6 +1232,8 @@ function applyLayout(){
   const lift=Math.min(80,Math.max(0,+c.lift||0));
   pn.style.marginTop=lift?(-lift)+'px':'';tb.style.setProperty('--lift',lift+'px');
   const sh=(v,d)=>Math.min(100,Math.max(0,isFinite(+v)&&v!==''&&v!=null?+v:d))/100;tb.style.setProperty('--shT',String(sh(c.shT,100)));tb.style.setProperty('--shB',String(sh(c.shB,100)));
+  const bt=ui.btn||{},bn=(v,lo,hi,d)=>Math.min(hi,Math.max(lo,isFinite(+v)&&v!==''&&v!=null?+v:d));
+  [['pg',bt.pin||{}],['mn',bt.menu||{}]].forEach(([k,o])=>{tb.style.setProperty('--'+k+'O',String(bn(o.o,0,100,55)/100));tb.style.setProperty('--'+k+'S',String(bn(o.s,60,160,100)/100));tb.style.setProperty('--'+k+'X',bn(o.x,-40,40,0)+'px');tb.style.setProperty('--'+k+'Y',bn(o.y,-40,40,0)+'px')});
   const def=UI_REG.map(x=>x[0]),ord=(Array.isArray(ui.order)?ui.order:[]).filter(x=>def.includes(x)),all=[...ord,...def.filter(x=>!ord.includes(x))];
   const custom=all.join()!==def.join(),hide=new Set(Array.isArray(ui.hide)?ui.hide:[]),mt=ui.mt||{},zm=ui.zoom||{};
   pn.classList.toggle('ui-flex',custom);
