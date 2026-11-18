@@ -256,7 +256,8 @@ body{background:var(--bg);min-height:100vh;padding-bottom:120px;}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, getDoc, query, where, onSnapshot, enableIndexedDbPersistence} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { initializeFirestore, getFirestore, collection, getDocs, doc, getDoc, query, where, onSnapshot, enableIndexedDbPersistence} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const getFirestore2=a=>{try{return initializeFirestore(a,{experimentalAutoDetectLongPolling:true})}catch(e){return getFirestore(a)}}; /* ตรวจจับเน็ตที่บล็อกการเชื่อมต่อสด แล้วสลับไปวิธี long-polling เอง */
 // local aliases for cross-scope calls
 const closePopup=(...a)=>window.closePopup(...a);
 
@@ -268,7 +269,7 @@ const firebaseConfig = {
   messagingSenderId:"233476256130",
   appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"};
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const db = getFirestore2(app);
 // เปิดระบบแคชข้อมูลออฟไลน์ (IndexedDB) ไว้ในเครื่อง — โหลดครั้งก่อนไว้แล้วจะดึงจากแคชได้ทันทีแม้เน็ตหลุด/ช้า
 // ถ้าเบราว์เซอร์ไม่รองรับ หรือเปิดหลายแท็บพร้อมกัน จะข้ามไปเงียบๆ ไม่กระทบการทำงานปกติของหน้านี้เลย
 enableIndexedDbPersistence(db).catch(()=>{});
@@ -504,6 +505,18 @@ async function loadMenu(){
       if(target){ openItemHandled = true; openMenuPopup(urlOpenItem); }
     }
   }, e=>{ document.getElementById("menuContainer").innerHTML='<div class="loading">โหลดไม่ได้</div>'; });
+  // เรียลไทม์: สถานะร้าน (เปิด/ปิด) หมวด ชื่อ คำอธิบาย ที่ร้านแก้ไข อัปเดตทันทีโดยไม่ต้องรีเฟรช
+  if(window.shopUnsub) window.shopUnsub();
+  let shopFirst=true;
+  window.shopUnsub=onSnapshot(doc(db,"shops",shopId),snap=>{
+    if(shopFirst){ shopFirst=false; return; }
+    if(!snap.exists()) return;
+    const d=snap.data(); shopFullData=d;
+    shopCategories=Array.isArray(d.categories)?d.categories:[]; shopType=d.shopType||"normal";
+    document.getElementById("shopNameTitle").textContent=d.name||"ร้านค้า";
+    if(d.desc) document.getElementById("shopDescText").textContent=d.desc;
+    updateShopClosedBanner(d);
+  },()=>{});
 }
 
 function renderCats(){

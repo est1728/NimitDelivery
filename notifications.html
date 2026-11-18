@@ -43,7 +43,8 @@ body{font-family:'IBM Plex Sans Thai','Prompt',Arial,sans-serif;background:var(-
 <script src="live.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { initializeFirestore, getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const getFirestore2=a=>{try{return initializeFirestore(a,{experimentalAutoDetectLongPolling:true})}catch(e){return getFirestore(a)}}; /* ตรวจจับเน็ตที่บล็อกการเชื่อมต่อสด แล้วสลับไปวิธี long-polling เอง */
 
 const fbApp = initializeApp({
   apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
@@ -53,7 +54,7 @@ const fbApp = initializeApp({
   messagingSenderId:"233476256130",
   appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
 });
-const db = getFirestore(fbApp);
+const db = getFirestore2(fbApp);
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
 function fmtDate(ms){

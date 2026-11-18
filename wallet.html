@@ -255,8 +255,9 @@ function ripple(e){var b=e.currentTarget;var r=document.createElement('div');r.c
 <script type="module">
 // expose ก่อนทุกอย่าง
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import{getFirestore,collection,doc,onSnapshot,getDocs,addDoc,updateDoc,setDoc,query,orderBy,where,serverTimestamp,increment,limit,getDoc}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-const db=getFirestore(initializeApp({apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",authDomain:"nimit-delivery.firebaseapp.com",projectId:"nimit-delivery",storageBucket:"nimit-delivery.firebasestorage.app",messagingSenderId:"233476256130",appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"}));
+import{ initializeFirestore,getFirestore,collection,doc,onSnapshot,getDocs,addDoc,updateDoc,setDoc,query,orderBy,where,serverTimestamp,increment,limit,getDoc}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const getFirestore2=a=>{try{return initializeFirestore(a,{experimentalAutoDetectLongPolling:true})}catch(e){return getFirestore(a)}}; /* ตรวจจับเน็ตที่บล็อกการเชื่อมต่อสด แล้วสลับไปวิธี long-polling เอง */
+const db=getFirestore2(initializeApp({apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",authDomain:"nimit-delivery.firebaseapp.com",projectId:"nimit-delivery",storageBucket:"nimit-delivery.firebasestorage.app",messagingSenderId:"233476256130",appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"}));
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 function fd(ts){if(!ts)return'';const d=ts.toDate?ts.toDate():new Date(ts);return d.toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}
 function toast(m,ok=true){const t=document.createElement('div');t.className='toast';t.textContent=(ok?'✓ ':'✕ ')+m;document.body.appendChild(t);setTimeout(()=>t.remove(),2500);}

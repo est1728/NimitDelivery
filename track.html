@@ -186,7 +186,8 @@ body{background:var(--gray);min-height:100vh;}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, onSnapshot, collection, query, where, enableIndexedDbPersistence} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { initializeFirestore, getFirestore, doc, onSnapshot, collection, query, where, enableIndexedDbPersistence} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const getFirestore2=a=>{try{return initializeFirestore(a,{experimentalAutoDetectLongPolling:true})}catch(e){return getFirestore(a)}}; /* ตรวจจับเน็ตที่บล็อกการเชื่อมต่อสด แล้วสลับไปวิธี long-polling เอง */
 // local aliases for cross-scope calls
 const openDetail=(...a)=>window.openDetail(...a);
 
@@ -199,7 +200,7 @@ const firebaseConfig = {
   appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
 };
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const db = getFirestore2(app);
 // เปิดระบบแคชข้อมูลออฟไลน์ (IndexedDB) ไว้ในเครื่อง — โหลดครั้งก่อนไว้แล้วจะดึงจากแคชได้ทันทีแม้เน็ตหลุด/ช้า
 // ถ้าเบราว์เซอร์ไม่รองรับ หรือเปิดหลายแท็บพร้อมกัน จะข้ามไปเงียบๆ ไม่กระทบการทำงานปกติของหน้านี้เลย
 enableIndexedDbPersistence(db).catch(()=>{});

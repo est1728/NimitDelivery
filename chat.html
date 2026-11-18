@@ -170,13 +170,14 @@ body{background:#e8ecf0;height:100dvh;display:flex;flex-direction:column;overflo
 </script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, addDoc, onSnapshot, updateDoc, serverTimestamp, getDoc, setDoc, increment, orderBy, query, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { initializeFirestore, getFirestore, collection, doc, addDoc, onSnapshot, updateDoc, serverTimestamp, getDoc, setDoc, increment, orderBy, query, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const getFirestore2=a=>{try{return initializeFirestore(a,{experimentalAutoDetectLongPolling:true})}catch(e){return getFirestore(a)}}; /* ตรวจจับเน็ตที่บล็อกการเชื่อมต่อสด แล้วสลับไปวิธี long-polling เอง */
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 // local aliases for cross-scope calls
 const clearPreview=(...a)=>window.clearPreview(...a);
 
 const app = initializeApp({apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",authDomain:"nimit-delivery.firebaseapp.com",projectId:"nimit-delivery",storageBucket:"nimit-delivery.firebasestorage.app",messagingSenderId:"233476256130",appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"});
-const db = getFirestore(app);
+const db = getFirestore2(app);
 const storage = getStorage(app);
 
 // URL params
