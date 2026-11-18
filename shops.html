@@ -459,12 +459,12 @@ html[data-sp~="sit"] .svc::after{content:'';position:absolute;right:76px;top:-46
 .rm-shop{position:relative;z-index:1;width:100%;background:#fff;border-radius:20px;padding:16px 12px 0;height:112px;display:flex;gap:16px;align-items:flex-start;transition:height .35s cubic-bezier(.4,0,.2,1),padding-top .35s cubic-bezier(.4,0,.2,1);border:2px solid var(--blue-500);box-shadow:0 0 0 3px rgba(46,111,224,.12),0 0 14px rgba(46,111,224,.35),0 6px 20px rgba(11,44,99,.12);color:var(--blue-800)}
 .rm-shop.closed{opacity:.6;filter:grayscale(70%)}
 .rm-shop.open{height:290px;padding-top:12px}
-.rm-shop.open.hs{height:346px}
+.rm-shop.open.has-sum{height:346px}
 .rm-sum{position:absolute;left:12px;right:62px;top:292px;height:42px;border:0;border-radius:14px;color:#fff;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;background:linear-gradient(135deg,var(--blue-500),var(--blue-700));box-shadow:0 4px 15px rgba(46,111,224,.4);display:none}
-.rm-shop.open.hs .rm-sum{display:block}
+.rm-shop.open.has-sum .rm-sum{display:block}
 .rm-lst{position:absolute;right:12px;top:292px;width:42px;height:42px;border:0;border-radius:14px;background:var(--blue-100);color:var(--blue-600);cursor:pointer;display:none;place-items:center}
 .rm-lst svg{width:22px;height:22px;fill:currentColor;pointer-events:none}
-.rm-shop.open.hs .rm-lst{display:grid}
+.rm-shop.open.has-sum .rm-lst{display:grid}
 .rm-ci{display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--s-line2)}
 .rm-ci>div{flex:1;min-width:0}
 .rm-cn{font-size:14px;font-weight:600}
@@ -2150,7 +2150,7 @@ function updSum(){
   const its=((cart[R.open]||{}).items||[]);
   const n=its.reduce((a,x)=>a+(parseInt(x.qty)||1),0);
   st.querySelector('.rm-sum').textContent=`สรุปการสั่งซื้อ (${n})`;
-  st.querySelector('.rm-shop').classList.toggle('hs',its.length>0);
+  st.querySelector('.rm-shop').classList.toggle('has-sum',its.length>0);
 }
 function showNo(st,msg){const n=st.querySelector('.rm-no');n.textContent=msg||'';n.hidden=!msg;}
 /* เลื่อนหน้าให้ "การ์ดเมนู" อยู่กลางจอ: รอให้กรอบร้านขยายเสร็จก่อน (ผังหน้านิ่ง) แล้วค่อยสั่งเลื่อนแบบ smooth ของเบราว์เซอร์
