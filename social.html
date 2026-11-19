@@ -73,8 +73,9 @@ try{
   throw e;
 }
 const {initializeApp}=fb;
-const {getFirestore,collection,doc,getDoc,getDocs,setDoc,updateDoc,deleteDoc,query,where,onSnapshot,arrayUnion,arrayRemove,increment}=fs;
-const db=getFirestore(initializeApp({apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",authDomain:"nimit-delivery.firebaseapp.com",projectId:"nimit-delivery",storageBucket:"nimit-delivery.firebasestorage.app",messagingSenderId:"233476256130",appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"}));
+const {getFirestore,initializeFirestore,collection,doc,getDoc,getDocs,setDoc,updateDoc,deleteDoc,query,where,onSnapshot,arrayUnion,arrayRemove,increment}=fs;
+const fbApp=initializeApp({apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",authDomain:"nimit-delivery.firebaseapp.com",projectId:"nimit-delivery",storageBucket:"nimit-delivery.firebasestorage.app",messagingSenderId:"233476256130",appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"});
+const db=(()=>{try{return initializeFirestore(fbApp,{experimentalAutoDetectLongPolling:true})}catch(e){return getFirestore(fbApp)}})();
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ls=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}};
@@ -315,7 +316,9 @@ window.submitPost=async()=>{
   if(k==='poll')d.votes={};
   try{await setDoc(doc(collection(db,'socialPosts')),d);closeSheet();toast('โพสต์แล้ว')}catch(e){toast('โพสต์ไม่สำเร็จ ลองรูปที่เล็กลง')}
 };
-init();
+const showErr=e=>{const c=(e&&(e.code||e.message))||String(e);$('main').innerHTML='<div class="card empty">เกิดข้อผิดพลาด: '+esc(c)+(/permission/i.test(c)?'<br><br>Firestore rules ยังไม่อนุญาตคอลเลกชันของโซเชียล':'')+'</div>'};
+window.addEventListener('unhandledrejection',ev=>showErr(ev.reason));
+init().catch(showErr);
 </script>
 </body>
 </html>
