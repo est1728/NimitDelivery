@@ -216,6 +216,18 @@ body{background:var(--g);min-height:100vh;}
 #edFoot{position:fixed;left:0;right:0;bottom:0;z-index:100010;display:none;gap:10px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:#fff;box-shadow:0 -4px 16px rgba(15,23,42,.12)}
 #edFoot button{flex:1;height:48px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;border:0}
 #edFoot .no{background:#eef2f7;color:#334155}#edFoot .ok{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff}
+#secM{position:fixed;inset:0;z-index:100020;background:rgba(7,27,61,.55);display:none;align-items:center;justify-content:center;padding:16px}
+#secM .b{background:#fff;border-radius:18px;width:100%;max-width:440px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
+#secM .hd{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 16px;border-bottom:2px solid var(--g);font-weight:700;font-size:15px;color:var(--p)}
+#secM .bd{overflow-y:auto;padding:4px 16px 12px;flex:1}
+#secM .ft{padding:10px 16px 14px;border-top:1px solid #e2e8f0}#secM .ft button{width:100%;height:46px;border:0;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--p),var(--pd))}
+#secPv{width:auto!important}
+#secM .pvw{position:sticky;top:0!important;z-index:5;margin:8px 0 10px;box-shadow:0 6px 14px rgba(15,23,42,.12)}
+.mk{position:relative;padding-top:var(--mt,0px)}.mk:before{content:"";position:absolute;left:0;right:0;top:0;height:var(--mt,0px);background:repeating-linear-gradient(45deg,#dbeafe,#dbeafe 4px,#eff6ff 4px,#eff6ff 8px)}
+.mk>div.in{position:relative;zoom:var(--zm,1);padding:0 10px}
+.mk .cardw{background:#fff;border-radius:14px;padding:10px 12px;box-shadow:0 2px 8px rgba(15,23,42,.08);font-size:12px;color:#334155}
+.mk .ttl{font-weight:700;font-size:13px;margin-bottom:6px;color:#0f172a}
+.mk .rowf{display:flex;gap:8px}.mk .ic{width:40px;height:40px;border-radius:12px;background:#dbeafe;flex:none}
 #edM{position:fixed;inset:0;z-index:100050;background:rgba(7,27,61,.55);display:none;align-items:center;justify-content:center;padding:20px}
 #edM .b{background:#fff;border-radius:16px;padding:20px;width:100%;max-width:360px}#edM h4{margin:0 0 6px;font-size:17px}#edM p{margin:0 0 14px;font-size:13px;color:#64748b}
 #edM button{width:100%;height:46px;border:0;border-radius:12px;font-size:15px;font-weight:700;margin-top:8px;cursor:pointer}
@@ -437,10 +449,9 @@ window.onerror = function(msg, url, line, col, error){
   </div>
   <div class="card lockd edpop" data-lkcard>
     <div class="stitle" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>จัดหน้าแรก (ลูกค้า)</span><button type="button" class="hbBtn lkb" data-lk style="flex:none;height:32px;padding:0 12px;font-size:12px;text-transform:none;letter-spacing:0;gap:5px"></button></div>
-    <div class="hint" style="margin-bottom:10px">เรียงลำดับ ซ่อน/แสดง และปรับระยะห่าง/ขนาดของแต่ละส่วนในหน้าแรก (ช่องค้นหาอยู่บนสุดเสมอ) กดแถวเพื่อปรับระยะและขนาด</div>
+    <div class="hint" style="margin-bottom:10px">เรียงลำดับ ซ่อน/แสดง และปรับระยะห่าง/ขนาดของแต่ละส่วนในหน้าแรก (ช่องค้นหาอยู่บนสุดเสมอ) กดที่ชื่อแต่ละส่วนเพื่อเปิดหน้าต่างปรับของส่วนนั้น (มีตัวอย่างให้ดู) ปรับเสร็จกด "เสร็จ" แล้วกดบันทึกที่หน้านี้</div>
     <label style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;margin-bottom:10px"><input type="checkbox" id="adCap"> แสดงชื่อร้านและข้อความบนรูปโฆษณา</label>
     <div id="uiList" class="hbList"></div>
-    <div id="uiCtl" class="hbCtl"></div>
     <div style="font-size:12px;font-weight:700;color:var(--s);margin:18px 0 6px">ปุ่มบนภาพหน้าแรก (เมนู / ที่อยู่)</div>
     <div id="btnCtl"></div>
     <button type="button" class="hbBtn" id="uiRstAll" style="width:100%;flex:none;margin-top:12px">คืนค่าเริ่มต้น การจัดหน้าทั้งหมด</button>
@@ -1351,6 +1362,24 @@ $hb('hbHH').oninput=e=>{HEROH=+e.target.value;$hb('hbHHv').textContent=HEROH+'% 
 $hb('hbLift').oninput=e=>{LIFT=+e.target.value;$hb('hbLiftv').textContent=LIFT+'px';hStage()};
 /* home sections: order / show / spacing / zoom */
 let UIORD=UI_ITEMS.map(x=>x[0]);
+function secMock(id){
+  const chip=(t,on)=>`<span style="padding:5px 12px;border-radius:999px;font-size:12px;font-weight:600;background:${on?'#1f6bf0':'#e8eef8'};color:${on?'#fff':'#475569'}">${t}</span>`;
+  const M={
+  slot:`<div class="cardw"><div class="ttl">ออเดอร์ของคุณ</div><div style="display:flex;justify-content:space-between"><span>#1234 กำลังจัดส่ง</span><b style="color:#1f6bf0">12 นาที</b></div><div style="height:6px;border-radius:3px;background:#e2e8f0;margin-top:8px"><div style="width:60%;height:100%;border-radius:3px;background:#1f6bf0"></div></div></div>`,
+  svc:`<div class="rowf">${['สั่งอาหาร','เรียกรถ','ฝากซื้อ'].map(t=>`<div class="cardw" style="flex:1;text-align:center"><div class="ic" style="margin:0 auto 6px"></div>${t}</div>`).join('')}</div>`,
+  rw:`<div class="cardw" style="background:linear-gradient(120deg,#1f6bf0,#6aa5ff);color:#fff"><div class="ttl" style="color:#fff">แต้มของคุณ</div><div style="font-size:22px;font-weight:800">1,250 แต้ม</div><div style="opacity:.85">แลกรางวัลได้เลย</div></div>`,
+  cat:`<div class="ttl">หมวดหมู่</div><div class="rowf" style="justify-content:space-between">${['อาหาร','เครื่องดื่ม','ขนม','ของใช้','อื่นๆ'].map(t=>`<div style="text-align:center;font-size:11px"><div class="ic" style="border-radius:50%;margin:0 auto 4px"></div>${t}</div>`).join('')}</div>`,
+  coupon:`<div class="ttl">คูปอง</div><div class="rowf">${[['ลด 20','ขั้นต่ำ 100'],['ส่งฟรี','ขั้นต่ำ 150']].map(c=>`<div class="cardw" style="flex:1;border:1.5px dashed #1f6bf0"><b style="font-size:16px;color:#1f6bf0">${c[0]}</b><div style="font-size:11px;color:#64748b">${c[1]}</div><div style="margin-top:6px;font-size:11px;font-weight:700;color:#fff;background:#1f6bf0;border-radius:8px;padding:3px 0;text-align:center">เก็บคูปอง</div></div>`).join('')}</div>`,
+  flash:`<div class="ttl" style="color:#dc2626">ดีลลับ (Flash Sale)</div><div class="rowf">${[0,1,2].map(i=>`<div class="cardw" style="flex:1;padding:6px"><div style="height:52px;border-radius:10px;background:#fecaca;margin-bottom:5px"></div><b style="color:#dc2626">฿${49+i*10}</b></div>`).join('')}</div>`,
+  bnr:`<div style="height:84px;border-radius:14px;background:linear-gradient(120deg,#8fbcf2,#e3f0ff 60%,#a9cdf8);display:grid;place-items:center;font-weight:700;color:#1e3a8a">แบนเนอร์แอพ</div>`,
+  flt:`<div class="rowf" style="flex-wrap:wrap">${chip('ทั้งหมด',1)}${chip('ใกล้ฉัน')}${chip('เปิดอยู่')}${chip('คะแนนสูง')}</div>`,
+  shops:`<div class="ttl">ร้านทั้งหมด</div>${[1,2].map(i=>`<div class="cardw rowf" style="margin-bottom:8px;align-items:center"><div class="ic" style="width:56px;height:56px"></div><div><b>ร้านตัวอย่าง ${i}</b><div style="font-size:11px;color:#64748b">อาหารตามสั่ง · 1.2 กม.</div></div></div>`).join('')}`};
+  return M[id]||''}
+function secOpen(id){UISEL=id;const m=$hb('secM');m.style.display='flex';$hb('secT').textContent=(UI_ITEMS.find(x=>x[0]===id)||[0,''])[1];uiRender();history.pushState({sec:1},'');$hb('secBd').scrollTop=0}
+function secClose(){if(history.state&&history.state.sec)history.back();else{$hb('secM').style.display='none';UISEL='';uiRender()}}
+function secHide(){$hb('secM').style.display='none';UISEL='';uiRender()}
+(function(){const m=document.createElement('div');m.id='secM';m.innerHTML='<div class="b"><div class="hd"><span id="secT"></span><button type="button" class="edx" aria-label="ปิด">✕</button></div><div class="bd" id="secBd"><div id="uiCtl" class="hbCtl"></div></div><div class="ft"><button type="button">เสร็จ</button></div></div>';document.body.appendChild(m);
+  m.querySelector('.edx').onclick=secClose;m.querySelector('.ft button').onclick=secClose;m.onclick=e=>{if(e.target===m)secClose()}})();
 function uiRender(){
   $hb('uiList').innerHTML=UIORD.map((id,i)=>{const off=UIS.hide.has(id),nm=UI_ITEMS.find(x=>x[0]===id)[1];
     return `<div class="hbRow ${id===UISEL?'on':''} ${off?'off':''}" data-id="${id}"><div class="th" style="width:auto;padding:0 8px;background:none">${i+1}</div><div class="nm">${nm}</div>
@@ -1368,12 +1397,13 @@ function uiRender(){
       e.innerHTML=`<div class="box"><div class="hd"><span class="tt"><i class="ic"></i>ร้านแนะนำ</span><span class="al">ดูทั้งหมด ›</span></div><div class="row">${[0,1,2,3].map(c).join('')}</div></div>`};
     $hb('uiCtl').querySelectorAll('[data-pk]').forEach(inp=>inp.addEventListener('input',pv));window.popPv=pv;pv();
     $hb('popRst').onclick=()=>{UIS.pop={};UIS.mt.pop=0;UIS.zoom.pop=1;uiRender()}}
+  if(id&&id!=='pop'){$hb('uiCtl').insertAdjacentHTML('afterbegin','<div class="pvw"><div class="pv" id="secPv"></div></div>');window.secPv=()=>{const e=$hb('secPv');if(!e)return;e.innerHTML=`<div class="mk" style="--mt:${Math.max(0,UIS.mt[id]||0)}px;--zm:${UIS.zoom[id]||1}"><div class="in">${secMock(id)}</div></div>`};window.secPv()}
   if(id&&id!=='pop'){$hb('uiCtl').insertAdjacentHTML('beforeend','<button type="button" class="hbBtn" id="uiRst1" style="width:100%;flex:none;margin-top:8px">คืนค่าเริ่มต้นส่วนนี้</button>');$hb('uiRst1').onclick=()=>{delete UIS.mt[id];delete UIS.zoom[id];uiRender()}}
-  if(id){$hb('uiMt').oninput=e=>{UIS.mt[id]=+e.target.value;$hb('uiMtv').textContent=e.target.value+'px'};$hb('uiZm').oninput=e=>{UIS.zoom[id]=+e.target.value/100;$hb('uiZmv').textContent=e.target.value+'%';if(id==='pop'&&window.popPv)window.popPv()}}
+  if(id){$hb('uiMt').oninput=e=>{UIS.mt[id]=+e.target.value;$hb('uiMtv').textContent=e.target.value+'px';if(id!=='pop'&&window.secPv)window.secPv()};$hb('uiZm').oninput=e=>{UIS.zoom[id]=+e.target.value/100;$hb('uiZmv').textContent=e.target.value+'%';if(id==='pop'&&window.popPv)window.popPv();if(id!=='pop'&&window.secPv)window.secPv()}}
 }
 $hb('uiList').addEventListener('click',e=>{
   const row=e.target.closest('.hbRow');if(!row)return;const id=row.dataset.id,b=e.target.closest('button'),a=b&&b.dataset.a,i=UIORD.indexOf(id);
-  if(!a){UISEL=UISEL===id?'':id}
+  if(!a){secOpen(id);return}
   else if(a==='eye'){UIS.hide.has(id)?UIS.hide.delete(id):UIS.hide.add(id)}
   else{const j=a==='up'?i-1:i+1;if(j<0||j>=UIORD.length)return;[UIORD[i],UIORD[j]]=[UIORD[j],UIORD[i]]}
   uiRender();
@@ -1430,7 +1460,7 @@ function edClose(){const i=EDOPEN;if(i<0)return;EDOPEN=-1;document.querySelector
 window.edTryClose=function(){if(EDOPEN<0)return;if(edDirty())$hb('edM').style.display='flex';else edClose()};
 async function edDiscard(){await hbApply();edClose()}
 window.edAfterSave=function(){EDSNAP=edSnap(EDOPEN);edClose()};
-window.addEventListener('popstate',()=>{if(EDOPEN<0)return;if(edDirty()){history.pushState({edp:1},'');$hb('edM').style.display='flex'}else edClose()});
+window.addEventListener('popstate',()=>{if($hb('secM')&&$hb('secM').style.display==='flex'){secHide();return}if(EDOPEN<0)return;if(edDirty()){history.pushState({edp:1},'');$hb('edM').style.display='flex'}else edClose()});
 window.addEventListener('beforeunload',e=>{if(edDirty()){e.preventDefault();e.returnValue=''}});
 window.saveHomeBg=async function(part){
   part=part==='ui'?'ui':'bg';
