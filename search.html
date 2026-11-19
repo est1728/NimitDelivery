@@ -98,6 +98,7 @@ body{background:#fff;min-height:100vh;}
   <div class="results" id="resultList"></div>
 </div>
 
+<script src="price.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { initializeFirestore, getFirestore, collection, query, getDocs, doc, setDoc, getDoc, increment, serverTimestamp, enableIndexedDbPersistence} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -295,14 +296,14 @@ function doSearch(q){
     html += menuRes.slice(0,10).map(m=>{
       const shop = allShops.find(s=>s.id===m.shopId);
       const ico = m.imageUrl?`<img src="${m.imageUrl}">`:'🍽';
-      const price = calcPrice(m.price||0, m.gp||0, shop?.shopType);
+      const price = NimitStartPrice(m,(b,g)=>calcPrice(b,g,shop?.shopType));
       return `<div class="menu-row" onclick="pickMenu('${m.shopId||''}','${esc(shop?.name||'').replace(/'/g,"\\'")}','${esc(q)}')">
         <div class="menu-ico">${ico}</div>
         <div class="menu-info">
           <div class="menu-name">${hl(m.name||'',ql)}</div>
           <div class="menu-shop">📍 ${esc(shop?.name||'ไม่ทราบร้าน')}</div>
         </div>
-        <div class="menu-price">฿${price}</div>
+        <div class="menu-price">${price}</div>
       </div>`;
     }).join('');
   }

@@ -254,6 +254,7 @@ body{background:var(--bg);min-height:100vh;padding-bottom:120px;}
   </div>
 </div>
 
+<script src="price.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { initializeFirestore, getFirestore, collection, getDocs, doc, getDoc, query, where, onSnapshot, enableIndexedDbPersistence} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -573,7 +574,7 @@ function renderMenuCardHtml(m){
         <div class="menu-name">${m.name}</div>
         ${m.desc?`<div class="menu-desc">${m.desc}</div>`:''}
         <div class="menu-bottom">
-          <div class="menu-price">฿${dp}</div>
+          <div class="menu-price">${NimitStartPrice(m,calcPrice)}</div>
           ${soldOut ? `<span class="sold-out-pill">สินค้าหมด</span>` : (qty>0
             ?`<div class="qty-ctrl" onclick="event.stopPropagation()">
                 <button class="qty-btn minus" onclick="quickRemove('${m.id}')">−</button>

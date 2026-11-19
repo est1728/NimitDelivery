@@ -54,6 +54,7 @@ body{background:var(--g);min-height:100vh;padding-bottom:80px;}
   <div class="state-box"><div class="spinner"></div><div class="state-sub">กำลังโหลด...</div></div>
 </div>
 
+<script src="price.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { initializeFirestore, getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -143,7 +144,7 @@ async function load(){
         <div class="mcard-body">
           <div class="mcard-name">${esc(it.name||"")}</div>
           <div class="mcard-shop">${esc(shopNames[it.shopId]||"")}</div>
-          <div class="mcard-price">฿${it.price||0}</div>
+          <div class="mcard-price">${NimitStartPrice(it,(b)=>Math.ceil(b))}</div>
         </div>
       </div>`).join('')}</div>`;
   }catch(e){
