@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Nimit Social</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--p:#176DE0;--d:#104AA8;--l:#EAF3FF;--bg:#F5F8FD;--w:#fff;--t:#172B4D;--m:#6B7A90;--line:#E3EAF5;--red:#E5484D;
+--sh:0 6px 24px rgba(23,109,224,.09)}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+body{font:15px/1.5 Prompt,system-ui,sans-serif;background:var(--bg);color:var(--t);padding-bottom:84px}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input,textarea{font:inherit;color:inherit}
+.app{max-width:640px;margin:0 auto;padding:0 12px}
+header{position:sticky;top:0;z-index:5;padding:12px 0 8px;background:linear-gradient(var(--bg) 80%,transparent)}
+.logo{font-weight:600;font-size:22px;color:var(--p);letter-spacing:-.3px}
+.logo small{display:block;font-size:11px;font-weight:400;color:var(--m);letter-spacing:.4px}
+.tabs{display:flex;gap:6px;background:var(--w);padding:4px;border-radius:14px;box-shadow:var(--sh);margin:8px 0 14px}
+.tabs button{flex:1;padding:8px;border-radius:11px;color:var(--m);font-weight:500;transition:.2s}
+.tabs .on{background:var(--p);color:#fff}
+.card{background:var(--w);border-radius:20px;box-shadow:var(--sh);margin-bottom:14px;overflow:hidden;animation:up .35s ease both}
+@keyframes up{from{opacity:0;transform:translateY(10px)}}
+.pad{padding:14px}
+.row{display:flex;align-items:center;gap:10px}.grow{flex:1;min-width:0}
+.av{width:42px;height:42px;border-radius:50%;background:var(--p) center/cover;color:#fff;display:grid;place-items:center;font-weight:600;flex:none;cursor:pointer}
+.av.l{width:88px;height:88px;font-size:32px;border:4px solid #fff}
+.nm{font-weight:600;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sm{font-size:12.5px;color:var(--m)}
+.txt{padding:0 14px 12px;white-space:pre-wrap;word-break:break-word}
+.tag{color:var(--p);font-weight:500}
+.pimg{width:100%;max-height:520px;object-fit:cover;display:block;background:var(--l)}
+.shop{display:flex;gap:10px;align-items:center;margin:0 14px 12px;padding:10px;border-radius:16px;background:var(--l)}
+.shop .si{width:48px;height:48px;border-radius:12px;background:#fff center/cover;flex:none;display:grid;place-items:center;color:var(--p);font-weight:600}
+.acts{display:flex;border-top:1px solid var(--line)}
+.acts button{flex:1;padding:11px;color:var(--m);font-weight:500;display:flex;gap:6px;justify-content:center;align-items:center}
+.acts button.on{color:var(--red)}
+.acts button.on svg{fill:var(--red);animation:pop .3s}
+@keyframes pop{50%{transform:scale(1.35)}}
+svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn{background:var(--p);color:#fff;border-radius:12px;padding:10px 18px;font-weight:600;transition:.15s}
+.btn:active{transform:scale(.97)}.btn.g{background:var(--l);color:var(--p)}.btn.full{width:100%}
+.in{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:8px;outline:0;background:#fff}
+.in:focus{border-color:var(--p)}
+textarea.in{min-height:110px;resize:vertical}
+.chip{padding:6px 14px;border-radius:99px;background:var(--l);color:var(--p);font-weight:500;font-size:13px}
+.chip.on{background:var(--p);color:#fff}
+.empty{text-align:center;color:var(--m);padding:32px 16px}
+.cover{height:130px;background:linear-gradient(135deg,var(--p),var(--d)) center/cover}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;justify-content:space-around;align-items:center;padding:8px 8px calc(8px + env(safe-area-inset-bottom));
+background:rgba(255,255,255,.82);backdrop-filter:blur(14px);border-top:1px solid var(--line)}
+nav button{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--m);padding:4px 18px}
+nav button.on{color:var(--p)}
+nav .plus{background:var(--p);color:#fff;border-radius:16px;width:52px;height:44px;justify-content:center;box-shadow:0 6px 16px rgba(23,109,224,.35)}
+#sheet{position:fixed;inset:0;z-index:20;background:rgba(23,43,77,.45);display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
+#sheet.show{display:flex}
+#sheetIn{background:#fff;width:100%;max-width:640px;max-height:88vh;overflow:auto;border-radius:24px 24px 0 0;padding:18px;animation:up .25s ease}
+#toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:var(--t);color:#fff;padding:10px 18px;border-radius:99px;font-size:13px;display:none;z-index:30}
+.cm{padding:8px 0;border-bottom:1px solid var(--line)}
+@media(min-width:900px){
+ body{padding:0 0 0 220px}
+ nav{top:0;bottom:auto;right:auto;width:220px;height:100vh;flex-direction:column;justify-content:flex-start;gap:8px;padding:90px 16px;border:0;border-right:1px solid var(--line)}
+ nav button{flex-direction:row;gap:12px;font-size:15px;width:100%;padding:12px 14px;border-radius:14px}
+ nav button.on{background:var(--l)}nav .plus{width:100%;height:auto;margin-top:6px}
+ .logo{position:fixed;left:20px;top:22px}header .logo{position:static}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><div class="logo">Nimit Social<small>Eat. Share. Connect.</small></div></header>
+  <main id="main"><div class="empty">กำลังโหลด...</div></main>
+</div>
+<nav id="nav" style="display:none"></nav>
+<div id="sheet"><div id="sheetIn"></div></div>
+<div id="toast"></div>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {getFirestore,collection,doc,getDoc,getDocs,setDoc,updateDoc,deleteDoc,query,where,onSnapshot,arrayUnion,arrayRemove} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app=initializeApp({apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",authDomain:"nimit-delivery.firebaseapp.com",projectId:"nimit-delivery",storageBucket:"nimit-delivery.firebasestorage.app",messagingSenderId:"233476256130",appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"});
+const db=getFirestore(app);
+
+/* ---------- helpers ---------- */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeImg=u=>/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(u||'')||/^https:\/\//.test(u||'')?esc(u):'';
+const lsGet=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}};
+const toast=t=>{const e=$('toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',2200)};
+const ago=t=>{const m=(Date.now()-t)/6e4;return m<1?'เมื่อสักครู่':m<60?Math.floor(m)+' นาทีที่แล้ว':m<1440?Math.floor(m/60)+' ชม.ที่แล้ว':Math.floor(m/1440)+' วันที่แล้ว'};
+const rich=s=>esc(s).replace(/#([\p{L}\p{N}_]+)/gu,'<span class="tag">#$1</span>');
+const shrink=(f,max,q)=>new Promise(r=>{const rd=new FileReader();rd.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*s;c.height=im.height*s;c.getContext('2d').drawImage(im,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',q))};im.src=rd.result};rd.readAsDataURL(f)});
+const IC={home:'<path d="M3 11l9-8 9 8v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.5 3.5-7 8-7s8 2.5 8 7"/>',plus:'<path d="M12 5v14M5 12h14"/>',heart:'<path d="M12 21s-8-5.2-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 5.8-8 11-8 11z"/>',chat:'<path d="M21 12a8 8 0 01-11.5 7.2L3 21l1.8-6A8 8 0 1121 12z"/>',more:'<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>'};
+const ico=k=>`<svg viewBox="0 0 24 24">${IC[k]}</svg>`;
+
+/* ---------- state ---------- */
+const phone=new URLSearchParams(location.search).get('phone')||lsGet('customerData',{}).phone||localStorage.getItem('customerPhone');
+let me=null,tab='home',ft='pub',view='',shown=15,links=[],pub=[],mineP=[],frP=[],viewP=[],cache={},asked={},shopsC=null,compose={},openCm='';
+let frUn=null;
+
+const getU=async h=>{if(cache[h])return cache[h];const s=await getDoc(doc(db,'socialHandles',h));if(s.exists())cache[h]=s.data();return cache[h]||null};
+const avatar=(h,n)=>{const u=cache[h],bg=u&&u.avatar&&safeImg(u.avatar)?`background-image:url(${safeImg(u.avatar)})`:'';
+  if(!u&&!asked[h]){asked[h]=1;getU(h).then(()=>render())}
+  return `<div class="av" style="${bg}" onclick="openProfile('${esc(h)}')">${bg?'':esc((n||h||'?').trim().charAt(0).toUpperCase())}</div>`};
+const sortP=s=>s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.ts-a.ts).slice(0,200);
+const friendsOf=()=>links.filter(l=>l.status==='ok').map(l=>l.users.find(u=>u!==me.handle));
+
+/* ---------- init ---------- */
+async function init(){
+  if(!phone){$('main').innerHTML='<div class="card empty">กรุณาเข้าสู่ระบบก่อนใช้งาน Nimit Social<br><br><button class="btn" onclick="location.href=\'login.html?next=social.html\'">เข้าสู่ระบบ</button></div>';return}
+  try{
+    const s=await getDocs(query(collection(db,'socialHandles'),where('phone','==',phone)));
+    if(s.empty){
+      const name=(lsGet('customerData',{}).name||'').trim()||'ผู้ใช้ Nimit';
+      for(let i=0;i<6&&!me;i++){const h='nimit_'+Math.random().toString(36).slice(2,8);
+        if(!(await getDoc(doc(db,'socialHandles',h))).exists()){const m={handle:h,name,bio:'',district:'',phone,avatar:'',cover:'',created:Date.now()};await setDoc(doc(db,'socialHandles',h),m);me=m}}
+    }else me=s.docs[0].data();
+    cache[me.handle]=me;
+    onSnapshot(query(collection(db,'socialPosts'),where('vis','==','public')),s=>{pub=sortP(s);render()});
+    onSnapshot(query(collection(db,'socialPosts'),where('author','==',me.handle)),s=>{mineP=sortP(s);render()});
+    onSnapshot(query(collection(db,'socialFriends'),where('users','array-contains',me.handle)),s=>{links=s.docs.map(d=>d.data());watchFr();render()});
+    $('nav').style.display='flex';render();
+  }catch(e){$('main').innerHTML='<div class="card empty">เชื่อมต่อไม่ได้: '+esc(e.code||e.message)+(/permission/i.test(e.code||e.message)?'<br>Firestore rules ยังไม่อนุญาต':'')+'</div>'}
+}
+function watchFr(){if(frUn)frUn();const a=[me.handle,...friendsOf()].slice(0,30);frUn=onSnapshot(query(collection(db,'socialPosts'),where('author','in',a)),s=>{frP=sortP(s);render()})}
+
+/* ---------- render ---------- */
+function nav(){$('nav').innerHTML=`<button class="${tab==='home'?'on':''}" onclick="go('home')">${ico('home')}หน้าแรก</button><button class="plus" onclick="openCompose()">${ico('plus')}<span class="sm" style="color:#fff;display:none">โพสต์</span></button><button class="${tab==='me'?'on':''}" onclick="go('me')">${ico('user')}โปรไฟล์</button>`}
+window.go=t=>{tab=t;view='';shown=15;render();scrollTo(0,0)};
+function render(){if(!me)return;nav();tab==='home'?rHome():rProfile()}
+
+function postHtml(p){
+  const own=p.author===me.handle,liked=(p.likes||[]).includes(me.handle),n=(p.likes||[]).length,c=(p.comments||[]).length,sh=p.extra&&p.extra.shop;
+  const img=safeImg(p.img);
+  return `<article class="card">
+  <div class="pad row">${avatar(p.author,p.authorName)}<div class="grow"><div class="nm">${esc(p.authorName||p.author)}</div><div class="sm">@${esc(p.author)} · ${ago(p.ts)}${p.edited?' · แก้ไขแล้ว':''} · ${p.vis==='public'?'สาธารณะ':'เพื่อน'}</div></div>${own?`<button onclick="pm('${p.id}')">${ico('more')}</button>`:''}</div>
+  ${p.text?`<div class="txt">${rich(p.text)}</div>`:''}
+  ${img?`<img class="pimg" loading="lazy" src="${img}" alt="">`:''}
+  ${sh?`<div class="shop"><div class="si" style="${sh.img&&safeImg(sh.img)?`background-image:url(${safeImg(sh.img)})`:''}">${sh.img?'':esc((sh.name||'?').charAt(0))}</div><div class="grow"><div class="nm">${esc(sh.name)}</div><div class="sm">ร้านใน Nimit Delivery</div></div></div>`:''}
+  <div class="acts"><button class="${liked?'on':''}" onclick="like('${p.id}')">${ico('heart')}${n||''}</button><button onclick="cmts('${p.id}')">${ico('chat')}${c||''}</button></div></article>`}
+
+function rHome(){
+  const hid=[],L=(ft==='pub'?pub:frP.filter(p=>p.author===me.handle||p.vis==='public'||friendsOf().includes(p.author)));
+  $('main').innerHTML=`<div class="tabs"><button class="${ft==='pub'?'on':''}" onclick="setFt('pub')">สาธารณะ</button><button class="${ft==='fr'?'on':''}" onclick="setFt('fr')">เพื่อน</button></div>`+
+  (L.length?L.slice(0,shown).map(postHtml).join('')+(L.length>shown?`<button class="btn g full" style="margin-bottom:14px" onclick="more()">ดูเพิ่ม</button>`:''):'<div class="card empty">ยังไม่มีโพสต์ มาเป็นคนแรกที่แชร์สิ!</div>');
+}
+window.setFt=f=>{ft=f;shown=15;render()};window.more=()=>{shown+=15;render()};
+
+async function rProfile(){
+  const h=view||me.handle,own=h===me.handle,u=(await getU(h))||{handle:h,name:h};
+  if((view||me.handle)!==h||tab!=='me')return;
+  const L=own?mineP:viewP.filter(p=>p.vis==='public'||friendsOf().includes(h));
+  const cv=u.cover&&safeImg(u.cover)?`background-image:url(${safeImg(u.cover)})`:'';
+  $('main').innerHTML=`${own?'':'<button class="chip" style="margin-bottom:10px" onclick="go(\'home\')">← กลับ</button>'}
+  <div class="card"><div class="cover" style="${cv}"></div><div class="pad" style="padding-top:0"><div style="margin-top:-46px"><div class="av l" style="${u.avatar&&safeImg(u.avatar)?`background-image:url(${safeImg(u.avatar)})`:''}">${u.avatar?'':esc((u.name||'?').charAt(0).toUpperCase())}</div></div>
+  <div style="font-weight:600;font-size:21px;margin-top:8px">${esc(u.name)}</div><div class="sm">@${esc(h)}</div>${u.bio?`<div style="margin-top:8px">${esc(u.bio)}</div>`:''}
+  <div class="sm" style="margin-top:8px">${L.length} โพสต์ · ${own?friendsOf().length+' เพื่อน':''}</div>${own?'<button class="btn g full" style="margin-top:12px" onclick="editMe()">แก้ไขโปรไฟล์</button>':''}</div></div>`+
+  (L.length?L.map(postHtml).join(''):'<div class="card empty">ยังไม่มีโพสต์</div>');
+}
+window.openProfile=async h=>{if(h===me.handle)return go('me');tab='me';view=h;viewP=[];render();
+  const s=await getDocs(query(collection(db,'socialPosts'),where('author','==',h)));viewP=sortP(s);if(view===h)render()};
+
+/* ---------- sheet ---------- */
+const sheet=h=>{$('sheetIn').innerHTML=h;$('sheet').classList.add('show')};
+window.closeSheet=()=>$('sheet').classList.remove('show');
+$('sheet').onclick=e=>{if(e.target.id==='sheet')closeSheet()};
+
+/* ---------- like / comment ---------- */
+const fp=id=>[pub,mineP,frP,viewP].map(l=>l.find(z=>z.id===id)).find(Boolean);
+window.like=async id=>{const p=fp(id);if(!p)return;const on=(p.likes||[]).includes(me.handle);
+  try{await updateDoc(doc(db,'socialPosts',id),{likes:on?arrayRemove(me.handle):arrayUnion(me.handle)})}catch(e){toast('ทำรายการไม่สำเร็จ')}};
+window.cmts=id=>{const p=fp(id);openCm=id;
+  sheet(`<div style="font-weight:600;font-size:17px">ความคิดเห็น</div>${(p.comments||[]).map(c=>`<div class="cm"><b>${esc(c.name)}</b> ${esc(c.text)} <span class="sm">${ago(c.ts)}</span></div>`).join('')||'<div class="sm" style="margin:10px 0">ยังไม่มีความคิดเห็น</div>'}
+  <div class="row"><input class="in grow" id="ct" maxlength="200" placeholder="เขียนความคิดเห็น"><button class="btn" style="margin-top:8px" id="cs">ส่ง</button></div>`);
+  $('cs').onclick=async()=>{const t=$('ct').value.trim();if(!t)return;
+    try{await updateDoc(doc(db,'socialPosts',id),{comments:arrayUnion({by:me.handle,name:me.name,text:t,ts:Date.now()})});closeSheet()}catch(e){toast('ส่งไม่สำเร็จ')}}};
+
+/* ---------- post menu / edit / delete ---------- */
+window.pm=id=>sheet(`<button class="btn g full" onclick="openCompose('${id}')">แก้ไขโพสต์</button><button class="btn full" style="margin-top:10px;background:var(--red)" onclick="delPost('${id}')">ลบโพสต์</button>`);
+window.delPost=async id=>{if(!confirm('ลบโพสต์นี้?'))return;try{await deleteDoc(doc(db,'socialPosts',id));closeSheet()}catch(e){toast('ลบไม่สำเร็จ')}};
+
+/* ---------- compose + food sharing ---------- */
+window.openCompose=id=>{const p=id&&fp(id);compose=p?{edit:id,text:p.text||'',img:p.img||'',vis:p.vis,shop:p.extra&&p.extra.shop||null}:{text:'',img:'',vis:'public',shop:null};drawCompose()};
+function drawCompose(){
+  const t=$('ptx')?$('ptx').value:compose.text;compose.text=t;
+  const img=safeImg(compose.img);
+  sheet(`<div class="row">${avatar(me.handle,me.name)}<div class="grow"><div class="nm">${esc(me.name)}</div>${compose.edit?`<div class="sm">${compose.vis==='public'?'สาธารณะ':'เพื่อน'}</div>`:`<div class="row" style="gap:6px;margin-top:4px"><button class="chip ${compose.vis==='public'?'on':''}" onclick="setVis('public')">สาธารณะ</button><button class="chip ${compose.vis==='friends'?'on':''}" onclick="setVis('friends')">เพื่อน</button></div>`}</div></div>
+  <textarea class="in" id="ptx" maxlength="1000" placeholder="วันนี้กินอะไรดี? ใส่ #แฮชแท็กได้">${esc(t)}</textarea>
+  ${img?`<img class="pimg" style="border-radius:14px;margin-top:10px" src="${img}" alt="">`:''}
+  ${compose.shop?`<div class="shop" style="margin:10px 0 0"><div class="si" style="${compose.shop.img&&safeImg(compose.shop.img)?`background-image:url(${safeImg(compose.shop.img)})`:''}">${compose.shop.img?'':esc((compose.shop.name||'?').charAt(0))}</div><div class="grow nm">${esc(compose.shop.name)}</div>${compose.edit?'':'<button class="chip" onclick="compose.shop=null;drawCompose()">ลบ</button>'}</div>`:''}
+  <div class="row" style="margin-top:14px;flex-wrap:wrap">${compose.edit?'':`<label class="btn g" style="cursor:pointer">รูปภาพ<input type="file" accept="image/*" hidden onchange="pickImg(this)"></label><button class="btn g" onclick="pickShop()">แชร์ร้านอาหาร</button>`}<div class="grow"></div><button class="btn" onclick="submitPost()">${compose.edit?'บันทึก':'โพสต์'}</button></div>`);
+}
+window.compose=null;Object.defineProperty(window,'compose',{get:()=>compose,set:v=>{compose=v}});window.drawCompose=drawCompose;
+window.setVis=v=>{compose.vis=v;drawCompose()};
+window.pickImg=async i=>{const f=i.files[0];if(!f)return;compose.img=await shrink(f,720,.7);drawCompose()};
+window.pickShop=async()=>{
+  compose.text=$('ptx').value;
+  sheet('<div style="font-weight:600;font-size:17px">เลือกร้านที่จะแชร์</div><input class="in" id="shq" placeholder="ค้นหาชื่อร้าน"><div id="shl" class="sm" style="margin-top:10px">กำลังโหลดร้าน...</div>');
+  if(!shopsC)try{shopsC=(await getDocs(collection(db,'shops'))).docs.map(d=>({id:d.id,...d.data()}))}catch(e){shopsC=[]}
+  const draw=()=>{const q=$('shq').value.trim().toLowerCase(),F=shopsC.filter(x=>(x.name||'').toLowerCase().includes(q)).slice(0,30);
+    $('shl').innerHTML=F.length?F.map(x=>`<div class="row" style="padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer" data-i="${esc(x.id)}"><div class="av">${esc((x.name||'?').charAt(0))}</div><div class="grow nm">${esc(x.name)}</div></div>`).join(''):'<div class="empty">ไม่พบร้าน</div>';
+    $('shl').querySelectorAll('[data-i]').forEach(e=>e.onclick=()=>{const x=shopsC.find(z=>z.id===e.dataset.i),o={id:x.id,name:x.name||''};
+      if(typeof x.avatarUrl==='string'&&x.avatarUrl.startsWith('https://')&&x.avatarUrl.length<500)o.img=x.avatarUrl;compose.shop=o;drawCompose()})};
+  $('shq').oninput=draw;draw()};
+window.submitPost=async()=>{
+  const text=$('ptx').value.trim();if(!text&&!compose.img&&!compose.shop)return toast('เขียนอะไรสักอย่างก่อน');
+  try{
+    if(compose.edit)await updateDoc(doc(db,'socialPosts',compose.edit),{text,edited:true});
+    else{await setDoc(doc(collection(db,'socialPosts')),{author:me.handle,authorName:me.name,text,img:compose.img,kind:'text',extra:compose.shop?{shop:compose.shop}:{},vis:compose.vis,district:me.district||'',likes:[],rx:{},comments:[],ts:Date.now()});ft=compose.vis==='public'?'pub':'fr';tab='home'}
+    closeSheet();toast(compose.edit?'บันทึกแล้ว':'โพสต์แล้ว');render();
+  }catch(e){toast('โพสต์ไม่สำเร็จ ลองรูปที่เล็กลง')}};
+
+/* ---------- edit profile ---------- */
+let ed={};
+window.editMe=()=>{ed={name:me.name,bio:me.bio||'',avatar:me.avatar||'',cover:me.cover||''};drawEdit()};
+function drawEdit(){
+  const n=$('en')?$('en').value:ed.name,b=$('eb')?$('eb').value:ed.bio;ed.name=n;ed.bio=b;
+  sheet(`<div style="font-weight:600;font-size:17px">แก้ไขโปรไฟล์</div>
+  <div class="cover" style="border-radius:14px;margin-top:10px;height:100px;${ed.cover&&safeImg(ed.cover)?`background-image:url(${safeImg(ed.cover)})`:''}"></div>
+  <div class="row" style="margin-top:10px"><label class="btn g" style="cursor:pointer">ภาพปก<input type="file" accept="image/*" hidden onchange="pickEd(this,'cover')"></label><label class="btn g" style="cursor:pointer">รูปโปรไฟล์<input type="file" accept="image/*" hidden onchange="pickEd(this,'avatar')"></label></div>
+  <input class="in" id="en" maxlength="30" placeholder="ชื่อที่แสดง" value="${esc(n)}"><input class="in" id="eb" maxlength="80" placeholder="คำอธิบายสั้น ๆ" value="${esc(b)}">
+  <button class="btn full" style="margin-top:14px" onclick="saveMe()">บันทึก</button>`)}
+window.pickEd=async(i,k)=>{const f=i.files[0];if(!f)return;ed[k]=await shrink(f,k==='cover'?900:240,.72);drawEdit()};
+window.saveMe=async()=>{const n=$('en').value.trim();if(!n)return toast('กรอกชื่อก่อน');
+  const m={...me,name:n,bio:$('eb').value.trim(),avatar:ed.avatar,cover:ed.cover};
+  try{await setDoc(doc(db,'socialHandles',me.handle),m);me=m;cache[me.handle]=m;closeSheet();render();toast('บันทึกแล้ว')}catch(e){toast('บันทึกไม่สำเร็จ ลองรูปที่เล็กลง')}};
+
+window.addEventListener('unhandledrejection',ev=>{const c=(ev.reason&&(ev.reason.code||ev.reason.message))||'';if(/permission/i.test(c))toast('Firestore rules ไม่อนุญาตการทำรายการนี้')});
+init();
+</script>
+</body>
+</html>
