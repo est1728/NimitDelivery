@@ -4,74 +4,93 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Nimit Social</title>
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet"><meta name="theme-color" content="#176DE0">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 <style>
-:root{--p:#176DE0;--d:#104AA8;--l:#EAF3FF;--bg:#F5F8FD;--w:#fff;--t:#172B4D;--m:#6B7A90;--line:#E3EAF5;--red:#E5484D;
---sh:0 6px 24px rgba(23,109,224,.09)}
-*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
-body{font:15px/1.5 Prompt,system-ui,sans-serif;background:var(--bg);color:var(--t);padding-bottom:84px}
-button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
-input,textarea{font:inherit;color:inherit}
-.app{max-width:640px;margin:0 auto;padding:0 12px}
-header{position:sticky;top:0;z-index:5;padding:12px 0 8px;background:linear-gradient(var(--bg) 80%,transparent)}
-.logo{font-weight:600;font-size:22px;color:var(--p);letter-spacing:-.3px}
-.logo small{display:block;font-size:11px;font-weight:400;color:var(--m);letter-spacing:.4px}
-.tabs{display:flex;gap:6px;background:var(--w);padding:4px;border-radius:14px;box-shadow:var(--sh);margin:8px 0 14px}
-.tabs button{flex:1;padding:8px;border-radius:11px;color:var(--m);font-weight:500;transition:.2s}
-.tabs .on{background:var(--p);color:#fff}
-.card{background:var(--w);border-radius:20px;box-shadow:var(--sh);margin-bottom:14px;overflow:hidden;animation:up .35s ease both}
-@keyframes up{from{opacity:0;transform:translateY(10px)}}
-.pad{padding:14px}
-.row{display:flex;align-items:center;gap:10px}.grow{flex:1;min-width:0}
-.av{width:42px;height:42px;border-radius:50%;background:var(--p) center/cover;color:#fff;display:grid;place-items:center;font-weight:600;flex:none;cursor:pointer}
+:root{--p:#176DE0;--d:#104AA8;--l:#EAF3FF;--bg:#F5F8FD;--w:#fff;--t:#172B4D;--m:#6B7C99;--line:#E3EBF7;--red:#E5484D;--r:22px;--sh:0 4px 20px rgba(23,43,77,.06)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'IBM Plex Sans Thai',Prompt,system-ui,sans-serif;background:var(--bg);color:var(--t);line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}input,textarea{font:inherit;color:inherit}
+svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.press{transition:transform .14s cubic-bezier(.34,1.56,.64,1)}.press:active{transform:scale(.93)}
+.side,.rail{display:none}
+.shell{max-width:620px;margin:0 auto;padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;background:rgba(245,248,253,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.logo{display:flex;align-items:center;gap:9px;font-family:Prompt;font-weight:700;font-size:19px;color:var(--d)}
+.logo i{width:32px;height:32px;border-radius:10px;background:linear-gradient(145deg,var(--p),var(--d));display:grid;place-items:center;color:#fff;font-style:normal;font-size:16px}
+.ibtn{width:40px;height:40px;border-radius:50%;background:var(--w);display:grid;place-items:center;box-shadow:0 2px 8px rgba(23,43,77,.07);flex:none}
+.ibtn.plain{box-shadow:none;background:none}
+#main{padding:0 16px}
+.av{width:42px;height:42px;border-radius:50%;background:var(--p) center/cover;color:#fff;display:grid;place-items:center;font-family:Prompt;font-weight:600;flex:none;cursor:pointer}
 .av.l{width:88px;height:88px;font-size:32px;border:4px solid #fff}
-.nm{font-weight:600;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sm{font-size:12.5px;color:var(--m)}
-.txt{padding:0 14px 12px;white-space:pre-wrap;word-break:break-word}
+.tabs{display:flex;gap:6px;padding:2px 0 12px;overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar,.chips::-webkit-scrollbar{display:none}
+.tab{padding:8px 16px;border-radius:99px;font-weight:600;font-size:14px;color:var(--m);white-space:nowrap}
+.tab.on{background:var(--p);color:#fff;box-shadow:0 6px 16px rgba(23,109,224,.3)}
+.crv{padding-bottom:14px}.crv h2{font-family:Prompt;font-size:15px;font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline}
+.crv h2 small{font-family:'IBM Plex Sans Thai';font-weight:400;color:var(--m);font-size:12.5px}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.chip{display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:99px;background:var(--w);border:1.5px solid var(--line);font-size:13.5px;font-weight:500;white-space:nowrap}
+.chip b{font-size:18px;font-weight:400}.chip.on{border-color:var(--p);background:var(--l);color:var(--d)}
+.comp{margin-bottom:14px;padding:12px;background:var(--w);border-radius:var(--r);display:flex;align-items:center;gap:12px;box-shadow:var(--sh)}
+.comp .ph{flex:1;height:42px;border-radius:99px;background:var(--bg);padding:0 16px;color:var(--m);font-size:14px;text-align:left}
+.comp .ibtn{box-shadow:none;background:var(--l);color:var(--p)}
+.card,.post{background:var(--w);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:14px;overflow:hidden;animation:up .35s ease both}
+.post{padding:14px 14px 8px;overflow:visible}.pad{padding:14px}
+@keyframes up{from{opacity:0;transform:translateY(10px)}}
+.row,.ph-row{display:flex;align-items:center;gap:11px}.grow,.who{flex:1;min-width:0}
+.who b,.nm{font-size:15px;font-weight:600;line-height:1.25;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who span,.sm{font-size:12.5px;color:var(--m)}
+.cap{margin:12px 0;font-size:15px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
 .tag{color:var(--p);font-weight:500}
-.pimg{width:100%;max-height:520px;object-fit:cover;display:block;background:var(--l)}
-.shop{display:flex;gap:10px;align-items:center;margin:0 14px 12px;padding:10px;border-radius:16px;background:var(--l)}
-.shop .si{width:48px;height:48px;border-radius:12px;background:#fff center/cover;flex:none;display:grid;place-items:center;color:var(--p);font-weight:600}
-.acts{display:flex;border-top:1px solid var(--line)}
-.acts button{flex:1;padding:11px;color:var(--m);font-weight:500;display:flex;gap:6px;justify-content:center;align-items:center}
-.acts button.on{color:var(--red)}
-.acts button.on svg{fill:var(--red);animation:pop .3s}
-@keyframes pop{50%{transform:scale(1.35)}}
-svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.btn{background:var(--p);color:#fff;border-radius:12px;padding:10px 18px;font-weight:600;transition:.15s}
-.btn:active{transform:scale(.97)}.btn.g{background:var(--l);color:var(--p)}.btn.full{width:100%}
-.in{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:8px;outline:0;background:#fff}
-.in:focus{border-color:var(--p)}
+.pimg{width:100%;max-height:440px;object-fit:cover;display:block;border-radius:18px;background:var(--l)}
+.food,.shop{margin-top:10px;padding:12px;border-radius:18px;background:var(--l);display:flex;align-items:center;gap:12px}
+.th{width:54px;height:54px;border-radius:14px;display:grid;place-items:center;font-size:28px;flex:none;background:#fff center/cover}
+.in2,.food>.grow{flex:1;min-width:0}.food small{display:block;font-size:12.5px;color:var(--m)}
+.acts{display:flex;align-items:center;margin-top:6px;padding:4px 0}
+.act{display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:99px;font-size:13.5px;font-weight:500;color:var(--m)}
+.act.on{color:var(--red)}.act.on svg{fill:var(--red);stroke:var(--red);animation:pop .3s}@keyframes pop{50%{transform:scale(1.35)}}
+.cm{padding:8px 4px 6px;border-top:1px solid var(--line);font-size:13.5px}.cm p{margin-bottom:4px}.cm .more{color:var(--m);margin-bottom:6px;cursor:pointer}
+.cm .inp{height:36px;border-radius:99px;background:var(--bg);display:flex;align-items:center;padding:0 14px;color:var(--m);font-size:13px;margin-top:6px;cursor:pointer}
+.cr{padding:8px 0;border-bottom:1px solid var(--line)}
+.btn{background:var(--p);color:#fff;border-radius:99px;padding:10px 18px;font-weight:600;font-size:14px;transition:.15s;box-shadow:0 6px 14px rgba(23,109,224,.25)}
+.btn:active{transform:scale(.97)}.btn.g{background:var(--l);color:var(--p);box-shadow:none}.btn.full{width:100%}
+.in{width:100%;border:1.5px solid var(--line);border-radius:14px;padding:10px 14px;margin-top:8px;outline:0;background:#fff}.in:focus{border-color:var(--p)}
 textarea.in{min-height:110px;resize:vertical}
-.chip{padding:6px 14px;border-radius:99px;background:var(--l);color:var(--p);font-weight:500;font-size:13px}
-.chip.on{background:var(--p);color:#fff}
 .empty{text-align:center;color:var(--m);padding:32px 16px}
 .cover{height:130px;background:linear-gradient(135deg,var(--p),var(--d)) center/cover}
-nav{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;justify-content:space-around;align-items:center;padding:8px 8px calc(8px + env(safe-area-inset-bottom));
-background:rgba(255,255,255,.82);backdrop-filter:blur(14px);border-top:1px solid var(--line)}
-nav button{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--m);padding:4px 18px}
-nav button.on{color:var(--p)}
-nav .plus{background:var(--p);color:#fff;border-radius:16px;width:52px;height:44px;justify-content:center;box-shadow:0 6px 16px rgba(23,109,224,.35)}
-#sheet{position:fixed;inset:0;z-index:20;background:rgba(23,43,77,.45);display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
-#sheet.show{display:flex}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:none;justify-content:space-around;align-items:center;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:rgba(255,255,255,.9);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--line)}
+body.ready .nav{display:flex}
+.nv{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font-size:11.5px;font-weight:500;color:var(--m)}.nv.on{color:var(--p)}
+.nv.mk span{width:52px;height:52px;margin-top:-26px;border-radius:50%;background:linear-gradient(145deg,var(--p),var(--d));display:grid;place-items:center;color:#fff;box-shadow:0 10px 22px rgba(23,109,224,.4);border:4px solid var(--bg)}
+.nv.mk svg{width:26px;height:26px}
+#sheet{position:fixed;inset:0;z-index:40;background:rgba(23,43,77,.45);display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}#sheet.show{display:flex}
 #sheetIn{background:#fff;width:100%;max-width:640px;max-height:88vh;overflow:auto;border-radius:24px 24px 0 0;padding:18px;animation:up .25s ease}
-#toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:var(--t);color:#fff;padding:10px 18px;border-radius:99px;font-size:13px;display:none;z-index:30}
-.cm{padding:8px 0;border-bottom:1px solid var(--line)}
-@media(min-width:900px){
- body{padding:0 0 0 220px}
- nav{top:0;bottom:auto;right:auto;width:220px;height:100vh;flex-direction:column;justify-content:flex-start;gap:8px;padding:90px 16px;border:0;border-right:1px solid var(--line)}
- nav button{flex-direction:row;gap:12px;font-size:15px;width:100%;padding:12px 14px;border-radius:14px}
- nav button.on{background:var(--l)}nav .plus{width:100%;height:auto;margin-top:6px}
- .logo{position:fixed;left:20px;top:22px}header .logo{position:static}
+#toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:var(--t);color:#fff;padding:10px 18px;border-radius:99px;font-size:13px;display:none;z-index:50}
+@media(min-width:960px){
+ body{display:grid;grid-template-columns:260px minmax(0,620px) 320px;gap:28px;justify-content:center;padding:0 24px}
+ body.ready .nav,.topbar .logo{display:none}.topbar{padding:20px 0 6px;background:none;backdrop-filter:none;justify-content:flex-end}
+ .shell{max-width:none;padding-bottom:40px}#main{padding:0}
+ .side,.rail{display:block;position:sticky;top:0;align-self:start;height:100vh;padding:24px 0;overflow-y:auto}
+ .side .logo{margin-bottom:22px;font-size:22px}
+ .sl{display:flex;align-items:center;gap:14px;width:100%;padding:12px 16px;border-radius:16px;font-size:16px;font-weight:500;margin-bottom:2px}
+ .sl.on{background:var(--l);color:var(--p);font-weight:600}.sl:hover{background:var(--l)}
+ .newpost{width:100%;margin-top:14px;height:50px;border-radius:99px;background:linear-gradient(145deg,var(--p),var(--d));color:#fff;font-weight:600;font-size:15.5px;box-shadow:0 10px 22px rgba(23,109,224,.3)}
+ .rail .card{padding:16px}.rail h3{font-family:Prompt;font-size:15px;font-weight:600;margin-bottom:10px}
+ .xp{height:8px;border-radius:99px;background:var(--l);overflow:hidden;margin:8px 0 4px}.xp i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--p),#5AA2FF)}
+ .rl{display:flex;justify-content:space-between;padding:6px 0;font-size:14px}.rl em{font-style:normal;color:var(--m);font-size:12px}
 }
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
-<div class="app">
-  <header><div class="logo">Nimit Social<small>Eat. Share. Connect.</small></div></header>
+<aside class="side" id="side"></aside>
+<div class="shell">
+  <header class="topbar"><div class="logo"><i>N</i>Nimit Social</div><button class="ibtn press" aria-label="ค้นหาเพื่อน" onclick="go('fr');setTimeout(()=>$('fq')&&$('fq').focus(),60)"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button></header>
   <main id="main"><div class="empty">กำลังโหลด...</div></main>
 </div>
-<nav id="nav" style="display:none"></nav>
+<aside class="rail" id="rail"></aside>
+<nav class="nav" id="nav"></nav>
 <div id="sheet"><div id="sheetIn"></div></div>
 <div id="toast"></div>
 
@@ -91,7 +110,7 @@ const toast=t=>{const e=$('toast');e.textContent=t;e.style.display='block';clear
 const ago=t=>{const m=(Date.now()-t)/6e4;return m<1?'เมื่อสักครู่':m<60?Math.floor(m)+' นาทีที่แล้ว':m<1440?Math.floor(m/60)+' ชม.ที่แล้ว':Math.floor(m/1440)+' วันที่แล้ว'};
 const rich=s=>esc(s).replace(/#([\p{L}\p{N}_]+)/gu,'<span class="tag">#$1</span>');
 const shrink=(f,max,q)=>new Promise(r=>{const rd=new FileReader();rd.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*s;c.height=im.height*s;c.getContext('2d').drawImage(im,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',q))};im.src=rd.result};rd.readAsDataURL(f)});
-const IC={home:'<path d="M3 11l9-8 9 8v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.5 3.5-7 8-7s8 2.5 8 7"/>',plus:'<path d="M12 5v14M5 12h14"/>',heart:'<path d="M12 21s-8-5.2-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 5.8-8 11-8 11z"/>',chat:'<path d="M21 12a8 8 0 01-11.5 7.2L3 21l1.8-6A8 8 0 1121 12z"/>',more:'<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>'};
+const IC={home:'<path d="M3 11l9-8 9 8v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.5 3.5-7 8-7s8 2.5 8 7"/>',plus:'<path d="M12 5v14M5 12h14"/>',heart:'<path d="M12 21s-8-5.2-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 5.8-8 11-8 11z"/>',chat:'<path d="M21 12a8 8 0 01-11.5 7.2L3 21l1.8-6A8 8 0 1121 12z"/>',users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-4 3-6 6.5-6s6.5 2 6.5 6M17 5a3 3 0 010 6M21.5 19c0-3-1.5-4.5-4-5"/>',search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',image:'<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>',share:'<path d="M4 12v7h16v-7M12 3v13M7 8l5-5 5 5"/>',more:'<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>'};
 const ico=k=>`<svg viewBox="0 0 24 24">${IC[k]}</svg>`;
 
 /* ---------- state ---------- */
@@ -100,9 +119,11 @@ let me=null,tab='home',ft='pub',view='',shown=15,links=[],pub=[],mineP=[],frP=[]
 let frUn=null;
 
 const getU=async h=>{if(cache[h])return cache[h];const s=await getDoc(doc(db,'socialHandles',h));if(s.exists())cache[h]=s.data();return cache[h]||null};
-const avatar=(h,n)=>{const u=cache[h],bg=u&&u.avatar&&safeImg(u.avatar)?`background-image:url(${safeImg(u.avatar)})`:'';
+const GR=[['#F2A93C','#E5733A'],['#5AA2FF','#104AA8'],['#C9446B','#E5484D'],['#3F9B6B','#12996B'],['#8A5BD6','#5B3FB0']];
+const grad=h=>{const g=GR[[...String(h)].reduce((a,x)=>a+x.charCodeAt(0),0)%GR.length];return `linear-gradient(145deg,${g[0]},${g[1]})`};
+const avatar=(h,n)=>{const u=cache[h],im=u&&u.avatar&&safeImg(u.avatar);
   if(!u&&!asked[h]){asked[h]=1;getU(h).then(()=>render())}
-  return `<div class="av" style="${bg}" onclick="openProfile('${esc(h)}')">${bg?'':esc((n||h||'?').trim().charAt(0).toUpperCase())}</div>`};
+  return `<div class="av" style="background:${im?`url(${im}) center/cover`:grad(h)}" onclick="openProfile('${esc(h)}')">${im?'':esc((n||h||'?').trim().charAt(0).toUpperCase())}</div>`};
 const sortP=s=>s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.ts-a.ts).slice(0,200);
 const friendsOf=()=>links.filter(l=>l.status==='ok').map(l=>l.users.find(u=>u!==me.handle));
 
@@ -120,33 +141,55 @@ async function init(){
     onSnapshot(query(collection(db,'socialPosts'),where('vis','==','public')),s=>{pub=sortP(s);render()});
     onSnapshot(query(collection(db,'socialPosts'),where('author','==',me.handle)),s=>{mineP=sortP(s);render()});
     onSnapshot(query(collection(db,'socialFriends'),where('users','array-contains',me.handle)),s=>{links=s.docs.map(d=>d.data());watchFr();render()});
-    $('nav').style.display='flex';render();
+    document.body.classList.add('ready');render();setTimeout(openHash,1200);
   }catch(e){$('main').innerHTML='<div class="card empty">เชื่อมต่อไม่ได้: '+esc(e.code||e.message)+(/permission/i.test(e.code||e.message)?'<br>Firestore rules ยังไม่อนุญาต':'')+'</div>'}
 }
 function watchFr(){if(frUn)frUn();const a=[me.handle,...friendsOf()].slice(0,30);frUn=onSnapshot(query(collection(db,'socialPosts'),where('author','in',a)),s=>{frP=sortP(s);render()})}
 
 /* ---------- render ---------- */
-function nav(){$('nav').innerHTML=`<button class="${tab==='home'?'on':''}" onclick="go('home')">${ico('home')}หน้าแรก</button><button class="plus" onclick="openCompose()">${ico('plus')}<span class="sm" style="color:#fff;display:none">โพสต์</span></button><button class="${tab==='me'?'on':''}" onclick="go('me')">${ico('user')}โปรไฟล์</button>`}
+const LV=[['Food Rookie',0],['Food Explorer',100],['Food Lover',300],['Food Master',700],['Nimit Legend',1500]];
+function myLevel(){const xp=mineP.length*10+mineP.reduce((a,p)=>a+(p.likes||[]).length*3+(p.comments||[]).length*2,0);let i=0;LV.forEach((l,k)=>{if(xp>=l[1])i=k});return{xp,i,name:LV[i][0],nx:LV[i+1]}}
+function nav(){
+  const n=links.filter(l=>l.status==='pending'&&l.from!==me.handle).length,b=n?` (${n})`:'';
+  $('nav').innerHTML=`<button class="nv ${tab==='home'?'on':''}" onclick="go('home')">${ico('home')}หน้าแรก</button><button class="nv ${tab==='fr'?'on':''}" onclick="go('fr')">${ico('users')}เพื่อน${b}</button><button class="nv mk" aria-label="สร้างโพสต์" onclick="openCompose()"><span>${ico('plus')}</span>สร้าง</button><button class="nv ${tab==='me'?'on':''}" onclick="go('me')">${ico('user')}โปรไฟล์</button>`;
+  $('side').innerHTML=`<div class="logo"><i>N</i>Nimit Social</div><button class="sl ${tab==='home'?'on':''}" onclick="go('home')">${ico('home')}หน้าแรก</button><button class="sl ${tab==='fr'?'on':''}" onclick="go('fr')">${ico('users')}เพื่อน${b}</button><button class="sl ${tab==='me'?'on':''}" onclick="go('me')">${ico('user')}โปรไฟล์</button><button class="newpost press" onclick="openCompose()">โพสต์อาหาร</button>`;
+  const L=myLevel(),pct=L.nx?Math.round((L.xp-LV[L.i][1])/(L.nx[1]-LV[L.i][1])*100):100,cnt={};
+  pub.forEach(p=>((p.text||'').match(/#[\p{L}\p{N}_]+/gu)||[]).forEach(t=>cnt[t]=(cnt[t]||0)+1));
+  const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  $('rail').innerHTML=`<div class="card"><h3>ระดับของคุณ · ${L.name}</h3><div class="xp"><i style="width:${pct}%"></i></div><small class="sm">${L.xp} XP${L.nx?` · อีก ${L.nx[1]-L.xp} XP เป็น ${L.nx[0]}`:''}</small></div><div class="card"><h3>แฮชแท็กมาแรง</h3>${top.length?top.map(([t,n])=>`<div class="rl"><span class="tag">${esc(t)}</span><em>${n} โพสต์</em></div>`).join(''):'<div class="sm">ยังไม่มีแฮชแท็ก</div>'}</div>`;
+}
 window.go=t=>{tab=t;view='';shown=15;render();scrollTo(0,0)};
-function render(){if(!me)return;nav();tab==='home'?rHome():rProfile()}
+function render(){if(!me)return;nav();tab==='home'?rHome():tab==='fr'?rFriends():rProfile()}
 
 function postHtml(p){
-  const own=p.author===me.handle,liked=(p.likes||[]).includes(me.handle),n=(p.likes||[]).length,c=(p.comments||[]).length,sh=p.extra&&p.extra.shop;
-  const img=safeImg(p.img);
-  return `<article class="card">
-  <div class="pad row">${avatar(p.author,p.authorName)}<div class="grow"><div class="nm">${esc(p.authorName||p.author)}</div><div class="sm">@${esc(p.author)} · ${ago(p.ts)}${p.edited?' · แก้ไขแล้ว':''} · ${p.vis==='public'?'สาธารณะ':'เพื่อน'}</div></div>${own?`<button onclick="pm('${p.id}')">${ico('more')}</button>`:''}</div>
-  ${p.text?`<div class="txt">${rich(p.text)}</div>`:''}
+  const own=p.author===me.handle,liked=(p.likes||[]).includes(me.handle),n=(p.likes||[]).length,cl=p.comments||[],c=cl.length,sh=p.extra&&p.extra.shop,img=safeImg(p.img),shi=sh&&sh.img&&safeImg(sh.img);
+  return `<article class="post">
+  <div class="ph-row">${avatar(p.author,p.authorName)}<div class="who"><b>${esc(p.authorName||p.author)}</b><span>${ago(p.ts)} · ${p.vis==='public'?'สาธารณะ':'เพื่อน'}${p.edited?' · แก้ไขแล้ว':''}</span></div>${own?`<button class="ibtn plain press" aria-label="ตัวเลือกโพสต์" onclick="pm('${p.id}')">${ico('more')}</button>`:''}</div>
+  ${p.text?`<p class="cap">${rich(p.text)}</p>`:'<div style="height:10px"></div>'}
   ${img?`<img class="pimg" loading="lazy" src="${img}" alt="">`:''}
-  ${sh?`<div class="shop"><div class="si" style="${sh.img&&safeImg(sh.img)?`background-image:url(${safeImg(sh.img)})`:''}">${sh.img?'':esc((sh.name||'?').charAt(0))}</div><div class="grow"><div class="nm">${esc(sh.name)}</div><div class="sm">ร้านใน Nimit Delivery</div></div></div>`:''}
-  <div class="acts"><button class="${liked?'on':''}" onclick="like('${p.id}')">${ico('heart')}${n||''}</button><button onclick="cmts('${p.id}')">${ico('chat')}${c||''}</button></div></article>`}
-
+  ${sh?`<div class="food"><div class="th" style="${shi?`background-image:url(${shi})`:''}">${shi?'':'🏪'}</div><div class="grow"><b class="nm">${esc(sh.name)}</b><small>ร้านใน Nimit Delivery</small></div></div>`:''}
+  <div class="acts"><button class="act press ${liked?'on':''}" onclick="like('${p.id}')">${ico('heart')}${n||''}</button><button class="act press" onclick="cmts('${p.id}')">${ico('chat')}${c||''}</button><button class="act press" onclick="sharePost('${p.id}')">${ico('share')}แชร์</button></div>
+  <div class="cm">${c>2?`<div class="more" onclick="cmts('${p.id}')">ดูความคิดเห็นทั้งหมด ${c} รายการ</div>`:''}${cl.slice(-2).map(x=>`<p><b>${esc(x.name)}</b> ${esc(x.text)}</p>`).join('')}<div class="inp" onclick="cmts('${p.id}')">เขียนความคิดเห็น…</div></div></article>`}
+const CRV=[{e:'🌶️',n:'เผ็ดจัด',k:['เผ็ด','กะเพรา','ต้มยำ','ส้มตำ','ลาบ','ยำ']},{e:'🍜',n:'เส้น',k:['เส้น','ก๋วยเตี๋ยว','ราเมน','บะหมี่','ผัดไท','สปาเก็ตตี้']},{e:'🍚',n:'ข้าวจานเดียว',k:['ข้าว','กะเพรา']},{e:'🧋',n:'ของหวาน',k:['หวาน','ชานม','ไอติม','ขนม','เค้ก','ชา','กาแฟ','บิงซู']},{e:'🍗',n:'ของทอด',k:['ทอด','เฟรนช์ฟราย','นักเก็ต']}];
+let crv=new Set();
+const score=p=>(p.likes||[]).length+2*(p.comments||[]).length;
+window.togCrv=n=>{crv.has(n)?crv.delete(n):crv.add(n);shown=15;render()};
 function rHome(){
-  const hid=[],L=(ft==='pub'?pub:frP.filter(p=>p.author===me.handle||p.vis==='public'||friendsOf().includes(p.author)));
-  $('main').innerHTML=`<div class="tabs"><button class="${ft==='pub'?'on':''}" onclick="setFt('pub')">สาธารณะ</button><button class="${ft==='fr'?'on':''}" onclick="setFt('fr')">เพื่อน</button></div>`+
-  (L.length?L.slice(0,shown).map(postHtml).join('')+(L.length>shown?`<button class="btn g full" style="margin-bottom:14px" onclick="more()">ดูเพิ่ม</button>`:''):'<div class="card empty">ยังไม่มีโพสต์ มาเป็นคนแรกที่แชร์สิ!</div>');
+  let L=ft==='pub'?pub:ft==='fr'?frP.filter(p=>p.author===me.handle||p.vis==='public'||friendsOf().includes(p.author)):[...pub].sort((a,b)=>score(b)-score(a)||b.ts-a.ts);
+  if(crv.size){const ks=CRV.filter(c=>crv.has(c.n)).flatMap(c=>c.k);L=L.filter(p=>{const t=((p.text||'')+' '+((p.extra&&p.extra.shop&&p.extra.shop.name)||'')).toLowerCase();return ks.some(k=>t.includes(k))})}
+  $('main').innerHTML=`<div class="tabs">${[['pub','สำหรับคุณ'],['fr','กำลังติดตาม'],['tr','มาแรง']].map(([k,n])=>`<button class="tab ${ft===k?'on':''}" onclick="setFt('${k}')">${n}</button>`).join('')}</div>
+  <section class="crv"><h2>วันนี้อยากกินอะไร <small>เลือกได้หลายอย่าง</small></h2><div class="chips">${CRV.map(c=>`<button class="chip press ${crv.has(c.n)?'on':''}" onclick="togCrv('${c.n}')"><b>${c.e}</b>${c.n}</button>`).join('')}</div></section>
+  <div class="comp">${avatar(me.handle,me.name)}<button class="ph" onclick="openCompose()">วันนี้กินอะไรมา แชร์ให้เพื่อนดูหน่อย</button><button class="ibtn press" aria-label="แนบรูป" onclick="openCompose()">${ico('image')}</button></div>`+
+  (L.length?L.slice(0,shown).map(postHtml).join('')+(L.length>shown?`<button class="btn g full" style="margin-bottom:14px" onclick="more()">ดูเพิ่ม</button>`:''):`<div class="card empty">${crv.size?'ยังไม่มีโพสต์ตรงกับความอยากนี้':'ยังไม่มีโพสต์ มาเป็นคนแรกที่แชร์สิ!'}</div>`);
 }
 window.setFt=f=>{ft=f;shown=15;render()};window.more=()=>{shown+=15;render()};
-
+window.sharePost=async id=>{const url=location.origin+location.pathname+'#post-'+id;
+  if(navigator.share){try{await navigator.share({title:'Nimit Social',url});return}catch(e){if(e&&e.name==='AbortError')return}}
+  try{await navigator.clipboard.writeText(url);toast('คัดลอกลิงก์แล้ว')}catch(e){prompt('คัดลอกลิงก์นี้',url)}};
+async function openHash(){const m=location.hash.match(/^#post-(\w+)/);if(!m||!me)return;
+  try{const s=await getDoc(doc(db,'socialPosts',m[1]));if(!s.exists())return;const p={id:s.id,...s.data()};
+    if(p.vis!=='public'&&p.author!==me.handle&&!friendsOf().includes(p.author))return toast('โพสต์นี้ไม่เปิดให้ดู');
+    viewP=[p,...viewP];sheet(postHtml(p))}catch(e){}}
 async function rProfile(){
   const h=view||me.handle,own=h===me.handle,u=(await getU(h))||{handle:h,name:h};
   if((view||me.handle)!==h||tab!=='me')return;
@@ -155,7 +198,7 @@ async function rProfile(){
   $('main').innerHTML=`${own?'':'<button class="chip" style="margin-bottom:10px" onclick="go(\'home\')">← กลับ</button>'}
   <div class="card"><div class="cover" style="${cv}"></div><div class="pad" style="padding-top:0"><div style="margin-top:-46px"><div class="av l" style="${u.avatar&&safeImg(u.avatar)?`background-image:url(${safeImg(u.avatar)})`:''}">${u.avatar?'':esc((u.name||'?').charAt(0).toUpperCase())}</div></div>
   <div style="font-weight:600;font-size:21px;margin-top:8px">${esc(u.name)}</div><div class="sm">@${esc(h)}</div>${u.bio?`<div style="margin-top:8px">${esc(u.bio)}</div>`:''}
-  <div class="sm" style="margin-top:8px">${L.length} โพสต์ · ${own?friendsOf().length+' เพื่อน':''}</div>${own?'<button class="btn g full" style="margin-top:12px" onclick="editMe()">แก้ไขโปรไฟล์</button>':''}</div></div>`+
+  <div class="sm" style="margin-top:8px">${L.length} โพสต์ · ${own?friendsOf().length+' เพื่อน · '+myLevel().name:''}</div>${own?'<button class="btn g full" style="margin-top:12px" onclick="editMe()">แก้ไขโปรไฟล์</button>':frBtn(h)}</div></div>`+
   (L.length?L.map(postHtml).join(''):'<div class="card empty">ยังไม่มีโพสต์</div>');
 }
 window.openProfile=async h=>{if(h===me.handle)return go('me');tab='me';view=h;viewP=[];render();
@@ -163,7 +206,7 @@ window.openProfile=async h=>{if(h===me.handle)return go('me');tab='me';view=h;vi
 
 /* ---------- sheet ---------- */
 const sheet=h=>{$('sheetIn').innerHTML=h;$('sheet').classList.add('show')};
-window.closeSheet=()=>$('sheet').classList.remove('show');
+window.closeSheet=()=>{$('sheet').classList.remove('show');stopCam()};
 $('sheet').onclick=e=>{if(e.target.id==='sheet')closeSheet()};
 
 /* ---------- like / comment ---------- */
@@ -171,7 +214,7 @@ const fp=id=>[pub,mineP,frP,viewP].map(l=>l.find(z=>z.id===id)).find(Boolean);
 window.like=async id=>{const p=fp(id);if(!p)return;const on=(p.likes||[]).includes(me.handle);
   try{await updateDoc(doc(db,'socialPosts',id),{likes:on?arrayRemove(me.handle):arrayUnion(me.handle)})}catch(e){toast('ทำรายการไม่สำเร็จ')}};
 window.cmts=id=>{const p=fp(id);openCm=id;
-  sheet(`<div style="font-weight:600;font-size:17px">ความคิดเห็น</div>${(p.comments||[]).map(c=>`<div class="cm"><b>${esc(c.name)}</b> ${esc(c.text)} <span class="sm">${ago(c.ts)}</span></div>`).join('')||'<div class="sm" style="margin:10px 0">ยังไม่มีความคิดเห็น</div>'}
+  sheet(`<div style="font-weight:600;font-size:17px">ความคิดเห็น</div>${(p.comments||[]).map(c=>`<div class="cr"><b>${esc(c.name)}</b> ${esc(c.text)} <span class="sm">${ago(c.ts)}</span></div>`).join('')||'<div class="sm" style="margin:10px 0">ยังไม่มีความคิดเห็น</div>'}
   <div class="row"><input class="in grow" id="ct" maxlength="200" placeholder="เขียนความคิดเห็น"><button class="btn" style="margin-top:8px" id="cs">ส่ง</button></div>`);
   $('cs').onclick=async()=>{const t=$('ct').value.trim();if(!t)return;
     try{await updateDoc(doc(db,'socialPosts',id),{comments:arrayUnion({by:me.handle,name:me.name,text:t,ts:Date.now()})});closeSheet()}catch(e){toast('ส่งไม่สำเร็จ')}}};
@@ -225,6 +268,65 @@ window.pickEd=async(i,k)=>{const f=i.files[0];if(!f)return;ed[k]=await shrink(f,
 window.saveMe=async()=>{const n=$('en').value.trim();if(!n)return toast('กรอกชื่อก่อน');
   const m={...me,name:n,bio:$('eb').value.trim(),avatar:ed.avatar,cover:ed.cover};
   try{await setDoc(doc(db,'socialHandles',me.handle),m);me=m;cache[me.handle]=m;closeSheet();render();toast('บันทึกแล้ว')}catch(e){toast('บันทึกไม่สำเร็จ ลองรูปที่เล็กลง')}};
+
+
+/* ---------- friends / search / QR ---------- */
+const fid=(a,b)=>[a,b].sort().join('__');
+const linkOf=h=>links.find(l=>l.users.includes(h));
+function frBtn(h){const l=linkOf(h);
+  if(!l)return `<button class="btn full" style="margin-top:12px" onclick="request('${esc(h)}',false)">เพิ่มเพื่อน</button>`;
+  if(l.status==='ok')return `<button class="btn g full" style="margin-top:12px" onclick="unfriend('${esc(h)}')">เป็นเพื่อนกัน · ลบเพื่อน</button>`;
+  return l.from===me.handle?`<button class="btn g full" style="margin-top:12px" onclick="unfriend('${esc(h)}')">ส่งคำขอแล้ว · ยกเลิก</button>`:`<div class="row" style="margin-top:12px"><button class="btn grow" onclick="accept('${esc(h)}')">ยอมรับ</button><button class="btn g grow" onclick="unfriend('${esc(h)}')">ปฏิเสธ</button></div>`}
+const urow=(h,btns)=>{const u=cache[h]||{name:h};return `<div class="card pad row">${avatar(h,u.name)}<div class="grow" onclick="openProfile('${esc(h)}')" style="cursor:pointer"><div class="nm">${esc(u.name)}</div><div class="sm">@${esc(h)}${u.bio?' · '+esc(u.bio):''}</div></div>${btns}</div>`};
+function rFriends(){
+  const inc=links.filter(l=>l.status==='pending'&&l.from!==me.handle),out=links.filter(l=>l.status==='pending'&&l.from===me.handle),fr=friendsOf();
+  const other=l=>l.users.find(u=>u!==me.handle);
+  const q=$('fq')?$('fq').value:'';
+  $('main').innerHTML=`<div class="card pad"><div class="nm">ค้นหาเพื่อน</div><div class="row"><input class="in grow" id="fq" placeholder="พิมพ์ไอดี เช่น nimit_ab12cd" autocapitalize="none" value="${esc(q)}"><button class="btn" style="margin-top:8px" onclick="searchU()">ค้นหา</button></div>
+  <div id="sr"></div><div class="row" style="margin-top:12px"><button class="btn g grow" onclick="myQR()">QR ของฉัน</button><button class="btn g grow" onclick="openScan()">สแกน QR</button></div></div>`+
+  (inc.length?`<div class="nm" style="padding:4px 4px 8px">คำขอเป็นเพื่อน (${inc.length})</div>`+inc.map(l=>urow(l.from,`<button class="btn" onclick="accept('${esc(l.from)}')">ยอมรับ</button><button class="btn g" onclick="unfriend('${esc(l.from)}')">ปฏิเสธ</button>`)).join(''):'')+
+  `<div class="nm" style="padding:4px 4px 8px">เพื่อนของฉัน (${fr.length})</div>`+(fr.length?fr.map(h=>urow(h,`<button class="btn g" onclick="unfriend('${esc(h)}')">ลบ</button>`)).join(''):'<div class="card empty">ยังไม่มีเพื่อน ลองค้นหาหรือสแกน QR</div>')+
+  (out.length?`<div class="nm" style="padding:4px 4px 8px">รอการตอบรับ</div>`+out.map(l=>urow(other(l),`<button class="btn g" onclick="unfriend('${esc(other(l))}')">ยกเลิก</button>`)).join(''):'');
+  if(q)$('fq').focus();
+}
+window.searchU=async()=>{
+  const q=$('fq').value.trim().toLowerCase().replace(/^@/,'');if(q.length<2)return toast('พิมพ์อย่างน้อย 2 ตัวอักษร');
+  $('sr').innerHTML='<div class="sm" style="margin-top:10px">กำลังค้นหา...</div>';
+  try{const s=await getDocs(query(collection(db,'socialHandles'),where('handle','>=',q),where('handle','<=',q+'\uf8ff')));
+    const L=s.docs.map(d=>d.data()).filter(u=>u.handle!==me.handle).slice(0,10);L.forEach(u=>cache[u.handle]=u);
+    $('sr').innerHTML=L.length?L.map(u=>`<div class="row" style="padding:10px 0;border-bottom:1px solid var(--line)">${avatar(u.handle,u.name)}<div class="grow" onclick="openProfile('${esc(u.handle)}')" style="cursor:pointer"><div class="nm">${esc(u.name)}</div><div class="sm">@${esc(u.handle)}</div></div>${linkOf(u.handle)?`<span class="sm">${linkOf(u.handle).status==='ok'?'เพื่อนกันแล้ว':'รอตอบรับ'}</span>`:`<button class="btn" onclick="request('${esc(u.handle)}',false)">เพิ่ม</button>`}</div>`).join(''):'<div class="sm" style="margin-top:10px">ไม่พบไอดีนี้</div>';
+  }catch(e){$('sr').innerHTML='<div class="sm" style="margin-top:10px">ค้นหาไม่สำเร็จ</div>'}};
+window.request=async(h,direct)=>{
+  if(h===me.handle)return toast('นี่คือไอดีของคุณเอง');
+  try{const id=fid(me.handle,h),ref=doc(db,'socialFriends',id),ex=await getDoc(ref);
+    if(ex.exists()){const d=ex.data();
+      if(d.status==='ok')return toast('เป็นเพื่อนกันอยู่แล้ว');
+      if(d.from!==me.handle||direct){await updateDoc(ref,{status:'ok'});return toast('เป็นเพื่อนกันแล้ว')}
+      return toast('ส่งคำขอไปแล้ว')}
+    await setDoc(ref,{users:[me.handle,h].sort(),from:me.handle,status:direct?'ok':'pending',ts:Date.now()});
+    toast(direct?'เพิ่มเพื่อนแล้ว':'ส่งคำขอแล้ว')
+  }catch(e){toast('ทำรายการไม่สำเร็จ')}};
+window.accept=async h=>{try{await updateDoc(doc(db,'socialFriends',fid(me.handle,h)),{status:'ok'});toast('เป็นเพื่อนกันแล้ว')}catch(e){toast('ไม่สำเร็จ')}};
+window.unfriend=async h=>{const l=linkOf(h);if(l&&l.status==='ok'&&!confirm('ลบเพื่อนคนนี้?'))return;try{await deleteDoc(doc(db,'socialFriends',fid(me.handle,h)))}catch(e){toast('ไม่สำเร็จ')}};
+
+async function myToken(){if(!me.qrToken){const t=[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('');
+  await updateDoc(doc(db,'socialHandles',me.handle),{qrToken:t});me.qrToken=t;cache[me.handle]=me}return me.qrToken}
+window.myQR=async()=>{
+  sheet('<div style="text-align:center"><div style="font-weight:600;font-size:17px">QR ของฉัน</div><div class="sm">ให้เพื่อนสแกนเพื่อเป็นเพื่อนกันทันที</div><div id="qrBox" style="display:flex;justify-content:center;margin:16px 0"></div><div class="nm">'+esc(me.name)+'</div><div class="sm">@'+esc(me.handle)+'</div></div>');
+  try{const t=await myToken();new QRCode($('qrBox'),{text:'nimit:f:'+t,width:200,height:200,correctLevel:QRCode.CorrectLevel.M})}catch(e){$('qrBox').textContent='สร้าง QR ไม่สำเร็จ'}};
+let stream=null,raf=0;
+function stopCam(){cancelAnimationFrame(raf);if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}}
+window.openScan=async()=>{
+  sheet('<div style="font-weight:600;font-size:17px">สแกน QR เพื่อน</div><video id="vd" playsinline muted style="width:100%;border-radius:16px;margin-top:10px;background:#000"></video><div class="sm" id="sst" style="margin:8px 0">กำลังเปิดกล้อง...</div>');
+  try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});const v=$('vd');v.srcObject=stream;await v.play();$('sst').textContent='เล็งกล้องไปที่ QR';
+    const c=document.createElement('canvas'),x=c.getContext('2d',{willReadFrequently:true});
+    const tick=async()=>{if(v.videoWidth){c.width=v.videoWidth;c.height=v.videoHeight;x.drawImage(v,0,0);const r=jsQR(x.getImageData(0,0,c.width,c.height).data,c.width,c.height);
+      if(r&&/^nimit:f:[0-9a-f]{32}$/.test(r.data)){stopCam();$('sst').textContent='กำลังเพิ่มเพื่อน...';
+        const s=await getDocs(query(collection(db,'socialHandles'),where('qrToken','==',r.data.slice(8))));
+        if(s.empty){toast('QR ไม่ถูกต้อง');closeSheet();return}
+        await request(s.docs[0].data().handle,true);closeSheet();return}}
+      raf=requestAnimationFrame(tick)};tick()
+  }catch(e){$('sst').textContent='เปิดกล้องไม่ได้ กรุณาอนุญาตการใช้กล้อง'}};
 
 window.addEventListener('unhandledrejection',ev=>{const c=(ev.reason&&(ev.reason.code||ev.reason.message))||'';if(/permission/i.test(c))toast('Firestore rules ไม่อนุญาตการทำรายการนี้')});
 init();
