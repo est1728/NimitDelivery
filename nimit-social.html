@@ -222,7 +222,7 @@ const friendsOf=()=>links.filter(l=>l.status==='ok').map(l=>l.users.find(u=>u!==
 
 /* ---------- init ---------- */
 async function init(){
-  if(!phone){$('main').innerHTML='<div class="card empty">กรุณาเข้าสู่ระบบก่อนใช้งาน Nimit Social<br><br><button class="btn" onclick="location.href=\'login.html?next=social.html\'">เข้าสู่ระบบ</button></div>';return}
+  if(!phone){$('main').innerHTML='<div class="card empty">กรุณาเข้าสู่ระบบก่อนใช้งาน Nimit Social<br><br><button class="btn" onclick="location.href=\'login.html?next=nimit-social.html\'">เข้าสู่ระบบ</button></div>';return}
   try{
     const s=await getDocs(query(collection(db,'socialHandles'),where('phone','==',phone)));
     if(s.empty){
