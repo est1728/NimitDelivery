@@ -29,8 +29,8 @@ svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke
 .tab.on{background:var(--p);color:#fff}
 .crv{padding-bottom:14px}.crv h2{font-family:Prompt;font-size:15px;font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline}
 .crv h2 small{font-family:'IBM Plex Sans Thai';font-weight:400;color:var(--m);font-size:12.5px}
-.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
-.chip{display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:99px;background:var(--w);border:1.5px solid var(--line);font-size:13.5px;font-weight:500;white-space:nowrap}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 4px}
+.chip{flex:none;display:flex;align-items:center;gap:7px;line-height:1.3;padding:8px 14px;border-radius:99px;background:var(--w);border:1.5px solid var(--line);font-size:13.5px;font-weight:500;white-space:nowrap}
 .chip b{font-size:18px;font-weight:400}.chip.on{border-color:var(--p);background:var(--l);color:var(--d)}
 .comp{margin-bottom:14px;padding:12px;background:var(--w);border-radius:var(--r);display:flex;align-items:center;gap:12px;box-shadow:var(--sh)}
 .comp .ph{flex:1;height:42px;border-radius:99px;background:var(--bg);padding:0 16px;color:var(--m);font-size:14px;text-align:left}
@@ -112,7 +112,7 @@ body.ready .nav{display:flex}
 #drbk{position:fixed;inset:0;z-index:50;background:rgba(23,43,77,.38);opacity:0;visibility:hidden;transition:opacity .4s,visibility 0s .4s}body.dopen #drbk{opacity:1;visibility:visible;transition:opacity .4s}
 #dr{position:fixed;right:0;top:0;bottom:0;z-index:55;width:max(50vw,310px);max-width:100vw;background:var(--bg);clip-path:circle(0 at calc(100% - 30px) 34px);visibility:hidden;transition:clip-path .5s cubic-bezier(.4,0,.2,1),width .35s ease,visibility 0s .5s}
 body.dopen #dr{clip-path:circle(170vmax at calc(100% - 30px) 34px);visibility:visible;transition:clip-path .8s cubic-bezier(.22,.8,.3,1),width .35s ease}
-#dr.wide{width:100vw}#drin{height:100%}#dr .av{pointer-events:none}
+#dr.wide,body.dopen #dr.wide{left:0;right:0;width:auto;max-width:none;transition:clip-path .8s cubic-bezier(.22,.8,.3,1)}#drin{height:100%}#dr .av{pointer-events:none}
 .dh{display:flex;align-items:center;gap:6px;padding:calc(12px + env(safe-area-inset-top,0px)) 14px 8px}.dtab{padding:9px 20px;border-radius:99px;font-family:Prompt;font-weight:600;color:var(--m)}.dtab.on{background:var(--p);color:#fff}.dh .sp{flex:1}
 .dbody{height:calc(100% - 64px - env(safe-area-inset-top,0px));overflow:auto;padding:0 14px 24px}
 .dc{display:flex;gap:12px;align-items:flex-start;padding:28px 0 14px}.dme,.dfr{position:relative;flex:none;width:72px;text-align:center;font-size:12px;cursor:pointer}.dme span,.dfr span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -120,19 +120,28 @@ body.dopen #dr{clip-path:circle(170vmax at calc(100% - 30px) 34px);visibility:vi
 .nb2{position:absolute;top:-22px;right:-2px;max-width:76px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:1px 8px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:1}.dme .nb2{right:10px}.nb2.ph{color:var(--m)}
 .dwrap{display:flex;height:100%}.rail2{width:66px;flex:none;overflow-y:auto;padding:calc(14px + env(safe-area-inset-top,0px)) 8px 14px;background:#fff;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:12px;align-items:center;scrollbar-width:none}
 .ra{position:relative;border-radius:50%;padding:2px;cursor:pointer;flex:none}.ra.on{outline:3px solid var(--mc,var(--p));outline-offset:1px}.ra .bdg{position:absolute;top:-4px;right:-4px}
-.cp{flex:1;min-width:0;display:flex;flex-direction:column;height:100%;padding-top:env(safe-area-inset-top,0px)}
+.cp{flex:1;min-width:0;width:0;overflow:hidden;display:flex;flex-direction:column;align-items:stretch;gap:0;margin:0;height:100%;padding-top:env(safe-area-inset-top,0px)}
 .chh{padding:10px 12px;margin:0;border-bottom:1px solid var(--line);background:#fff}.cp .ml{flex:1;max-height:none;min-height:0;padding:12px}
 .me .mb{background:var(--mc,var(--p))}.mb a{color:inherit;text-decoration:underline}.mm{display:grid;gap:4px}.mb img,.mb video{max-width:240px;width:100%;border-radius:12px;display:block}.mb audio{max-width:220px;height:36px}
 .blkb{display:none;text-align:center;padding:12px;color:var(--m);font-size:13.5px}.cp.blk .blkb{display:block}.cp.blk .comp2,.cp.blk .tray,.cp.blk #ep{display:none}
 .tray{display:flex;gap:8px;overflow-x:auto;padding:0 12px}.tp{position:relative;flex:none;width:64px;height:64px;border-radius:12px;background:var(--l);display:grid;place-items:center;font-size:26px;overflow:hidden;margin:6px 0}.tp img{width:100%;height:100%;object-fit:cover}.tp button{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:11px;overflow:visible}
-.comp2{display:flex;align-items:center;gap:2px;padding:8px 10px calc(10px + env(safe-area-inset-bottom,0px));background:#fff;border-top:1px solid var(--line)}
-.ib2{width:36px;height:40px;display:grid;place-items:center;font-size:20px;color:var(--p);cursor:pointer;flex:none}.ib2.rec{color:var(--red);animation:pulse 1s infinite}@keyframes pulse{50%{opacity:.35}}
-.comp2 .mi{flex:1;min-width:0;border:0;outline:0;background:var(--bg);border-radius:99px;padding:10px 14px;margin:0 4px}
-.sendb{width:42px;height:42px;border-radius:50%;font-size:22px;display:grid;place-items:center;flex:none;color:var(--mc,var(--p))}
+.comp2{display:flex;align-items:center;gap:0;overflow:hidden;width:100%;box-sizing:border-box;padding:8px 8px calc(10px + env(safe-area-inset-bottom,0px));background:#fff;border-top:1px solid var(--line)}
+.ib2{width:32px;height:40px;display:grid;place-items:center;font-size:20px;color:var(--p);cursor:pointer;flex:none}.ib2.rec{color:var(--red);animation:pulse 1s infinite}@keyframes pulse{50%{opacity:.35}}
+.comp2 .mi{flex:1 1 0;width:0;min-width:60px;border:0;outline:0;background:var(--bg);border-radius:99px;padding:10px 14px;margin:0 4px}
+.sendb{width:40px;height:40px;border-radius:50%;font-size:22px;display:grid;place-items:center;flex:none;color:var(--mc,var(--p))}
 .sw{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}.sw button{width:36px;height:36px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px var(--line);overflow:visible}.sw button.on{box-shadow:0 0 0 3px var(--t)}.sw.em button{background:var(--bg);font-size:20px;box-shadow:none;border:2px solid transparent}.sw.em button.on{border-color:var(--p)}
 .reco h2{font-family:Prompt;font-size:15px;font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline}.reco h2 small{font-family:'IBM Plex Sans Thai';font-weight:400;color:var(--m);font-size:12.5px}
 .rrow{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding:0 2px 16px}.rrow::-webkit-scrollbar{display:none}
-.rc{flex:none;width:116px;text-align:left;border-radius:18px;background:#fff;box-shadow:0 2px 10px rgba(23,43,77,.07);padding:6px 6px 10px}.ri{height:132px;border-radius:14px;background:var(--l) center/cover;margin-bottom:6px}.rc b{display:block;font-size:13px;line-height:1.3;padding:0 4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.rc small{display:block;font-size:11.5px;color:var(--m);padding:0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rc{flex:none;position:relative;width:112px;height:170px;border-radius:18px;overflow:hidden;background:var(--l);box-shadow:0 3px 12px rgba(23,43,77,.14);padding:0;text-align:left;color:#fff}
+.ri{position:absolute;inset:0;background:var(--l) center/cover}
+.rt{position:absolute;left:0;right:0;bottom:0;padding:30px 9px 9px;background:linear-gradient(180deg,rgba(10,22,44,0),rgba(10,22,44,.82))}
+.rt b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:12.5px;line-height:1.25;font-weight:600}
+.rt small{display:block;font-size:10.5px;opacity:.88;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rpr{position:absolute;top:7px;left:7px;background:rgba(255,255,255,.94);color:var(--d);font-style:normal;font-weight:700;font-size:11.5px;border-radius:99px;padding:2px 8px}
+.wxp{display:inline-flex;align-items:center;gap:4px;font-family:'IBM Plex Sans Thai';font-weight:500;font-size:12px;color:var(--d);background:var(--l);border-radius:99px;padding:2px 9px 2px 7px}.wxp svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.rnd{display:flex;align-items:center;gap:10px;background:#fff;border-radius:20px;box-shadow:var(--sh);padding:10px 12px;margin-top:10px}.rnd img{width:56px;height:56px;object-fit:contain;flex:none}.rnd b{display:block;font-family:Prompt;font-size:14px;line-height:1.3}.rnd small{color:var(--m);font-size:12px}
+.crvb{display:flex;gap:8px;margin-top:10px}.crvb .btn{padding:8px 14px;font-size:13px}
+.mq{display:block;width:96px;height:96px;object-fit:contain;margin:0 auto 6px}
 #sov{position:fixed;inset:0;z-index:60;visibility:hidden;pointer-events:none;transition:visibility 0s .6s}#sov.on{visibility:visible;pointer-events:auto;transition:none}
 #sbk{position:absolute;inset:0;background:rgba(23,43,77,0);transition:background .4s}#sov.on #sbk{background:rgba(23,43,77,.4)}
 #sbox{position:absolute;left:50%;top:0;width:54px;height:54px;border-radius:99px;background:#fff;box-shadow:0 10px 30px rgba(23,43,77,.22);display:flex;align-items:center;gap:8px;padding:0 15px;overflow:hidden;transform:translate(calc(-50% + var(--sx,0px)),var(--sy,60vh)) scale(.9);transition:transform .45s ease .12s,width .3s ease}
@@ -275,11 +284,33 @@ const bump=id=>updateDoc(doc(db,'socialPosts',id),{shares:increment(1)}).catch((
 const score=p=>(p.likes||[]).length+2*(p.comments||[]).length;
 window.togCrv=n=>{crv.has(n)?crv.delete(n):crv.add(n);shown=15;render()};
 const hs=t=>[...t].reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7);
-async function loadReco(){try{const day=Math.floor(Date.now()/864e5),sh=(await loadShops()).filter(x=>x.isOpen!==false).sort((a,b)=>hs(a.id+day)-hs(b.id+day)).slice(0,5),out=[];
-  await Promise.all(sh.map(async x=>{try{(await getDocs(collection(db,'shops',x.id,'menus'))).forEach(d=>{const m=d.data();if(m.name&&/^https:/.test(m.imgUrl||'')&&m.available!==false&&m.soldOut!==true&&m.hidden!==true)out.push({id:d.id,name:String(m.name),price:m.price,img:m.imgUrl,shop:{id:x.id,name:x.name||''}})})}catch(e){}}));
-  reco=out.sort((a,b)=>hs(a.id+day)-hs(b.id+day)).slice(0,10)}catch(e){reco=[]}render()}
-const recoHtml=()=>reco&&reco.length?`<section class="reco"><h2>เมนูแนะนำวันนี้ <small>จากร้านที่เปิดอยู่</small></h2><div class="rrow">${reco.map((m,i)=>`<button class="rc press" onclick="recoPick(${i})"><div class="ri" style="background-image:url('${esc(m.img)}')"></div><b>${esc(m.name)}</b><small>${esc(m.shop.name)}${m.price!=null?' · ฿'+esc(m.price):''}</small></button>`).join('')}</div></section>`:'';
-window.recoPick=i=>{const m=reco[i];compose={text:`แนะนำ ${m.name} #เมนูแนะนำ`,imgs:[],vis:'public',shop:{id:m.shop.id,name:m.shop.name}};drawCompose()};
+const WX_COLD=['เย็น','ปั่น','ชา','โซดา','น้ำแข็ง','ไอติม','ไอศกรีม','สมูทตี้','น้ำผลไม้','มะนาว','เฉาก๊วย','บิงซู','โกโก้','ลาเต้','อเมริกาโน่','เอสเปรสโซ','ส้มตำ','ยำ','แตงโม','ฟราเป้','มัทฉะ','น้ำ','ice','iced','soda','smoothie','frappe','tea','latte'],WX_HOT=['ต้ม','ซุป','ร้อน','โจ๊ก','ก๋วยเตี๋ยว','ราเมน','เส้น','สุกี้','ชาบู','หม้อไฟ','ขิง','ปิ้ง','ทอด','ซาลาเปา','ปาท่องโก๋','แกง','ข้าว'];
+let pool=[],wx=null,rnd=null;
+const kwScore=(t,a)=>a.reduce((n,k)=>n+(t.includes(k)?1:0),0);
+const wxScore=(m,c)=>{const t=(m.name+' '+(m.cat||'')).toLowerCase();if(c==='hot')return kwScore(t,WX_COLD)*2-(t.includes('ร้อน')?3:0);if(c==='rain'||c==='cool')return kwScore(t,WX_HOT)*2-(/เย็น|ปั่น|น้ำแข็ง|ไอติม/.test(t)?3:0);return 0};
+const WX_IC={hot:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',rain:'<path d="M7 15a4.5 4.5 0 1 1 1-8.9A5.5 5.5 0 0 1 18.5 8 3.5 3.5 0 0 1 17.5 15"/><path d="M8 18l-1 3M12 18l-1 3M16 18l-1 3"/>',cool:'<path d="M12 3v18M4.2 7.5l15.6 9M19.8 7.5l-15.6 9"/>',ok:'<path d="M7 18a4.5 4.5 0 1 1 1-8.9A5.5 5.5 0 0 1 18.5 11 3.5 3.5 0 0 1 17.5 18z"/>'};
+const WX_TX={hot:'อากาศร้อน แนะนำของเย็นๆ ดับร้อน',rain:'ฝนตก แนะนำของร้อนๆ อุ่นท้อง',cool:'อากาศเย็น แนะนำของร้อนๆ',ok:'อากาศกำลังดี'};
+async function userPin(){const a=lsGet('addresses',[]),di=parseInt(localStorage.getItem('defaultAddress')||'0')||0,ok=x=>x&&x.lat!=null&&x.lng!=null&&isFinite(+x.lat)&&isFinite(+x.lng)?{lat:+x.lat,lng:+x.lng}:null;
+  let r=ok(a[di])||ok(lsGet('customerData',{}));if(r)return r;
+  try{const d=await getDoc(doc(db,'customers',phone));if(d.exists()){const c=d.data();r=ok((c.addresses||[])[0])||ok(c)}}catch(e){}return r}
+async function loadWx(){const p=await userPin();if(!p)return null;const key='nsWx'+p.lat.toFixed(2)+p.lng.toFixed(2);
+  try{const o=JSON.parse(sessionStorage.getItem(key)||'null');if(o&&Date.now()-o.ts<18e5)return o}catch(e){}
+  const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude='+p.lat+'&longitude='+p.lng+'&current=temperature_2m,apparent_temperature,weather_code&timezone=auto');const c=(await r.json()).current;if(!c)return null;
+  const t=Math.round(c.temperature_2m),ap=c.apparent_temperature,wc=c.weather_code,cond=(wc>=51&&wc<=67)||(wc>=80&&wc<=99)?'rain':(ap>=35||t>=32)?'hot':t<=25?'cool':'ok';
+  const o={ts:Date.now(),t,cond};try{sessionStorage.setItem(key,JSON.stringify(o))}catch(e){}return o}
+async function loadReco(){try{const day=Math.floor(Date.now()/864e5),wp=loadWx().catch(()=>null),sh=(await loadShops()).filter(x=>x.isOpen!==false).sort((a,b)=>hs(a.id+day)-hs(b.id+day)).slice(0,12),out=[];
+  await Promise.all(sh.map(async x=>{try{(await getDocs(collection(db,'shops',x.id,'menus'))).forEach(d=>{const m=d.data();if(m.name&&/^https:/.test(m.imgUrl||'')&&m.available!==false&&m.soldOut!==true&&m.hidden!==true)out.push({id:d.id,name:String(m.name),cat:String(m.category||m.cat||''),price:m.price,img:m.imgUrl,shop:{id:x.id,name:x.name||''}})})}catch(e){}}));
+  wx=await wp;pool=out.sort((a,b)=>hs(a.id+day)-hs(b.id+day));
+  const c=wx?wx.cond:'ok';reco=pool.map((m,i)=>({i,s:wxScore(m,c)})).sort((a,b)=>b.s-a.s||0).slice(0,10).map(o=>o.i)}catch(e){reco=[];pool=[]}render()}
+const rcard=i=>{const m=pool[i];return `<button class="rc press" onclick="recoPick(${i})"><div class="ri" style="background-image:url('${esc(m.img)}')"></div>${m.price!=null?`<i class="rpr">฿${esc(m.price)}</i>`:''}<div class="rt"><b>${esc(m.name)}</b><small>${esc(m.shop.name)}</small></div></button>`};
+const recoHtml=()=>reco&&reco.length?`<section class="reco"><h2>เมนูแนะนำวันนี้ ${wx&&wx.cond!=='ok'?`<span class="wxp"><svg viewBox="0 0 24 24">${WX_IC[wx.cond]}</svg>${wx.t}°</span>`:'<small>จากร้านที่เปิดอยู่</small>'}</h2>${wx&&wx.cond!=='ok'?`<div class="sm" style="margin:-4px 0 8px">${WX_TX[wx.cond]}</div>`:''}<div class="rrow">${reco.map(rcard).join('')}</div></section>`:'';
+const crvMatch=()=>{const ks=CRV.filter(c=>crv.has(c.n)).flatMap(c=>c.k);return pool.map((m,i)=>[m,i]).filter(([m])=>ks.some(k=>m.name.includes(k)||m.cat.includes(k))).slice(0,12).map(a=>a[1])};
+const crvExtra=()=>{let h=`<div class="crvb"><button class="btn g" onclick="rndGo()">สุ่มเมนูให้</button>${crv.size?'<button class="btn g" onclick="crv.clear();render()">ล้างที่เลือก</button>':''}</div>`;
+  if(rnd!=null&&pool[rnd]){const m=pool[rnd];h+=`<div class="rnd"><img src="mascot/cook.webp" alt=""><div class="grow"><b>วันนี้ลอง ${esc(m.name)}</b><small>${esc(m.shop.name)}${m.price!=null?' · ฿'+esc(m.price):''}</small></div><button class="btn" onclick="recoPick(${rnd})">แชร์</button></div>`}
+  if(crv.size){const l=crvMatch();h+=l.length?`<div class="rrow" style="margin-top:10px">${l.map(rcard).join('')}</div>`:'<div class="sm" style="margin-top:8px">ยังไม่มีเมนูตรงกับที่เลือกจากร้านที่เปิดอยู่</div>'}
+  return h};
+window.rndGo=()=>{if(!pool.length){toast('ยังไม่มีเมนูให้สุ่ม');return}let n;do{n=Math.floor(Math.random()*pool.length)}while(pool.length>1&&n===rnd);rnd=n;render()};
+window.recoPick=i=>{const m=pool[i];compose={text:`แนะนำ ${m.name} #เมนูแนะนำ`,imgs:[],vis:'public',shop:{id:m.shop.id,name:m.shop.name}};drawCompose()};
 window.soon=()=>toast('เร็วๆ นี้ — กำลังพัฒนา');
 const MODS=[['🛂','Food Passport','ประวัติอาหารที่เคยกิน','#EAF3FF'],['⚔️','Food Duel','โหวตอาหารสู้กัน','#FDEEDA'],['📔','Food Memories','บันทึกความทรงจำเรื่องกิน','#F1E9FF'],['🎯','Food Quest','ภารกิจสำรวจอาหาร','#DFF4EC'],['🍽️','Table','วางแผนมื้อกับเพื่อน','#FFF3C9'],['🧬','Flavor DNA','อัตลักษณ์รสชาติของคุณ','#E0F3FF'],['📍','Food Map','แผนที่อาหารจากชุมชน','#FCE7E8']];
 const modsHtml=()=>`<section class="mods">${MODS.map(m=>`<button class="mod press" onclick="soon()"><i style="background:${m[3]}">${m[0]}</i><b>${m[1]}</b><small>${m[2]}</small></button>`).join('')}</section>`;
@@ -297,9 +328,9 @@ function rHome(){
   let L=ft==='pub'?pub:ft==='fr'?frP.filter(p=>p.author===me.handle||p.vis==='public'||friendsOf().includes(p.author)):[...pub].sort((a,b)=>score(b)-score(a)||b.ts-a.ts);
   if(crv.size){const ks=CRV.filter(c=>crv.has(c.n)).flatMap(c=>c.k);L=L.filter(p=>{const t=((p.text||'')+' '+((p.extra&&p.extra.shop&&p.extra.shop.name)||'')).toLowerCase();return ks.some(k=>t.includes(k))})}
   $('main').innerHTML=`<div class="tabs">${[['pub','สำหรับคุณ'],['fr','กำลังติดตาม'],['tr','มาแรง']].map(([k,n])=>`<button class="tab ${ft===k?'on':''}" onclick="setFt('${k}')">${n}</button>`).join('')}</div>
-  ${storiesHtml()}${recoHtml()}${modsHtml()}<section class="crv"><h2>วันนี้อยากกินอะไร <small>เลือกได้หลายอย่าง</small></h2><div class="chips">${CRV.map(c=>`<button class="chip press ${crv.has(c.n)?'on':''}" onclick="togCrv('${c.n}')"><b>${c.e}</b>${c.n}</button>`).join('')}</div></section>
+  ${storiesHtml()}${recoHtml()}${modsHtml()}<section class="crv"><h2>วันนี้อยากกินอะไร <small>เลือกได้หลายอย่าง</small></h2><div class="chips">${CRV.map(c=>`<button class="chip press ${crv.has(c.n)?'on':''}" onclick="togCrv('${c.n}')"><b>${c.e}</b>${c.n}</button>`).join('')}</div>${crvExtra()}</section>
   <div class="comp">${avatar(me.handle,me.name)}<button class="ph" onclick="openCompose()">วันนี้กินอะไรมา แชร์ให้เพื่อนดูหน่อย</button><button class="ibtn press" aria-label="แนบรูป" onclick="openCompose()">${ico('image')}</button></div>`+
-  (L.length?L.slice(0,shown).map((p,i)=>postHtml(p)+(i===0?previewCards():'')).join('')+(L.length>shown?`<button class="btn g full" style="margin-bottom:14px" onclick="more()">ดูเพิ่ม</button>`:''):`<div class="card empty">${crv.size?'ยังไม่มีโพสต์ตรงกับความอยากนี้':'ยังไม่มีโพสต์ มาเป็นคนแรกที่แชร์สิ!'}</div>`);
+  (L.length?L.slice(0,shown).map((p,i)=>postHtml(p)+(i===0?previewCards():'')).join('')+(L.length>shown?`<button class="btn g full" style="margin-bottom:14px" onclick="more()">ดูเพิ่ม</button>`:''):`<div class="card empty"><img class="mq" src="mascot/chat.webp" alt="">${crv.size?'ยังไม่มีโพสต์ตรงกับความอยากนี้':'ยังไม่มีโพสต์ มาเป็นคนแรกที่แชร์สิ!'}</div>`);
 }
 window.setFt=f=>{navAnim();ft=f;shown=15;render()};window.more=()=>{shown+=15;render()};
 window.sharePost=async id=>{const url=location.origin+location.pathname+'#post-'+id;
@@ -320,7 +351,7 @@ async function rProfile(){
   ${u.about?`<div class="pd">${esc(u.about)}</div>`:''}${u.fav?`<div class="pd">🍽️ อาหารโปรด: ${esc(u.fav)}</div>`:''}
   <div class="sm" style="margin-top:8px">${L.length} โพสต์${own?' · '+friendsOf().length+' เพื่อน · '+myLevel().name:''} · 📷 รูปเสริม ${n}${own?'/15':''}</div>
   ${n?'<div class="sm">แตะรูปโปรไฟล์เพื่อดูรูปทั้งหมด</div>':''}${own?'<button class="btn g full" style="margin-top:12px" onclick="editMe()">แก้ไขโปรไฟล์</button>':frBtn(h)}</div></div>`+
-  (L.length?L.map(postHtml).join(''):'<div class="card empty">ยังไม่มีโพสต์</div>');
+  (L.length?L.map(postHtml).join(''):'<div class="card empty"><img class="mq" src="mascot/chat.webp" alt="">ยังไม่มีโพสต์</div>');
 }
 window.openProfile=async h=>{closeWheel();closeView();closeSearch();closeDrawer();navAnim();if(h===me.handle)return go('me');tab='me';view=h;viewP=[];render();
   const s=await getDocs(query(collection(db,'socialPosts'),where('author','==',h)));viewP=sortP(s);if(view===h)render()};
@@ -336,7 +367,7 @@ window.like=async id=>{const p=fp(id);if(!p)return;const on=(p.likes||[]).includ
   try{await updateDoc(doc(db,'socialPosts',id),{likes:on?arrayRemove(me.handle):arrayUnion(me.handle)})}catch(e){toast('ทำรายการไม่สำเร็จ')}};
 window.cmts=id=>{openCm=id;cmImg='';cmShop=null;window.cTxt='';drawCm()};
 const cItem=c=>`<div class="ci">${avatar(c.by,c.name,'s2')}<div><div class="bub"><b>${esc(c.name)}</b>${esc(c.text||'')}${c.img&&safeImg(c.img)?`<img src="${safeImg(c.img)}" alt="">`:''}${c.shop?`<div class="food" style="margin-top:8px;padding:8px"><div class="th" style="width:40px;height:40px;font-size:20px">🏪</div><div class="grow"><b class="nm" style="font-size:14px">${esc(c.shop.name)}</b><small>ร้านใน Nimit Delivery</small></div></div>`:''}</div><div class="sm">${ago(c.ts)}</div></div></div>`;
-const cmList=p=>(p.comments||[]).length?p.comments.map(cItem).join(''):'<div class="empty">ยังไม่มีความคิดเห็น เริ่มคุยเลย</div>';
+const cmList=p=>(p.comments||[]).length?p.comments.map(cItem).join(''):'<div class="empty"><img class="mq" src="mascot/chat.webp" alt="">ยังไม่มีความคิดเห็น เริ่มคุยเลย</div>';
 function refreshCm(){const p=fp(openCm);if(p&&$('cml'))$('cml').innerHTML=cmList(p)}
 function drawCm(){const p=fp(openCm);if(!p)return;const t=window.cTxt||'';
   sheet(`<div class="cmh"><b>ความคิดเห็น</b><span class="sm">❤️ ${(p.likes||[]).length} · 💬 ${(p.comments||[]).length} · ↗ ${p.shares||0}</span><button class="ibtn plain" onclick="closeSheet()" aria-label="ปิด">✕</button></div>
@@ -352,7 +383,7 @@ window.pickCmImg=async i=>{const f=i.files[0];if(!f)return;window.cTxt=$('ct').v
 const notifs=()=>{const a=[];mineP.forEach(p=>{(p.comments||[]).forEach(c=>{if(c.by!==me.handle)a.push({ts:c.ts,t:`<b>${esc(c.name)}</b> แสดงความคิดเห็น: ${esc((c.text||'📷').slice(0,60))}`,id:p.id})});const n=(p.likes||[]).length;if(n)a.push({ts:p.ts,nolive:1,t:`มี ${n} คนถูกใจโพสต์ “${esc((p.text||'โพสต์รูป').slice(0,30))}”`,id:p.id})});
   links.filter(l=>l.status==='pending'&&l.from!==me.handle).forEach(l=>a.push({ts:l.ts||0,fr:1,t:`<b>${esc((cache[l.from]||{name:l.from}).name)}</b> ส่งคำขอเป็นเพื่อน`}));return a.sort((x,y)=>y.ts-x.ts)};
 window.openNotifs=()=>{const L=notifs();localStorage.setItem('seenN',Date.now());
-  sheet(`<div style="font-weight:600;font-size:18px;font-family:Prompt;margin-bottom:8px">การแจ้งเตือน</div>${L.length?L.slice(0,30).map((x,i)=>`<div class="cr" style="cursor:pointer" onclick="${x.fr?"closeSheet();go('fr')":`cmts('${x.id}')`}">${x.t}<div class="sm">${x.ts?ago(x.ts):''}</div></div>`).join(''):'<div class="empty">ยังไม่มีการแจ้งเตือน</div>'}`);render()};
+  sheet(`<div style="font-weight:600;font-size:18px;font-family:Prompt;margin-bottom:8px">การแจ้งเตือน</div>${L.length?L.slice(0,30).map((x,i)=>`<div class="cr" style="cursor:pointer" onclick="${x.fr?"closeSheet();go('fr')":`cmts('${x.id}')`}">${x.t}<div class="sm">${x.ts?ago(x.ts):''}</div></div>`).join(''):'<div class="empty"><img class="mq" src="mascot/lie.webp" alt="">ยังไม่มีการแจ้งเตือน</div>'}`);render()};
 const EM=['😀','😂','😍','🥰','😋','🤤','🍜','🍛','🍗','🧋','🔥','👍','❤️','🙏'];
 const COLORS=['#176DE0','#E5484D','#12996B','#8A5BD6','#F2A93C','#E5733A','#C9446B','#172B4D'];
 const chatDoc=h=>chats.find(c=>c.id===fid(me.handle,h))||{};
@@ -378,12 +409,12 @@ function drawDrawer(){const el=$('drin');if(!el)return;if(dChat)return chatShell
   if(dTab==='chat'){
     const mn=noteOk(me);
     body=`<div class="dc"><div class="dme" onclick="editNote()"><div class="rg me">${avatar(me.handle,me.name)}<i class="pl">+</i></div><div class="nb2 ${mn?'':'ph'}">${mn?esc(me.note):'โน้ต'}</div><span>คุณ</span></div><div class="dsc">${friendsOf().map(h=>{const u=cache[h]||{name:h};return `<div class="dfr" onclick="openChat('${esc(h)}')"><div class="rg">${avatar(h,u.name)}</div>${noteOk(u)?`<div class="nb2">${esc(u.note)}</div>`:''}<span>${esc(dn(h))}</span></div>`}).join('')}</div></div>`+
-    (chatList().map(h=>{const c=chatDoc(h),u=cache[h]||{name:h},un=unrd(c);return `<div class="card pad row" style="cursor:pointer" onclick="openChat('${esc(h)}')">${avatar(h,u.name)}<div class="grow"><div class="nm">${esc(dn(h))}</div><div class="sm" style="${un?'color:var(--t);font-weight:600':''}">${esc((c.lastBy===me.handle?'คุณ: ':'')+(c.lastText||'แตะเพื่อเริ่มแชท'))}</div></div>${c.lastTs?`<span class="sm">${ago(c.lastTs)}</span>`:''}${un?'<span class="bdg">!</span>':''}</div>`}).join('')||'<div class="card empty">ยังไม่มีเพื่อน ไปแท็บเพื่อนเพื่อเพิ่ม</div>');
+    (chatList().map(h=>{const c=chatDoc(h),u=cache[h]||{name:h},un=unrd(c);return `<div class="card pad row" style="cursor:pointer" onclick="openChat('${esc(h)}')">${avatar(h,u.name)}<div class="grow"><div class="nm">${esc(dn(h))}</div><div class="sm" style="${un?'color:var(--t);font-weight:600':''}">${esc((c.lastBy===me.handle?'คุณ: ':'')+(c.lastText||'แตะเพื่อเริ่มแชท'))}</div></div>${c.lastTs?`<span class="sm">${ago(c.lastTs)}</span>`:''}${un?'<span class="bdg">!</span>':''}</div>`}).join('')||'<div class="card empty"><img class="mq" src="mascot/wow.webp" alt="">ยังไม่มีเพื่อน ไปแท็บเพื่อนเพื่อเพิ่ม</div>');
   }else{
     const inc=links.filter(l=>l.status==='pending'&&l.from!==me.handle),out=links.filter(l=>l.status==='pending'&&l.from===me.handle),fr=friendsOf();
     body=`<div class="row" style="gap:8px;margin:10px 0 14px"><button class="btn g grow" onclick="myQR()">QR ของฉัน</button><button class="btn g grow" onclick="openScan()">สแกน QR</button><button class="btn grow" onclick="openSearch()">ค้นหา</button></div>`+
     (inc.length?`<div class="sh2">คำขอเป็นเพื่อน (${inc.length})</div>`+inc.map(l=>urow(l.from,`<button class="btn" onclick="accept('${esc(l.from)}')">ยอมรับ</button><button class="btn g" onclick="unfriend('${esc(l.from)}')">ปฏิเสธ</button>`)).join(''):'')+
-    `<div class="sh2">เพื่อนของฉัน (${fr.length})</div>`+(fr.length?fr.map(h=>urow(h,`<button class="btn" onclick="openChat('${esc(h)}')">แชท</button><button class="btn g" onclick="unfriend('${esc(h)}')">ลบ</button>`)).join(''):'<div class="card empty">ยังไม่มีเพื่อน</div>')+
+    `<div class="sh2">เพื่อนของฉัน (${fr.length})</div>`+(fr.length?fr.map(h=>urow(h,`<button class="btn" onclick="openChat('${esc(h)}')">แชท</button><button class="btn g" onclick="unfriend('${esc(h)}')">ลบ</button>`)).join(''):'<div class="card empty"><img class="mq" src="mascot/wow.webp" alt="">ยังไม่มีเพื่อน</div>')+
     (out.length?`<div class="sh2">รอการตอบรับ</div>`+out.map(l=>{const h=l.users.find(u=>u!==me.handle);return urow(h,`<button class="btn g" onclick="unfriend('${esc(h)}')">ยกเลิก</button>`)}).join(''):'');
   }
   el.innerHTML=head+`<div class="dbody">${body}</div>`}
@@ -398,7 +429,7 @@ function drawBlk(){const b=$('blkb');if(!b)return;b.innerHTML=((chatDoc(dChat).b
 const mediaHtml=m=>{const a=(m.media||[]).map(p=>{const d=safeM(p);return !d?'':p.t==='img'?`<img src="${d}" alt="">`:p.t==='vid'?`<video src="${d}" controls playsinline preload="metadata"></video>`:`<audio src="${d}" controls></audio>`}).join('')+(m.img&&safeImg(m.img)?`<img src="${safeImg(m.img)}" alt="">`:'');
   const sh=m.shop?`<div class="food" style="margin:4px 0 0;padding:8px;color:var(--t)"><div class="th" style="width:40px;height:40px;font-size:20px">🏪</div><div class="grow"><b class="nm" style="font-size:14px">${esc(m.shop.name)}</b><small>ร้านใน Nimit Delivery</small></div></div>`:'';return (a?`<div class="mm">${a}</div>`:'')+sh};
 function drawMsgs(){const el=$('ml');if(!el)return;const rd=((chatDoc(chatWith)).read||{})[chatWith]||0;let lm=-1;chatMsgs.forEach((m,i)=>{if(m.by===me.handle)lm=i});
-  el.innerHTML=chatMsgs.map((m,i)=>`<div class="mg ${m.by===me.handle?'me':''}">${m.reply?`<div class="rq">${esc(m.reply.text)}</div>`:''}<div class="mb" onclick="setReply(${i},event)">${mediaHtml(m)}${m.text?`<div>${linkify(m.text)}</div>`:''}</div><span class="sm">${new Date(m.ts).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}${i===lm&&rd>=m.ts?' · อ่านแล้ว':''}</span></div>`).join('')||'<div class="empty">เริ่มคุยกันเลย</div>';el.scrollTop=el.scrollHeight}
+  el.innerHTML=chatMsgs.map((m,i)=>`<div class="mg ${m.by===me.handle?'me':''}">${m.reply?`<div class="rq">${esc(m.reply.text)}</div>`:''}<div class="mb" onclick="setReply(${i},event)">${mediaHtml(m)}${m.text?`<div>${linkify(m.text)}</div>`:''}</div><span class="sm">${new Date(m.ts).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}${i===lm&&rd>=m.ts?' · อ่านแล้ว':''}</span></div>`).join('')||'<div class="empty"><img class="mq" src="mascot/chat.webp" alt="">เริ่มคุยกันเลย</div>';el.scrollTop=el.scrollHeight}
 window.setReply=(i,e)=>{if(e&&e.target.closest('a,video,audio'))return;const m=chatMsgs[i];replyTo={by:m.by,text:(m.text||(m.media&&m.media.length?'📎 สื่อ':m.shop?'🏪 '+m.shop.name:'')).slice(0,60)};$('rp').innerHTML=`<div class="rq" style="margin:6px 12px">ตอบกลับ: ${esc(replyTo.text)} <button class="chip" onclick="clrReply()">✕</button></div>`;$('mi').focus()};
 window.clrReply=()=>{replyTo=null;$('rp').innerHTML=''};
 window.togEm=()=>{const e=$('ep');e.style.display=e.style.display==='none'?'flex':'none'};window.addEm=e=>{$('mi').value+=e;$('mi').focus();updSend()};
@@ -426,7 +457,7 @@ async function sendMsg(quick,shop){const inp=$('mi'),t=quick||inp.value.trim();i
     await setDoc(doc(db,'socialChats',id),{users,lastText:lbl,lastTs:ts+groups.length-1,lastBy:me.handle,read:{[me.handle]:ts}},{merge:true});
     inp.value='';pend=[];replyTo=null;$('rp').innerHTML='';drawTray();updSend()}catch(e){toast('ส่งไม่สำเร็จ — ตรวจกฎ Firestore ของแชท')}}
 window.pinShop=async()=>{sheet('<div style="font-weight:600;font-size:17px">ปักร้านในแชท</div><input class="in" id="shq" placeholder="ค้นหาชื่อร้าน"><div id="shl" class="sm" style="margin-top:10px">กำลังโหลดร้าน...</div>');await loadShops();
-  const draw=()=>{const q=$('shq').value.trim().toLowerCase(),F=shopsC.filter(x=>(x.name||'').toLowerCase().includes(q)).slice(0,30);$('shl').innerHTML=F.length?F.map(x=>`<div class="row" style="padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer" data-i="${esc(x.id)}"><div class="av">${esc((x.name||'?').charAt(0))}</div><div class="grow nm">${esc(x.name)}</div></div>`).join(''):'<div class="empty">ไม่พบร้าน</div>';
+  const draw=()=>{const q=$('shq').value.trim().toLowerCase(),F=shopsC.filter(x=>(x.name||'').toLowerCase().includes(q)).slice(0,30);$('shl').innerHTML=F.length?F.map(x=>`<div class="row" style="padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer" data-i="${esc(x.id)}"><div class="av">${esc((x.name||'?').charAt(0))}</div><div class="grow nm">${esc(x.name)}</div></div>`).join(''):'<div class="empty"><img class="mq" src="mascot/sick.webp" alt="">ไม่พบร้าน</div>';
     $('shl').querySelectorAll('[data-i]').forEach(e=>e.onclick=()=>{const x=shopsC.find(z=>z.id===e.dataset.i);closeSheet();sendMsg('',{id:x.id,name:x.name||''})})};$('shq').oninput=draw;draw()};
 window.friendSet=()=>{const h=dChat,c=chatDoc(h),u=cache[h]||{name:h},bl=(c.blk||{})[me.handle];
   sheet(`<div class="row">${avatar(h,u.name)}<div class="grow"><div class="nm">${esc(dn(h))}</div><div class="sm">@${esc(h)}</div></div></div>
@@ -462,7 +493,7 @@ window.pickShop=async mode=>{
   sheet('<div style="font-weight:600;font-size:17px">เลือกร้านอาหาร</div><input class="in" id="shq" placeholder="ค้นหาชื่อร้าน"><div id="shl" class="sm" style="margin-top:10px">กำลังโหลดร้าน...</div>');
   if(!shopsC)try{shopsC=(await getDocs(collection(db,'shops'))).docs.map(d=>({id:d.id,...d.data()}))}catch(e){shopsC=[]}
   const draw=()=>{const q=$('shq').value.trim().toLowerCase(),F=shopsC.filter(x=>(x.name||'').toLowerCase().includes(q)).slice(0,30);
-    $('shl').innerHTML=F.length?F.map(x=>`<div class="row" style="padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer" data-i="${esc(x.id)}"><div class="av">${esc((x.name||'?').charAt(0))}</div><div class="grow nm">${esc(x.name)}</div></div>`).join(''):'<div class="empty">ไม่พบร้าน</div>';
+    $('shl').innerHTML=F.length?F.map(x=>`<div class="row" style="padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer" data-i="${esc(x.id)}"><div class="av">${esc((x.name||'?').charAt(0))}</div><div class="grow nm">${esc(x.name)}</div></div>`).join(''):'<div class="empty"><img class="mq" src="mascot/sick.webp" alt="">ไม่พบร้าน</div>';
     $('shl').querySelectorAll('[data-i]').forEach(e=>e.onclick=()=>{const x=shopsC.find(z=>z.id===e.dataset.i),o={id:x.id,name:x.name||''};
       if(typeof x.avatarUrl==='string'&&x.avatarUrl.startsWith('https://')&&x.avatarUrl.length<500)o.img=x.avatarUrl;if(mode==='cm'){cmShop=o;drawCm()}else{compose.shop=o;drawCompose()}})};
   $('shq').oninput=draw;draw()};
@@ -547,7 +578,7 @@ function rFriends(){
   $('main').innerHTML=`<div class="card pad"><div class="nm">ค้นหาเพื่อน</div><div class="row"><input class="in grow" id="fq" placeholder="พิมพ์ไอดี เช่น nimit_ab12cd" autocapitalize="none" value="${esc(q)}"><button class="btn" style="margin-top:8px" onclick="searchU()">ค้นหา</button></div>
   <div id="sr"></div><div class="row" style="margin-top:12px"><button class="btn g grow" onclick="myQR()">QR ของฉัน</button><button class="btn g grow" onclick="openScan()">สแกน QR</button></div></div>`+
   (inc.length?`<div class="nm" style="padding:4px 4px 8px">คำขอเป็นเพื่อน (${inc.length})</div>`+inc.map(l=>urow(l.from,`<button class="btn" onclick="accept('${esc(l.from)}')">ยอมรับ</button><button class="btn g" onclick="unfriend('${esc(l.from)}')">ปฏิเสธ</button>`)).join(''):'')+
-  `<div class="nm" style="padding:4px 4px 8px">เพื่อนของฉัน (${fr.length})</div>`+(fr.length?fr.map(h=>urow(h,`<button class="btn" onclick="openChat('${esc(h)}')">แชท</button><button class="btn g" onclick="unfriend('${esc(h)}')">ลบ</button>`)).join(''):'<div class="card empty">ยังไม่มีเพื่อน ลองค้นหาหรือสแกน QR</div>')+
+  `<div class="nm" style="padding:4px 4px 8px">เพื่อนของฉัน (${fr.length})</div>`+(fr.length?fr.map(h=>urow(h,`<button class="btn" onclick="openChat('${esc(h)}')">แชท</button><button class="btn g" onclick="unfriend('${esc(h)}')">ลบ</button>`)).join(''):'<div class="card empty"><img class="mq" src="mascot/wow.webp" alt="">ยังไม่มีเพื่อน ลองค้นหาหรือสแกน QR</div>')+
   (out.length?`<div class="nm" style="padding:4px 4px 8px">รอการตอบรับ</div>`+out.map(l=>urow(other(l),`<button class="btn g" onclick="unfriend('${esc(other(l))}')">ยกเลิก</button>`)).join(''):'');
   if(q)$('fq').focus();
 }
@@ -590,13 +621,13 @@ async function fetchSearch(){const q=sq.trim();if(q.length<2){suRes=[];drawSearc
     const m={};[...a.docs,...b.docs].forEach(d=>{const u=d.data();m[u.handle]=u;cache[u.handle]=u});suRes=Object.values(m).filter(u=>u.handle!==me.handle).slice(0,6)}catch(e){suRes=[]}
   await loadShops();drawSearch()}
 function drawSearch(){const el=$('sres');if(!el)return;const q=sq.trim().toLowerCase();
-  if(q.length<2){el.innerHTML='<div class="card empty">พิมพ์อย่างน้อย 2 ตัวอักษร เพื่อค้นหาคน ร้านอาหาร และโพสต์</div>';return}
+  if(q.length<2){el.innerHTML='<div class="card empty"><img class="mq" src="mascot/chat.webp" alt="">พิมพ์อย่างน้อย 2 ตัวอักษร เพื่อค้นหาคน ร้านอาหาร และโพสต์</div>';return}
   const sh=(shopsC||[]).filter(x=>(x.name||'').toLowerCase().includes(q)).slice(0,8);
   const all=[...pub,...mineP,...frP].filter((p,i,a)=>a.findIndex(z=>z.id===p.id)===i&&(p.author===me.handle||p.vis==='public'||friendsOf().includes(p.author)));
   const ps=all.filter(p=>((p.text||'')+' '+(p.authorName||'')+' '+((p.extra&&p.extra.shop&&p.extra.shop.name)||'')).toLowerCase().includes(q)).sort((a,b)=>b.ts-a.ts).slice(0,30);
   el.innerHTML=(suRes.length?`<div class="sh2">ผู้คน</div>`+suRes.map(u=>urow(u.handle,linkOf(u.handle)?`<span class="sm">${linkOf(u.handle).status==='ok'?'เพื่อนกันแล้ว':'รอตอบรับ'}</span>`:`<button class="btn" onclick="request('${esc(u.handle)}',false)">เพิ่ม</button>`)).join(''):'')
    +(sh.length?`<div class="sh2">ร้านอาหาร</div><div class="chips" style="margin-bottom:14px">${sh.map(x=>`<button class="chip press" data-n="${esc(x.name)}" onclick="setSq(this.dataset.n)">🏪 ${esc(x.name)}</button>`).join('')}</div>`:'')
-   +`<div class="sh2">โพสต์ที่เกี่ยวข้อง</div>`+(ps.length?ps.map(postHtml).join(''):'<div class="card empty">ไม่พบโพสต์ที่เกี่ยวข้อง</div>')}
+   +`<div class="sh2">โพสต์ที่เกี่ยวข้อง</div>`+(ps.length?ps.map(postHtml).join(''):'<div class="card empty"><img class="mq" src="mascot/chat.webp" alt="">ไม่พบโพสต์ที่เกี่ยวข้อง</div>')}
 
 async function gotQR(t){let h='';const m=t.match(/^nimit:f:([0-9a-f]{32})$/),o=t.match(/^nimit:friend:([a-z0-9_]{3,30})$/);
   try{if(m){const r=await getDocs(query(collection(db,'socialHandles'),where('qrToken','==',m[1])));if(!r.empty)h=r.docs[0].data().handle}else if(o){const u=await getU(o[1]);if(u)h=u.handle}}catch(e){}
