@@ -15,7 +15,7 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}input,
 svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
 .press{transition:transform .14s cubic-bezier(.34,1.56,.64,1)}.press:active{transform:scale(.93)}
 .side,.rail{display:none}
-.shell{max-width:620px;margin:0 auto;padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))}
+.shell{max-width:620px;margin:0 auto;padding-bottom:calc(112px + env(safe-area-inset-bottom,0px))}
 .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;background:rgba(245,248,253,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 .logo{display:flex;align-items:center;gap:9px;font-family:Prompt;font-weight:700;font-size:19px;color:var(--d)}
 .logo i{width:32px;height:32px;border-radius:10px;background:linear-gradient(145deg,var(--p),var(--d));display:grid;place-items:center;color:#fff;font-style:normal;font-size:16px}
@@ -26,7 +26,7 @@ svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke
 .av.l{width:88px;height:88px;font-size:32px;border:4px solid #fff}
 .tabs{display:flex;gap:6px;padding:2px 0 12px;overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar,.chips::-webkit-scrollbar{display:none}
 .tab{padding:8px 16px;border-radius:99px;font-weight:600;font-size:14px;color:var(--m);white-space:nowrap}
-.tab.on{background:var(--p);color:#fff;box-shadow:0 6px 16px rgba(23,109,224,.3)}
+.tab.on{background:var(--p);color:#fff}
 .crv{padding-bottom:14px}.crv h2{font-family:Prompt;font-size:15px;font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline}
 .crv h2 small{font-family:'IBM Plex Sans Thai';font-weight:400;color:var(--m);font-size:12.5px}
 .chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
@@ -35,7 +35,7 @@ svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke
 .comp{margin-bottom:14px;padding:12px;background:var(--w);border-radius:var(--r);display:flex;align-items:center;gap:12px;box-shadow:var(--sh)}
 .comp .ph{flex:1;height:42px;border-radius:99px;background:var(--bg);padding:0 16px;color:var(--m);font-size:14px;text-align:left}
 .comp .ibtn{box-shadow:none;background:var(--l);color:var(--p)}
-.card,.post{background:var(--w);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:14px;overflow:hidden;animation:up .35s ease both}
+.card,.post{background:var(--w);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:14px;overflow:hidden}#main.in>*{animation:up .3s ease both}.sh2{font-weight:600;font-family:Prompt;margin:6px 4px 8px}
 .post{padding:14px 14px 8px;overflow:visible}.pad{padding:14px}
 @keyframes up{from{opacity:0;transform:translateY(10px)}}
 .row,.ph-row{display:flex;align-items:center;gap:11px}.grow,.who{flex:1;min-width:0}
@@ -66,7 +66,7 @@ body.ready .nav{display:flex}
 .nv.mk svg{width:26px;height:26px}
 #sheet{position:fixed;inset:0;z-index:40;background:rgba(23,43,77,.45);display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}#sheet.show{display:flex}
 #sheetIn{background:#fff;width:100%;max-width:640px;max-height:88vh;overflow:auto;border-radius:24px 24px 0 0;padding:18px;animation:up .25s ease}
-#toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:var(--t);color:#fff;padding:10px 18px;border-radius:99px;font-size:13px;display:none;z-index:50}
+#toast{position:fixed;left:50%;bottom:124px;transform:translateX(-50%);background:var(--t);color:#fff;padding:10px 18px;border-radius:99px;font-size:13px;display:none;z-index:50}
 .rel{position:relative}.dot{position:absolute;top:8px;right:9px;width:10px;height:10px;border-radius:50%;background:var(--red);border:2px solid #fff}
 .cnt,.bdg{background:var(--red);color:#fff;font-size:11px;font-weight:700;min-width:18px;height:18px;border-radius:99px;display:grid;place-items:center;padding:0 5px}.cnt{position:absolute;top:2px;right:0}
 .av.s2{width:34px;height:34px;font-size:13px}
@@ -80,11 +80,11 @@ body.ready .nav{display:flex}
 .cml{flex:1;overflow:auto;padding:14px 18px}.ci{display:flex;gap:10px;margin-bottom:16px}.ci .bub{padding:10px 14px;font-size:15.5px;background:#EEF2F8}.ci .bub b{font-size:14.5px;margin-bottom:2px}.ci .bub img{width:100%;max-width:260px;border-radius:12px;margin-top:6px;display:block}.ci .sm{margin:3px 0 0 6px}
 .cmc{padding:10px 14px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:#fff}.cmc .row{gap:6px}.cmc .in{margin:0;border-radius:99px}
 .pv{display:flex;gap:8px;align-items:center;margin-bottom:8px}.pv img{height:56px;border-radius:10px}
-.stories{display:flex;gap:14px;overflow-x:auto;scrollbar-width:none;padding:2px 0 14px}.stories::-webkit-scrollbar,.mods::-webkit-scrollbar{display:none}
-.sty{flex:none;width:68px;text-align:center;font-size:12px;cursor:pointer}.sty span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rg{width:66px;height:66px;border-radius:50%;padding:3px;background:conic-gradient(from 180deg,var(--p),#6BB0FF,var(--d),var(--p));margin-bottom:5px}.rg .av{width:100%;height:100%;font-size:21px;border:3px solid var(--bg)}
+.stories{display:flex;gap:14px;overflow-x:auto;scrollbar-width:none;padding:36px 0 14px}.stories::-webkit-scrollbar,.mods::-webkit-scrollbar{display:none}
+.sty{position:relative;flex:none;width:72px;text-align:center;font-size:12px;cursor:pointer}.sty span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rg{position:relative;width:66px;height:66px;border-radius:50%;padding:3px;background:conic-gradient(from 180deg,var(--p),#6BB0FF,var(--d),var(--p));margin-bottom:5px}.rg .av{width:100%;height:100%;font-size:21px;border:3px solid var(--bg)}
 .sty .add{width:66px;height:66px;border-radius:50%;margin-bottom:5px;display:grid;place-items:center;background:var(--l);color:var(--p);border:2px dashed #9CC3F5;font-size:26px}
-.mods{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding:0 0 14px}.mod{flex:none;width:138px;padding:12px;border-radius:20px;background:#fff;text-align:left;box-shadow:var(--sh)}
+.mods{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 18px}.mod{flex:none;width:138px;padding:12px;border-radius:20px;background:#fff;text-align:left;box-shadow:0 2px 10px rgba(23,43,77,.07)}
 .mod i{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;font-style:normal;font-size:22px;margin-bottom:8px}.mod b{display:block;font-family:Prompt;font-size:14px;line-height:1.25}.mod small{display:block;font-size:12px;color:var(--m);line-height:1.4;margin-top:2px}
 .mh{display:flex;align-items:center;gap:10px;margin-bottom:10px}.mh i{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;font-style:normal;font-size:19px}.mh b{font-family:Prompt;font-size:15px;display:block}.mh small{font-size:12.5px;color:var(--m)}
 .eg{font-size:11px;background:var(--l);color:var(--d);border-radius:99px;padding:1px 8px;margin-left:6px}
@@ -96,6 +96,16 @@ body.ready .nav{display:flex}
 .rq{font-size:12px;color:var(--m);border-left:3px solid var(--p);padding-left:8px;margin-bottom:3px;text-align:left}.mg .sm{display:block;font-size:11px;margin-top:2px}
 .mc{display:flex;align-items:center;gap:6px;background:#fff;border-radius:99px;padding:6px 8px;box-shadow:var(--sh);margin-top:8px}.mi{flex:1;min-width:0;border:0;outline:0;padding:8px;background:none}
 .ep{display:flex;gap:4px;overflow-x:auto;padding:8px 4px}.ep button{font-size:24px;padding:2px 6px}
+.sty .av{pointer-events:none}.rg.me{background:var(--line)}
+.pl{position:absolute;right:-2px;bottom:-2px;width:22px;height:22px;border-radius:50%;background:var(--p);color:#fff;font-style:normal;display:grid;place-items:center;border:2px solid var(--bg);font-size:15px;line-height:1}
+.nb{position:absolute;top:-31px;left:50%;transform:translateX(-50%);background:#fff;border:1px solid var(--line);border-radius:14px;padding:2px 9px;font-size:11.5px;line-height:1.5;z-index:1;white-space:nowrap}
+.nb span{display:block;max-width:76px;overflow:hidden;text-overflow:ellipsis}.nb.ph{color:var(--m)}
+.nb::after{content:'';position:absolute;left:50%;bottom:-5px;width:8px;height:8px;background:#fff;border-right:1px solid var(--line);border-bottom:1px solid var(--line);transform:translateX(-50%) rotate(45deg)}
+.nav{left:14px;right:14px;bottom:calc(12px + env(safe-area-inset-bottom,0px));padding:0;border:0;background:none;backdrop-filter:none;-webkit-backdrop-filter:none;pointer-events:none;justify-content:center}
+.pill{pointer-events:auto;width:100%;max-width:440px;display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-radius:99px;background:rgba(255,255,255,.9);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 10px 30px rgba(23,43,77,.18);border:1px solid rgba(255,255,255,.8)}
+.pi{position:relative;width:48px;height:46px;border-radius:99px;display:grid;place-items:center;color:var(--m);transition:.15s}.pi.on{color:var(--p);background:var(--l)}.pi:active{transform:scale(.92)}
+.pi.mk{width:52px;height:52px;background:linear-gradient(145deg,var(--p),var(--d));color:#fff;box-shadow:0 6px 16px rgba(23,109,224,.4);outline:3px solid #fff}.pi.mk svg{width:26px;height:26px}
+.pi .cnt{top:2px;right:2px}
 @media(min-width:960px){
  body{display:grid;grid-template-columns:260px minmax(0,620px) 320px;gap:28px;justify-content:center;padding:0 24px}
  body.ready .nav,.topbar .logo{display:none}.topbar{padding:20px 0 6px;background:none;backdrop-filter:none;justify-content:flex-end}
@@ -129,6 +139,9 @@ import {getFirestore,collection,doc,getDoc,getDocs,setDoc,updateDoc,deleteDoc,qu
 
 const app=initializeApp({apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",authDomain:"nimit-delivery.firebaseapp.com",projectId:"nimit-delivery",storageBucket:"nimit-delivery.firebasestorage.app",messagingSenderId:"233476256130",appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"});
 const db=getFirestore(app);
+{const el=document.getElementById('main'),d=Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML');let last='';
+ Object.defineProperty(el,'innerHTML',{get(){return d.get.call(this)},set(v){if(v===last)return;last=v;d.set.call(this,v)}})}
+const navAnim=()=>{const m=document.getElementById('main');m.classList.add('in');clearTimeout(navAnim.t);navAnim.t=setTimeout(()=>m.classList.remove('in'),400)};
 
 /* ---------- helpers ---------- */
 const $=id=>document.getElementById(id);
@@ -145,7 +158,7 @@ const ico=k=>`<svg viewBox="0 0 24 24">${IC[k]}</svg>`;
 /* ---------- state ---------- */
 const phone=new URLSearchParams(location.search).get('phone')||lsGet('customerData',{}).phone||localStorage.getItem('customerPhone');
 let me=null,tab='home',ft='pub',view='',shown=15,links=[],pub=[],mineP=[],frP=[],viewP=[],cache={},asked={},shopsC=null,compose={},openCm='';
-let frUn=null,chats=[],chatMsgs=[],chatWith='',replyTo=null,mImg='',cmImg='',cmShop=null,msgUn=null;
+let frUn=null,hUn=null,chats=[],chatMsgs=[],chatWith='',replyTo=null,mImg='',cmImg='',cmShop=null,msgUn=null;
 
 const getU=async h=>{if(cache[h])return cache[h];const s=await getDoc(doc(db,'socialHandles',h));if(s.exists())cache[h]=s.data();return cache[h]||null};
 const GR=[['#F2A93C','#E5733A'],['#5AA2FF','#104AA8'],['#C9446B','#E5484D'],['#3F9B6B','#12996B'],['#8A5BD6','#5B3FB0']];
@@ -174,7 +187,7 @@ async function init(){
     document.body.classList.add('ready');render();setTimeout(openHash,1200);
   }catch(e){$('main').innerHTML='<div class="card empty">เชื่อมต่อไม่ได้: '+esc(e.code||e.message)+(/permission/i.test(e.code||e.message)?'<br>Firestore rules ยังไม่อนุญาต':'')+'</div>'}
 }
-function watchFr(){if(frUn)frUn();const a=[me.handle,...friendsOf()].slice(0,30);frUn=onSnapshot(query(collection(db,'socialPosts'),where('author','in',a)),s=>{frP=sortP(s);render()})}
+function watchFr(){if(hUn)hUn();const fh=friendsOf().slice(0,30);if(fh.length)hUn=onSnapshot(query(collection(db,'socialHandles'),where('handle','in',fh)),s=>{s.docs.forEach(d=>cache[d.id]=d.data());render()},()=>{});if(frUn)frUn();const a=[me.handle,...friendsOf()].slice(0,30);frUn=onSnapshot(query(collection(db,'socialPosts'),where('author','in',a)),s=>{frP=sortP(s);render()})}
 
 /* ---------- render ---------- */
 const LV=[['Food Rookie',0],['Food Explorer',100],['Food Lover',300],['Food Master',700],['Nimit Legend',1500]];
@@ -182,16 +195,16 @@ function myLevel(){const xp=mineP.length*10+mineP.reduce((a,p)=>a+(p.likes||[]).
 function nav(){
   const n=links.filter(l=>l.status==='pending'&&l.from!==me.handle).length,b=n?` (${n})`:'';
   const un=chats.filter(c=>c.lastBy!==me.handle&&(c.lastTs||0)>((c.read||{})[me.handle]||0)).length,seen=+localStorage.getItem('seenN')||0,nd=notifs().some(x=>!x.nolive&&x.ts>seen);
-  $('tb').innerHTML=`<button class="ibtn press" aria-label="ค้นหา" onclick="go('fr');setTimeout(()=>$('fq')&&$('fq').focus(),60)">${ico('search')}</button><button class="ibtn press rel" aria-label="แจ้งเตือน" onclick="openNotifs()">${ico('bell')}${nd?'<span class="dot"></span>':''}</button><button class="ibtn press rel" aria-label="แชท" onclick="go('chats')">${ico('chat')}${un?`<span class="cnt">${un}</span>`:''}</button>`;
-  $('nav').innerHTML=`<button class="nv ${tab==='home'?'on':''}" onclick="go('home')">${ico('home')}หน้าแรก</button><button class="nv ${tab==='fr'?'on':''}" onclick="go('fr')">${ico('users')}เพื่อน${b}</button><button class="nv mk" aria-label="สร้างโพสต์" onclick="openCompose()"><span>${ico('plus')}</span>สร้าง</button><button class="nv ${tab==='me'?'on':''}" onclick="go('me')">${ico('user')}โปรไฟล์</button>`;
+  $('tb').innerHTML=`<button class="ibtn press" aria-label="ค้นหา" onclick="go('search')">${ico('search')}</button><button class="ibtn press rel" aria-label="แจ้งเตือน" onclick="openNotifs()">${ico('bell')}${nd?'<span class="dot"></span>':''}</button><button class="ibtn press rel" aria-label="แชท" onclick="go('chats')">${ico('chat')}${un?`<span class="cnt">${un}</span>`:''}</button>`;
+  $('nav').innerHTML=`<div class="pill"><button class="pi ${tab==='home'?'on':''}" aria-label="หน้าแรก" onclick="go('home')">${ico('home')}</button><button class="pi ${tab==='search'?'on':''}" aria-label="ค้นหา" onclick="go('search')">${ico('search')}</button><button class="pi mk" aria-label="สร้างโพสต์" onclick="openCompose()">${ico('plus')}</button><button class="pi ${tab==='fr'?'on':''}" aria-label="เพื่อน" onclick="go('fr')">${ico('users')}${n?`<span class="cnt">${n}</span>`:''}</button><button class="pi ${tab==='me'?'on':''}" aria-label="โปรไฟล์" onclick="go('me')">${ico('user')}</button></div>`;
   $('side').innerHTML=`<div class="logo"><i>N</i>Nimit Social</div><button class="sl ${tab==='home'?'on':''}" onclick="go('home')">${ico('home')}หน้าแรก</button><button class="sl ${tab==='fr'?'on':''}" onclick="go('fr')">${ico('users')}เพื่อน${b}</button><button class="sl ${tab==='chats'||tab==='chat'?'on':''}" onclick="go('chats')">${ico('chat')}แชท${un?` (${un})`:''}</button><button class="sl ${tab==='me'?'on':''}" onclick="go('me')">${ico('user')}โปรไฟล์</button><button class="newpost press" onclick="openCompose()">โพสต์อาหาร</button>`;
   const L=myLevel(),pct=L.nx?Math.round((L.xp-LV[L.i][1])/(L.nx[1]-LV[L.i][1])*100):100,cnt={};
   pub.forEach(p=>((p.text||'').match(/#[\p{L}\p{N}_]+/gu)||[]).forEach(t=>cnt[t]=(cnt[t]||0)+1));
   const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,5);
   $('rail').innerHTML=`<div class="card"><h3>ระดับของคุณ · ${L.name}</h3><div class="xp"><i style="width:${pct}%"></i></div><small class="sm">${L.xp} XP${L.nx?` · อีก ${L.nx[1]-L.xp} XP เป็น ${L.nx[0]}`:''}</small></div><div class="card"><h3>แฮชแท็กมาแรง</h3>${top.length?top.map(([t,n])=>`<div class="rl"><span class="tag">${esc(t)}</span><em>${n} โพสต์</em></div>`).join(''):'<div class="sm">ยังไม่มีแฮชแท็ก</div>'}</div>`;
 }
-window.go=t=>{if(msgUn){msgUn();msgUn=null}tab=t;view='';shown=15;render();scrollTo(0,0)};
-function render(){if(!me)return;nav();if($('cml')&&openCm)refreshCm();if(tab==='chat'){drawMsgs();return}tab==='home'?rHome():tab==='fr'?rFriends():tab==='chats'?rChats():rProfile()}
+window.go=t=>{if(msgUn){msgUn();msgUn=null}navAnim();tab=t;view='';shown=15;render();scrollTo(0,0)};
+function render(){if(!me)return;nav();if($('cml')&&openCm)refreshCm();if(tab==='chat'){drawMsgs();return}if(tab==='search'){$('sq')?drawSearch():rSearch();return}tab==='home'?rHome():tab==='fr'?rFriends():tab==='chats'?rChats():rProfile()}
 
 const gridImgs=(a,del)=>a&&a.length?`<div class="gi n${Math.min(a.length,3)}">${a.slice(0,3).map(u=>safeImg(u)?`<img loading="lazy" src="${safeImg(u)}" alt="">`:'').join('')}</div>`:'';
 function postHtml(p){
@@ -212,7 +225,14 @@ window.togCrv=n=>{crv.has(n)?crv.delete(n):crv.add(n);shown=15;render()};
 window.soon=()=>toast('เร็วๆ นี้ — กำลังพัฒนา');
 const MODS=[['🛂','Food Passport','ประวัติอาหารที่เคยกิน','#EAF3FF'],['⚔️','Food Duel','โหวตอาหารสู้กัน','#FDEEDA'],['📔','Food Memories','บันทึกความทรงจำเรื่องกิน','#F1E9FF'],['🎯','Food Quest','ภารกิจสำรวจอาหาร','#DFF4EC'],['🍽️','Table','วางแผนมื้อกับเพื่อน','#FFF3C9'],['🧬','Flavor DNA','อัตลักษณ์รสชาติของคุณ','#E0F3FF'],['📍','Food Map','แผนที่อาหารจากชุมชน','#FCE7E8']];
 const modsHtml=()=>`<section class="mods">${MODS.map(m=>`<button class="mod press" onclick="soon()"><i style="background:${m[3]}">${m[0]}</i><b>${m[1]}</b><small>${m[2]}</small></button>`).join('')}</section>`;
-const storiesHtml=()=>`<section class="stories"><div class="sty"><button class="add press" onclick="soon()" aria-label="เพิ่มเรื่องราว">+</button><span>เรื่องของคุณ</span></div>${friendsOf().slice(0,12).map(h=>`<div class="sty" onclick="openProfile('${esc(h)}')"><div class="rg">${avatar(h,(cache[h]||{}).name)}</div><span>${esc((cache[h]||{name:h}).name)}</span></div>`).join('')}</section>`;
+const noteOk=u=>u&&u.note&&Date.now()-(u.noteTs||0)<864e5;
+const storiesHtml=()=>{const mn=noteOk(me)?me.note:'';
+  return `<section class="stories"><div class="sty" onclick="editNote()"><div class="nb ${mn?'':'ph'}"><span>${mn?esc(mn):'แชร์โน้ต'}</span></div><div class="rg me">${avatar(me.handle,me.name)}<i class="pl">+</i></div><span>โน้ตของคุณ</span></div>`+
+  friendsOf().slice(0,12).map(h=>{const u=cache[h]||{name:h};return `<div class="sty" onclick="openProfile('${esc(h)}')">${noteOk(u)?`<div class="nb"><span>${esc(u.note)}</span></div>`:''}<div class="rg">${avatar(h,u.name)}</div><span>${esc(u.name)}</span></div>`}).join('')+`</section>`};
+window.editNote=()=>{const cur=noteOk(me)?me.note:'';
+  sheet(`<div style="font-family:Prompt;font-weight:600;font-size:18px">โน้ตของคุณ</div><div class="sm" style="margin:4px 0 8px">เพื่อนจะเห็นโน้ตเหนือรูปของคุณ นาน 24 ชั่วโมง</div><input class="in" id="nt" maxlength="60" placeholder="วันนี้กินอะไรดี…" value="${esc(cur)}"><div class="row" style="margin-top:14px">${cur?'<button class="btn g grow" onclick="saveNote(true)">ลบโน้ต</button>':''}<button class="btn grow" onclick="saveNote()">แชร์โน้ต</button></div>`);setTimeout(()=>$('nt')&&$('nt').focus(),80)};
+window.saveNote=async del=>{const t=del?'':$('nt').value.trim();if(!del&&!t)return toast('พิมพ์โน้ตก่อน');
+  try{const ts=Date.now();await updateDoc(doc(db,'socialHandles',me.handle),{note:t,noteTs:ts});me={...me,note:t,noteTs:ts};cache[me.handle]=me;closeSheet();render();toast(del?'ลบโน้ตแล้ว':'แชร์โน้ตแล้ว')}catch(e){toast('บันทึกโน้ตไม่สำเร็จ')}};
 const previewCards=()=>`<article class="post" onclick="soon()"><div class="mh"><i style="background:#FDEEDA">⚔️</i><div><b>Food Duel <span class="eg">ตัวอย่าง</span></b><small>วันนี้เลือกอะไรดี · ปิดโหวตใน 3 ชม.</small></div></div><div class="duel"><div class="dop win"><span>🍜</span><b>ต้มยำน้ำข้น</b></div><div class="vs">VS</div><div class="dop"><span>🍗</span><b>ข้าวมันไก่</b></div></div><div class="vbar"><i style="width:58%"></i><i style="width:42%"></i></div></article>
 <article class="post" onclick="soon()"><div class="mh"><i style="background:#E0F3FF">🧬</i><div><b>Flavor DNA ของคุณ <span class="eg">ตัวอย่าง</span></b><small>สรุปจากอาหารที่คุณสั่งและรีวิว</small></div></div>${[['เผ็ด',80],['มัน',70],['เปรี้ยว',60],['เค็ม',50],['หวาน',45]].map(r=>`<div class="dr"><span>${r[0]}</span><div><i style="width:${r[1]}%"></i></div><em>${r[1]}</em></div>`).join('')}</article>`;
 function rHome(){
@@ -223,7 +243,7 @@ function rHome(){
   <div class="comp">${avatar(me.handle,me.name)}<button class="ph" onclick="openCompose()">วันนี้กินอะไรมา แชร์ให้เพื่อนดูหน่อย</button><button class="ibtn press" aria-label="แนบรูป" onclick="openCompose()">${ico('image')}</button></div>`+
   (L.length?L.slice(0,shown).map((p,i)=>postHtml(p)+(i===0?previewCards():'')).join('')+(L.length>shown?`<button class="btn g full" style="margin-bottom:14px" onclick="more()">ดูเพิ่ม</button>`:''):`<div class="card empty">${crv.size?'ยังไม่มีโพสต์ตรงกับความอยากนี้':'ยังไม่มีโพสต์ มาเป็นคนแรกที่แชร์สิ!'}</div>`);
 }
-window.setFt=f=>{ft=f;shown=15;render()};window.more=()=>{shown+=15;render()};
+window.setFt=f=>{navAnim();ft=f;shown=15;render()};window.more=()=>{shown+=15;render()};
 window.sharePost=async id=>{const url=location.origin+location.pathname+'#post-'+id;
   if(navigator.share){try{await navigator.share({title:'Nimit Social',url});bump(id);return}catch(e){if(e&&e.name==='AbortError')return}}
   try{await navigator.clipboard.writeText(url);bump(id);toast('คัดลอกลิงก์แล้ว')}catch(e){prompt('คัดลอกลิงก์นี้',url)}};
@@ -242,7 +262,7 @@ async function rProfile(){
   <div class="sm" style="margin-top:8px">${L.length} โพสต์ · ${own?friendsOf().length+' เพื่อน · '+myLevel().name:''}</div>${own?'<button class="btn g full" style="margin-top:12px" onclick="editMe()">แก้ไขโปรไฟล์</button>':frBtn(h)}</div></div>`+
   (L.length?L.map(postHtml).join(''):'<div class="card empty">ยังไม่มีโพสต์</div>');
 }
-window.openProfile=async h=>{if(h===me.handle)return go('me');tab='me';view=h;viewP=[];render();
+window.openProfile=async h=>{navAnim();if(h===me.handle)return go('me');tab='me';view=h;viewP=[];render();
   const s=await getDocs(query(collection(db,'socialPosts'),where('author','==',h)));viewP=sortP(s);if(view===h)render()};
 
 /* ---------- sheet ---------- */
@@ -277,7 +297,7 @@ function rChats(){const ids=chats.slice().sort((a,b)=>(b.lastTs||0)-(a.lastTs||0
   const row=(h,sub,ts,un)=>{const u=cache[h]||{name:h};return `<div class="card pad row" style="cursor:pointer" onclick="openChat('${esc(h)}')">${avatar(h,u.name)}<div class="grow"><div class="nm">${esc(u.name)}</div><div class="sm" style="${un?'color:var(--t);font-weight:600':''}">${esc(sub)}</div></div>${ts?`<span class="sm">${ago(ts)}</span>`:''}${un?'<span class="bdg">!</span>':''}</div>`};
   $('main').innerHTML=`<div style="padding:6px 4px 10px;font-size:22px;font-family:Prompt;font-weight:600">แชท</div>`+((ids.map(c=>{const h=c.users.find(u=>u!==me.handle);return row(h,(c.lastBy===me.handle?'คุณ: ':'')+(c.lastText||''),c.lastTs,c.lastBy!==me.handle&&(c.lastTs||0)>((c.read||{})[me.handle]||0))}).join('')+fr.map(h=>row(h,'แตะเพื่อเริ่มแชท',0,false)).join(''))||'<div class="card empty">ยังไม่มีเพื่อนให้แชท ไปเพิ่มเพื่อนก่อน</div>')}
 function markRead(){const id=fid(me.handle,chatWith);if(chats.some(c=>c.id===id))setDoc(doc(db,'socialChats',id),{read:{[me.handle]:Date.now()}},{merge:true}).catch(()=>{})}
-window.openChat=h=>{if(!friendsOf().includes(h))return toast('แชทได้เฉพาะเพื่อน');if(msgUn)msgUn();tab='chat';chatWith=h;chatMsgs=[];replyTo=null;mImg='';
+window.openChat=h=>{navAnim();if(!friendsOf().includes(h))return toast('แชทได้เฉพาะเพื่อน');if(msgUn)msgUn();tab='chat';chatWith=h;chatMsgs=[];replyTo=null;mImg='';
   msgUn=onSnapshot(query(collection(db,'socialChats',fid(me.handle,h),'msgs'),orderBy('ts'),limit(100)),s=>{chatMsgs=s.docs.map(d=>d.data());drawMsgs();const l=chatMsgs[chatMsgs.length-1];if(l&&l.by!==me.handle)markRead()},()=>toast('อ่านแชทไม่ได้ ตรวจกฎ Firestore ของแชท'));
   getU(h).then(()=>{if(tab==='chat'&&chatWith===h)rChat()});rChat();markRead();scrollTo(0,0);render()};
 function rChat(){const u=cache[chatWith]||{name:chatWith};
@@ -389,17 +409,48 @@ window.myQR=async()=>{
   try{const t=await myToken();new QRCode($('qrBox'),{text:'nimit:f:'+t,width:200,height:200,correctLevel:QRCode.CorrectLevel.M})}catch(e){$('qrBox').textContent='สร้าง QR ไม่สำเร็จ'}};
 let stream=null,raf=0;
 function stopCam(){cancelAnimationFrame(raf);if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}}
+const loadShops=async()=>{if(!shopsC)try{shopsC=(await getDocs(collection(db,'shops'))).docs.map(d=>({id:d.id,...d.data()}))}catch(e){shopsC=[]}return shopsC};
+let sq='',suRes=[],sT=0;
+function rSearch(){$('main').innerHTML=`<input id="sq" class="in" style="margin:0 0 14px" placeholder="ค้นหาคน ร้านอาหาร เมนู หรือโพสต์" value="${esc(sq)}" oninput="onSq(this.value)" autocomplete="off"><div id="sres"></div>`;drawSearch();setTimeout(()=>{const i=$('sq');if(i&&!sq)i.focus()},60)}
+window.onSq=v=>{sq=v;clearTimeout(sT);sT=setTimeout(fetchSearch,300)};
+window.setSq=v=>{sq=v;$('sq').value=v;fetchSearch()};
+async function fetchSearch(){const q=sq.trim();if(q.length<2){suRes=[];drawSearch();return}
+  try{const [a,b]=await Promise.all([getDocs(query(collection(db,'socialHandles'),where('handle','>=',q.toLowerCase()),where('handle','<=',q.toLowerCase()+'\uf8ff'))),getDocs(query(collection(db,'socialHandles'),where('name','>=',q),where('name','<=',q+'\uf8ff')))]);
+    const m={};[...a.docs,...b.docs].forEach(d=>{const u=d.data();m[u.handle]=u;cache[u.handle]=u});suRes=Object.values(m).filter(u=>u.handle!==me.handle).slice(0,6)}catch(e){suRes=[]}
+  await loadShops();drawSearch()}
+function drawSearch(){const el=$('sres');if(!el)return;const q=sq.trim().toLowerCase();
+  if(q.length<2){el.innerHTML='<div class="card empty">พิมพ์อย่างน้อย 2 ตัวอักษร เพื่อค้นหาคน ร้านอาหาร และโพสต์</div>';return}
+  const sh=(shopsC||[]).filter(x=>(x.name||'').toLowerCase().includes(q)).slice(0,8);
+  const all=[...pub,...mineP,...frP].filter((p,i,a)=>a.findIndex(z=>z.id===p.id)===i&&(p.author===me.handle||p.vis==='public'||friendsOf().includes(p.author)));
+  const ps=all.filter(p=>((p.text||'')+' '+(p.authorName||'')+' '+((p.extra&&p.extra.shop&&p.extra.shop.name)||'')).toLowerCase().includes(q)).sort((a,b)=>b.ts-a.ts).slice(0,30);
+  el.innerHTML=(suRes.length?`<div class="sh2">ผู้คน</div>`+suRes.map(u=>urow(u.handle,linkOf(u.handle)?`<span class="sm">${linkOf(u.handle).status==='ok'?'เพื่อนกันแล้ว':'รอตอบรับ'}</span>`:`<button class="btn" onclick="request('${esc(u.handle)}',false)">เพิ่ม</button>`)).join(''):'')
+   +(sh.length?`<div class="sh2">ร้านอาหาร</div><div class="chips" style="margin-bottom:14px">${sh.map(x=>`<button class="chip press" data-n="${esc(x.name)}" onclick="setSq(this.dataset.n)">🏪 ${esc(x.name)}</button>`).join('')}</div>`:'')
+   +`<div class="sh2">โพสต์ที่เกี่ยวข้อง</div>`+(ps.length?ps.map(postHtml).join(''):'<div class="card empty">ไม่พบโพสต์ที่เกี่ยวข้อง</div>')}
+
+async function gotQR(t){let h='';const m=t.match(/^nimit:f:([0-9a-f]{32})$/),o=t.match(/^nimit:friend:([a-z0-9_]{3,30})$/);
+  try{if(m){const r=await getDocs(query(collection(db,'socialHandles'),where('qrToken','==',m[1])));if(!r.empty)h=r.docs[0].data().handle}else if(o){const u=await getU(o[1]);if(u)h=u.handle}}catch(e){}
+  if(!h){if($('sst'))$('sst').textContent='QR นี้ไม่ใช่ QR ของ Nimit หรือไม่พบผู้ใช้ ลองใหม่อีกครั้ง';return false}
+  if(h===me.handle){if($('sst'))$('sst').textContent='นี่คือ QR ของคุณเอง';return false}
+  const u=(await getU(h))||{name:h};stopCam();
+  sheet(`<div style="text-align:center;font-family:Prompt;font-weight:600;font-size:18px">ใช่คนนี้ไหม?</div><div class="card pad row" style="margin:14px 0;cursor:pointer" onclick="closeSheet();openProfile('${esc(h)}')">${avatar(h,u.name)}<div class="grow"><div class="nm">${esc(u.name)}</div><div class="sm">@${esc(h)}${u.bio?' · '+esc(u.bio):''}</div></div><span style="font-size:22px;color:var(--m)">›</span></div>
+  <div class="row"><button class="btn g grow" onclick="openScan()">สแกนใหม่</button><button class="btn grow" onclick="confirmAdd('${esc(h)}')">ใช่ เพิ่มเพื่อน</button></div><div class="sm" style="margin-top:10px;text-align:center">แตะที่การ์ดเพื่อดูโปรไฟล์ก่อนได้</div>`);return true}
+window.confirmAdd=async h=>{await request(h,true);closeSheet();openProfile(h)};
 window.openScan=async()=>{
-  sheet('<div style="font-weight:600;font-size:17px">สแกน QR เพื่อน</div><video id="vd" playsinline muted style="width:100%;border-radius:16px;margin-top:10px;background:#000"></video><div class="sm" id="sst" style="margin:8px 0">กำลังเปิดกล้อง...</div>');
-  try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});const v=$('vd');v.srcObject=stream;await v.play();$('sst').textContent='เล็งกล้องไปที่ QR';
-    const c=document.createElement('canvas'),x=c.getContext('2d',{willReadFrequently:true});
-    const tick=async()=>{if(v.videoWidth){c.width=v.videoWidth;c.height=v.videoHeight;x.drawImage(v,0,0);const r=jsQR(x.getImageData(0,0,c.width,c.height).data,c.width,c.height);
-      if(r&&/^nimit:f:[0-9a-f]{32}$/.test(r.data)){stopCam();$('sst').textContent='กำลังเพิ่มเพื่อน...';
-        const s=await getDocs(query(collection(db,'socialHandles'),where('qrToken','==',r.data.slice(8))));
-        if(s.empty){toast('QR ไม่ถูกต้อง');closeSheet();return}
-        await request(s.docs[0].data().handle,true);closeSheet();return}}
+  sheet(`<div style="font-weight:600;font-size:17px">สแกน QR เพื่อน</div><div style="position:relative;margin-top:10px;overflow:hidden;border-radius:16px"><video id="vd" playsinline muted autoplay style="width:100%;min-height:260px;object-fit:cover;background:#000;display:block"></video><div style="position:absolute;inset:16% 16%;border:3px solid #fff;border-radius:18px;box-shadow:0 0 0 999px rgba(0,0,0,.28);pointer-events:none"></div></div><div class="sm" id="sst" style="margin:10px 0">กำลังเปิดกล้อง...</div><label class="btn g full" style="display:block;text-align:center;cursor:pointer">เลือกรูป QR จากเครื่อง<input type="file" accept="image/*" hidden onchange="scanFile(this)"></label>`);
+  try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});const v=$('vd');v.srcObject=stream;await v.play();$('sst').textContent='เล็งกล้องไปที่ QR ของเพื่อน';
+    const det=window.BarcodeDetector?new BarcodeDetector({formats:['qr_code']}):null,c=document.createElement('canvas'),x=c.getContext('2d',{willReadFrequently:true});let busy=0,bad='';
+    if(!det&&!window.jsQR)$('sst').textContent='โหลดตัวสแกนไม่ได้ ลองเลือกรูป QR หรือรีเฟรชหน้า';
+    const tick=async()=>{if(!stream)return;
+      if(v.videoWidth&&!busy){busy=1;let t='';
+        try{if(det){const r=await det.detect(v);if(r[0])t=r[0].rawValue}
+          if(!t&&window.jsQR){const k=Math.min(1,640/v.videoWidth);c.width=v.videoWidth*k;c.height=v.videoHeight*k;x.drawImage(v,0,0,c.width,c.height);const r=jsQR(x.getImageData(0,0,c.width,c.height).data,c.width,c.height,{inversionAttempts:'attemptBoth'});if(r)t=r.data}}catch(e){}
+        if(t&&t!==bad){if(await gotQR(t)){busy=0;return}bad=t}busy=0}
       raf=requestAnimationFrame(tick)};tick()
-  }catch(e){$('sst').textContent='เปิดกล้องไม่ได้ กรุณาอนุญาตการใช้กล้อง'}};
+  }catch(e){$('sst').textContent='เปิดกล้องไม่ได้ กรุณาอนุญาตการใช้กล้อง หรือเลือกรูป QR จากเครื่อง'}};
+window.scanFile=async i=>{const f=i.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{const im=new Image();im.onload=async()=>{let t='';
+  try{if(window.BarcodeDetector){const r=await new BarcodeDetector({formats:['qr_code']}).detect(im);if(r[0])t=r[0].rawValue}
+    if(!t&&window.jsQR){const k=Math.min(1,900/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;const x=c.getContext('2d');x.drawImage(im,0,0,c.width,c.height);const r=jsQR(x.getImageData(0,0,c.width,c.height).data,c.width,c.height,{inversionAttempts:'attemptBoth'});if(r)t=r.data}}catch(e){}
+  if(!t){$('sst').textContent='อ่าน QR จากรูปนี้ไม่ได้';return}await gotQR(t)};im.src=rd.result};rd.readAsDataURL(f)};
 
 window.addEventListener('unhandledrejection',ev=>{const c=(ev.reason&&(ev.reason.code||ev.reason.message))||'';if(/permission/i.test(c))toast('Firestore rules ไม่อนุญาตการทำรายการนี้')});
 init();
