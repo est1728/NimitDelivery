@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ทดสอบแชทและโทร</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Prompt:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4F7FD;--card:#fff;--ink:#0F1B33;--mut:#6B7A99;--line:#E3EAF6;--b6:#1550B8;--b7:#0E3B8C;--b1:#E7EFFC;--red:#E5484D;--grn:#16A34A;--safe:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root{--bg:#0B1220;--card:#131C30;--ink:#EAF0FF;--mut:#8EA0C4;--line:#22304D;--b1:#1B2A4A}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans Thai',Arial,sans-serif}
+button{font-family:inherit;cursor:pointer;touch-action:manipulation}
+input{font-family:inherit;font-size:16px}
+svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.pg{display:none;height:100%;flex-direction:column;max-width:520px;margin:0 auto}
+.pg.on{display:flex}
+.hd{display:flex;align-items:center;gap:10px;padding:14px 16px;background:var(--card);border-bottom:1px solid var(--line)}
+.hd h1{margin:0;font:700 18px 'Prompt',sans-serif;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ib{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--b6);display:grid;place-items:center}
+.ib.go{background:var(--b6);border-color:var(--b6);color:#fff}
+.body{flex:1;overflow-y:auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px}
+label{display:block;font-size:13px;color:var(--mut);margin:10px 0 6px}
+input.t{width:100%;height:46px;border:1px solid var(--line);border-radius:14px;padding:0 14px;background:var(--bg);color:var(--ink);outline:none}
+input.t:focus{border-color:var(--b6)}
+.btn{width:100%;height:48px;border:0;border-radius:14px;background:var(--b6);color:#fff;font-weight:600;font-size:16px;margin-top:14px}
+.btn:disabled{opacity:.5}
+.me{display:flex;align-items:center;gap:12px}
+.av{width:44px;height:44px;border-radius:50%;background:var(--b1);color:var(--b7);display:grid;place-items:center;font:700 17px 'Prompt',sans-serif;flex:none}
+.id{font:700 20px 'Prompt',sans-serif;letter-spacing:2px;color:var(--b6)}
+.sub{font-size:12.5px;color:var(--mut)}
+.row{display:flex;gap:8px}
+.row .t{flex:1}
+.row .ib{height:46px;width:46px}
+.fr{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--line)}
+.fr:last-child{border:0}
+.fr .nm{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.msgs{flex:1;overflow-y:auto;overflow-x:hidden;padding:14px 14px 6px;display:flex;flex-direction:column;gap:6px}
+.m{max-width:78%;padding:9px 13px;border-radius:18px;background:var(--card);border:1px solid var(--line);align-self:flex-start;word-break:break-word;white-space:pre-wrap}
+.m.me{align-self:flex-end;background:var(--b6);border-color:var(--b6);color:#fff}
+.cmp{display:flex;gap:8px;padding:10px 12px calc(10px + var(--safe));background:var(--card);border-top:1px solid var(--line)}
+.cmp .t{flex:1}
+.empty{text-align:center;color:var(--mut);padding:28px 8px;font-size:14px}
+#call{position:fixed;inset:0;z-index:50;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:linear-gradient(160deg,#0B2C63,#071B3D);color:#fff;padding:24px}
+#call.on{display:flex}
+#call .av{width:110px;height:110px;font-size:42px;background:rgba(255,255,255,.14);color:#fff}
+#call h2{margin:10px 0 0;font:700 24px 'Prompt',sans-serif}
+#cst{font-size:15px;opacity:.85;min-height:22px}
+#cinfo{font-size:12px;opacity:.6;min-height:16px;text-align:center}
+.cb{display:flex;gap:26px;margin-top:34px}
+.cb button{width:66px;height:66px;border-radius:50%;border:0;display:grid;place-items:center;color:#fff;background:rgba(255,255,255,.18)}
+.cb button svg{width:28px;height:28px}
+.cb .end{background:var(--red)}
+.cb .acc{background:var(--grn)}
+.cb .off{background:#fff;color:#0B2C63}
+.ring .av{animation:rg 1.4s ease-out infinite}
+@keyframes rg{0%{box-shadow:0 0 0 0 rgba(255,255,255,.4)}100%{box-shadow:0 0 0 34px rgba(255,255,255,0)}}
+#toast{position:fixed;left:50%;bottom:calc(24px + var(--safe));translate:-50% 0;background:#0F1B33;color:#fff;padding:10px 16px;border-radius:14px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60;max-width:88%;text-align:center}
+#toast.on{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<section class="pg" id="pgLogin">
+  <div class="hd"><h1>ทดสอบแชทและโทร</h1></div>
+  <div class="body">
+    <div class="card">
+      <div class="sub">กรอกแค่ชื่อกับเบอร์ ระบบจะสุ่มไอดีให้ ใช้ไอดีนี้ให้เพื่อนเพิ่มเรา</div>
+      <label for="lgName">ชื่อ</label>
+      <input class="t" id="lgName" maxlength="30" autocomplete="off" placeholder="ชื่อที่ให้เพื่อนเห็น">
+      <label for="lgPhone">เบอร์โทร</label>
+      <input class="t" id="lgPhone" inputmode="tel" maxlength="12" autocomplete="off" placeholder="0812345678">
+      <button class="btn" id="lgBtn" type="button">เข้าใช้งาน</button>
+    </div>
+  </div>
+</section>
+
+<!-- HOME -->
+<section class="pg" id="pgHome">
+  <div class="hd"><h1>เพื่อน</h1><button class="ib" id="outBtn" type="button" aria-label="ออกจากระบบ"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></button></div>
+  <div class="body">
+    <div class="card me">
+      <div class="av" id="meAv"></div>
+      <div style="flex:1;min-width:0"><div style="font-weight:600" id="meName"></div><div class="sub">ไอดีของฉัน (กดเพื่อคัดลอก)</div></div>
+      <div class="id" id="meId" style="cursor:pointer"></div>
+    </div>
+    <div class="card">
+      <div style="font-weight:600">เพิ่มเพื่อนด้วยไอดี</div>
+      <div class="row" style="margin-top:10px">
+        <input class="t" id="addId" maxlength="8" autocapitalize="characters" autocomplete="off" placeholder="เช่น K7M2QX">
+        <button class="ib go" id="addBtn" type="button" aria-label="เพิ่ม"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+      </div>
+    </div>
+    <div class="card" style="padding:6px 16px"><div id="frList"><div class="empty">ยังไม่มีเพื่อน</div></div></div>
+  </div>
+</section>
+
+<!-- CHAT -->
+<section class="pg" id="pgChat">
+  <div class="hd">
+    <button class="ib" id="chBack" type="button" aria-label="กลับ"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <div class="av" id="chAv" style="width:38px;height:38px;font-size:15px"></div>
+    <h1 id="chName"></h1>
+    <button class="ib go" id="chCall" type="button" aria-label="โทร"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button>
+  </div>
+  <div class="msgs" id="msgs"></div>
+  <form class="cmp" id="cmpF" autocomplete="off">
+    <input class="t" id="cmpT" maxlength="500" placeholder="พิมพ์ข้อความ" enterkeyhint="send">
+    <button class="ib go" type="submit" aria-label="ส่ง"><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg></button>
+  </form>
+</section>
+
+<!-- CALL -->
+<div id="call">
+  <div class="av" id="cAv"></div>
+  <h2 id="cNm"></h2>
+  <div id="cst"></div>
+  <div id="cinfo"></div>
+  <div class="cb" id="cBtns"></div>
+</div>
+<audio id="rau" autoplay playsinline></audio>
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { initializeFirestore, getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey:"AIzaSyCnBUk0ZKFcwMK0NyYkheux1xPt9bLYhr4",
+  authDomain:"nimit-delivery.firebaseapp.com",
+  projectId:"nimit-delivery",
+  storageBucket:"nimit-delivery.firebasestorage.app",
+  messagingSenderId:"233476256130",
+  appId:"1:233476256130:web:62ba8f64ad0bf2f92c9f9b"
+});
+let db; try{ db = initializeFirestore(app,{experimentalAutoDetectLongPolling:true}); }catch(e){ db = getFirestore(app); }
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const initial = n => (String(n||'?').trim()[0]||'?').toUpperCase();
+const pair = (a,b) => [a,b].sort().join('_');
+let toastT; function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),2400); }
+function show(id){ document.querySelectorAll('.pg').forEach(p=>p.classList.toggle('on',p.id===id)); }
+
+/* ---------- ผู้ใช้ ---------- */
+const ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+function rid(n){ const a=new Uint8Array(n); crypto.getRandomValues(a); return Array.from(a,x=>ALPHA[x%ALPHA.length]).join(''); }
+let me = null; try{ me = JSON.parse(localStorage.getItem('ctMe')||'null'); }catch(e){}
+let friends = {};           // id -> {id,name}
+let unsubs = [];
+let curChat = null;         // {id,name,pair}
+let unChat = null;
+
+async function login(name, phone){
+  for(let i=0;i<6;i++){
+    const id = rid(6);
+    const ex = await getDoc(doc(db,'ctUsers',id));
+    if(!ex.exists()){
+      const u = { id, name, phone, friends:[], created:Date.now() };
+      await setDoc(doc(db,'ctUsers',id), u);
+      me = { id, name, phone };
+      try{ localStorage.setItem('ctMe', JSON.stringify(me)); }catch(e){}
+      return;
+    }
+  }
+  throw new Error('สุ่มไอดีไม่สำเร็จ ลองอีกครั้ง');
+}
+$('lgBtn').onclick = async ()=>{
+  const name=$('lgName').value.trim(), phone=$('lgPhone').value.replace(/\D/g,'');
+  if(!name) return toast('กรอกชื่อก่อน');
+  if(phone.length<9) return toast('เบอร์โทรไม่ถูกต้อง');
+  const b=$('lgBtn'); b.disabled=true; b.textContent='กำลังสร้างไอดี...';
+  try{ await login(name,phone); enterHome(); }
+  catch(e){ toast(e.message||'เข้าใช้งานไม่สำเร็จ'); }
+  b.disabled=false; b.textContent='เข้าใช้งาน';
+};
+$('outBtn').onclick = ()=>{
+  if(!confirm('ออกจากระบบ? ไอดีนี้จะใช้ต่อไม่ได้ ต้องสุ่มใหม่')) return;
+  try{ localStorage.removeItem('ctMe'); }catch(e){}
+  unsubs.forEach(f=>f()); unsubs=[]; me=null; show('pgLogin');
+};
+
+/* ---------- หน้าเพื่อน ---------- */
+function enterHome(){
+  $('meAv').textContent=initial(me.name); $('meName').textContent=me.name; $('meId').textContent=me.id;
+  show('pgHome');
+  unsubs.forEach(f=>f()); unsubs=[];
+  // รายชื่อเพื่อน
+  unsubs.push(onSnapshot(doc(db,'ctUsers',me.id), async snap=>{
+    const ids = (snap.data()||{}).friends||[];
+    const res = await Promise.all(ids.map(async id=>{
+      if(friends[id]) return friends[id];
+      try{ const s=await getDoc(doc(db,'ctUsers',id)); return s.exists()?{id,name:s.data().name}:{id,name:id}; }catch(e){ return {id,name:id}; }
+    }));
+    friends={}; res.forEach(f=>friends[f.id]=f);
+    renderFriends(ids);
+  }));
+  // สายเข้า
+  unsubs.push(onSnapshot(query(collection(db,'ctCalls'), where('to','==',me.id), where('status','==','ringing')), snap=>{
+    snap.docChanges().forEach(ch=>{
+      if(ch.type!=='added') return;
+      const d=ch.doc.data();
+      if(Date.now()-(d.t||0)>60000) return;      // สายค้างเก่า
+      if(callState) { updateDoc(doc(db,'ctCalls',ch.doc.id),{status:'busy'}).catch(()=>{}); return; }
+      incoming(ch.doc.id,d);
+    });
+  }));
+}
+function renderFriends(ids){
+  const el=$('frList');
+  if(!ids.length){ el.innerHTML='<div class="empty">ยังไม่มีเพื่อน ให้เพื่อนส่งไอดีมาแล้วเพิ่มด้านบน</div>'; return; }
+  el.innerHTML=ids.map(id=>{ const f=friends[id]||{id,name:id}; return '<div class="fr" data-id="'+esc(id)+'"><div class="av">'+esc(initial(f.name))+'</div><div class="nm">'+esc(f.name)+'<div class="sub">'+esc(id)+'</div></div><button class="ib" data-act="chat" type="button" aria-label="แชท"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button><button class="ib go" data-act="call" type="button" aria-label="โทร"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button></div>'; }).join('');
+}
+$('frList').onclick = e=>{
+  const b=e.target.closest('[data-act]'); const row=e.target.closest('.fr'); if(!row) return;
+  const id=row.dataset.id, f=friends[id]||{id,name:id};
+  if(b&&b.dataset.act==='call') startCall(f); else openChat(f);
+};
+$('meId').onclick = async ()=>{ try{ await navigator.clipboard.writeText(me.id); toast('คัดลอกไอดีแล้ว'); }catch(e){ toast('ไอดีของคุณคือ '+me.id); } };
+$('addBtn').onclick = async ()=>{
+  const id=$('addId').value.trim().toUpperCase();
+  if(id.length<4) return toast('กรอกไอดีเพื่อน');
+  if(id===me.id) return toast('นี่คือไอดีของคุณเอง');
+  const b=$('addBtn'); b.disabled=true;
+  try{
+    const s=await getDoc(doc(db,'ctUsers',id));
+    if(!s.exists()){ toast('ไม่พบไอดีนี้'); }
+    else{
+      const mine=(await getDoc(doc(db,'ctUsers',me.id))).data()||{};
+      const theirs=s.data()||{};
+      const a=Array.from(new Set([...(mine.friends||[]),id])), c=Array.from(new Set([...(theirs.friends||[]),me.id]));
+      await updateDoc(doc(db,'ctUsers',me.id),{friends:a});
+      await updateDoc(doc(db,'ctUsers',id),{friends:c});
+      $('addId').value=''; toast('เพิ่มเพื่อนแล้ว');
+    }
+  }catch(e){ toast('เพิ่มไม่สำเร็จ'); console.error(e); }
+  b.disabled=false;
+};
+
+/* ---------- แชท ---------- */
+function openChat(f){
+  curChat={id:f.id,name:f.name,pair:pair(me.id,f.id)};
+  $('chName').textContent=f.name; $('chAv').textContent=initial(f.name); $('msgs').innerHTML='';
+  show('pgChat');
+  if(unChat) unChat();
+  unChat=onSnapshot(query(collection(db,'ctChats',curChat.pair,'msgs'),orderBy('t'),limit(200)), snap=>{
+    const box=$('msgs'); const near=box.scrollHeight-box.scrollTop-box.clientHeight<80;
+    box.innerHTML=snap.docs.map(d=>{ const m=d.data(); return '<div class="m'+(m.from===me.id?' me':'')+'">'+esc(m.text)+'</div>'; }).join('')||'<div class="empty">เริ่มคุยกันเลย</div>';
+    if(near||snap.docChanges().length===snap.size) box.scrollTop=box.scrollHeight;
+  });
+}
+$('chBack').onclick=()=>{ if(unChat){unChat();unChat=null;} curChat=null; show('pgHome'); };
+$('chCall').onclick=()=>{ if(curChat) startCall(friends[curChat.id]||{id:curChat.id,name:curChat.name}); };
+$('cmpF').onsubmit=async e=>{
+  e.preventDefault(); const t=$('cmpT').value.trim(); if(!t||!curChat) return;
+  $('cmpT').value='';
+  try{ await addDoc(collection(db,'ctChats',curChat.pair,'msgs'),{from:me.id,text:t,t:Date.now()}); }
+  catch(err){ toast('ส่งไม่สำเร็จ'); $('cmpT').value=t; }
+};
+
+/* ---------- โทร (WebRTC เสียง, STUN ของ Google) ---------- */
+const ICE={iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}]};
+const ICON={
+  phone:'<svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>',
+  mic:'<svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4"/></svg>',
+  micoff:'<svg viewBox="0 0 24 24"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.8M19 10v1a7 7 0 0 1-1.1 3.8M5 10v1a7 7 0 0 0 11.1 5.7M12 18v4"/></svg>',
+  spk:'<svg viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4zM15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>'
+};
+let callState=null;   // {id,role,peer,pc,stream,unsubs[],timer,t0,ended}
+let ringCtx=null, ringT=null;
+
+function ringStart(){ try{ ringCtx=ringCtx||new (window.AudioContext||window.webkitAudioContext)(); const beep=()=>{ const o=ringCtx.createOscillator(),g=ringCtx.createGain(); o.frequency.value=480; g.gain.value=.08; o.connect(g); g.connect(ringCtx.destination); o.start(); o.stop(ringCtx.currentTime+.35); if(navigator.vibrate) navigator.vibrate(300); }; beep(); ringT=setInterval(beep,1600);}catch(e){} }
+function ringStop(){ clearInterval(ringT); ringT=null; }
+
+function callUI(name, st, btns, ringing){
+  $('cAv').textContent=initial(name); $('cNm').textContent=name; $('cst').textContent=st;
+  $('call').classList.add('on'); $('call').classList.toggle('ring',!!ringing);
+  $('cBtns').innerHTML=btns.map(b=>'<button type="button" class="'+b.c+'" data-k="'+b.k+'" aria-label="'+b.l+'">'+b.i+'</button>').join('');
+}
+$('cBtns').onclick=e=>{ const b=e.target.closest('button'); if(!b) return; const k=b.dataset.k; if(k==='end') hangup(); else if(k==='acc') accept(); else if(k==='mute') toggleMute(b); };
+const setSt=t=>{ $('cst').textContent=t; };
+
+async function getMic(){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) throw new Error('เบราว์เซอร์นี้ไม่รองรับไมค์ (ต้องเปิดผ่าน https)');
+  return navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
+}
+function makePC(callId, role){
+  const pc=new RTCPeerConnection(ICE);
+  const other=role==='caller'?'callee':'caller';
+  pc.onicecandidate=e=>{ if(e.candidate) addDoc(collection(db,'ctCalls',callId,'cand'),{by:role,c:e.candidate.toJSON()}).catch(()=>{}); };
+  pc.ontrack=e=>{ const a=$('rau'); a.srcObject=e.streams[0]; a.play&&a.play().catch(()=>{}); };
+  pc.onconnectionstatechange=()=>{
+    if(!callState||callState.pc!==pc) return;
+    const s=pc.connectionState;
+    if(s==='connected'){ clearTimeout(callState.failT); if(!callState.t0){ callState.t0=Date.now(); tick(); callState.timer=setInterval(tick,1000); } showPath(pc); }
+    else if(s==='failed'){ setSt('เชื่อมต่อไม่ได้'); $('cinfo').textContent='เครือข่ายนี้ต่อตรงไม่ได้ อาจต้องใช้ TURN'; setTimeout(()=>hangup(true),2500); }
+    else if(s==='disconnected'){ setSt('สัญญาณหลุด กำลังต่อใหม่...'); }
+  };
+  // ฟัง candidate ของอีกฝั่ง
+  const un=onSnapshot(collection(db,'ctCalls',callId,'cand'),snap=>{
+    snap.docChanges().forEach(ch=>{ if(ch.type!=='added') return; const d=ch.doc.data(); if(d.by!==other) return;
+      const add=()=>pc.addIceCandidate(new RTCIceCandidate(d.c)).catch(()=>{});
+      if(pc.remoteDescription) add(); else (callState.pend=callState.pend||[]).push(add); });
+  });
+  callState.unsubs.push(un);
+  return pc;
+}
+function flushPend(){ (callState.pend||[]).forEach(f=>f()); callState.pend=[]; }
+function tick(){ if(!callState||!callState.t0) return; const s=Math.floor((Date.now()-callState.t0)/1000); setSt(String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')); }
+async function showPath(pc){
+  try{
+    const st=await pc.getStats(); let rtt='',type='';
+    st.forEach(r=>{ if(r.type==='candidate-pair'&&r.nominated&&r.state==='succeeded'){ if(r.currentRoundTripTime!=null) rtt=Math.round(r.currentRoundTripTime*1000)+' ms'; const l=st.get(r.localCandidateId); if(l) type=l.candidateType; } });
+    $('cinfo').textContent=(type?('เส้นทาง: '+(type==='relay'?'ผ่านตัวส่งต่อ':'ต่อตรง')+' ('+type+')'):'')+(rtt?' · ดีเลย์ '+rtt:'');
+  }catch(e){}
+}
+
+async function startCall(f){
+  if(callState) return toast('กำลังโทรอยู่');
+  const callId=rid(10);
+  callState={id:callId,role:'caller',peer:f,unsubs:[]};
+  callUI(f.name,'กำลังขอใช้ไมค์...',[{k:'end',c:'end',i:ICON.phone,l:'วางสาย'}]);
+  try{
+    callState.stream=await getMic();
+    const pc=callState.pc=makePC(callId,'caller');
+    callState.stream.getTracks().forEach(t=>pc.addTrack(t,callState.stream));
+    const offer=await pc.createOffer(); await pc.setLocalDescription(offer);
+    await setDoc(doc(db,'ctCalls',callId),{from:me.id,fromName:me.name,to:f.id,status:'ringing',t:Date.now(),offer:{type:offer.type,sdp:offer.sdp}});
+    callUI(f.name,'กำลังโทร...',[{k:'end',c:'end',i:ICON.phone,l:'วางสาย'}],true);
+    ringStart();
+    callState.unsubs.push(onSnapshot(doc(db,'ctCalls',callId),async snap=>{
+      const d=snap.data(); if(!d||!callState||callState.id!==callId) return;
+      if(d.answer&&!pc.remoteDescription){
+        ringStop(); await pc.setRemoteDescription(d.answer); flushPend();
+        callUI(f.name,'กำลังเชื่อมต่อ...',[{k:'mute',c:'',i:ICON.mic,l:'ปิดไมค์'},{k:'end',c:'end',i:ICON.phone,l:'วางสาย'}]);
+        callState.failT=setTimeout(()=>{ if(callState&&callState.pc===pc&&pc.connectionState!=='connected'){ setSt('เชื่อมต่อไม่ได้'); $('cinfo').textContent='เครือข่ายนี้ต่อตรงไม่ได้ อาจต้องใช้ TURN'; setTimeout(()=>hangup(true),2500);} },20000);
+      }
+      if(d.status==='declined'||d.status==='busy'){ ringStop(); toast(d.status==='busy'?'สายไม่ว่าง':'ปฏิเสธสาย'); cleanup(); }
+      if(d.status==='ended'){ ringStop(); toast('อีกฝั่งวางสาย'); cleanup(); }
+    }));
+    // ไม่มีคนรับใน 45 วินาที
+    callState.ringT=setTimeout(()=>{ if(callState&&callState.id===callId&&!callState.t0&&!(pc.remoteDescription)){ toast('ไม่มีคนรับสาย'); hangup(); } },45000);
+  }catch(e){
+    console.error(e); toast(e&&e.name==='NotAllowedError'?'ไม่ได้รับอนุญาตใช้ไมค์':(e.message||'โทรไม่สำเร็จ')); cleanup();
+  }
+}
+let pendingIn=null;
+function incoming(id,d){
+  if(callState) return;
+  pendingIn={id,d};
+  callState={id,role:'callee',peer:{id:d.from,name:d.fromName||d.from},unsubs:[]};
+  callUI(d.fromName||d.from,'สายเรียกเข้า',[{k:'end',c:'end',i:ICON.phone,l:'ปฏิเสธ'},{k:'acc',c:'acc',i:ICON.phone,l:'รับสาย'}],true);
+  ringStart();
+  // ถ้าผู้โทรวางสายก่อนรับ
+  callState.unsubs.push(onSnapshot(doc(db,'ctCalls',id),snap=>{ const x=snap.data(); if(x&&x.status==='ended'&&callState&&callState.id===id&&!callState.t0&&!callState.pc){ ringStop(); toast('สายที่ไม่ได้รับ'); cleanup(); } }));
+}
+async function accept(){
+  if(!callState||callState.role!=='callee'||!pendingIn) return;
+  const {id,d}=pendingIn; pendingIn=null; ringStop();
+  setSt('กำลังขอใช้ไมค์...'); $('cBtns').innerHTML='';
+  try{
+    callState.stream=await getMic();
+    const pc=callState.pc=makePC(id,'callee');
+    callState.stream.getTracks().forEach(t=>pc.addTrack(t,callState.stream));
+    await pc.setRemoteDescription(d.offer); flushPend();
+    const ans=await pc.createAnswer(); await pc.setLocalDescription(ans);
+    await updateDoc(doc(db,'ctCalls',id),{answer:{type:ans.type,sdp:ans.sdp},status:'active'});
+    callUI(callState.peer.name,'กำลังเชื่อมต่อ...',[{k:'mute',c:'',i:ICON.mic,l:'ปิดไมค์'},{k:'end',c:'end',i:ICON.phone,l:'วางสาย'}]);
+    callState.failT=setTimeout(()=>{ if(callState&&callState.pc===pc&&pc.connectionState!=='connected'){ setSt('เชื่อมต่อไม่ได้'); $('cinfo').textContent='เครือข่ายนี้ต่อตรงไม่ได้ อาจต้องใช้ TURN'; setTimeout(()=>hangup(true),2500);} },20000);
+    callState.unsubs.push(onSnapshot(doc(db,'ctCalls',id),snap=>{ const x=snap.data(); if(x&&x.status==='ended'&&callState&&callState.id===id){ toast('อีกฝั่งวางสาย'); cleanup(); } }));
+  }catch(e){
+    console.error(e); toast(e&&e.name==='NotAllowedError'?'ไม่ได้รับอนุญาตใช้ไมค์':(e.message||'รับสายไม่สำเร็จ'));
+    updateDoc(doc(db,'ctCalls',id),{status:'declined'}).catch(()=>{}); cleanup();
+  }
+}
+function toggleMute(btn){
+  if(!callState||!callState.stream) return;
+  const t=callState.stream.getAudioTracks()[0]; if(!t) return;
+  t.enabled=!t.enabled; btn.innerHTML=t.enabled?ICON.mic:ICON.micoff; btn.className=t.enabled?'':'off';
+}
+function hangup(){
+  if(!callState) return;
+  const id=callState.id, role=callState.role, answered=!!callState.pc&&role==='callee';
+  ringStop();
+  if(role==='callee'&&pendingIn){ updateDoc(doc(db,'ctCalls',id),{status:'declined'}).catch(()=>{}); pendingIn=null; }
+  else updateDoc(doc(db,'ctCalls',id),{status:'ended'}).catch(()=>{});
+  cleanup();
+}
+function cleanup(){
+  ringStop();
+  if(!callState){ $('call').classList.remove('on'); return; }
+  const c=callState; callState=null; pendingIn=null;
+  clearInterval(c.timer); clearTimeout(c.failT); clearTimeout(c.ringT);
+  (c.unsubs||[]).forEach(f=>{ try{f();}catch(e){} });
+  try{ c.stream&&c.stream.getTracks().forEach(t=>t.stop()); }catch(e){}
+  try{ c.pc&&c.pc.close(); }catch(e){}
+  $('rau').srcObject=null; $('cinfo').textContent='';
+  $('call').classList.remove('on','ring');
+}
+window.addEventListener('pagehide',()=>{ if(callState) hangup(); });
+
+/* ---------- เริ่มต้น ---------- */
+if(me&&me.id){ enterHome(); } else { show('pgLogin'); }
+</script>
+</body>
+</html>
