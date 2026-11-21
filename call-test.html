@@ -56,6 +56,32 @@ input.t:focus{border-color:var(--b6)}
 .cb .off{background:#fff;color:#0B2C63}
 .ring .av{animation:rg 1.4s ease-out infinite}
 @keyframes rg{0%{box-shadow:0 0 0 0 rgba(255,255,255,.4)}100%{box-shadow:0 0 0 34px rgba(255,255,255,0)}}
+#rv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000;display:none;z-index:0}
+#lv{position:absolute;top:calc(14px + env(safe-area-inset-top,0px) + var(--lw,0px));right:calc(14px + var(--lw,0px));width:96px;height:128px;object-fit:cover;border-radius:14px;border:2px solid rgba(255,255,255,.55);background:#000;display:none;z-index:3;transform:scaleX(-1)}
+#lv.back{transform:none}
+#cAv,#cNm,#cst,#cinfo,.cb{position:relative;z-index:2}
+#call.vid #rv,#call.lvOn #lv{display:block}
+#call.vid #cAv,#call.vid #cNm,#call.vid #cinfo{display:none}
+#call.vid #cst{position:absolute;top:calc(18px + env(safe-area-inset-top,0px) + var(--lw,0px));left:0;right:0;text-align:center;text-shadow:0 1px 6px rgba(0,0,0,.6);padding:0 120px}
+#call.vid .cb{position:absolute;left:0;right:0;bottom:calc(26px + var(--safe) + var(--lw,0px));margin:0;justify-content:center}
+.cb.sm{gap:14px}
+.cb.sm button{width:54px;height:54px}
+.cb.sm button svg{width:24px;height:24px}
+.cb .on{background:#fff;color:#0B2C63}
+#rl{position:fixed;inset:0;z-index:55;pointer-events:none;display:none;box-sizing:border-box;border-style:solid}
+#rl.on{display:block}
+#lp{position:fixed;left:12px;right:12px;bottom:calc(100px + var(--safe) + var(--lw,0px));z-index:58;background:rgba(15,27,51,.94);color:#fff;border-radius:22px;padding:16px;display:none;max-width:420px;margin:0 auto}
+#lp.on{display:block}
+#lp .rw{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-weight:600}
+.sw{width:50px;height:30px;border-radius:15px;background:rgba(255,255,255,.25);position:relative;border:0;padding:0}
+.sw::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .15s}
+.sw.on{background:var(--b6)}
+.sw.on::after{left:23px}
+#whl{width:170px;height:170px;border-radius:50%;margin:6px auto 14px;position:relative;touch-action:none;background:radial-gradient(circle closest-side,#fff,rgba(255,255,255,0)),conic-gradient(#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);box-shadow:0 0 0 3px rgba(255,255,255,.25)}
+#whl i{position:absolute;width:22px;height:22px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1.5px rgba(0,0,0,.5),0 2px 6px rgba(0,0,0,.4);translate:-50% -50%;pointer-events:none}
+#lp .sl{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:13px}
+#lp .sl span{width:76px;opacity:.8;white-space:nowrap}
+#lp input[type=range]{flex:1;accent-color:#6FB3FD;height:28px}
 #toast{position:fixed;left:50%;bottom:calc(24px + var(--safe));translate:-50% 0;background:#0F1B33;color:#fff;padding:10px 16px;border-radius:14px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60;max-width:88%;text-align:center}
 #toast.on{opacity:1}
 </style>
@@ -103,6 +129,7 @@ input.t:focus{border-color:var(--b6)}
     <button class="ib" id="chBack" type="button" aria-label="กลับ"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
     <div class="av" id="chAv" style="width:38px;height:38px;font-size:15px"></div>
     <h1 id="chName"></h1>
+    <button class="ib" id="chVid" type="button" aria-label="วิดีโอคอล"><svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5zM1 5h15v14H1z"/></svg></button>
     <button class="ib go" id="chCall" type="button" aria-label="โทร"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button>
   </div>
   <div class="msgs" id="msgs"></div>
@@ -114,6 +141,8 @@ input.t:focus{border-color:var(--b6)}
 
 <!-- CALL -->
 <div id="call">
+  <video id="rv" autoplay playsinline></video>
+  <video id="lv" autoplay playsinline muted></video>
   <div class="av" id="cAv"></div>
   <h2 id="cNm"></h2>
   <div id="cst"></div>
@@ -121,6 +150,13 @@ input.t:focus{border-color:var(--b6)}
   <div class="cb" id="cBtns"></div>
 </div>
 <audio id="rau" autoplay playsinline></audio>
+<div id="rl"></div>
+<div id="lp">
+  <div class="rw"><span>ไฟขอบจอ</span><button class="sw" id="lSw" type="button" aria-label="เปิดปิดไฟ"></button></div>
+  <div id="whl"><i id="whd"></i></div>
+  <div class="sl"><span>ความสว่าง</span><input type="range" id="lV" min="20" max="100" value="100"></div>
+  <div class="sl"><span>ความหนา</span><input type="range" id="lW" min="8" max="90" value="30"></div>
+</div>
 <div id="toast"></div>
 
 <script type="module">
@@ -211,12 +247,12 @@ function enterHome(){
 function renderFriends(ids){
   const el=$('frList');
   if(!ids.length){ el.innerHTML='<div class="empty">ยังไม่มีเพื่อน ให้เพื่อนส่งไอดีมาแล้วเพิ่มด้านบน</div>'; return; }
-  el.innerHTML=ids.map(id=>{ const f=friends[id]||{id,name:id}; return '<div class="fr" data-id="'+esc(id)+'"><div class="av">'+esc(initial(f.name))+'</div><div class="nm">'+esc(f.name)+'<div class="sub">'+esc(id)+'</div></div><button class="ib" data-act="chat" type="button" aria-label="แชท"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button><button class="ib go" data-act="call" type="button" aria-label="โทร"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button></div>'; }).join('');
+  el.innerHTML=ids.map(id=>{ const f=friends[id]||{id,name:id}; return '<div class="fr" data-id="'+esc(id)+'"><div class="av">'+esc(initial(f.name))+'</div><div class="nm">'+esc(f.name)+'<div class="sub">'+esc(id)+'</div></div><button class="ib" data-act="chat" type="button" aria-label="แชท"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button><button class="ib" data-act="vcall" type="button" aria-label="วิดีโอคอล"><svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5zM1 5h15v14H1z"/></svg></button><button class="ib go" data-act="call" type="button" aria-label="โทร"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></button></div>'; }).join('');
 }
 $('frList').onclick = e=>{
   const b=e.target.closest('[data-act]'); const row=e.target.closest('.fr'); if(!row) return;
   const id=row.dataset.id, f=friends[id]||{id,name:id};
-  if(b&&b.dataset.act==='call') startCall(f); else openChat(f);
+  if(b&&b.dataset.act==='call') startCall(f,false); else if(b&&b.dataset.act==='vcall') startCall(f,true); else openChat(f);
 };
 $('meId').onclick = async ()=>{ try{ await navigator.clipboard.writeText(me.id); toast('คัดลอกไอดีแล้ว'); }catch(e){ toast('ไอดีของคุณคือ '+me.id); } };
 $('addBtn').onclick = async ()=>{
@@ -252,7 +288,8 @@ function openChat(f){
   });
 }
 $('chBack').onclick=()=>{ if(unChat){unChat();unChat=null;} curChat=null; show('pgHome'); };
-$('chCall').onclick=()=>{ if(curChat) startCall(friends[curChat.id]||{id:curChat.id,name:curChat.name}); };
+$('chCall').onclick=()=>{ if(curChat) startCall(friends[curChat.id]||{id:curChat.id,name:curChat.name},false); };
+$('chVid').onclick=()=>{ if(curChat) startCall(friends[curChat.id]||{id:curChat.id,name:curChat.name},true); };
 $('cmpF').onsubmit=async e=>{
   e.preventDefault(); const t=$('cmpT').value.trim(); if(!t||!curChat) return;
   $('cmpT').value='';
@@ -266,6 +303,10 @@ const ICON={
   phone:'<svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>',
   mic:'<svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4"/></svg>',
   micoff:'<svg viewBox="0 0 24 24"><path d="M1 1l22 22M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.8M19 10v1a7 7 0 0 1-1.1 3.8M5 10v1a7 7 0 0 0 11.1 5.7M12 18v4"/></svg>',
+  cam:'<svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5zM1 5h15v14H1z"/></svg>',
+  camoff:'<svg viewBox="0 0 24 24"><path d="M1 1l22 22M16 16v3H1V5h3M9 5h7v5.5M23 7l-7 5"/></svg>',
+  flip:'<svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/></svg>',
+  sun:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
   spk:'<svg viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4zM15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>'
 };
 let callState=null;   // {id,role,peer,pc,stream,unsubs[],timer,t0,ended}
@@ -277,20 +318,29 @@ function ringStop(){ clearInterval(ringT); ringT=null; }
 function callUI(name, st, btns, ringing){
   $('cAv').textContent=initial(name); $('cNm').textContent=name; $('cst').textContent=st;
   $('call').classList.add('on'); $('call').classList.toggle('ring',!!ringing);
+  $('cBtns').classList.toggle('sm',btns.length>2);
   $('cBtns').innerHTML=btns.map(b=>'<button type="button" class="'+b.c+'" data-k="'+b.k+'" aria-label="'+b.l+'">'+b.i+'</button>').join('');
 }
-$('cBtns').onclick=e=>{ const b=e.target.closest('button'); if(!b) return; const k=b.dataset.k; if(k==='end') hangup(); else if(k==='acc') accept(); else if(k==='mute') toggleMute(b); };
+$('cBtns').onclick=e=>{ const b=e.target.closest('button'); if(!b) return; const k=b.dataset.k; if(k==='end') hangup(); else if(k==='acc') accept(); else if(k==='mute') toggleMute(b); else if(k==='cam') toggleCam(b); else if(k==='flip') flipCam(); else if(k==='light') toggleLightPanel(); };
 const setSt=t=>{ $('cst').textContent=t; };
 
-async function getMic(){
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) throw new Error('เบราว์เซอร์นี้ไม่รองรับไมค์ (ต้องเปิดผ่าน https)');
-  return navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
+async function getMic(video){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) throw new Error('เบราว์เซอร์นี้ไม่รองรับไมค์/กล้อง (ต้องเปิดผ่าน https)');
+  return navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:video?{facingMode:'user',width:{ideal:640},height:{ideal:480},frameRate:{ideal:24}}:false});
 }
+function showLocal(stream){ const v=stream&&stream.getVideoTracks().length; if(v){ $('lv').srcObject=new MediaStream(stream.getVideoTracks()); $('lv').classList.remove('back'); $('call').classList.add('lvOn'); } }
+function videoBtns(){ return [{k:'mute',c:'',i:ICON.mic,l:'ปิดไมค์'},{k:'cam',c:'',i:ICON.cam,l:'ปิดกล้อง'},{k:'flip',c:'',i:ICON.flip,l:'สลับกล้อง'},{k:'light',c:lightOn()?'on':'',i:ICON.sun,l:'ไฟขอบจอ'},{k:'end',c:'end',i:ICON.phone,l:'วางสาย'}]; }
+function inCallBtns(){ return callState&&callState.video?videoBtns():[{k:'mute',c:'',i:ICON.mic,l:'ปิดไมค์'},{k:'end',c:'end',i:ICON.phone,l:'วางสาย'}]; }
+function setBtns(){ const b=inCallBtns(); $('cBtns').classList.toggle('sm',b.length>2); $('cBtns').innerHTML=b.map(x=>'<button type="button" class="'+x.c+'" data-k="'+x.k+'" aria-label="'+x.l+'">'+x.i+'</button>').join(''); }
 function makePC(callId, role){
   const pc=new RTCPeerConnection(ICE);
   const other=role==='caller'?'callee':'caller';
   pc.onicecandidate=e=>{ if(e.candidate) addDoc(collection(db,'ctCalls',callId,'cand'),{by:role,c:e.candidate.toJSON()}).catch(()=>{}); };
-  pc.ontrack=e=>{ const a=$('rau'); a.srcObject=e.streams[0]; a.play&&a.play().catch(()=>{}); };
+  pc.ontrack=e=>{
+    const st=e.streams[0];
+    if(callState&&callState.video){ const v=$('rv'); if(v.srcObject!==st) v.srcObject=st; v.play&&v.play().catch(()=>{}); v.onplaying=()=>{ if(callState) $('call').classList.add('vid'); }; }
+    else { const a=$('rau'); a.srcObject=st; a.play&&a.play().catch(()=>{}); }
+  };
   pc.onconnectionstatechange=()=>{
     if(!callState||callState.pc!==pc) return;
     const s=pc.connectionState;
@@ -317,24 +367,24 @@ async function showPath(pc){
   }catch(e){}
 }
 
-async function startCall(f){
+async function startCall(f,video){
   if(callState) return toast('กำลังโทรอยู่');
   const callId=rid(10);
-  callState={id:callId,role:'caller',peer:f,unsubs:[]};
-  callUI(f.name,'กำลังขอใช้ไมค์...',[{k:'end',c:'end',i:ICON.phone,l:'วางสาย'}]);
+  callState={id:callId,role:'caller',peer:f,unsubs:[],video:!!video};
+  callUI(f.name,video?'กำลังขอใช้ไมค์และกล้อง...':'กำลังขอใช้ไมค์...',[{k:'end',c:'end',i:ICON.phone,l:'วางสาย'}]);
   try{
-    callState.stream=await getMic();
+    callState.stream=await getMic(!!video); showLocal(callState.stream);
     const pc=callState.pc=makePC(callId,'caller');
     callState.stream.getTracks().forEach(t=>pc.addTrack(t,callState.stream));
     const offer=await pc.createOffer(); await pc.setLocalDescription(offer);
-    await setDoc(doc(db,'ctCalls',callId),{from:me.id,fromName:me.name,to:f.id,status:'ringing',t:Date.now(),offer:{type:offer.type,sdp:offer.sdp}});
+    await setDoc(doc(db,'ctCalls',callId),{from:me.id,fromName:me.name,to:f.id,video:!!video,status:'ringing',t:Date.now(),offer:{type:offer.type,sdp:offer.sdp}});
     callUI(f.name,'กำลังโทร...',[{k:'end',c:'end',i:ICON.phone,l:'วางสาย'}],true);
     ringStart();
     callState.unsubs.push(onSnapshot(doc(db,'ctCalls',callId),async snap=>{
       const d=snap.data(); if(!d||!callState||callState.id!==callId) return;
       if(d.answer&&!pc.remoteDescription){
         ringStop(); await pc.setRemoteDescription(d.answer); flushPend();
-        callUI(f.name,'กำลังเชื่อมต่อ...',[{k:'mute',c:'',i:ICON.mic,l:'ปิดไมค์'},{k:'end',c:'end',i:ICON.phone,l:'วางสาย'}]);
+        callUI(f.name,'กำลังเชื่อมต่อ...',inCallBtns());
         callState.failT=setTimeout(()=>{ if(callState&&callState.pc===pc&&pc.connectionState!=='connected'){ setSt('เชื่อมต่อไม่ได้'); $('cinfo').textContent='เครือข่ายนี้ต่อตรงไม่ได้ อาจต้องใช้ TURN'; setTimeout(()=>hangup(true),2500);} },20000);
       }
       if(d.status==='declined'||d.status==='busy'){ ringStop(); toast(d.status==='busy'?'สายไม่ว่าง':'ปฏิเสธสาย'); cleanup(); }
@@ -350,8 +400,8 @@ let pendingIn=null;
 function incoming(id,d){
   if(callState) return;
   pendingIn={id,d};
-  callState={id,role:'callee',peer:{id:d.from,name:d.fromName||d.from},unsubs:[]};
-  callUI(d.fromName||d.from,'สายเรียกเข้า',[{k:'end',c:'end',i:ICON.phone,l:'ปฏิเสธ'},{k:'acc',c:'acc',i:ICON.phone,l:'รับสาย'}],true);
+  callState={id,role:'callee',peer:{id:d.from,name:d.fromName||d.from},unsubs:[],video:!!d.video};
+  callUI(d.fromName||d.from,d.video?'วิดีโอคอลเรียกเข้า':'สายเรียกเข้า',[{k:'end',c:'end',i:ICON.phone,l:'ปฏิเสธ'},{k:'acc',c:'acc',i:ICON.phone,l:'รับสาย'}],true);
   ringStart();
   // ถ้าผู้โทรวางสายก่อนรับ
   callState.unsubs.push(onSnapshot(doc(db,'ctCalls',id),snap=>{ const x=snap.data(); if(x&&x.status==='ended'&&callState&&callState.id===id&&!callState.t0&&!callState.pc){ ringStop(); toast('สายที่ไม่ได้รับ'); cleanup(); } }));
@@ -359,15 +409,15 @@ function incoming(id,d){
 async function accept(){
   if(!callState||callState.role!=='callee'||!pendingIn) return;
   const {id,d}=pendingIn; pendingIn=null; ringStop();
-  setSt('กำลังขอใช้ไมค์...'); $('cBtns').innerHTML='';
+  setSt(callState.video?'กำลังขอใช้ไมค์และกล้อง...':'กำลังขอใช้ไมค์...'); $('cBtns').innerHTML='';
   try{
-    callState.stream=await getMic();
+    callState.stream=await getMic(callState.video); showLocal(callState.stream);
     const pc=callState.pc=makePC(id,'callee');
     callState.stream.getTracks().forEach(t=>pc.addTrack(t,callState.stream));
     await pc.setRemoteDescription(d.offer); flushPend();
     const ans=await pc.createAnswer(); await pc.setLocalDescription(ans);
     await updateDoc(doc(db,'ctCalls',id),{answer:{type:ans.type,sdp:ans.sdp},status:'active'});
-    callUI(callState.peer.name,'กำลังเชื่อมต่อ...',[{k:'mute',c:'',i:ICON.mic,l:'ปิดไมค์'},{k:'end',c:'end',i:ICON.phone,l:'วางสาย'}]);
+    callUI(callState.peer.name,'กำลังเชื่อมต่อ...',inCallBtns());
     callState.failT=setTimeout(()=>{ if(callState&&callState.pc===pc&&pc.connectionState!=='connected'){ setSt('เชื่อมต่อไม่ได้'); $('cinfo').textContent='เครือข่ายนี้ต่อตรงไม่ได้ อาจต้องใช้ TURN'; setTimeout(()=>hangup(true),2500);} },20000);
     callState.unsubs.push(onSnapshot(doc(db,'ctCalls',id),snap=>{ const x=snap.data(); if(x&&x.status==='ended'&&callState&&callState.id===id){ toast('อีกฝั่งวางสาย'); cleanup(); } }));
   }catch(e){
@@ -380,6 +430,55 @@ function toggleMute(btn){
   const t=callState.stream.getAudioTracks()[0]; if(!t) return;
   t.enabled=!t.enabled; btn.innerHTML=t.enabled?ICON.mic:ICON.micoff; btn.className=t.enabled?'':'off';
 }
+function toggleCam(btn){
+  const t=callState&&callState.stream&&callState.stream.getVideoTracks()[0]; if(!t) return;
+  t.enabled=!t.enabled; btn.innerHTML=t.enabled?ICON.cam:ICON.camoff; btn.classList.toggle('on',!t.enabled);
+}
+async function flipCam(){
+  if(!callState||!callState.pc||!callState.video||callState.flipping) return;
+  callState.flipping=true;
+  try{
+    const cur=callState.stream.getVideoTracks()[0]; const front=!(callState.facing==='environment');
+    const ns=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:front?'environment':'user'},width:{ideal:640},height:{ideal:480}},audio:false});
+    const nt=ns.getVideoTracks()[0]; nt.enabled=cur?cur.enabled:true;
+    const sender=callState.pc.getSenders().find(x=>x.track&&x.track.kind==='video');
+    if(sender) await sender.replaceTrack(nt);
+    if(cur){ callState.stream.removeTrack(cur); cur.stop(); }
+    callState.stream.addTrack(nt); callState.facing=front?'environment':'user';
+    $('lv').srcObject=new MediaStream([nt]); $('lv').classList.toggle('back',callState.facing==='environment');
+  }catch(e){ toast('สลับกล้องไม่ได้'); }
+  if(callState) callState.flipping=false;
+}
+
+/* ---------- ไฟขอบจอ (ring light) ---------- */
+let L={on:false,h:45,s:0,v:100,w:30};
+try{ const x=JSON.parse(localStorage.getItem('ctLight')||'null'); if(x) L={...L,...x,on:false}; }catch(e){}
+const lightOn=()=>L.on;
+function hsv2rgb(h,s,v){ s/=100; v/=100; const f=n=>{ const k=(n+h/60)%6; return v-v*s*Math.max(0,Math.min(k,4-k,1)); }; return [Math.round(f(5)*255),Math.round(f(3)*255),Math.round(f(1)*255)]; }
+function applyLight(){
+  const [r,g,b]=hsv2rgb(L.h,L.s,L.v), col='rgb('+r+','+g+','+b+')';
+  const el=$('rl'); el.style.borderWidth=L.w+'px'; el.style.borderColor=col; el.style.boxShadow='inset 0 0 '+(L.w*1.4)+'px '+col; el.classList.toggle('on',L.on);
+  $('lSw').classList.toggle('on',L.on); document.documentElement.style.setProperty('--lw',(L.on?L.w:0)+'px');
+  const R=85, a=L.h*Math.PI/180, d=L.s/100*R; $('whd').style.left=(85+Math.cos(a)*d)+'px'; $('whd').style.top=(85+Math.sin(a)*d)+'px'; $('whd').style.background=col;
+  $('lV').value=L.v; $('lW').value=L.w;
+  try{ localStorage.setItem('ctLight',JSON.stringify(L)); }catch(e){}
+  const lb=document.querySelector('#cBtns [data-k=light]'); if(lb) lb.classList.toggle('on',L.on);
+}
+function toggleLightPanel(){ $('lp').classList.toggle('on'); }
+$('lSw').onclick=()=>{ L.on=!L.on; applyLight(); };
+$('lV').oninput=e=>{ L.v=+e.target.value; applyLight(); };
+$('lW').oninput=e=>{ L.w=+e.target.value; applyLight(); };
+(function(){
+  const w=$('whl'); let drag=false;
+  const pick=e=>{ const r=w.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2; const dx=e.clientX-cx, dy=e.clientY-cy;
+    let h=Math.atan2(dy,dx)*180/Math.PI; if(h<0) h+=360; const s=Math.min(1,Math.hypot(dx,dy)/(r.width/2));
+    L.h=Math.round(h); L.s=Math.round(s*100); if(!L.on) L.on=true; applyLight(); };
+  w.addEventListener('pointerdown',e=>{ drag=true; w.setPointerCapture(e.pointerId); pick(e); e.preventDefault(); });
+  w.addEventListener('pointermove',e=>{ if(drag) pick(e); });
+  const up=()=>{ drag=false; }; w.addEventListener('pointerup',up); w.addEventListener('pointercancel',up);
+})();
+applyLight();
+
 function hangup(){
   if(!callState) return;
   const id=callState.id, role=callState.role, answered=!!callState.pc&&role==='callee';
@@ -396,8 +495,8 @@ function cleanup(){
   (c.unsubs||[]).forEach(f=>{ try{f();}catch(e){} });
   try{ c.stream&&c.stream.getTracks().forEach(t=>t.stop()); }catch(e){}
   try{ c.pc&&c.pc.close(); }catch(e){}
-  $('rau').srcObject=null; $('cinfo').textContent='';
-  $('call').classList.remove('on','ring');
+  $('rau').srcObject=null; $('rv').srcObject=null; $('lv').srcObject=null; $('cinfo').textContent='';
+  $('call').classList.remove('on','ring','vid','lvOn'); $('lp').classList.remove('on'); L.on=false; applyLight();
 }
 window.addEventListener('pagehide',()=>{ if(callState) hangup(); });
 
