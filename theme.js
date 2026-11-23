@@ -12,7 +12,13 @@
       vars:{'--blue-900':'#1A0B2E','--blue-800':'#2A1048','--blue-700':'#4B1F7C','--blue-600':'#6A2FB0','--blue-500':'#8A4FD6',
             '--blue-100':'#EFE5FB','--blue-50':'#F8F3FE','--bg':'#F8F4FC',
             '--t1':'#EDE2FB','--t2':'#F6F0FE','--t3':'#E2D2F6','--t4':'#EEE3FA','--t5':'#E6DAF5','--t6':'#D3BFEF',
-            '--amber-500':'#FF7A18','--amber-600':'#E0620A','--amber-100':'#FFE9D6'}}
+            '--amber-500':'#FF7A18','--amber-600':'#E0620A','--amber-100':'#FFE9D6'}},
+    'loykrathong':{name:'ลอยกระทง',themeColor:'#0B1646',swatch:['#0B1646','#2A3A9A','#F5A623'],
+      mascotDir:'theme/loykrathong/mascot/',sprites:['web','pumpkin','bat','peek','sit','cbg'],spriteDir:'theme/loykrathong/deco/',deco:{header:'theme/loykrathong/header.webp'},
+      vars:{'--blue-900':'#0B1646','--blue-800':'#14246A','--blue-700':'#26368F','--blue-600':'#3548B8','--blue-500':'#5468DA',
+            '--blue-100':'#E7EBFC','--blue-50':'#F3F5FE','--bg':'#F4F6FD',
+            '--t1':'#E4E9FB','--t2':'#F1F4FE','--t3':'#D9E0F8','--t4':'#E8ECFB','--t5':'#DFE5F8','--t6':'#C9D2F2',
+            '--amber-500':'#F5A623','--amber-600':'#D98A0B','--amber-100':'#FFF1D6'}}
   };
   var KEY='appThemeCfg', root=document.documentElement, applied='default', applyVars=[], spriteNames=[];
   var script=document.currentScript; var noApply=script&&script.hasAttribute('data-noapply');

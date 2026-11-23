@@ -440,9 +440,9 @@ a{color:inherit;}
 #pupX.hid{background:transparent;opacity:0}
 /* ===== ธีมเทศกาล: ปรับหัวเว็บ + ช่องสไปรต์ตกแต่ง (ไม่มีไฟล์สไปรต์ก็ไม่แสดง) ===== */
 .tb-mas{display:none;position:absolute;right:8px;bottom:6px;height:78px;width:auto;z-index:2;pointer-events:none;filter:drop-shadow(0 3px 5px rgba(0,0,0,.35));}
-html[data-theme="halloween"] .tb-mas{display:block;}
-html[data-theme="halloween"] .srch{margin-right:84px;}
-html[data-theme="halloween"] .tb-deco{background-size:auto 100%;background-position:left center;-webkit-mask-image:linear-gradient(90deg,#000 55%,transparent 72%);mask-image:linear-gradient(90deg,#000 55%,transparent 72%);}
+html[data-theme="halloween"] .tb-mas,html[data-theme="loykrathong"] .tb-mas{display:block;}
+html[data-theme="halloween"] .srch,html[data-theme="loykrathong"] .srch{margin-right:84px;}
+html[data-theme="halloween"] .tb-deco,html[data-theme="loykrathong"] .tb-deco{background-size:auto 100%;background-position:left center;-webkit-mask-image:linear-gradient(90deg,#000 55%,transparent 72%);mask-image:linear-gradient(90deg,#000 55%,transparent 72%);}
 html[data-sp~="web"] .sv::before,html[data-sp~="web"] .cbox::before{content:'';position:absolute;top:0;right:0;width:46px;height:46px;background:var(--sp-web) top right/contain no-repeat;pointer-events:none;z-index:1;}
 html[data-sp~="web"] .sv::before{border-top-right-radius:18px;}
 html[data-sp~="pumpkin"] .sec-t::before{width:22px;height:22px;background:var(--sp-pumpkin) center/contain no-repeat;border-radius:0;}
@@ -609,6 +609,7 @@ html.rm-lock,html.rm-lock body{overflow:hidden!important;overscroll-behavior:non
 @media (prefers-reduced-motion:reduce){.rm-shop,.rm-ov,.rm-sheet,.rm-th,.rm-cap,.rm-bar{transition:none}.rm-sbg{animation:none!important}}
 html[data-sp~="cbg"] .cbox{background:var(--sp-cbg) center/cover no-repeat,linear-gradient(160deg,var(--t1) 0%,var(--t2) 55%,#FFFFFF 100%);}
 html[data-sp~="cbg"] .cbox-h b{color:#2A1048;}
+html[data-theme="loykrathong"][data-sp~="cbg"] .cbox-h b{color:#fff;text-shadow:0 1px 6px rgba(7,16,60,.7);}
 html[data-sp~="cbg"] .cbox{padding-top:18px;padding-bottom:6px;}
 html[data-sp~="cbg"] .cbox-h{margin-bottom:10px;}
 html[data-sp~="cbg"] .cbox-ic{background:var(--amber-500,#FF7A18);}
@@ -661,7 +662,7 @@ html[data-sp~="cbg"] .cbox-ic{background:var(--amber-500,#FF7A18);}
 .login-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .login-chip .lc-pin{width:12px;height:12px;flex:none;}
 .panel .srch input{border:1px solid var(--line);border-radius:16px;height:46px;box-shadow:0 3px 10px rgba(14,59,140,.07);}
-html[data-theme="halloween"] .pin .srch{margin-right:0;}
+html[data-theme="halloween"] .pin .srch,html[data-theme="loykrathong"] .pin .srch{margin-right:0;}
 .bottom-nav{transition:transform .3s cubic-bezier(.3,.9,.3,1);will-change:transform;padding-bottom:env(safe-area-inset-bottom,0px);}
 .bnav-item{padding:6px 0 5px;gap:2px;}
 .bnav-item svg{width:20px;height:20px;}
