@@ -448,24 +448,48 @@ html[data-sp~="web"] .sv::before{border-top-right-radius:18px;}
 html[data-sp~="pumpkin"] .sec-t::before{width:22px;height:22px;background:var(--sp-pumpkin) center/contain no-repeat;border-radius:0;}
 html[data-sp~="web"] .sv.soon::after{z-index:3;}
 /* ===== ธีมลอยกระทง: โซนเด่นคั่นระหว่างหมวดหมู่กับร้านแนะนำ + พระจันทร์มีวงกลมคืนรองให้เห็นชัด ===== */
-html[data-theme="loykrathong"][data-sp~="web"] .sv::before,html[data-theme="loykrathong"][data-sp~="web"] .cbox::before{width:50px;height:50px;top:-2px;right:-2px;background:var(--sp-web) center/78% no-repeat,radial-gradient(circle closest-side,#14246A 82%,rgba(20,36,106,0) 84%);filter:drop-shadow(0 0 7px rgba(245,166,35,.65));}
-.lkz{display:none}
-html[data-theme="loykrathong"] .lkz{display:block;position:relative;margin:34px 16px 0;min-height:150px;border-radius:24px;box-shadow:0 12px 28px rgba(11,22,70,.38);isolation:isolate}
-.lkz-bg{position:absolute;inset:0;border-radius:24px;z-index:-1;background:linear-gradient(90deg,rgba(7,16,64,.86) 0%,rgba(7,16,64,.5) 55%,rgba(7,16,64,.06) 100%),url(theme/loykrathong/header.webp) center/cover no-repeat;border:1px solid rgba(255,210,122,.45)}
-.lkz-in{position:relative;z-index:2;padding:22px 126px 18px 18px;color:#fff}
+html[data-theme="loykrathong"][data-sp~="web"] .sv::before,html[data-theme="loykrathong"][data-sp~="web"] .cbox::before{width:34px;height:34px;top:8px;right:8px;background:var(--sp-web) center/84% no-repeat,radial-gradient(circle closest-side,#14246A 86%,rgba(20,36,106,0) 88%);filter:drop-shadow(0 0 5px rgba(245,166,35,.55));}
+.lkz,.lk-sky{display:none}
+html[data-theme="loykrathong"] .lkz{display:block;position:relative;margin:34px 16px 0;height:222px;border-radius:24px;box-shadow:0 12px 28px rgba(11,22,70,.38);isolation:isolate;overflow:hidden}
+html[data-theme="loykrathong"] .lk-sky{display:block;position:absolute;left:0;right:0;top:0;height:430px;overflow:hidden;pointer-events:none;z-index:-1}
+html[data-theme="loykrathong"] .panel{background:linear-gradient(#EFF4FE 0,#DCE3FB 150px,var(--bg) 420px) 0 calc(97*var(--u))/100% calc(100% - 97*var(--u)) no-repeat}
+html[data-theme="loykrathong"] .panel.stuck{background:var(--bg)}
+html[data-theme="loykrathong"] .panel.stuck .lk-sky{display:none}
+.lkz-bg{position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(7,16,64,.84) 0%,rgba(7,16,64,.46) 56%,rgba(7,16,64,.08) 100%),url(theme/loykrathong/header.webp) center top/cover no-repeat}
+.lkz-in{position:relative;z-index:4;padding:20px 130px 0 18px;color:#fff}
 .lkz-t{font:700 15px 'Prompt',sans-serif;letter-spacing:.2px;text-shadow:0 2px 8px rgba(0,0,0,.55)}
 .lkz-t b{display:block;font-size:30px;line-height:1.1;color:#FFD27A;text-shadow:0 0 18px rgba(255,190,70,.75),0 2px 8px rgba(0,0,0,.6)}
-.lkz-s{font-size:12.5px;margin-top:6px;opacity:.95;text-shadow:0 1px 6px rgba(0,0,0,.6)}
-.lkz-btn{margin-top:12px;display:inline-flex;align-items:center;gap:6px;border:0;border-radius:999px;padding:9px 16px;font-weight:700;font-size:13px;color:#2A1A00;background:linear-gradient(135deg,#FFE3A3,#F5A623);box-shadow:0 4px 14px rgba(245,166,35,.5)}
-.lkz-mas{position:absolute;right:2px;bottom:-4px;height:168px;width:auto;z-index:3;pointer-events:none;filter:drop-shadow(0 6px 10px rgba(0,0,0,.45));transform-origin:50% 100%;animation:lkbob 3.4s ease-in-out infinite}
+.lkz-s{font-size:12.5px;margin-top:5px;opacity:.95;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.lkz-btn{margin-top:11px;display:inline-flex;align-items:center;gap:6px;border:0;border-radius:999px;padding:8px 15px;font-weight:700;font-size:13px;color:#2A1A00;background:linear-gradient(135deg,#FFE3A3,#F5A623);box-shadow:0 4px 14px rgba(245,166,35,.5)}
+/* ลำธาร: แถบน้ำด้านล่าง มีคลื่นไหลและกระทงลอยตามน้ำ */
+.lk-water{position:absolute;left:0;right:0;bottom:0;height:66px;z-index:2;overflow:hidden;background:linear-gradient(180deg,rgba(18,34,110,0) 0,rgba(14,28,96,.78) 30%,#0A1440 100%)}
+.lk-wv{position:absolute;left:0;right:0;top:12px;height:46px;background:radial-gradient(ellipse 13px 1.6px at 50% 50%,rgba(255,216,140,.75),rgba(255,216,140,0) 100%),radial-gradient(ellipse 22px 1.8px at 50% 50%,rgba(160,190,255,.55),rgba(160,190,255,0) 100%);background-size:70px 15px,110px 23px;background-position:0 4px,30px 10px;animation:lkflow 6s linear infinite;-webkit-mask-image:linear-gradient(transparent,#000 35%,#000 85%,transparent);mask-image:linear-gradient(transparent,#000 35%,#000 85%,transparent)}
+.lk-wv.w2{top:24px;opacity:.75;animation-duration:10s;animation-direction:reverse;background-position:20px 0,0 6px}
+.lk-fl{position:absolute;bottom:14px;left:0;width:44px;height:38px;animation:lkdrift 20s linear infinite}
+.lk-fl>i{display:block;width:100%;height:100%;background:var(--sp-peek) bottom center/contain no-repeat;filter:drop-shadow(0 0 7px rgba(255,200,90,.85));animation:lkflt 3.6s ease-in-out infinite}
+.lk-fl.f1{animation-duration:19s;animation-delay:-4s}
+.lk-fl.f2{animation-duration:26s;animation-delay:-15s;width:36px;height:32px;bottom:9px}
+.lk-fl.f3{animation-duration:23s;animation-delay:-9s;width:30px;height:27px;bottom:20px;opacity:.9}
+.lk-bank{position:absolute;right:-26px;bottom:-24px;width:170px;height:70px;border-radius:50%;background:radial-gradient(ellipse at 50% 30%,#1F3A57,#0B1A33 70%);z-index:3}
+.lkz-mas{position:absolute;right:8px;bottom:26px;height:128px;width:auto;z-index:5;pointer-events:none;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}
+.lkz-sit{display:none;position:absolute;right:16px;bottom:26px;width:90px;height:128px;z-index:5;background:var(--sp-sit) bottom center/contain no-repeat;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5));pointer-events:none}
+.lkz.nf .lkz-sit{display:block}
 .lk-st{position:absolute;width:5px;height:5px;border-radius:50%;background:#FFE9A8;box-shadow:0 0 8px 2px rgba(255,226,140,.9);z-index:1;animation:lktw 2.6s ease-in-out infinite}
-.lk-lan{position:absolute;bottom:6px;width:20px;height:28px;background:var(--sp-bat) center/contain no-repeat;z-index:1;opacity:0;animation:lkrise 9s linear infinite;filter:drop-shadow(0 0 8px rgba(255,170,60,.8))}
-.lk-kr{position:absolute;bottom:3px;width:42px;height:36px;background:var(--sp-peek) bottom center/contain no-repeat;z-index:1;animation:lkflt 3.8s ease-in-out infinite;filter:drop-shadow(0 0 6px rgba(255,200,90,.7))}
-@keyframes lkbob{0%,100%{transform:translateY(0) rotate(-1.2deg)}50%{transform:translateY(-6px) rotate(1.2deg)}}
+.lk-sky .lk-st{background:#fff;box-shadow:0 0 8px 2px rgba(255,255,255,.95)}
+.lk-lan{position:absolute;width:22px;height:30px;background:var(--sp-bat) center/contain no-repeat;z-index:1;opacity:0;filter:drop-shadow(0 0 9px rgba(255,170,60,.85))}
+.lkz .lk-lan{bottom:40px;animation:lkrise 9s linear infinite}
+.lkz .lk-lan.l1{left:44%}.lkz .lk-lan.l2{left:56%;animation-delay:2.6s;width:17px;height:24px}.lkz .lk-lan.l3{left:30%;animation-delay:5.2s;width:15px;height:21px}.lkz .lk-lan.l4{left:68%;animation-delay:7s;width:18px;height:25px}
+.lk-sky .lk-lan{bottom:-40px;animation:lkrise2 18s linear infinite}
+.lk-sky .s1{left:6%;animation-delay:0s}.lk-sky .s2{left:24%;animation-delay:-6s;width:17px;height:24px}.lk-sky .s3{left:44%;animation-delay:-11s;width:26px;height:36px}
+.lk-sky .s4{left:63%;animation-delay:-3s;width:16px;height:22px}.lk-sky .s5{left:80%;animation-delay:-9s;width:24px;height:33px}.lk-sky .s6{left:92%;animation-delay:-14s;width:15px;height:21px}
+@keyframes lkflow{from{background-position:0 4px,30px 10px}to{background-position:70px 4px,140px 10px}}
+@keyframes lkdrift{from{transform:translateX(-70px)}to{transform:translateX(calc(100vw + 30px))}}
 @keyframes lktw{0%,100%{opacity:.25;transform:scale(.7)}50%{opacity:1;transform:scale(1.15)}}
-@keyframes lkrise{0%{transform:translateY(0) scale(.7);opacity:0}15%{opacity:.95}85%{opacity:.85}100%{transform:translateY(-130px) scale(1.05);opacity:0}}
+@keyframes lkrise{0%{transform:translateY(0) scale(.7);opacity:0}15%{opacity:.95}85%{opacity:.8}100%{transform:translateY(-150px) scale(1.05);opacity:0}}
+@keyframes lkrise2{0%{transform:translate(0,0) scale(.8);opacity:0}12%{opacity:.75}50%{transform:translate(10px,-230px) scale(1)}88%{opacity:.5}100%{transform:translate(-6px,-470px) scale(1.05);opacity:0}}
 @keyframes lkflt{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-3px) rotate(2deg)}}
-@media (prefers-reduced-motion:reduce){.lkz-mas,.lk-st,.lk-lan,.lk-kr{animation:none}.lk-lan{opacity:.9}}
+@media (prefers-reduced-motion:reduce){.lk-st,.lk-lan,.lk-fl,.lk-fl>i,.lk-wv{animation:none}.lkz .lk-lan{opacity:.9}.lk-fl.f1{left:20%}.lk-fl.f2{left:55%}.lk-fl.f3{left:78%}.lk-sky .lk-lan{display:none}}
+html[data-theme="loykrathong"] .svc::after{display:none!important}
 html[data-sp~="bat"] .sc-banner::after{content:'';position:absolute;top:6px;right:62px;width:34px;height:24px;background:var(--sp-bat) center/contain no-repeat;pointer-events:none;z-index:2;}
 html[data-sp~="peek"] .cbox{overflow:visible;margin-top:50px;}
 html[data-sp~="peek"]:not([data-sp~="web"]) .cbox::before{display:none;}
@@ -826,6 +850,7 @@ html[data-theme="halloween"] .pin .srch,html[data-theme="loykrathong"] .pin .src
 
   <!-- PANEL: rounded sheet over the header background -->
   <div class="panel" id="panel">
+  <div class="lk-sky" aria-hidden="true"><i class="lk-st" style="left:12%;top:8%"></i><i class="lk-st" style="left:44%;top:3%;animation-delay:1s"></i><i class="lk-st" style="left:78%;top:10%;animation-delay:.5s"></i><i class="lk-lan s1"></i><i class="lk-lan s2"></i><i class="lk-lan s3"></i><i class="lk-lan s4"></i><i class="lk-lan s5"></i><i class="lk-lan s6"></i></div>
     <div class="pin" id="pin">
       <div class="srch">
         <svg class="srch-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
@@ -858,15 +883,19 @@ html[data-theme="halloween"] .pin .srch,html[data-theme="loykrathong"] .pin .src
     <div class="cat-row" id="catRow"></div>
     <div class="lkz" id="lkZone" aria-label="ลอยกระทง">
       <div class="lkz-bg"></div>
-      <i class="lk-st" style="left:8%;top:14%"></i><i class="lk-st" style="left:34%;top:9%;animation-delay:.8s"></i><i class="lk-st" style="left:52%;top:22%;animation-delay:1.6s"></i><i class="lk-st" style="left:66%;top:8%;animation-delay:.4s"></i>
-      <i class="lk-lan" style="left:46%;animation-delay:0s"></i><i class="lk-lan" style="left:60%;animation-delay:3s;width:16px;height:22px"></i><i class="lk-lan" style="left:30%;animation-delay:6s;width:15px;height:21px"></i>
-      <i class="lk-kr" style="left:6%"></i><i class="lk-kr" style="left:38%;animation-delay:1.2s;width:34px;height:30px"></i>
+      <i class="lk-st" style="left:8%;top:10%"></i><i class="lk-st" style="left:30%;top:7%;animation-delay:.8s"></i><i class="lk-st" style="left:52%;top:16%;animation-delay:1.6s"></i><i class="lk-st" style="left:70%;top:8%;animation-delay:.4s"></i><i class="lk-st" style="left:90%;top:18%;animation-delay:1.2s"></i>
+      <i class="lk-lan l1"></i><i class="lk-lan l2"></i><i class="lk-lan l3"></i><i class="lk-lan l4"></i>
       <div class="lkz-in">
         <div class="lkz-t"><span>สุขสันต์วัน</span><b>ลอยกระทง</b></div>
         <div class="lkz-s">ฉลองคืนวันเพ็ญ สั่งอาหารอร่อยส่งถึงที่</div>
         <button class="lkz-btn" type="button" onclick="var e=document.getElementById('shopSec');if(e)e.scrollIntoView({behavior:'smooth',block:'start'})">ดูร้านที่เปิดอยู่<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
       </div>
-      <img class="lkz-mas" data-m="wave" alt="" onerror="this.style.display='none'">
+      <div class="lk-water"><i class="lk-wv"></i><i class="lk-wv w2"></i>
+        <i class="lk-fl f1"><i></i></i><i class="lk-fl f2"><i></i></i><i class="lk-fl f3"><i></i></i>
+      </div>
+      <div class="lk-bank"></div>
+      <img class="lkz-mas" data-m="float" alt="" onload="this.parentNode.classList.remove('nf')" onerror="this.style.display='none';this.parentNode.classList.add('nf')">
+      <i class="lkz-sit"></i>
     </div>
   </div>
 
