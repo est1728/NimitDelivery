@@ -450,7 +450,7 @@ html[data-sp~="web"] .sv::before{border-top-right-radius:18px;}
 html[data-sp~="pumpkin"] .sec-t::before{width:22px;height:22px;background:var(--sp-pumpkin) center/contain no-repeat;border-radius:0;}
 html[data-sp~="web"] .sv.soon::after{z-index:3;}
 /* ===== ธีมลอยกระทง: โซนเด่นคั่นระหว่างหมวดหมู่กับร้านแนะนำ + พระจันทร์มีวงกลมคืนรองให้เห็นชัด ===== */
-html[data-theme="loykrathong"][data-sp~="web"] .sv::before,html[data-theme="loykrathong"][data-sp~="web"] .cbox::before{width:34px;height:34px;top:8px;right:8px;background:var(--sp-web) center/84% no-repeat,radial-gradient(circle closest-side,#14246A 86%,rgba(20,36,106,0) 88%);filter:drop-shadow(0 0 5px rgba(245,166,35,.55));}
+html[data-theme="loykrathong"][data-sp~="web"] .sv::before,html[data-theme="loykrathong"][data-sp~="web"] .cbox::before{width:26px;height:26px;top:10px;right:10px;opacity:.9;background:var(--sp-web) center/84% no-repeat;filter:none;}
 .lkz,.lk-sky{display:none}
 html[data-theme="loykrathong"] .lkz{display:block;position:relative;margin:34px 16px 0;height:222px;border-radius:24px;box-shadow:0 12px 28px rgba(11,22,70,.38);isolation:isolate;overflow:hidden}
 html[data-theme="loykrathong"] .lk-sky{display:block;position:absolute;left:0;right:0;top:0;height:430px;overflow:hidden;pointer-events:none;z-index:-1}
@@ -481,7 +481,7 @@ html[data-theme="loykrathong"] .panel.stuck .lk-sky{display:none}
 .lk-lan{position:absolute;width:22px;height:30px;background:var(--sp-bat) center/contain no-repeat;z-index:1;opacity:0;filter:drop-shadow(0 0 9px rgba(255,170,60,.85))}
 .lkz .lk-lan{bottom:40px;animation:lkrise 9s linear infinite}
 .lkz .lk-lan.l1{left:44%}.lkz .lk-lan.l2{left:56%;animation-delay:2.6s;width:17px;height:24px}.lkz .lk-lan.l3{left:30%;animation-delay:5.2s;width:15px;height:21px}.lkz .lk-lan.l4{left:68%;animation-delay:7s;width:18px;height:25px}
-.lk-sky .lk-lan{bottom:-40px;animation:lkrise2 18s linear infinite}
+.lk-sky .lk-lan{display:none;bottom:-40px;animation:lkrise2 18s linear infinite}
 .lk-sky .s1{left:6%;animation-delay:0s}.lk-sky .s2{left:24%;animation-delay:-6s;width:17px;height:24px}.lk-sky .s3{left:44%;animation-delay:-11s;width:26px;height:36px}
 .lk-sky .s4{left:63%;animation-delay:-3s;width:16px;height:22px}.lk-sky .s5{left:80%;animation-delay:-9s;width:24px;height:33px}.lk-sky .s6{left:92%;animation-delay:-14s;width:15px;height:21px}
 @keyframes lkflow{from{background-position:0 4px,30px 10px}to{background-position:70px 4px,140px 10px}}
