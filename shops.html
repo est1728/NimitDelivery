@@ -12,7 +12,9 @@ window.addEventListener('beforeinstallprompt', function(e){
 });
 </script>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Nimit Delivery — ร้านค้าทั้งหมด (v6)</title>
 <meta name="theme-color" content="#0B2C63">
 <script src="theme.js"></script>
@@ -688,10 +690,10 @@ html[data-sp~="cbg"] .cbox-ic{background:var(--amber-500,#FF7A18);}
 .hero-dots i.on{background:#fff;width:16px;}
 .sticky-bar{display:none!important;}
 .pin{position:sticky;top:0;z-index:5;background:var(--bg);padding:2px 16px 10px;display:flex;align-items:center;gap:10px;}
-.hero-chip{position:absolute;left:16px;top:17px;z-index:4;margin-top:0;max-width:calc(100% - 84px);background:rgba(7,27,61,var(--pgO,.55));border:1px solid rgba(255,255,255,.4);padding:5px 11px 5px 9px;translate:var(--pgX,0px) var(--pgY,0px);scale:var(--pgS,1);transform-origin:left top;}
+.hero-chip{position:absolute;left:16px;top:calc(17px + env(safe-area-inset-top,0px));z-index:4;margin-top:0;max-width:calc(100% - 84px);background:rgba(7,27,61,var(--pgO,.55));border:1px solid rgba(255,255,255,.4);padding:5px 11px 5px 9px;translate:var(--pgX,0px) var(--pgY,0px);scale:var(--pgS,1);transform-origin:left top;}
 .hero-chip span{color:#fff;}
 .hero-chip svg{fill:#fff;}
-.sb-open{position:absolute;top:14px;right:16px;z-index:4;background:rgba(7,27,61,var(--mnO,.55));border:1px solid rgba(255,255,255,.4);translate:var(--mnX,0px) var(--mnY,0px);scale:var(--mnS,1);transform-origin:right top;}
+.sb-open{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:16px;z-index:4;background:rgba(7,27,61,var(--mnO,.55));border:1px solid rgba(255,255,255,.4);translate:var(--mnX,0px) var(--mnY,0px);scale:var(--mnS,1);transform-origin:right top;}
 .pin .icon-btn.bell{width:46px;height:46px;border-radius:16px;flex:none;background:var(--white);border:1px solid var(--line);box-shadow:0 3px 10px rgba(14,59,140,.07);}
 .pin .icon-btn.bell svg{fill:var(--blue-700);}
 .pin .icon-btn.bell svg{width:21px;height:21px;}
