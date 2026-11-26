@@ -196,7 +196,7 @@ a{color:inherit;}
 .oc-rd svg{width:22px;height:22px;}
 .oc-rd i{display:block;font-style:normal;line-height:0;background:#fff;border-radius:50%;padding:1px;animation:ocbob 1s ease-in-out infinite;}
 @keyframes ocbob{50%{transform:translateY(-2px);}}
-.oc-stl{display:flex;justify-content:space-between;font-size:10.5px;color:#64748B;margin-top:2px;}
+.oc-stl{display:flex;justify-content:space-between;font-size:9.5px;white-space:nowrap;color:#64748B;margin-top:2px;}
 .oc-stl .on{color:var(--blue-700);font-weight:700;}
 .svc{display:grid;gap:10px;padding:14px 16px 0;}
 .sv{background:var(--white);border-radius:18px;padding:12px 6px 10px;text-align:center;position:relative;box-shadow:0 2px 10px rgba(15,23,42,.06);border:1px solid var(--line);cursor:pointer;}
@@ -1409,10 +1409,10 @@ window.openAd=function(shopId,shopName,linkUrl){
 /* ===================== STATUS SLOT (ออเดอร์กำลังส่ง / ให้คะแนน) ===================== */
 // สถานะเดียวกับ track.html จริง (pending→accepted→picking→arrived→delivering→done)
 const SS=['pending','accepted','picking','arrived','delivering'];
-const STATUS_LABEL={pending:'รอรับออเดอร์',accepted:'รับงานแล้ว',picking:'ไรเดอร์กำลังไปร้าน',arrived:'ถึงร้านแล้ว',delivering:'ไรเดอร์กำลังส่งมาหาคุณ'};
-const OC_STEPS=['รอรับงาน','ไรเดอร์รับงาน','ถึงร้านแล้ว','กำลังส่ง'];
-const OC_IDX={pending:0,accepted:1,picking:1,arrived:2,delivering:3};
-const OC_MASCOT=['drink','chat','cook','moto']; // รอรับงาน / ไรเดอร์รับงาน / ถึงร้านแล้ว / กำลังส่ง
+const STATUS_LABEL={pending:'รอรับงาน',accepted:'รับงานแล้ว',picking:'กำลังไปที่ร้าน',arrived:'อยู่ที่ร้านแล้ว',delivering:'กำลังขับไปหาลูกค้า',done:'สำเร็จ'};
+const OC_STEPS=['รอรับงาน','รับงานแล้ว','ไปที่ร้าน','ถึงร้านแล้ว','ไปหาลูกค้า','สำเร็จ'];
+const OC_IDX={pending:0,accepted:1,picking:2,arrived:3,delivering:4,done:5};
+const OC_MASCOT=['drink','chat','moto','cook','moto','thumb']; // รอรับงาน / ไรเดอร์รับงาน / ถึงร้านแล้ว / กำลังส่ง
 const RV_MASCOT=['sick','stress','chat','thumb','thanks'];
 function setSlot(html){
   const el=$('stSlot'); if(!el) return;
@@ -1491,7 +1491,7 @@ async function submitQuickReview(o,n,txt,rider){
   await bump('shops',o.shopId,n);
   await bump('riders',o.riderId,rider);
 }
-async function renderActiveOrder(){
+async function renderActiveOrder(liveDocs){
   const phone=JSON.parse(localStorage.getItem('customerData')||'{}').phone || localStorage.getItem('customerPhone');
   if(!phone){ if(window._slotKey!=='none'){ window._slotKey='none'; setSlot(''); } return; }
   try{
@@ -1506,10 +1506,10 @@ async function renderActiveOrder(){
       }
       window._rateDone=rp;
     }
-    const snap=await getDocs(query(collection(db,'orders'), where('customer.phone','==',phone)));
+    const docsArr=liveDocs||(await getDocs(query(collection(db,'orders'), where('customer.phone','==',phone)))).docs;
     let active=null, lastDone=null;
     const ts=o=>(o.createdAt?.toMillis?.()||0);
-    snap.forEach(d=>{
+    docsArr.forEach(d=>{
       const o={docId:d.id,...d.data()};
       if(SS.includes(o.status)){ if(!active||ts(o)>ts(active)) active=o; }
       else if(o.status==='done'){ if(!lastDone||ts(o)>ts(lastDone)) lastDone=o; }
@@ -2707,18 +2707,26 @@ async function liveRefresh(force){
     if(window._openSig!==undefined && os!==window._openSig && !busy){ renderPop(); renderShops(); }
     window._openSig=os;
   }catch(e){}
-  renderActiveOrder(); renderCouponPromo(); loadServiceCfg(); loadBanner(); loadNotifBadge(); refreshHomeBg(); loadAds();
+  window.ensureOrderWatch&&window.ensureOrderWatch(); renderActiveOrder(); renderCouponPromo(); loadServiceCfg(); loadBanner(); loadNotifBadge(); refreshHomeBg(); loadAds();
 }
 NimitLive.watch(liveRefresh,{every:25000});
 window.addEventListener('themechange',()=>{ try{ window._slotKey='';renderActiveOrder(); renderShops&&renderShops(); }catch(e){} });
 (function(){
-  let f1=true,f2=true;
+  let f1=true;
   try{ onSnapshot(collection(db,'shops'),snap=>{ if(f1){ f1=false; return; } loadShopsData(true,snap); },()=>{}); }catch(e){}
+})();
+// ฟังออเดอร์ของลูกค้าแบบเรียลไทม์: อัปเดตแผงสถานะทันทีที่สถานะเปลี่ยน/มีออเดอร์ใหม่ (ไม่ต้องรีเฟรช)
+// เรียกซ้ำได้ทุกรอบ — ถ้าเบอร์เปลี่ยน/เพิ่งล็อกอินจะสมัครฟังใหม่เอง
+window.ensureOrderWatch=function(){
   try{
     const ph=JSON.parse(localStorage.getItem('customerData')||'{}').phone || localStorage.getItem('customerPhone');
-    if(ph) onSnapshot(query(collection(db,'orders'),where('customer.phone','==',ph)),()=>{ if(f2){ f2=false; return; } renderActiveOrder(); },()=>{});
+    if(!ph || window._ordWatchPh===ph) return;
+    if(window._ordWatchOff){ try{ window._ordWatchOff(); }catch(e){} }
+    window._ordWatchPh=ph;
+    window._ordWatchOff=onSnapshot(query(collection(db,'orders'),where('customer.phone','==',ph)),snap=>{ renderActiveOrder(snap.docs); },()=>{ window._ordWatchPh=''; });
   }catch(e){}
-})();
+};
+ensureOrderWatch();
 </script>
 <!-- ===== นอกพื้นที่ให้บริการ ===== -->
 <div class="zone-overlay" id="zoneOutOverlay">

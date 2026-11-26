@@ -214,7 +214,7 @@ const statusSteps = [
   { key:"delivering", label:"กำลังส่ง",   icon:'<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/>' },
   { key:"done",       label:"เสร็จสิ้น",  icon:'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>' }
 ];
-const statusLabel = { pending:"รอรับออเดอร์", accepted:"รับงานแล้ว", picking:"ไรเดอร์กำลังไปร้าน", arrived:"ถึงร้านแล้ว", delivering:"ไรเดอร์กำลังส่งมาหาคุณ", done:"ส่งเสร็จสิ้น", rejected:"ถูกยกเลิก" };
+const statusLabel = { pending:"รอรับงาน", accepted:"รับงานแล้ว", picking:"กำลังไปที่ร้าน", arrived:"อยู่ที่ร้านแล้ว", delivering:"กำลังขับไปหาลูกค้า", done:"สำเร็จ", rejected:"ถูกยกเลิก" };
 const statusIconClass = { pending:"icon-pending", accepted:"icon-active", picking:"icon-active", arrived:"icon-active", delivering:"icon-delivering", done:"icon-done", rejected:"icon-done" };
 const statusBadgeClass = { pending:"badge-pending", accepted:"badge-active", picking:"badge-active", arrived:"badge-active", delivering:"badge-delivering", done:"badge-done", rejected:"badge-rejected" };
 
